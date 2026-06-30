@@ -17,6 +17,11 @@ logs/
 node_modules
 **/dist/
 coverage
+.turbo/
+.data/
+**/openapi.json
+playwright-report/
+test-results/
 .env
 .env.local
 **/.env.local

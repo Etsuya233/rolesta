@@ -1,0 +1,11 @@
+{
+  "name": "@rolesta/config",
+  "version": "0.1.0",
+  "private": true,
+  "type": "commonjs",
+  "exports": {
+    "./eslint/base": "./eslint/base.cjs",
+    "./prettier/base": "./prettier/base.cjs",
+    "./tsconfig/base": "./tsconfig/base.json"
+  }
+}
