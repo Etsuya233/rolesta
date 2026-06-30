@@ -1,5 +1,6 @@
 import { PanelRightCloseIcon } from 'lucide-react';
-import { PropsWithChildren, useState } from 'react';
+import { useState } from 'react';
+import type { PropsWithChildren } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';

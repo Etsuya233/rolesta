@@ -2,10 +2,11 @@ import { mkdirSync } from 'node:fs';
 import { createRequire } from 'node:module';
 import path from 'node:path';
 import { Kysely, SqliteDialect } from 'kysely';
+import type DatabaseDriverType from 'better-sqlite3';
 import type { Database } from '../schema/database.js';
 
 const require = createRequire(import.meta.url);
-const DatabaseDriver = require('better-sqlite3') as typeof import('better-sqlite3');
+const DatabaseDriver = require('better-sqlite3') as typeof DatabaseDriverType;
 
 export interface SqliteDatabaseOptions {
   databasePath: string;

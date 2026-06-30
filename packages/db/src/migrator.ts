@@ -2,6 +2,7 @@ import { promises as fs } from 'node:fs';
 import path from 'node:path';
 import { Migrator } from 'kysely';
 import { createSqliteDatabase } from './dialects/sqlite.js';
+import { toMigrationError } from './migration-error.js';
 import { createMigrationProvider } from './migrations/index.js';
 
 export async function migrateToLatest(databasePath: string): Promise<void> {
@@ -23,7 +24,7 @@ export async function migrateToLatest(databasePath: string): Promise<void> {
     });
 
     if (error) {
-      throw error;
+      throw toMigrationError(error);
     }
   } finally {
     await db.destroy();

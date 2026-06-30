@@ -18,13 +18,15 @@ export class AuthController {
 
   @Post('login')
   @ApiOkResponse({ type: CurrentUserResponseDto })
-  login(@Body() _body: LoginRequestDto): CurrentUserResponseDto {
+  login(@Body() body: LoginRequestDto): CurrentUserResponseDto {
+    void body;
     return this.authService.getCurrentUser();
   }
 
   @Post('setup-admin')
   @ApiOkResponse({ type: CurrentUserResponseDto })
-  setupAdmin(@Body() _body: SetupAdminRequestDto): CurrentUserResponseDto {
+  setupAdmin(@Body() body: SetupAdminRequestDto): CurrentUserResponseDto {
+    void body;
     return this.authService.getCurrentUser();
   }
 

@@ -3,6 +3,7 @@ import os from 'node:os';
 import path from 'node:path';
 import { Migrator } from 'kysely';
 import { createSqliteDatabase } from '../dialects/sqlite.js';
+import { toMigrationError } from '../migration-error.js';
 import { createMigrationProvider } from '../migrations/index.js';
 
 export async function createTestDatabase() {
@@ -19,7 +20,7 @@ export async function createTestDatabase() {
 
   if (error) {
     await db.destroy();
-    throw error;
+    throw toMigrationError(error);
   }
 
   return {
