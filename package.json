@@ -2,18 +2,18 @@
   "name": "rolesta",
   "version": "0.1.0",
   "private": true,
-  "packageManager": "pnpm@9.15.4",
+  "packageManager": "pnpm@11.7.0",
   "engines": {
     "node": ">=22.0.0",
-    "pnpm": ">=9.0.0"
+    "pnpm": ">=11.0.0"
   },
   "scripts": {
-    "dev": "turbo dev",
-    "build": "turbo build",
-    "test": "turbo test",
-    "test:e2e": "turbo test:e2e",
-    "lint": "turbo lint",
-    "typecheck": "turbo typecheck",
+    "dev": "pnpm exec turbo dev",
+    "build": "pnpm exec turbo build",
+    "test": "pnpm exec turbo test",
+    "test:e2e": "pnpm exec turbo test:e2e",
+    "lint": "pnpm exec turbo lint",
+    "typecheck": "pnpm exec turbo typecheck",
     "db:migrate": "pnpm --filter @rolesta/db migrate",
     "db:seed": "pnpm --filter @rolesta/db seed",
     "openapi:generate": "pnpm --filter @rolesta/api openapi:generate && pnpm --filter @rolesta/web openapi:generate",
