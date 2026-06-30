@@ -1,20 +1,20 @@
 import { ApiProperty } from '@nestjs/swagger';
 
 class CurrentUserDto {
-  @ApiProperty()
+  @ApiProperty({ type: String })
   id!: string;
 
-  @ApiProperty()
+  @ApiProperty({ type: String })
   email!: string;
 
-  @ApiProperty()
+  @ApiProperty({ type: String })
   displayName!: string;
 
-  @ApiProperty({ enum: ['admin', 'user'] })
+  @ApiProperty({ type: String, enum: ['admin', 'user'] })
   role!: 'admin' | 'user';
 }
 
 export class CurrentUserResponseDto {
-  @ApiProperty({ nullable: true, type: CurrentUserDto })
+  @ApiProperty({ nullable: true, type: () => CurrentUserDto })
   user!: CurrentUserDto | null;
 }
