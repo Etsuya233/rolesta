@@ -1,0 +1,30 @@
+{
+  "name": "@rolesta/db",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    }
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "test": "vitest run",
+    "lint": "eslint \"src/**/*.ts\"",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "migrate": "node dist/migrator.js",
+    "seed": "node -e \"console.log('No seed data is defined for the skeleton.')\""
+  },
+  "dependencies": {
+    "better-sqlite3": "^11.10.0",
+    "kysely": "^0.28.2"
+  },
+  "devDependencies": {
+    "@rolesta/config": "workspace:*",
+    "@types/better-sqlite3": "^7.6.13"
+  }
+}
