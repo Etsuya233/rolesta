@@ -204,7 +204,7 @@ Rolesta uses a TypeScript monorepo with a separated API and web app.
 ### Requirements
 
 - Node.js 22 or newer.
-- pnpm 11 or newer.
+- pnpm 9 or newer.
 
 ### Setup
 
