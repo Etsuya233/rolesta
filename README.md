@@ -196,3 +196,41 @@ Rolesta 计划支持个人部署信任模型下的插件系统。插件可以扩
 - 上下文可解释。用户应能查看一次生成受到哪些内容影响。
 - 移动端可完成核心流程。发送消息、重新生成、编辑消息、切换预设、查看角色信息和打开调试摘要等操作应能在窄屏完成。
 - 导入内容尽量不丢失。平台未展示或暂未支持的兼容字段仍应被保留。
+
+## Development
+
+Rolesta uses a TypeScript monorepo with a separated API and web app.
+
+### Requirements
+
+- Node.js 22 or newer.
+- pnpm 11 or newer.
+
+### Setup
+
+```powershell
+pnpm install --trust-lockfile
+Copy-Item .env.example .env
+pnpm db:migrate
+```
+
+### Run
+
+```powershell
+pnpm dev
+```
+
+Default local URLs:
+
+- Web: http://127.0.0.1:5173
+- API: http://127.0.0.1:3000
+- API docs: http://127.0.0.1:3000/docs
+
+### Verify
+
+```powershell
+pnpm lint
+pnpm typecheck
+pnpm test
+pnpm build
+```
