@@ -1,5 +1,19 @@
 packages:
   - "apps/*"
   - "packages/*"
+overrides:
+  caniuse-lite: 1.0.30001799
+  electron-to-chromium: 1.5.381
 allowBuilds:
-  esbuild: set this to true or false
+  '@scarf/scarf': false
+  better-sqlite3: true
+  esbuild: true
+minimumReleaseAgeExclude:
+  - '@turbo/darwin-64@2.10.2'
+  - '@turbo/darwin-arm64@2.10.2'
+  - '@turbo/linux-64@2.10.2'
+  - '@turbo/linux-arm64@2.10.2'
+  - '@turbo/windows-64@2.10.2'
+  - '@turbo/windows-arm64@2.10.2'
+  - turbo@2.10.2
+  - vite@8.1.2

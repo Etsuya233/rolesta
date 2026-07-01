@@ -1,4 +1,4 @@
-import type { MigrationProvider } from 'kysely';
+import type { MigrationProvider } from 'kysely/migration';
 import * as initialMigration from './0001_initial.js';
 
 export function createMigrationProvider(): MigrationProvider {

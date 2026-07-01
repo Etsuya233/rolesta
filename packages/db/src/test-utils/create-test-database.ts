@@ -1,7 +1,7 @@
 import { promises as fs } from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
-import { Migrator } from 'kysely';
+import { Migrator } from 'kysely/migration';
 import { createSqliteDatabase } from '../dialects/sqlite.js';
 import { toMigrationError } from '../migration-error.js';
 import { createMigrationProvider } from '../migrations/index.js';

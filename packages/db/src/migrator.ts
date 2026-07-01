@@ -1,6 +1,6 @@
 import { promises as fs } from 'node:fs';
 import path from 'node:path';
-import { Migrator } from 'kysely';
+import { Migrator, type MigrationResult } from 'kysely/migration';
 import { createSqliteDatabase } from './dialects/sqlite.js';
 import { toMigrationError } from './migration-error.js';
 import { createMigrationProvider } from './migrations/index.js';
@@ -17,7 +17,7 @@ export async function migrateToLatest(databasePath: string): Promise<void> {
 
     const { error, results } = await migrator.migrateToLatest();
 
-    results?.forEach((result) => {
+    results?.forEach((result: MigrationResult) => {
       if (result.status === 'Success') {
         console.log(`Migration ${result.migrationName} completed`);
       }

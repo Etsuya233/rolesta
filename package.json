@@ -2,10 +2,10 @@
   "name": "rolesta",
   "version": "0.1.0",
   "private": true,
-  "packageManager": "pnpm@9.15.4",
+  "packageManager": "pnpm@11.9.0",
   "engines": {
     "node": ">=22.0.0",
-    "pnpm": ">=9.0.0"
+    "pnpm": ">=11.0.0"
   },
   "scripts": {
     "dev": "turbo dev",
@@ -20,13 +20,13 @@
     "format": "prettier --write \"**/*.{ts,tsx,js,cjs,json,md,css}\""
   },
   "devDependencies": {
-    "@eslint/js": "^9.30.0",
-    "@types/node": "^22.15.30",
-    "eslint": "^9.30.0",
-    "prettier": "^3.5.3",
-    "turbo": "^2.5.4",
-    "typescript": "^5.8.3",
-    "typescript-eslint": "^8.34.1",
-    "vitest": "^3.2.4"
+    "@eslint/js": "^10.0.1",
+    "@types/node": "^25.9.4",
+    "eslint": "^10.6.0",
+    "prettier": "^3.9.4",
+    "turbo": "^2.10.2",
+    "typescript": "^6.0.3",
+    "typescript-eslint": "^8.62.1",
+    "vitest": "^4.1.9"
   }
 }
