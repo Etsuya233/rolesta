@@ -123,10 +123,10 @@ export interface operations {
                 content: {
                     "application/json": {
                         /**
-                         * @example 0
-                         * @enum {number}
+                         * @example SUCCESS
+                         * @enum {string}
                          */
-                        code: 0;
+                        code: "SUCCESS";
                         /** @example ok */
                         msg: string;
                         data: {
@@ -156,10 +156,10 @@ export interface operations {
                 content: {
                     "application/json": {
                         /**
-                         * @example 0
-                         * @enum {number}
+                         * @example SUCCESS
+                         * @enum {string}
                          */
-                        code: 0;
+                        code: "SUCCESS";
                         /** @example ok */
                         msg: string;
                         data: components["schemas"]["CurrentUserResponseDto"];
@@ -184,10 +184,10 @@ export interface operations {
                 content: {
                     "application/json": {
                         /**
-                         * @example 0
-                         * @enum {number}
+                         * @example SUCCESS
+                         * @enum {string}
                          */
-                        code: 0;
+                        code: "SUCCESS";
                         /** @example ok */
                         msg: string;
                         data: components["schemas"]["CurrentUserResponseDto"];
@@ -212,10 +212,10 @@ export interface operations {
                 content: {
                     "application/json": {
                         /**
-                         * @example 0
-                         * @enum {number}
+                         * @example SUCCESS
+                         * @enum {string}
                          */
-                        code: 0;
+                        code: "SUCCESS";
                         /** @example ok */
                         msg: string;
                         data: components["schemas"]["CurrentUserResponseDto"];
@@ -240,10 +240,10 @@ export interface operations {
                 content: {
                     "application/json": {
                         /**
-                         * @example 0
-                         * @enum {number}
+                         * @example SUCCESS
+                         * @enum {string}
                          */
-                        code: 0;
+                        code: "SUCCESS";
                         /** @example ok */
                         msg: string;
                         data: {

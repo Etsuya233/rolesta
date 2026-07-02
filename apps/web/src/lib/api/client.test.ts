@@ -1,25 +1,23 @@
-import { ERROR_CODES, type ApiEnvelope } from '@rolesta/shared';
+import { API_SUCCESS_CODE, ERROR_CODES, type ApiEnvelope } from '@rolesta/shared';
 import { describe, expect, expectTypeOf, it } from 'vitest';
 import { ApiRequestError, type ApiFetchResult, requestApi } from './client';
 
 describe('requestApi', () => {
   it('unwraps successful API envelopes and keeps the raw envelope', async () => {
-    const envelope: ApiEnvelope<{ user: null }> = {
-      code: 0,
+    const envelope = {
+      code: API_SUCCESS_CODE,
       msg: 'ok',
       data: { user: null },
-    };
+    } satisfies ApiEnvelope<{ user: null }>;
     const response = new Response(null, { status: 200 });
 
-    const result = await requestApi<{ user: null }>(Promise.resolve({ data: envelope, response }));
+    const result = await requestApi(Promise.resolve({ data: envelope, response }));
 
     expectTypeOf(result).toEqualTypeOf<ApiFetchResult<{ user: null }>>();
     expect(result.ok).toBe(true);
 
-    if (!result.ok) {
-      throw new Error('Expected successful API result');
-    }
-
+    expect(result.code).toBe(API_SUCCESS_CODE);
+    expect(result.msg).toBe('ok');
     expect(result.data).toEqual({ user: null });
     expect(result.envelope).toBe(envelope);
     expect(result.rawResponse).toBe(response);
@@ -33,15 +31,12 @@ describe('requestApi', () => {
     };
     const response = new Response(null, { status: 400 });
 
-    const result = await requestApi<null>(Promise.resolve({ error: envelope, response }));
+    const result = await requestApi(Promise.resolve({ error: envelope, response }));
 
     expect(result.ok).toBe(false);
-
-    if (result.ok) {
-      throw new Error('Expected failed API result');
-    }
-
-    expect(result.errorCode).toBe(ERROR_CODES.VALIDATION_FAILED);
+    expect(result.code).toBe(ERROR_CODES.VALIDATION_FAILED);
+    expect(result.msg).toBe('请求失败');
+    expect(result.data).toBeNull();
     expect(result.envelope).toBe(envelope);
     expect(result.rawResponse).toBe(response);
   });
@@ -56,6 +51,6 @@ describe('requestApi', () => {
       response: Response;
     }>;
 
-    await expect(requestApi<unknown>(invalidResponse)).rejects.toBeInstanceOf(ApiRequestError);
+    await expect(requestApi(invalidResponse)).rejects.toBeInstanceOf(ApiRequestError);
   });
 });

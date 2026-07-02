@@ -1,5 +1,6 @@
 import { applyDecorators, type Type } from '@nestjs/common';
 import { ApiExtraModels, ApiOkResponse, getSchemaPath } from '@nestjs/swagger';
+import { API_SUCCESS_CODE } from '@rolesta/shared';
 
 type ApiEnvelopeResponseOptions = {
   description?: string;
@@ -41,7 +42,7 @@ function createEnvelopeSchema(options: ApiEnvelopeResponseOptions): Record<strin
     type: 'object',
     required: ['code', 'msg', 'data'],
     properties: {
-      code: { type: 'number', enum: [0], example: 0 },
+      code: { type: 'string', enum: [API_SUCCESS_CODE], example: API_SUCCESS_CODE },
       msg: { type: 'string', example: 'ok' },
       data: dataSchema,
     },

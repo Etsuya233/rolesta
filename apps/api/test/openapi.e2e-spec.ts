@@ -1,4 +1,5 @@
 import { Test } from '@nestjs/testing';
+import { API_SUCCESS_CODE } from '@rolesta/shared';
 import { describe, expect, it } from 'vitest';
 import { AppModule } from '../src/app.module.js';
 import { configureApp } from '../src/configure-app.js';
@@ -25,7 +26,7 @@ describe('OpenAPI document', () => {
             type: 'object',
             required: ['code', 'msg', 'data'],
             properties: {
-              code: { type: 'number', enum: [0], example: 0 },
+              code: { type: 'string', enum: [API_SUCCESS_CODE], example: API_SUCCESS_CODE },
               msg: { type: 'string', example: 'ok' },
               data: { $ref: '#/components/schemas/CurrentUserResponseDto' },
             },

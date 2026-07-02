@@ -1,5 +1,6 @@
 import type { INestApplication } from '@nestjs/common';
 import { Test } from '@nestjs/testing';
+import { API_SUCCESS_CODE } from '@rolesta/shared';
 import type { App } from 'supertest/types.js';
 import request from 'supertest';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
@@ -28,7 +29,7 @@ describe('Auth API skeleton', () => {
       .expect(200)
       .expect((response) => {
         expect(response.body).toEqual({
-          code: 0,
+          code: API_SUCCESS_CODE,
           msg: 'ok',
           data: { user: null },
         });
