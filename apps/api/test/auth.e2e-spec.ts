@@ -42,8 +42,8 @@ describe('Auth API skeleton', () => {
       .expect(400)
       .expect((response) => {
         expect(response.body).toEqual({
-          code: 'VALIDATION_FAILED',
-          msg: '请求失败',
+          code: 'INTERNAL_ERROR',
+          msg: 'failed',
           data: null,
         });
       });

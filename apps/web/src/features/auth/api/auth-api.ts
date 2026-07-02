@@ -1,6 +1,9 @@
-import { apiGet } from '../../../lib/api/client';
-import type { CurrentUserResponse } from '../../../lib/api/openapi-types';
+import type { ApiFetchResult } from '../../../lib/api/client';
+import type { components } from '../../../lib/api/generated/schema';
+import { openApiClient, requestApi } from '../../../lib/api/client';
 
-export function getCurrentUser(): Promise<CurrentUserResponse> {
-  return apiGet<CurrentUserResponse>('/auth/current-user');
+type CurrentUserResponse = components['schemas']['CurrentUserResponseDto'];
+
+export function getCurrentUser(): Promise<ApiFetchResult<CurrentUserResponse>> {
+  return requestApi<CurrentUserResponse>(openApiClient.GET('/auth/current-user'));
 }

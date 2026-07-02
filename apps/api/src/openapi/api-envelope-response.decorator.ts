@@ -41,7 +41,7 @@ function createEnvelopeSchema(options: ApiEnvelopeResponseOptions): Record<strin
     type: 'object',
     required: ['code', 'msg', 'data'],
     properties: {
-      code: { type: 'number', example: 0 },
+      code: { type: 'number', enum: [0], example: 0 },
       msg: { type: 'string', example: 'ok' },
       data: dataSchema,
     },

@@ -122,10 +122,19 @@ export interface operations {
                 };
                 content: {
                     "application/json": {
-                        /** @enum {string} */
-                        status: "ok";
-                        /** @enum {string} */
-                        service: "rolesta-api";
+                        /**
+                         * @example 0
+                         * @enum {number}
+                         */
+                        code: 0;
+                        /** @example ok */
+                        msg: string;
+                        data: {
+                            /** @enum {string} */
+                            status: "ok";
+                            /** @enum {string} */
+                            service: "rolesta-api";
+                        };
                     };
                 };
             };
@@ -145,7 +154,16 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["CurrentUserResponseDto"];
+                    "application/json": {
+                        /**
+                         * @example 0
+                         * @enum {number}
+                         */
+                        code: 0;
+                        /** @example ok */
+                        msg: string;
+                        data: components["schemas"]["CurrentUserResponseDto"];
+                    };
                 };
             };
         };
@@ -164,7 +182,16 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["CurrentUserResponseDto"];
+                    "application/json": {
+                        /**
+                         * @example 0
+                         * @enum {number}
+                         */
+                        code: 0;
+                        /** @example ok */
+                        msg: string;
+                        data: components["schemas"]["CurrentUserResponseDto"];
+                    };
                 };
             };
         };
@@ -183,7 +210,16 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["CurrentUserResponseDto"];
+                    "application/json": {
+                        /**
+                         * @example 0
+                         * @enum {number}
+                         */
+                        code: 0;
+                        /** @example ok */
+                        msg: string;
+                        data: components["schemas"]["CurrentUserResponseDto"];
+                    };
                 };
             };
         };
@@ -203,7 +239,16 @@ export interface operations {
                 };
                 content: {
                     "application/json": {
-                        ok?: boolean;
+                        /**
+                         * @example 0
+                         * @enum {number}
+                         */
+                        code: 0;
+                        /** @example ok */
+                        msg: string;
+                        data: {
+                            ok?: boolean;
+                        };
                     };
                 };
             };
