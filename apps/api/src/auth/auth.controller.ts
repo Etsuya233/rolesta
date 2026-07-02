@@ -1,5 +1,6 @@
 import { Body, Controller, Get, Inject, Post } from '@nestjs/common';
-import { ApiOkResponse, ApiTags } from '@nestjs/swagger';
+import { ApiTags } from '@nestjs/swagger';
+import { ApiEnvelopeOkResponse } from '../openapi/api-envelope-response.decorator.js';
 import { AuthService } from './auth.service.js';
 import { CurrentUserResponseDto } from './dto/current-user-response.dto.js';
 import { LoginRequestDto } from './dto/login-request.dto.js';
@@ -11,27 +12,27 @@ export class AuthController {
   constructor(@Inject(AuthService) private readonly authService: AuthService) {}
 
   @Get('current-user')
-  @ApiOkResponse({ type: CurrentUserResponseDto })
+  @ApiEnvelopeOkResponse({ type: CurrentUserResponseDto })
   getCurrentUser(): CurrentUserResponseDto {
     return this.authService.getCurrentUser();
   }
 
   @Post('login')
-  @ApiOkResponse({ type: CurrentUserResponseDto })
+  @ApiEnvelopeOkResponse({ type: CurrentUserResponseDto })
   login(@Body() body: LoginRequestDto): CurrentUserResponseDto {
     void body;
     return this.authService.getCurrentUser();
   }
 
   @Post('setup-admin')
-  @ApiOkResponse({ type: CurrentUserResponseDto })
+  @ApiEnvelopeOkResponse({ type: CurrentUserResponseDto })
   setupAdmin(@Body() body: SetupAdminRequestDto): CurrentUserResponseDto {
     void body;
     return this.authService.getCurrentUser();
   }
 
   @Post('logout')
-  @ApiOkResponse({ schema: { type: 'object', properties: { ok: { type: 'boolean' } } } })
+  @ApiEnvelopeOkResponse({ schema: { type: 'object', properties: { ok: { type: 'boolean' } } } })
   logout(): { ok: true } {
     return { ok: true };
   }

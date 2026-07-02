@@ -1,5 +1,6 @@
 import { Controller, Get, Inject } from '@nestjs/common';
-import { ApiOkResponse, ApiTags } from '@nestjs/swagger';
+import { ApiTags } from '@nestjs/swagger';
+import { ApiEnvelopeOkResponse } from '../openapi/api-envelope-response.decorator.js';
 import { HealthService, type HealthResponse } from './health.service.js';
 
 @ApiTags('health')
@@ -8,7 +9,7 @@ export class HealthController {
   constructor(@Inject(HealthService) private readonly healthService: HealthService) {}
 
   @Get()
-  @ApiOkResponse({
+  @ApiEnvelopeOkResponse({
     schema: {
       type: 'object',
       required: ['status', 'service'],

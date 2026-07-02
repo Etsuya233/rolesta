@@ -27,7 +27,11 @@ describe('Auth API skeleton', () => {
       .get('/auth/current-user')
       .expect(200)
       .expect((response) => {
-        expect(response.body).toEqual({ user: null });
+        expect(response.body).toEqual({
+          code: 0,
+          msg: 'ok',
+          data: { user: null },
+        });
       });
   });
 });

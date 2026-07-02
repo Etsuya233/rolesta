@@ -17,6 +17,23 @@ describe('OpenAPI document', () => {
     expect(document.paths['/health']).toBeDefined();
     expect(document.paths['/auth/current-user']).toBeDefined();
 
+    const response = document.paths['/auth/current-user']?.get?.responses['200'];
+    expect(response).toMatchObject({
+      content: {
+        'application/json': {
+          schema: {
+            type: 'object',
+            required: ['code', 'msg', 'data'],
+            properties: {
+              code: { type: 'number', example: 0 },
+              msg: { type: 'string', example: 'ok' },
+              data: { $ref: '#/components/schemas/CurrentUserResponseDto' },
+            },
+          },
+        },
+      },
+    });
+
     await app.close();
   });
 });

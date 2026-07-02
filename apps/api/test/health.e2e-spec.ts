@@ -28,8 +28,12 @@ describe('Health API', () => {
       .expect(200)
       .expect((response) => {
         expect(response.body).toEqual({
-          status: 'ok',
-          service: 'rolesta-api',
+          code: 0,
+          msg: 'ok',
+          data: {
+            status: 'ok',
+            service: 'rolesta-api',
+          },
         });
       });
   });
