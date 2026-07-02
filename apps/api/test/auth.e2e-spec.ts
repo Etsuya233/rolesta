@@ -34,4 +34,18 @@ describe('Auth API skeleton', () => {
         });
       });
   });
+
+  it('returns validation failure in the shared envelope format', async () => {
+    await request(app.getHttpServer() as App)
+      .post('/auth/login')
+      .send({ email: 'invalid-email', password: 'short' })
+      .expect(400)
+      .expect((response) => {
+        expect(response.body).toEqual({
+          code: 'VALIDATION_FAILED',
+          msg: '请求失败',
+          data: null,
+        });
+      });
+  });
 });
