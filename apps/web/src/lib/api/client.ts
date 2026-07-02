@@ -3,7 +3,7 @@ import {
   ERROR_CODES,
   type ApiEnvelope,
   type ApiEnvelopeCode,
-  type SuccessCode
+  type SuccessCode,
 } from '@rolesta/shared';
 import createClient from 'openapi-fetch';
 import type { paths } from './generated/schema';
@@ -31,31 +31,35 @@ type EnvelopeData<TEnvelope> = TEnvelope extends { code: SuccessCode; data: infe
 
 type RequestData<TRequest extends Promise<OpenApiResponse>> = EnvelopeData<SuccessEnvelope<TRequest>>;
 
-export type ApiFetchResult<TData> =
-  | {
-      ok: true;
-      code: SuccessCode;
-      msg: string;
-      data: TData;
-      envelope: ApiEnvelope<TData>;
-      rawResponse: Response;
-    }
-  | {
-      ok: false;
-      code: Exclude<ApiEnvelopeCode, SuccessCode>;
-      msg: string;
-      data: null;
-      envelope: ApiEnvelope<null>;
-      rawResponse: Response;
-    };
+export type ApiResult<TData> = {
+  data: TData;
+  envelope: ApiEnvelope<TData>;
+  rawResponse: Response;
+};
 
-export class ApiRequestError extends Error {
-  constructor(
-    message: string,
-    readonly rawResponse?: Response,
-    options?: ErrorOptions,
-  ) {
-    super(message, options);
+export type ApiErrorKind = 'request' | 'response';
+
+type ApiErrorOptions = {
+  kind: ApiErrorKind;
+  rawResponse?: Response;
+  code?: Exclude<ApiEnvelopeCode, SuccessCode>;
+  envelope?: ApiEnvelope<null>;
+  cause?: unknown;
+};
+
+export class ApiError extends Error {
+  readonly kind: ApiErrorKind;
+  readonly rawResponse: Response | undefined;
+  readonly code: Exclude<ApiEnvelopeCode, SuccessCode> | undefined;
+  readonly envelope: ApiEnvelope<null> | undefined;
+
+  constructor(message: string, options: ApiErrorOptions) {
+    super(message, { cause: options.cause });
+    this.name = 'ApiError';
+    this.kind = options.kind;
+    this.rawResponse = options.rawResponse;
+    this.code = options.code;
+    this.envelope = options.envelope;
   }
 }
 
@@ -69,43 +73,41 @@ export const openApiClient = createClient<paths>({
 
 export async function requestApi<TRequest extends Promise<OpenApiResponse>>(
   request: TRequest,
-): Promise<ApiFetchResult<RequestData<TRequest>>> {
+): Promise<ApiResult<RequestData<TRequest>>> {
   let response: Awaited<TRequest>;
 
   try {
     response = await request;
   } catch (cause) {
-    throw new ApiRequestError('API request failed before receiving a response', undefined, { cause });
+    throw new ApiError('API request failed before receiving a response', { kind: 'request', cause });
   }
 
   // openapi-fetch puts 2xx JSON in data and non-2xx JSON in error; both are API envelopes here.
   const envelope = response.data ?? response.error;
 
   if (!isApiEnvelope(envelope)) {
-    throw new ApiRequestError('API response envelope is invalid', response.response);
+    throw new ApiError('API response envelope is invalid', {
+      kind: 'request',
+      rawResponse: response.response,
+    });
   }
 
   if (envelope.code === API_SUCCESS_CODE) {
     const successEnvelope = envelope as ApiEnvelope<RequestData<TRequest>>;
 
     return {
-      ok: true,
-      code: API_SUCCESS_CODE,
-      msg: successEnvelope.msg,
       data: successEnvelope.data,
       envelope: successEnvelope,
       rawResponse: response.response,
     };
   }
 
-  return {
-    ok: false,
+  throw new ApiError(envelope.msg, {
+    kind: 'response',
     code: envelope.code,
-    msg: envelope.msg,
-    data: null,
     envelope: envelope as ApiEnvelope<null>,
     rawResponse: response.response,
-  };
+  });
 }
 
 function isApiEnvelope(value: unknown): value is ApiEnvelope<unknown> {
