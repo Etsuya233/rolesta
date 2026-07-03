@@ -24,19 +24,13 @@ export function SetupRouteGuard({ children }: PropsWithChildren) {
 
 export function LoginRouteGuard({ children }: PropsWithChildren) {
   const setupStatus = useSetupStatus();
-  const shouldCheckUser = setupStatus.data?.requiresSetup === false;
-  const currentUser = useCurrentUser({ enabled: shouldCheckUser });
 
-  if (setupStatus.isPending || (shouldCheckUser && currentUser.isPending)) {
+  if (setupStatus.isPending) {
     return <AuthRouteLoading />;
   }
 
   if (setupStatus.data?.requiresSetup) {
     return <Navigate to="/setup" replace />;
-  }
-
-  if (currentUser.data?.user) {
-    return <Navigate to="/app" replace />;
   }
 
   return children;
