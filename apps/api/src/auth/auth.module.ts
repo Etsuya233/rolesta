@@ -104,6 +104,6 @@ import { SystemClock } from './infrastructure/system-clock.js';
     },
     AuthGuard,
   ],
-  exports: [AuthGuard],
+  exports: [AuthGuard, AuthenticateTokenUseCase],
 })
 export class AuthModule {}

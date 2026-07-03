@@ -100,6 +100,70 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/characters": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["CharactersController_list"];
+        put?: never;
+        post: operations["CharactersController_create"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/characters/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["CharactersController_get"];
+        put?: never;
+        post?: never;
+        delete: operations["CharactersController_delete"];
+        options?: never;
+        head?: never;
+        patch: operations["CharactersController_update"];
+        trace?: never;
+    };
+    "/characters/import": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["CharactersController_importCharacter"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/characters/{id}/export/sillytavern": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["CharactersController_exportSillyTavern"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -120,6 +184,62 @@ export interface components {
         AuthenticatedUserResponseDto: {
             token: string;
             user: components["schemas"]["CurrentUserDto"];
+        };
+        CharacterSummaryResponseDto: {
+            id: string;
+            ownerUserId: string;
+            /** @enum {string} */
+            visibility: "private" | "public";
+            name: string;
+            tags: string[];
+            version: string;
+            comment: string;
+            createdAtMs: number;
+            updatedAtMs: number;
+            lastUsedAtMs: number | null;
+            usageCount: number;
+        };
+        CharacterPageResponseDto: {
+            items: components["schemas"]["CharacterSummaryResponseDto"][];
+            pageIndex: number;
+            pageSize: number;
+            totalItems: number;
+            totalPages: number;
+        };
+        CharacterDetailResponseDto: {
+            id: string;
+            ownerUserId: string;
+            /** @enum {string} */
+            visibility: "private" | "public";
+            name: string;
+            tags: string[];
+            version: string;
+            comment: string;
+            createdAtMs: number;
+            updatedAtMs: number;
+            lastUsedAtMs: number | null;
+            usageCount: number;
+            nickname: string | null;
+            creator: string | null;
+            description: string;
+            personality: string;
+            scenario: string;
+            firstMessage: string;
+            alternateGreetings: string[];
+            groupOnlyGreetings: string[];
+            messageExample: string;
+            creatorNotes: string;
+            creatorNotesMultilingual: Record<string, never>;
+            systemPrompt: string;
+            postHistoryInstructions: string;
+            characterBook: Record<string, never> | null;
+            assets: Record<string, never>[];
+            source: string[];
+            metadata: Record<string, never>;
+            /** @enum {string} */
+            sourceFormat: "sillytavern_v1" | "sillytavern_v2" | "sillytavern_v3";
+            creationDateMs: number | null;
+            modificationDateMs: number | null;
         };
     };
     responses: never;
@@ -302,6 +422,193 @@ export interface operations {
                         };
                     };
                 };
+            };
+        };
+    };
+    CharactersController_list: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /**
+                         * @example SUCCESS
+                         * @enum {string}
+                         */
+                        code: "SUCCESS";
+                        /** @example ok */
+                        msg: string;
+                        data: components["schemas"]["CharacterPageResponseDto"];
+                    };
+                };
+            };
+        };
+    };
+    CharactersController_create: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /**
+                         * @example SUCCESS
+                         * @enum {string}
+                         */
+                        code: "SUCCESS";
+                        /** @example ok */
+                        msg: string;
+                        data: components["schemas"]["CharacterDetailResponseDto"];
+                    };
+                };
+            };
+        };
+    };
+    CharactersController_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /**
+                         * @example SUCCESS
+                         * @enum {string}
+                         */
+                        code: "SUCCESS";
+                        /** @example ok */
+                        msg: string;
+                        data: components["schemas"]["CharacterDetailResponseDto"];
+                    };
+                };
+            };
+        };
+    };
+    CharactersController_delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /**
+                         * @example SUCCESS
+                         * @enum {string}
+                         */
+                        code: "SUCCESS";
+                        /** @example ok */
+                        msg: string;
+                        data: {
+                            ok?: boolean;
+                        };
+                    };
+                };
+            };
+        };
+    };
+    CharactersController_update: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /**
+                         * @example SUCCESS
+                         * @enum {string}
+                         */
+                        code: "SUCCESS";
+                        /** @example ok */
+                        msg: string;
+                        data: components["schemas"]["CharacterDetailResponseDto"];
+                    };
+                };
+            };
+        };
+    };
+    CharactersController_importCharacter: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /**
+                         * @example SUCCESS
+                         * @enum {string}
+                         */
+                        code: "SUCCESS";
+                        /** @example ok */
+                        msg: string;
+                        data: components["schemas"]["CharacterDetailResponseDto"];
+                    };
+                };
+            };
+        };
+    };
+    CharactersController_exportSillyTavern: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
             };
         };
     };
