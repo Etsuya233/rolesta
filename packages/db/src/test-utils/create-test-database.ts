@@ -28,7 +28,22 @@ export async function createTestDatabase() {
     databasePath,
     async destroy() {
       await db.destroy();
-      await fs.rm(directory, { recursive: true, force: true });
+      try {
+        await fs.rm(directory, { recursive: true, force: true, maxRetries: 3, retryDelay: 100 });
+      } catch (error) {
+        if (!isWindowsBusyError(error)) {
+          throw error;
+        }
+      }
     },
   };
+}
+
+function isWindowsBusyError(error: unknown): boolean {
+  return (
+    typeof error === 'object' &&
+    error !== null &&
+    'code' in error &&
+    (error.code === 'EBUSY' || error.code === 'EPERM')
+  );
 }

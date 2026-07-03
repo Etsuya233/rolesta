@@ -1,11 +1,11 @@
 import { ApiProperty } from '@nestjs/swagger';
 
-class CurrentUserDto {
+export class CurrentUserDto {
   @ApiProperty({ type: String })
   id!: string;
 
   @ApiProperty({ type: String })
-  email!: string;
+  username!: string;
 
   @ApiProperty({ type: String })
   displayName!: string;
@@ -17,4 +17,17 @@ class CurrentUserDto {
 export class CurrentUserResponseDto {
   @ApiProperty({ nullable: true, type: () => CurrentUserDto })
   user!: CurrentUserDto | null;
+}
+
+export class AuthenticatedUserResponseDto {
+  @ApiProperty({ type: String })
+  token!: string;
+
+  @ApiProperty({ type: () => CurrentUserDto })
+  user!: CurrentUserDto;
+}
+
+export class SetupStatusResponseDto {
+  @ApiProperty({ type: Boolean })
+  requiresSetup!: boolean;
 }

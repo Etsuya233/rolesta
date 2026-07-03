@@ -2,7 +2,7 @@ import type { Generated } from 'kysely';
 
 export interface UsersTable {
   id: string;
-  email: string;
+  username: string;
   password_hash: string;
   display_name: string;
   role: 'admin' | 'user';
