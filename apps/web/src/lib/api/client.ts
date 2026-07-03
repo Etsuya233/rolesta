@@ -11,7 +11,7 @@ import { getAuthToken } from '../auth/auth-token';
 import { getActiveLocale } from '../i18n/i18n';
 import type { paths } from './generated/schema';
 
-const API_BASE_URL =
+export const API_BASE_URL =
   typeof import.meta.env.API_BASE_URL === 'string'
     ? import.meta.env.API_BASE_URL
     : '/api';
