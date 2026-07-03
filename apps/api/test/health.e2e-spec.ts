@@ -15,7 +15,9 @@ describe('Health API', () => {
       imports: [AppModule],
     }).compile();
 
-    app = configureApp(moduleRef.createNestApplication());
+    app = configureApp(moduleRef.createNestApplication(), {
+      corsAllowedOrigins: ['http://localhost:5173'],
+    });
     await app.init();
   });
 

@@ -42,7 +42,9 @@ describe('Auth API', () => {
       imports: [AppModule],
     }).compile();
 
-    app = configureApp(moduleRef.createNestApplication());
+    app = configureApp(moduleRef.createNestApplication(), {
+      corsAllowedOrigins: ['http://localhost:5173'],
+    });
     await app.init();
   });
 
@@ -70,6 +72,35 @@ describe('Auth API', () => {
           data: { requiresSetup: true },
         });
       });
+  });
+
+  it('allows configured web origins', async () => {
+    await request(app!.getHttpServer() as App)
+      .get('/auth/setup-status')
+      .set('Origin', 'http://localhost:5173')
+      .expect(200)
+      .expect('Access-Control-Allow-Origin', 'http://localhost:5173');
+  });
+
+  it('does not allow unconfigured web origins', async () => {
+    await request(app!.getHttpServer() as App)
+      .get('/auth/setup-status')
+      .set('Origin', 'http://localhost:5174')
+      .expect(200)
+      .expect((response) => {
+        expect(response.headers['access-control-allow-origin']).toBeUndefined();
+      });
+  });
+
+  it('allows authorization headers in browser preflight requests', async () => {
+    await request(app!.getHttpServer() as App)
+      .options('/auth/current-user')
+      .set('Origin', 'http://localhost:5173')
+      .set('Access-Control-Request-Method', 'GET')
+      .set('Access-Control-Request-Headers', 'Authorization')
+      .expect(204)
+      .expect('Access-Control-Allow-Origin', 'http://localhost:5173')
+      .expect('Access-Control-Allow-Headers', 'Accept,Accept-Language,Authorization,Content-Type');
   });
 
   it('creates the first administrator and returns a bearer token', async () => {

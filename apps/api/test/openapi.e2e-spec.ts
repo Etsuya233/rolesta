@@ -10,7 +10,9 @@ describe('OpenAPI document', () => {
     const moduleRef = await Test.createTestingModule({
       imports: [AppModule],
     }).compile();
-    const app = configureApp(moduleRef.createNestApplication());
+    const app = configureApp(moduleRef.createNestApplication(), {
+      corsAllowedOrigins: ['http://localhost:5173'],
+    });
     await app.init();
 
     const document = createOpenApiDocument(app);

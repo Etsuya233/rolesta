@@ -2,9 +2,12 @@ import { promises as fs } from 'node:fs';
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from '../app.module.js';
 import { configureApp } from '../configure-app.js';
+import { loadAppConfig } from '../config/app-config.js';
+import { loadLocalEnvFile } from '../config/local-env.js';
 import { createOpenApiDocument } from './create-openapi-document.js';
 
-const app = configureApp(await NestFactory.create(AppModule, { logger: false }));
+loadLocalEnvFile();
+const app = configureApp(await NestFactory.create(AppModule, { logger: false }), loadAppConfig());
 await app.init();
 
 const document = createOpenApiDocument(app);
