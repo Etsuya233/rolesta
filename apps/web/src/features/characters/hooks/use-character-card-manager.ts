@@ -23,13 +23,18 @@ export function useCharacterCardManager() {
     setStack((items) => (items.length > 1 ? items.slice(0, -1) : items));
   }, []);
 
+  const replacePanel = useCallback((panel: CharacterCardPanel) => {
+    setStack((items) => [...items.slice(0, -1), panel]);
+  }, []);
+
   return useMemo(
     () => ({
       currentPanel,
       pushPanel,
       popPanel,
+      replacePanel,
       isRoot,
     }),
-    [currentPanel, isRoot, popPanel, pushPanel],
+    [currentPanel, isRoot, popPanel, pushPanel, replacePanel],
   );
 }

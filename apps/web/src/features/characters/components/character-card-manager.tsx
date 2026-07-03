@@ -1,7 +1,11 @@
 import { Import, Plus } from 'lucide-react';
 import type { ReactNode } from 'react';
 import { MobileTopBar } from '../../assets/components/mobile-top-bar';
+import { CharacterAdvancedForm } from './character-advanced-form';
+import { CharacterCardForm } from './character-card-form';
 import { CharacterCardListPanel } from './character-card-list-panel';
+import { CharacterGreetingsEditor } from './character-greetings-editor';
+import { CharacterImportPanel } from './character-import-panel';
 import {
   type CharacterCardPanel,
   useCharacterCardManager,
@@ -12,7 +16,7 @@ export interface CharacterCardManagerProps {
 }
 
 export function CharacterCardManager({ onBack }: CharacterCardManagerProps) {
-  const { currentPanel, isRoot, popPanel, pushPanel } = useCharacterCardManager();
+  const { currentPanel, isRoot, popPanel, pushPanel, replacePanel } = useCharacterCardManager();
 
   function handleBack() {
     if (isRoot) {
@@ -47,18 +51,56 @@ export function CharacterCardManager({ onBack }: CharacterCardManagerProps) {
         onSelectCharacter={(characterId) => pushPanel({ name: 'edit', characterId })}
       />
 
-      {currentPanel.name !== 'list' ? <PanelShell panel={currentPanel} /> : null}
+      {currentPanel.name !== 'list' ? (
+        <PanelShell
+          panel={currentPanel}
+          pushPanel={pushPanel}
+          replacePanel={replacePanel}
+        />
+      ) : null}
     </main>
   );
 }
 
-function PanelShell({ panel }: { panel: Exclude<CharacterCardPanel, { name: 'list' }> }) {
-  return (
-    <section
-      aria-label={panelTitle(panel)}
-      className="mx-auto min-h-0 w-full max-w-2xl flex-1 overflow-y-auto"
-    />
-  );
+function PanelShell({
+  panel,
+  pushPanel,
+  replacePanel,
+}: {
+  panel: Exclude<CharacterCardPanel, { name: 'list' }>;
+  pushPanel: (panel: CharacterCardPanel) => void;
+  replacePanel: (panel: CharacterCardPanel) => void;
+}) {
+  if (panel.name === 'create') {
+    return (
+      <CharacterCardForm
+        onCreated={(characterId) => replacePanel({ name: 'edit', characterId })}
+        onOpenAdvanced={(characterId) => pushPanel({ name: 'advanced', characterId })}
+        onOpenGreetings={(characterId) => pushPanel({ name: 'greetings', characterId })}
+      />
+    );
+  }
+
+  if (panel.name === 'edit') {
+    return (
+      <CharacterCardForm
+        characterId={panel.characterId}
+        onCreated={(characterId) => replacePanel({ name: 'edit', characterId })}
+        onOpenAdvanced={(characterId) => pushPanel({ name: 'advanced', characterId })}
+        onOpenGreetings={(characterId) => pushPanel({ name: 'greetings', characterId })}
+      />
+    );
+  }
+
+  if (panel.name === 'advanced') {
+    return <CharacterAdvancedForm characterId={panel.characterId} />;
+  }
+
+  if (panel.name === 'greetings') {
+    return <CharacterGreetingsEditor characterId={panel.characterId} />;
+  }
+
+  return <CharacterImportPanel onImported={(characterId) => replacePanel({ name: 'edit', characterId })} />;
 }
 
 function IconAction({
