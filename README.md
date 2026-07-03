@@ -72,7 +72,9 @@ Rolesta uses a TypeScript monorepo with a separated API and web app.
 
 ```powershell
 pnpm install --trust-lockfile
-Copy-Item .env.example .env
+Copy-Item apps/api/.env.example apps/api/.env
+Copy-Item apps/web/.env.example apps/web/.env
+Copy-Item packages/db/.env.example packages/db/.env
 pnpm db:migrate
 ```
 
