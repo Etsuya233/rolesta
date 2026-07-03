@@ -216,7 +216,7 @@ function unknownRecordField(input: Record<string, unknown>, key: string): Record
   throw new CharacterApplicationError('invalid-character-card');
 }
 
-function objectOrNullField(input: Record<string, unknown>, key: string): unknown | null {
+function objectOrNullField(input: Record<string, unknown>, key: string): Record<string, unknown> | null {
   const value = input[key];
 
   if (value === undefined || value === null) {

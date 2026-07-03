@@ -24,7 +24,7 @@ export interface CharacterCard {
   creatorNotesMultilingual: Record<string, string>;
   systemPrompt: string;
   postHistoryInstructions: string;
-  characterBook: unknown | null;
+  characterBook: Record<string, unknown> | null;
   assets: unknown[];
   source: string[];
   metadata: Record<string, unknown>;
