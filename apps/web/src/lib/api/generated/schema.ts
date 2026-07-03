@@ -20,6 +20,22 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/auth/setup-status": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["AuthController_getSetupStatus"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/auth/current-user": {
         parameters: {
             query?: never;
@@ -88,15 +104,22 @@ export interface paths {
 export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
+        SetupStatusResponseDto: {
+            requiresSetup: boolean;
+        };
         CurrentUserDto: {
             id: string;
-            email: string;
+            username: string;
             displayName: string;
             /** @enum {string} */
             role: "admin" | "user";
         };
         CurrentUserResponseDto: {
             user: components["schemas"]["CurrentUserDto"] | null;
+        };
+        AuthenticatedUserResponseDto: {
+            token: string;
+            user: components["schemas"]["CurrentUserDto"];
         };
     };
     responses: never;
@@ -135,6 +158,34 @@ export interface operations {
                             /** @enum {string} */
                             service: "rolesta-api";
                         };
+                    };
+                };
+            };
+        };
+    };
+    AuthController_getSetupStatus: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /**
+                         * @example SUCCESS
+                         * @enum {string}
+                         */
+                        code: "SUCCESS";
+                        /** @example ok */
+                        msg: string;
+                        data: components["schemas"]["SetupStatusResponseDto"];
                     };
                 };
             };
@@ -190,7 +241,7 @@ export interface operations {
                         code: "SUCCESS";
                         /** @example ok */
                         msg: string;
-                        data: components["schemas"]["CurrentUserResponseDto"];
+                        data: components["schemas"]["AuthenticatedUserResponseDto"];
                     };
                 };
             };
@@ -218,7 +269,7 @@ export interface operations {
                         code: "SUCCESS";
                         /** @example ok */
                         msg: string;
-                        data: components["schemas"]["CurrentUserResponseDto"];
+                        data: components["schemas"]["AuthenticatedUserResponseDto"];
                     };
                 };
             };

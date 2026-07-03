@@ -1,9 +1,20 @@
 import { API_SUCCESS_CODE, ERROR_CODES, type ApiEnvelope, type ApiErrorEnvelope } from '@rolesta/shared';
-import { describe, expect, expectTypeOf, it } from 'vitest';
+import { afterEach, describe, expect, expectTypeOf, it } from 'vitest';
+import { clearAuthToken, setAuthToken } from '../auth/auth-token';
 import { changeLocale } from '../i18n/i18n';
-import { ApiError, applyActiveLocaleHeader, type ApiResult, requestApi } from './client';
+import {
+  ApiError,
+  applyActiveLocaleHeader,
+  applyAuthTokenHeader,
+  type ApiResult,
+  requestApi,
+} from './client';
 
 describe('requestApi', () => {
+  afterEach(() => {
+    clearAuthToken();
+  });
+
   it('unwraps successful API envelopes and keeps the raw envelope', async () => {
     const envelope = {
       code: API_SUCCESS_CODE,
@@ -77,5 +88,23 @@ describe('requestApi', () => {
     const request = applyActiveLocaleHeader(new Request('http://127.0.0.1:3000/health'));
 
     expect(request.headers.get('Accept-Language')).toBe('ja-JP');
+  });
+
+  it('sends the bearer token when one is stored', () => {
+    setAuthToken('stored-token');
+
+    const request = applyAuthTokenHeader(new Request('http://127.0.0.1:3000/health'));
+
+    expect(request.headers.get('Authorization')).toBe('Bearer stored-token');
+  });
+
+  it('clears the bearer header when no token is stored', () => {
+    const request = new Request('http://127.0.0.1:3000/health', {
+      headers: { Authorization: 'Bearer old-token' },
+    });
+
+    applyAuthTokenHeader(request);
+
+    expect(request.headers.has('Authorization')).toBe(false);
   });
 });

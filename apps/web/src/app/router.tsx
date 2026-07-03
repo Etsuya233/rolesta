@@ -1,5 +1,10 @@
 import { lazy } from 'react';
 import { createBrowserRouter, Navigate } from 'react-router-dom';
+import {
+  AppRouteGuard,
+  LoginRouteGuard,
+  SetupRouteGuard,
+} from '../features/auth/routes/auth-route-guards';
 
 const LoginPage = lazy(() =>
   import('../features/auth/routes/login-page').then((module) => ({ default: module.LoginPage })),
@@ -20,18 +25,34 @@ export const router = createBrowserRouter([
   },
   {
     path: '/setup',
-    element: <SetupPage />,
+    element: (
+      <SetupRouteGuard>
+        <SetupPage />
+      </SetupRouteGuard>
+    ),
   },
   {
     path: '/login',
-    element: <LoginPage />,
+    element: (
+      <LoginRouteGuard>
+        <LoginPage />
+      </LoginRouteGuard>
+    ),
   },
   {
     path: '/app',
-    element: <WorkbenchPage />,
+    element: (
+      <AppRouteGuard>
+        <WorkbenchPage />
+      </AppRouteGuard>
+    ),
   },
   {
     path: '/app/chats/:chatId',
-    element: <WorkbenchPage />,
+    element: (
+      <AppRouteGuard>
+        <WorkbenchPage />
+      </AppRouteGuard>
+    ),
   },
 ]);

@@ -7,6 +7,7 @@ import {
   type SuccessCode,
 } from '@rolesta/shared';
 import createClient from 'openapi-fetch';
+import { getAuthToken } from '../auth/auth-token';
 import { getActiveLocale } from '../i18n/i18n';
 import type { paths } from './generated/schema';
 
@@ -67,7 +68,6 @@ export class ApiError extends Error {
 
 export const openApiClient = createClient<paths>({
   baseUrl: API_BASE_URL,
-  credentials: 'include',
   headers: {
     Accept: 'application/json',
   },
@@ -75,12 +75,26 @@ export const openApiClient = createClient<paths>({
 
 openApiClient.use({
   onRequest({ request }) {
-    return applyActiveLocaleHeader(request);
+    applyActiveLocaleHeader(request);
+    applyAuthTokenHeader(request);
+    return request;
   },
 });
 
 export function applyActiveLocaleHeader(request: Request): Request {
   request.headers.set('Accept-Language', getActiveLocale());
+  return request;
+}
+
+export function applyAuthTokenHeader(request: Request): Request {
+  const token = getAuthToken();
+
+  if (token) {
+    request.headers.set('Authorization', `Bearer ${token}`);
+  } else {
+    request.headers.delete('Authorization');
+  }
+
   return request;
 }
 

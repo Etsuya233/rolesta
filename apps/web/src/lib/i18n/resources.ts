@@ -9,9 +9,16 @@ export const resources = {
       auth: {
         login: {
           title: 'Login',
+          submit: 'Login',
         },
         setup: {
           title: 'Create admin',
+          submit: 'Create',
+        },
+        form: {
+          username: 'Account',
+          password: 'Password',
+          validation: 'Enter an account and a password of at least 12 characters.',
         },
       },
       chats: {
@@ -39,9 +46,16 @@ export const resources = {
       auth: {
         login: {
           title: '登录',
+          submit: '登录',
         },
         setup: {
           title: '创建管理员',
+          submit: '创建',
+        },
+        form: {
+          username: '账号',
+          password: '密码',
+          validation: '请输入账号，并填写至少 12 位密码。',
         },
       },
       chats: {
@@ -69,9 +83,16 @@ export const resources = {
       auth: {
         login: {
           title: '登入',
+          submit: '登入',
         },
         setup: {
           title: '建立管理員',
+          submit: '建立',
+        },
+        form: {
+          username: '帳號',
+          password: '密碼',
+          validation: '請輸入帳號，並填寫至少 12 位密碼。',
         },
       },
       chats: {
@@ -99,9 +120,16 @@ export const resources = {
       auth: {
         login: {
           title: 'ログイン',
+          submit: 'ログイン',
         },
         setup: {
           title: '管理者を作成',
+          submit: '作成',
+        },
+        form: {
+          username: 'アカウント',
+          password: 'パスワード',
+          validation: 'アカウントと 12 文字以上のパスワードを入力してください。',
         },
       },
       chats: {
