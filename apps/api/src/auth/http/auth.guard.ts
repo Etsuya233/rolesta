@@ -1,4 +1,4 @@
-import { CanActivate, ExecutionContext, Inject, Injectable } from '@nestjs/common';
+import { CanActivate, ExecutionContext, Injectable } from '@nestjs/common';
 import type { Request } from 'express';
 import { AuthApplicationError } from '../application/auth-application-error.js';
 import { AuthenticateTokenUseCase } from '../application/authenticate-token.use-case.js';
@@ -8,10 +8,7 @@ import { readBearerToken } from './bearer-token.js';
 
 @Injectable()
 export class AuthGuard implements CanActivate {
-  constructor(
-    @Inject(AuthenticateTokenUseCase)
-    private readonly authenticateTokenUseCase: AuthenticateTokenUseCase,
-  ) {}
+  constructor(private readonly authenticateTokenUseCase: AuthenticateTokenUseCase) {}
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
     const request = context.switchToHttp().getRequest<Request>();

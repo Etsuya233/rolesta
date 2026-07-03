@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Inject, Post, Req } from '@nestjs/common';
+import { Body, Controller, Get, Post, Req } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
 import type { Request } from 'express';
 import { ApiEnvelopeOkResponse } from '../openapi/api-envelope-response.decorator.js';
@@ -21,15 +21,10 @@ import { readBearerToken } from './http/bearer-token.js';
 @Controller('auth')
 export class AuthController {
   constructor(
-    @Inject(GetSetupStatusUseCase)
     private readonly getSetupStatusUseCase: GetSetupStatusUseCase,
-    @Inject(GetCurrentUserUseCase)
     private readonly getCurrentUserUseCase: GetCurrentUserUseCase,
-    @Inject(SetupAdminUseCase)
     private readonly setupAdminUseCase: SetupAdminUseCase,
-    @Inject(LoginUseCase)
     private readonly loginUseCase: LoginUseCase,
-    @Inject(LogoutUseCase)
     private readonly logoutUseCase: LogoutUseCase,
   ) {}
 

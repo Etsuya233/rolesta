@@ -4,7 +4,7 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "tsx watch src/main.ts",
+    "dev": "nest start --watch --entryFile apps/api/src/main",
     "build": "nest build",
     "start": "node dist/main.js",
     "test": "vitest run",
