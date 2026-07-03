@@ -1,4 +1,4 @@
-import type { ErrorCode } from './errors.js';
+import type { ErrorCode, ErrorMessageParams } from './errors.js';
 
 export const API_SUCCESS_CODE = 'SUCCESS';
 
@@ -11,3 +11,8 @@ export interface ApiEnvelope<TData = unknown> {
   msg: string;
   data: TData;
 }
+
+export type ApiErrorEnvelope<TParams extends ErrorMessageParams = ErrorMessageParams> =
+  ApiEnvelope<TParams> & {
+    code: ErrorCode;
+  };

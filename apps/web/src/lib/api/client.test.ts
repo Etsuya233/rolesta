@@ -1,6 +1,7 @@
-import { API_SUCCESS_CODE, ERROR_CODES, type ApiEnvelope } from '@rolesta/shared';
+import { API_SUCCESS_CODE, ERROR_CODES, type ApiEnvelope, type ApiErrorEnvelope } from '@rolesta/shared';
 import { describe, expect, expectTypeOf, it } from 'vitest';
-import { ApiError, type ApiResult, requestApi } from './client';
+import { changeLocale } from '../i18n/i18n';
+import { ApiError, applyActiveLocaleHeader, type ApiResult, requestApi } from './client';
 
 describe('requestApi', () => {
   it('unwraps successful API envelopes and keeps the raw envelope', async () => {
@@ -21,10 +22,10 @@ describe('requestApi', () => {
   });
 
   it('throws API response errors and keeps the raw envelope', async () => {
-    const envelope: ApiEnvelope<null> = {
+    const envelope: ApiErrorEnvelope = {
       code: ERROR_CODES.VALIDATION_FAILED,
       msg: '请求失败',
-      data: null,
+      data: {},
     };
     const response = new Response(null, { status: 400 });
 
@@ -50,17 +51,17 @@ describe('requestApi', () => {
     await expect(requestApi(invalidResponse)).rejects.toMatchObject({
       kind: 'request',
       message: 'API response envelope is invalid',
-      rawResponse: expect.any(Response),
     });
+    await expect(requestApi(invalidResponse)).rejects.toHaveProperty('rawResponse', expect.any(Response));
   });
 
   it('throws request errors when the request fails before receiving a response', async () => {
     const cause = new Error('network failed');
-    const request = Promise.reject(cause) as Promise<{
+    const request: Promise<{
       data?: ApiEnvelope<unknown>;
       error?: unknown;
       response: Response;
-    }>;
+    }> = Promise.reject(cause);
 
     await expect(requestApi(request)).rejects.toMatchObject({
       kind: 'request',
@@ -68,5 +69,13 @@ describe('requestApi', () => {
       cause,
     });
     await expect(requestApi(request)).rejects.toBeInstanceOf(ApiError);
+  });
+
+  it('sends the active locale with API requests', async () => {
+    await changeLocale('ja-JP');
+
+    const request = applyActiveLocaleHeader(new Request('http://127.0.0.1:3000/health'));
+
+    expect(request.headers.get('Accept-Language')).toBe('ja-JP');
   });
 });

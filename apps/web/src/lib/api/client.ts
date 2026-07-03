@@ -2,10 +2,12 @@ import {
   API_SUCCESS_CODE,
   ERROR_CODES,
   type ApiEnvelope,
+  type ApiErrorEnvelope,
   type ApiEnvelopeCode,
   type SuccessCode,
 } from '@rolesta/shared';
 import createClient from 'openapi-fetch';
+import { getActiveLocale } from '../i18n/i18n';
 import type { paths } from './generated/schema';
 
 const API_BASE_URL =
@@ -43,7 +45,7 @@ type ApiErrorOptions = {
   kind: ApiErrorKind;
   rawResponse?: Response;
   code?: Exclude<ApiEnvelopeCode, SuccessCode>;
-  envelope?: ApiEnvelope<null>;
+  envelope?: ApiErrorEnvelope;
   cause?: unknown;
 };
 
@@ -51,7 +53,7 @@ export class ApiError extends Error {
   readonly kind: ApiErrorKind;
   readonly rawResponse: Response | undefined;
   readonly code: Exclude<ApiEnvelopeCode, SuccessCode> | undefined;
-  readonly envelope: ApiEnvelope<null> | undefined;
+  readonly envelope: ApiErrorEnvelope | undefined;
 
   constructor(message: string, options: ApiErrorOptions) {
     super(message, { cause: options.cause });
@@ -70,6 +72,17 @@ export const openApiClient = createClient<paths>({
     Accept: 'application/json',
   },
 });
+
+openApiClient.use({
+  onRequest({ request }) {
+    return applyActiveLocaleHeader(request);
+  },
+});
+
+export function applyActiveLocaleHeader(request: Request): Request {
+  request.headers.set('Accept-Language', getActiveLocale());
+  return request;
+}
 
 export async function requestApi<TRequest extends Promise<OpenApiResponse>>(
   request: TRequest,
@@ -105,7 +118,7 @@ export async function requestApi<TRequest extends Promise<OpenApiResponse>>(
   throw new ApiError(envelope.msg, {
     kind: 'response',
     code: envelope.code,
-    envelope: envelope as ApiEnvelope<null>,
+    envelope: envelope as ApiErrorEnvelope,
     rawResponse: response.response,
   });
 }
@@ -123,6 +136,7 @@ function isApiEnvelope(value: unknown): value is ApiEnvelope<unknown> {
 
   return (
     (code === API_SUCCESS_CODE || (typeof code === 'string' && ERROR_CODE_VALUES.includes(code))) &&
-    typeof value.msg === 'string'
+    typeof value.msg === 'string' &&
+    'data' in value
   );
 }
