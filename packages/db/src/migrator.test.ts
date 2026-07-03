@@ -23,6 +23,21 @@ describe('database migrations', () => {
     expect(rows).toContain('users');
   });
 
+  it('creates the characters table with portable columns', async () => {
+    const database = await createTestDatabase();
+    databases.push(database);
+
+    const tables = await sql<{ name: string }>`select name from sqlite_master where type = 'table'`
+      .execute(database.db)
+      .then((result) => result.rows.map((row) => row.name));
+    const columns = await sql<{ name: string }>`pragma table_info(characters)`
+      .execute(database.db)
+      .then((result) => result.rows.map((row) => row.name));
+
+    expect(tables).toContain('characters');
+    expect(columns).toEqual(expect.arrayContaining(['created_at_ms', 'updated_at_ms', 'visibility', 'source_format']));
+  });
+
   it('loads sqlite configuration by default', () => {
     expect(loadDatabaseConfig({})).toEqual({
       dialect: 'sqlite',
@@ -51,6 +66,6 @@ describe('database migrations', () => {
   it('returns the common migration set for dialects without overrides', async () => {
     const migrations = await createMigrationProvider('mysql').getMigrations();
 
-    expect(Object.keys(migrations)).toEqual(['0001_initial', '0002_username_accounts']);
+    expect(Object.keys(migrations)).toEqual(['0001_initial', '0002_username_accounts', '0003_character_cards']);
   });
 });

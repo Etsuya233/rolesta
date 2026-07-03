@@ -1,0 +1,34 @@
+export interface CharactersTable {
+  id: string;
+  owner_user_id: string;
+  visibility: 'private' | 'public';
+  name: string;
+  nickname: string | null;
+  comment: string;
+  tags_json: string;
+  version: string;
+  creator: string | null;
+  description: string;
+  personality: string;
+  scenario: string;
+  first_message: string;
+  alternate_greetings_json: string;
+  group_only_greetings_json: string;
+  message_example: string;
+  creator_notes: string;
+  creator_notes_multilingual_json: string;
+  system_prompt: string;
+  post_history_instructions: string;
+  character_book_json: string | null;
+  assets_json: string;
+  source_json: string;
+  metadata_json: string;
+  source_format: 'sillytavern_v1' | 'sillytavern_v2' | 'sillytavern_v3';
+  source_snapshot_json: string;
+  created_at_ms: number;
+  updated_at_ms: number;
+  creation_date_ms: number | null;
+  modification_date_ms: number | null;
+  last_used_at_ms: number | null;
+  usage_count: number;
+}
