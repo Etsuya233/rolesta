@@ -70,6 +70,39 @@ type User = {
 
 `display_name` remains in the table because the current response DTO already exposes it. During setup, it receives the same value as `username`.
 
+## DDD and Anti-Corruption Boundaries
+
+Authentication is a small bounded context, so the implementation should use lightweight DDD and Hexagonal boundaries without forcing a rich domain model.
+
+The HTTP layer is a driver adapter. Nest controllers and class-validator DTOs belong at this edge. They validate transport shape, translate HTTP input into application commands, call application use cases, and translate use case results back into response DTOs. HTTP DTO names should reflect their command role, for example `SetupAdminCmdDTO`.
+
+The application layer owns use cases:
+
+- `GetSetupStatusUseCase`
+- `SetupAdminUseCase`
+- `LoginUseCase`
+- `GetCurrentUserUseCase`
+- `LogoutUseCase`
+
+Each use case receives a plain command or query object and depends on ports, not Kysely, Nest request objects, class-validator DTOs, or database row types.
+
+The domain layer can stay small. It should contain behavior-bearing domain concepts that protect account and session rules:
+
+- `UserAccount` for identity, username, password hash, display name, and role.
+- `SessionToken` for token generation and hashing policy.
+- `Session` for user id, token hash, creation time, expiry, and expiry checks.
+
+These classes do not need artificial setters or broad aggregate machinery. They should exist only where they enforce a rule or keep external formats out of the use cases.
+
+The infrastructure layer implements driven ports:
+
+- `UserAccountStore` backed by the `users` table.
+- `SessionStore` backed by the `sessions` table.
+- `PasswordHashing` backed by Node crypto.
+- `Clock` and `IdGenerator` if tests need deterministic time or ids.
+
+The anti-corruption rule is explicit: Kysely rows, column names such as `password_hash`, Nest decorators, request DTOs, and generated OpenAPI types must not cross into the application or domain layers. Persistence adapters map rows to domain/application objects and map domain/application objects back to rows.
+
 ## Password Handling
 
 Passwords are never stored directly. The API stores a one-way password hash in `password_hash`.
@@ -118,7 +151,7 @@ Public endpoint only while no users exist.
 Request:
 
 ```ts
-type SetupAdminRequest = {
+type SetupAdminCmdDTO = {
   username: string;
   password: string;
 };
