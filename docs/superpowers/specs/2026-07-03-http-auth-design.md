@@ -10,7 +10,7 @@ Existing user storage has `email`, `display_name`, and `password_hash` fields. T
 
 ## Goals
 
-- Authenticate HTTP requests with stateless tokens.
+- Authenticate HTTP requests with stateful opaque Bearer tokens.
 - Use username and password for login.
 - Show the administrator setup page when the user table is empty.
 - Create the first administrator from a minimal setup page with username, password, and create button.
@@ -20,34 +20,33 @@ Existing user storage has `email`, `display_name`, and `password_hash` fields. T
 
 ## Non-Goals
 
-- Session table based authentication.
 - Multi-user administration UI.
 - Password reset, email verification, and account recovery.
-- Token revocation or device management.
+- Device management and session listing UI.
 - Realtime or WebSocket authentication.
 - Role permission design beyond identifying `admin` and `user`.
 
 ## Recommended Approach
 
-Use signed JWT Bearer tokens stored in `localStorage`. The implementation should use a focused JWT signing and verification dependency or an established framework integration, so the project does not hand-encode token formats.
+Use opaque Bearer tokens stored in `localStorage` and backed by the existing `sessions` table.
 
-The API signs a token after login or initial administrator creation. The web app stores the token under `rolesta.auth.token`. The OpenAPI request middleware reads that value before each request and sets:
+The API creates a cryptographically random token after login or initial administrator creation. It stores only the token hash in `sessions`, then returns the original token to the web app. The web app stores the token under `rolesta.auth.token`. The OpenAPI request middleware reads that value before each request and sets:
 
 ```http
 Authorization: Bearer <token>
 ```
 
-This satisfies the stateless token requirement and keeps refresh behavior simple for a personal deployment product.
+This keeps refresh behavior simple for a personal deployment product while allowing logout to invalidate the current token immediately.
 
 ## Alternatives Considered
 
-### PASETO or Custom Signed Tokens
+### JWT Bearer Tokens
 
-This can reduce some JWT pitfalls, but the current project has no token dependency. It would add library and implementation choices without improving the first HTTP auth milestone enough to justify the extra surface.
+JWTs satisfy stateless token authentication and avoid a database lookup on each request. They make logout less direct because the server has no session row to remove. A denylist or short token lifetime would be needed for immediate invalidation.
 
 ### Cookie-Carried Token
 
-This would hide token handling from most frontend code, but the current requirement asks for token authentication and persistent login. A Bearer token path is clearer and avoids drifting toward the existing unused session table.
+This would hide token handling from most frontend code and can use the same `sessions` table. The current product direction keeps token transport explicit through the `Authorization` header, so the first implementation should avoid cookie-specific CORS and SameSite behavior.
 
 ## User Model
 
@@ -79,20 +78,22 @@ The first implementation can use Node's built-in crypto primitives with a per-pa
 
 The setup password minimum remains 12 characters. The login password DTO should accept the same minimum used by setup so invalid forms fail early.
 
-## Token Model
+## Session Token Model
 
-The API signs a short payload:
+The API generates an opaque token with enough entropy for long-lived browser sessions. The token has no embedded user information and no client-readable payload.
 
 ```ts
-type AuthTokenPayload = {
-  sub: string;
-  role: 'admin' | 'user';
+type SessionRecord = {
+  id: string;
+  user_id: string;
+  expires_at: string;
+  created_at: string;
 };
 ```
 
-`sub` is the user id. The token includes an expiry. The signing secret comes from app config. The existing `SESSION_SECRET` can be renamed or reused as an auth token secret in configuration, with `.env.example` updated so local setup is explicit.
+`sessions.id` stores the token hash, not the original token. The response body returns the original token only once. On later requests, the API hashes the Bearer token and loads the matching session row.
 
-The API validates the signature and expiry on protected requests. After token validation, the API loads the user by id so deleted users or changed accounts do not keep working solely from old token contents.
+The session row carries the expiry. When the session is missing, expired, or points to a missing user, the request is unauthenticated. Expired rows can be deleted opportunistically during login, logout, and token validation.
 
 ## API Contract
 
@@ -174,9 +175,9 @@ Missing or invalid token returns `{ user: null }` for this endpoint. Other prote
 
 ### `POST /auth/logout`
 
-Public endpoint.
+Public endpoint that accepts the current Bearer token when present.
 
-Because tokens are stateless, the API returns `{ ok: true }`. The web app removes the token from `localStorage`.
+The API hashes the presented token and deletes the matching session row. The web app removes the token from `localStorage` after the logout request finishes.
 
 ## Backend Components
 
@@ -185,10 +186,11 @@ Because tokens are stateless, the API returns `{ ok: true }`. The web app remove
 - count users for setup status.
 - create the first administrator.
 - verify username and password.
-- sign tokens.
-- validate tokens and load users.
+- create session tokens.
+- validate session tokens and load users.
+- delete the current session on logout.
 
-The module should include focused helpers where they carry real behavior, for example password hashing and token signing. Thin forwarding methods and placeholder carrier classes should be avoided.
+The module should include focused helpers where they carry real behavior, for example password hashing and session token hashing. Thin forwarding methods and placeholder carrier classes should be avoided.
 
 A Nest guard can protect future routes by reading the Bearer token, validating it through `AuthService`, and attaching the authenticated user to the request. The first milestone should add the guard even if most existing routes remain public, because it defines the HTTP auth boundary for subsequent endpoints.
 
@@ -270,6 +272,8 @@ Backend tests:
 - login with invalid credentials returns `UNAUTHENTICATED`.
 - current user returns null without token.
 - current user returns the user with a valid Bearer token.
+- logout deletes the current session token.
+- a deleted or expired session token no longer authenticates.
 - protected guard rejects missing or invalid tokens.
 
 Frontend tests:
@@ -288,7 +292,7 @@ Frontend tests:
 1. Update database schema and migration from `email` to `username`.
 2. Update auth DTOs and OpenAPI response DTOs.
 3. Implement password hashing and verification.
-4. Implement token signing and verification config.
+4. Implement opaque session token generation, hashing, storage, and expiry checks.
 5. Implement setup status, setup admin, login, current user, and logout behavior.
 6. Add an HTTP auth guard for protected routes.
 7. Regenerate OpenAPI schema for the web app.
@@ -308,5 +312,5 @@ Frontend tests:
 - Refreshing the browser keeps the user logged in while the token is valid.
 - HTTP requests carry a Bearer token after login.
 - Invalid or expired tokens do not authenticate protected HTTP requests.
-- Logout clears the stored token.
+- Logout deletes the current session row and clears the stored token.
 - The auth UI follows the existing shadcn-inspired visual direction and uses i18n resources.
