@@ -1,5 +1,5 @@
 import { Inject, Injectable, type OnModuleDestroy } from '@nestjs/common';
-import { createSqliteDatabase, type Database } from '@rolesta/db';
+import { createDatabase, type Database } from '@rolesta/db';
 import type { Kysely } from 'kysely';
 import type { AppConfig } from '../config/app-config.js';
 import { APP_CONFIG } from '../config/config.module.js';
@@ -18,7 +18,7 @@ export class DatabaseLifecycle implements OnModuleDestroy {
 export const databaseProvider = {
   provide: KYSELY_DB,
   useFactory: (config: AppConfig): Kysely<Database> => {
-    return createSqliteDatabase({ databasePath: config.sqliteDatabasePath });
+    return createDatabase(config.database);
   },
   inject: [APP_CONFIG],
 };

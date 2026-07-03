@@ -2,18 +2,20 @@ import { promises as fs } from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import { Migrator } from 'kysely/migration';
-import { createSqliteDatabase } from '../dialects/sqlite.js';
+import type { DatabaseConfig } from '../config/database-config.js';
+import { createDatabase } from '../dialects/index.js';
 import { toMigrationError } from '../migration-error.js';
 import { createMigrationProvider } from '../migrations/index.js';
 
 export async function createTestDatabase() {
   const directory = await fs.mkdtemp(path.join(os.tmpdir(), 'rolesta-db-'));
   const databasePath = path.join(directory, 'test.sqlite');
-  const db = createSqliteDatabase({ databasePath });
+  const databaseConfig: DatabaseConfig = { dialect: 'sqlite', databasePath };
+  const db = createDatabase(databaseConfig);
 
   const migrator = new Migrator({
     db,
-    provider: createMigrationProvider(),
+    provider: createMigrationProvider(databaseConfig.dialect),
   });
 
   const { error } = await migrator.migrateToLatest();

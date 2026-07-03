@@ -1,18 +1,19 @@
-import { promises as fs } from 'node:fs';
 import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { Migrator, type MigrationResult } from 'kysely/migration';
-import { createSqliteDatabase } from './dialects/sqlite.js';
+import type { DatabaseConfig } from './config/database-config.js';
+import { loadDatabaseConfig } from './config/database-config.js';
+import { createDatabase } from './dialects/index.js';
 import { toMigrationError } from './migration-error.js';
 import { createMigrationProvider } from './migrations/index.js';
 
-export async function migrateToLatest(databasePath: string): Promise<void> {
-  await fs.mkdir(path.dirname(databasePath), { recursive: true });
-  const db = createSqliteDatabase({ databasePath });
+export async function migrateToLatest(config: DatabaseConfig = loadDatabaseConfig()): Promise<void> {
+  const db = createDatabase(config);
 
   try {
     const migrator = new Migrator({
       db,
-      provider: createMigrationProvider(),
+      provider: createMigrationProvider(config.dialect),
     });
 
     const { error, results } = await migrator.migrateToLatest();
@@ -31,7 +32,6 @@ export async function migrateToLatest(databasePath: string): Promise<void> {
   }
 }
 
-if (import.meta.url === `file://${process.argv[1]}`) {
-  const databasePath = process.env.SQLITE_DATABASE_PATH ?? '.data/rolesta.sqlite';
-  await migrateToLatest(databasePath);
+if (process.argv[1] !== undefined && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
+  await migrateToLatest();
 }
