@@ -12,8 +12,8 @@ import { getActiveLocale } from '../i18n/i18n';
 import type { paths } from './generated/schema';
 
 const API_BASE_URL =
-  typeof import.meta.env.VITE_API_BASE_URL === 'string'
-    ? import.meta.env.VITE_API_BASE_URL
+  typeof import.meta.env.API_BASE_URL === 'string'
+    ? import.meta.env.API_BASE_URL
     : 'http://127.0.0.1:3000';
 
 const ERROR_CODE_VALUES: readonly string[] = Object.values(ERROR_CODES);
