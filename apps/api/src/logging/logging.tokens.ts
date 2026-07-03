@@ -1,0 +1,1 @@
+export const APP_LOGGING_CONFIG = Symbol('APP_LOGGING_CONFIG');

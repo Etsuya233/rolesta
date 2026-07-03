@@ -1,5 +1,6 @@
 import { NestFactory } from '@nestjs/core';
 import { SwaggerModule } from '@nestjs/swagger';
+import { Logger } from 'nestjs-pino';
 import 'reflect-metadata';
 import { AppModule } from './app.module.js';
 import { configureApp } from './configure-app.js';
@@ -10,7 +11,8 @@ import { createOpenApiDocument } from './openapi/create-openapi-document.js';
 async function bootstrap(): Promise<void> {
   loadLocalEnvFile();
   const config = loadAppConfig();
-  const app = configureApp(await NestFactory.create(AppModule), config);
+  const app = configureApp(await NestFactory.create(AppModule, { bufferLogs: true }), config);
+  app.useLogger(app.get(Logger));
 
   SwaggerModule.setup('/docs', app, createOpenApiDocument(app));
 
