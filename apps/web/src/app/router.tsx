@@ -17,6 +17,11 @@ const WorkbenchPage = lazy(() =>
     default: module.WorkbenchPage,
   })),
 );
+const CharactersPage = lazy(() =>
+  import('../features/characters/routes/characters-page').then((module) => ({
+    default: module.CharactersPage,
+  })),
+);
 
 export const router = createBrowserRouter([
   {
@@ -44,6 +49,14 @@ export const router = createBrowserRouter([
     element: (
       <AppRouteGuard>
         <WorkbenchPage />
+      </AppRouteGuard>
+    ),
+  },
+  {
+    path: '/app/characters',
+    element: (
+      <AppRouteGuard>
+        <CharactersPage />
       </AppRouteGuard>
     ),
   },
