@@ -20,11 +20,6 @@ import type { Response } from 'express';
 import { AuthGuard } from '../../auth/http/auth.guard.js';
 import type { AuthenticatedRequest } from '../../auth/http/authenticated-request.js';
 import { ApiEnvelopeOkResponse } from '../../openapi/api-envelope-response.decorator.js';
-import {
-  CHARACTER_LIST_SCOPES,
-  CHARACTER_SORT_KEYS,
-  SORT_DIRECTIONS,
-} from '../application/character-card-store.js';
 import { CharacterApplicationError } from '../application/character-application-error.js';
 import { CreateCharacterUseCase } from '../application/create-character.use-case.js';
 import { DeleteCharacterUseCase } from '../application/delete-character.use-case.js';
@@ -62,16 +57,6 @@ export class CharactersController {
   ) {}
 
   @Get()
-  @ApiQuery({ enum: CHARACTER_LIST_SCOPES, name: 'scope', required: false })
-  @ApiQuery({
-    enum: CHARACTER_SORT_KEYS,
-    name: 'sort',
-    required: false,
-  })
-  @ApiQuery({ enum: SORT_DIRECTIONS, name: 'direction', required: false })
-  @ApiQuery({ minimum: 0, name: 'pageIndex', required: false, type: Number })
-  @ApiQuery({ maximum: 100, minimum: 1, name: 'pageSize', required: false, type: Number })
-  @ApiQuery({ maxLength: 255, name: 'q', required: false, type: String })
   @ApiEnvelopeOkResponse({ type: CharacterPageResponseDto })
   async list(
     @Req() request: AuthenticatedRequest,

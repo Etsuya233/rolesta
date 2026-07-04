@@ -11,7 +11,7 @@
     "test:e2e": "vitest run test",
     "lint": "eslint \"src/**/*.ts\" \"test/**/*.ts\"",
     "typecheck": "tsc -p tsconfig.json --noEmit",
-    "openapi:generate": "tsx src/openapi/generate-openapi.ts"
+    "openapi:generate": "nest build && node dist/apps/api/src/openapi/generate-openapi.js"
   },
   "dependencies": {
     "@nestjs/common": "^11.1.27",

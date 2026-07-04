@@ -185,6 +185,14 @@ export interface components {
             token: string;
             user: components["schemas"]["CurrentUserDto"];
         };
+        LoginRequestDto: {
+            username: string;
+            password: string;
+        };
+        SetupAdminCmdDTO: {
+            username: string;
+            password: string;
+        };
         CharacterSummaryResponseDto: {
             id: string;
             ownerUserId: string;
@@ -229,13 +237,19 @@ export interface components {
             groupOnlyGreetings: string[];
             messageExample: string;
             creatorNotes: string;
-            creatorNotesMultilingual: Record<string, never>;
+            creatorNotesMultilingual: {
+                [key: string]: string;
+            };
             systemPrompt: string;
             postHistoryInstructions: string;
-            characterBook: Record<string, never> | null;
+            characterBook: {
+                [key: string]: unknown;
+            } | null;
             assets: Record<string, never>[];
             source: string[];
-            metadata: Record<string, never>;
+            metadata: {
+                [key: string]: unknown;
+            };
             /** @enum {string} */
             sourceFormat: "sillytavern_v1" | "sillytavern_v2" | "sillytavern_v3";
             creationDateMs: number | null;
@@ -408,7 +422,11 @@ export interface operations {
             path?: never;
             cookie?: never;
         };
-        requestBody?: never;
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["LoginRequestDto"];
+            };
+        };
         responses: {
             200: {
                 headers: {
@@ -436,7 +454,11 @@ export interface operations {
             path?: never;
             cookie?: never;
         };
-        requestBody?: never;
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SetupAdminCmdDTO"];
+            };
+        };
         responses: {
             200: {
                 headers: {
@@ -490,12 +512,12 @@ export interface operations {
     CharactersController_list: {
         parameters: {
             query?: {
-                q?: string;
-                pageSize?: number;
-                pageIndex?: number;
-                direction?: "asc" | "desc";
-                sort?: "createdAt" | "updatedAt" | "name" | "lastUsedAt" | "usageCount";
                 scope?: "all" | "mine" | "public";
+                sort?: "createdAt" | "updatedAt" | "name" | "lastUsedAt" | "usageCount";
+                direction?: "asc" | "desc";
+                pageIndex?: number;
+                pageSize?: number;
+                q?: string;
             };
             header?: never;
             path?: never;
