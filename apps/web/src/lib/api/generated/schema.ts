@@ -241,6 +241,68 @@ export interface components {
             creationDateMs: number | null;
             modificationDateMs: number | null;
         };
+        CreateCharacterRequestDto: {
+            /** @enum {string} */
+            visibility?: "private" | "public";
+            nickname?: string | null;
+            comment?: string;
+            tags?: string[];
+            version?: string;
+            creator?: string | null;
+            description?: string;
+            personality?: string;
+            scenario?: string;
+            firstMessage?: string;
+            alternateGreetings?: string[];
+            groupOnlyGreetings?: string[];
+            messageExample?: string;
+            creatorNotes?: string;
+            creatorNotesMultilingual?: {
+                [key: string]: string;
+            };
+            systemPrompt?: string;
+            postHistoryInstructions?: string;
+            characterBook?: {
+                [key: string]: unknown;
+            } | null;
+            assets?: unknown[];
+            source?: string[];
+            metadata?: {
+                [key: string]: unknown;
+            };
+            name: string;
+        };
+        UpdateCharacterRequestDto: {
+            /** @enum {string} */
+            visibility?: "private" | "public";
+            nickname?: string | null;
+            comment?: string;
+            tags?: string[];
+            version?: string;
+            creator?: string | null;
+            description?: string;
+            personality?: string;
+            scenario?: string;
+            firstMessage?: string;
+            alternateGreetings?: string[];
+            groupOnlyGreetings?: string[];
+            messageExample?: string;
+            creatorNotes?: string;
+            creatorNotesMultilingual?: {
+                [key: string]: string;
+            };
+            systemPrompt?: string;
+            postHistoryInstructions?: string;
+            characterBook?: {
+                [key: string]: unknown;
+            } | null;
+            assets?: unknown[];
+            source?: string[];
+            metadata?: {
+                [key: string]: unknown;
+            };
+            name?: string;
+        };
     };
     responses: never;
     parameters: never;
@@ -427,7 +489,14 @@ export interface operations {
     };
     CharactersController_list: {
         parameters: {
-            query?: never;
+            query?: {
+                q?: string;
+                pageSize?: number;
+                pageIndex?: number;
+                direction?: "asc" | "desc";
+                sort?: "createdAt" | "updatedAt" | "name" | "lastUsedAt" | "usageCount";
+                scope?: "all" | "mine" | "public";
+            };
             header?: never;
             path?: never;
             cookie?: never;
@@ -460,7 +529,11 @@ export interface operations {
             path?: never;
             cookie?: never;
         };
-        requestBody?: never;
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CreateCharacterRequestDto"];
+            };
+        };
         responses: {
             200: {
                 headers: {
@@ -485,7 +558,9 @@ export interface operations {
         parameters: {
             query?: never;
             header?: never;
-            path?: never;
+            path: {
+                id: string;
+            };
             cookie?: never;
         };
         requestBody?: never;
@@ -513,7 +588,9 @@ export interface operations {
         parameters: {
             query?: never;
             header?: never;
-            path?: never;
+            path: {
+                id: string;
+            };
             cookie?: never;
         };
         requestBody?: never;
@@ -543,10 +620,16 @@ export interface operations {
         parameters: {
             query?: never;
             header?: never;
-            path?: never;
+            path: {
+                id: string;
+            };
             cookie?: never;
         };
-        requestBody?: never;
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UpdateCharacterRequestDto"];
+            };
+        };
         responses: {
             200: {
                 headers: {
@@ -574,7 +657,14 @@ export interface operations {
             path?: never;
             cookie?: never;
         };
-        requestBody?: never;
+        requestBody: {
+            content: {
+                "multipart/form-data": {
+                    /** Format: binary */
+                    file: string;
+                };
+            };
+        };
         responses: {
             200: {
                 headers: {
@@ -597,18 +687,25 @@ export interface operations {
     };
     CharactersController_exportSillyTavern: {
         parameters: {
-            query?: never;
+            query?: {
+                version?: "v2" | "v3";
+            };
             header?: never;
-            path?: never;
+            path: {
+                id: string;
+            };
             cookie?: never;
         };
         requestBody?: never;
         responses: {
+            /** @description SillyTavern compatible character card JSON. */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": Record<string, never>;
+                };
             };
         };
     };

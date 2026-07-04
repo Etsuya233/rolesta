@@ -6,6 +6,7 @@ import {
   getCharacter,
   updateCharacter,
   type CharacterDetailResponse,
+  type CharacterCreateValues,
   type CharacterFormValues,
 } from '../api/characters-api';
 import {
@@ -33,6 +34,8 @@ interface BasicFormState {
   description: string;
   firstMessage: string;
 }
+
+type BasicCharacterFormValues = CharacterFormValues & Pick<CharacterCreateValues, 'name'>;
 
 const emptyBasicForm: BasicFormState = {
   visibility: 'private',
@@ -69,7 +72,7 @@ export function CharacterCardForm({
   }, [characterQuery.data]);
 
   const saveMutation = useMutation({
-    mutationFn: (values: CharacterFormValues) =>
+    mutationFn: (values: BasicCharacterFormValues) =>
       characterId ? updateCharacter(characterId, values) : createCharacter(values),
     async onSuccess(character) {
       await queryClient.invalidateQueries({ queryKey: ['characters'] });

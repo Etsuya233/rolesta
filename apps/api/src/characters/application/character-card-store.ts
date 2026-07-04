@@ -3,9 +3,20 @@ import type { CharacterCard } from '../domain/character-card.js';
 
 export const CHARACTER_CARD_STORE = Symbol('CharacterCardStore');
 
-export type CharacterListScope = 'all' | 'mine' | 'public';
-export type CharacterSortKey = 'createdAt' | 'updatedAt' | 'name' | 'lastUsedAt' | 'usageCount';
-export type SortDirection = 'asc' | 'desc';
+export const CHARACTER_LIST_SCOPES = ['all', 'mine', 'public'] as const;
+export type CharacterListScope = (typeof CHARACTER_LIST_SCOPES)[number];
+
+export const CHARACTER_SORT_KEYS = [
+  'createdAt',
+  'updatedAt',
+  'name',
+  'lastUsedAt',
+  'usageCount',
+] as const;
+export type CharacterSortKey = (typeof CHARACTER_SORT_KEYS)[number];
+
+export const SORT_DIRECTIONS = ['asc', 'desc'] as const;
+export type SortDirection = (typeof SORT_DIRECTIONS)[number];
 
 export interface ListCharactersRequest {
   viewerUserId: string;

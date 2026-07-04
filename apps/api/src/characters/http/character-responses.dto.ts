@@ -1,7 +1,10 @@
 import { ApiProperty } from '@nestjs/swagger';
 import type { PageResponse } from '@rolesta/shared';
 import type { CharacterCard } from '../domain/character-card.js';
-import type { CharacterVisibility } from '../domain/character-visibility.js';
+import {
+  CHARACTER_VISIBILITIES,
+  type CharacterVisibility,
+} from '../domain/character-visibility.js';
 
 export class CharacterSummaryResponseDto {
   @ApiProperty({ type: String })
@@ -10,7 +13,7 @@ export class CharacterSummaryResponseDto {
   @ApiProperty({ type: String })
   ownerUserId!: string;
 
-  @ApiProperty({ enum: ['private', 'public'] })
+  @ApiProperty({ enum: CHARACTER_VISIBILITIES })
   visibility!: CharacterVisibility;
 
   @ApiProperty({ type: String })

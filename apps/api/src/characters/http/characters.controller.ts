@@ -15,11 +15,16 @@ import {
   UseInterceptors,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
-import { ApiConsumes, ApiTags } from '@nestjs/swagger';
+import { ApiBody, ApiConsumes, ApiOkResponse, ApiParam, ApiQuery, ApiTags } from '@nestjs/swagger';
 import type { Response } from 'express';
 import { AuthGuard } from '../../auth/http/auth.guard.js';
 import type { AuthenticatedRequest } from '../../auth/http/authenticated-request.js';
 import { ApiEnvelopeOkResponse } from '../../openapi/api-envelope-response.decorator.js';
+import {
+  CHARACTER_LIST_SCOPES,
+  CHARACTER_SORT_KEYS,
+  SORT_DIRECTIONS,
+} from '../application/character-card-store.js';
 import { CharacterApplicationError } from '../application/character-application-error.js';
 import { CreateCharacterUseCase } from '../application/create-character.use-case.js';
 import { DeleteCharacterUseCase } from '../application/delete-character.use-case.js';
@@ -57,6 +62,16 @@ export class CharactersController {
   ) {}
 
   @Get()
+  @ApiQuery({ enum: CHARACTER_LIST_SCOPES, name: 'scope', required: false })
+  @ApiQuery({
+    enum: CHARACTER_SORT_KEYS,
+    name: 'sort',
+    required: false,
+  })
+  @ApiQuery({ enum: SORT_DIRECTIONS, name: 'direction', required: false })
+  @ApiQuery({ minimum: 0, name: 'pageIndex', required: false, type: Number })
+  @ApiQuery({ maximum: 100, minimum: 1, name: 'pageSize', required: false, type: Number })
+  @ApiQuery({ maxLength: 255, name: 'q', required: false, type: String })
   @ApiEnvelopeOkResponse({ type: CharacterPageResponseDto })
   async list(
     @Req() request: AuthenticatedRequest,
@@ -71,6 +86,7 @@ export class CharactersController {
   }
 
   @Get(':id')
+  @ApiParam({ name: 'id', type: String })
   @ApiEnvelopeOkResponse({ type: CharacterDetailResponseDto })
   async get(
     @Req() request: AuthenticatedRequest,
@@ -84,6 +100,7 @@ export class CharactersController {
   }
 
   @Post()
+  @ApiBody({ type: CreateCharacterRequestDto })
   @ApiEnvelopeOkResponse({ type: CharacterDetailResponseDto })
   async create(
     @Req() request: AuthenticatedRequest,
@@ -98,6 +115,8 @@ export class CharactersController {
   }
 
   @Patch(':id')
+  @ApiParam({ name: 'id', type: String })
+  @ApiBody({ type: UpdateCharacterRequestDto })
   @ApiEnvelopeOkResponse({ type: CharacterDetailResponseDto })
   async update(
     @Req() request: AuthenticatedRequest,
@@ -116,6 +135,7 @@ export class CharactersController {
   }
 
   @Delete(':id')
+  @ApiParam({ name: 'id', type: String })
   @ApiEnvelopeOkResponse({ schema: { type: 'object', properties: { ok: { type: 'boolean' } } } })
   async delete(@Req() request: AuthenticatedRequest, @Param('id') id: string): Promise<{ ok: true }> {
     return this.withApplicationErrors(async () => {
@@ -126,6 +146,15 @@ export class CharactersController {
 
   @Post('import')
   @ApiConsumes('multipart/form-data')
+  @ApiBody({
+    schema: {
+      type: 'object',
+      required: ['file'],
+      properties: {
+        file: { type: 'string', format: 'binary' },
+      },
+    },
+  })
   @UseInterceptors(FileInterceptor('file'))
   @ApiEnvelopeOkResponse({ type: CharacterDetailResponseDto })
   async importCharacter(
@@ -149,6 +178,12 @@ export class CharactersController {
 
   @Get(':id/export/sillytavern')
   @HttpCode(200)
+  @ApiParam({ name: 'id', type: String })
+  @ApiQuery({ enum: ['v2', 'v3'], name: 'version', required: false })
+  @ApiOkResponse({
+    description: 'SillyTavern compatible character card JSON.',
+    schema: { type: 'object' },
+  })
   async exportSillyTavern(
     @Req() request: AuthenticatedRequest,
     @Param('id') id: string,
