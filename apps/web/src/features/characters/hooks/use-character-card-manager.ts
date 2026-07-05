@@ -1,14 +1,13 @@
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useMemo, useState } from "react";
 
 export type CharacterCardPanel =
-  | { name: 'list' }
-  | { name: 'create' }
-  | { name: 'edit'; characterId: string }
-  | { name: 'advanced'; characterId: string }
-  | { name: 'greetings'; characterId: string }
-  | { name: 'import' };
+  | { name: "list" }
+  | { name: "create" }
+  | { name: "edit"; characterId: string }
+  | { name: "greetings"; characterId: string }
+  | { name: "import" };
 
-const rootPanel: CharacterCardPanel = { name: 'list' };
+const rootPanel: CharacterCardPanel = { name: "list" };
 
 export function useCharacterCardManager() {
   const [stack, setStack] = useState<CharacterCardPanel[]>([rootPanel]);

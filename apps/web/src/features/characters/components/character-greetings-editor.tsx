@@ -1,26 +1,30 @@
-import { Trash2 } from 'lucide-react';
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { useEffect, useId, useState, type FormEvent } from 'react';
-import { MobileFormSection } from '../../assets/components/mobile-form-section';
-import { getCharacter, updateCharacter } from '../api/characters-api';
+import { Trash2 } from "lucide-react";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useEffect, useId, useState, type FormEvent } from "react";
+import { Button } from "../../../components/ui/button";
+import { Field, FieldLabel } from "../../../components/ui/field";
+import { Textarea } from "../../../components/ui/textarea";
+import { MobileFormSection } from "../../assets/components/mobile-form-section";
+import { getCharacter, updateCharacter } from "../api/characters-api";
 import {
-  FieldError,
-  NeutralButton,
-  PrimaryButton,
-  textareaClassName,
-} from './character-form-fields';
+  FormActionButton,
+  FormError,
+  FormSubmitButton,
+} from "./character-form-fields";
 
 export interface CharacterGreetingsEditorProps {
   characterId: string;
 }
 
-export function CharacterGreetingsEditor({ characterId }: CharacterGreetingsEditorProps) {
+export function CharacterGreetingsEditor({
+  characterId,
+}: CharacterGreetingsEditorProps) {
   const fieldPrefix = useId();
   const queryClient = useQueryClient();
   const [greetings, setGreetings] = useState<string[]>([]);
 
   const characterQuery = useQuery({
-    queryKey: ['character', characterId],
+    queryKey: ["character", characterId],
     queryFn: () => getCharacter(characterId),
   });
 
@@ -31,10 +35,11 @@ export function CharacterGreetingsEditor({ characterId }: CharacterGreetingsEdit
   }, [characterQuery.data]);
 
   const saveMutation = useMutation({
-    mutationFn: () => updateCharacter(characterId, { alternateGreetings: greetings }),
+    mutationFn: () =>
+      updateCharacter(characterId, { alternateGreetings: greetings }),
     async onSuccess(character) {
-      await queryClient.invalidateQueries({ queryKey: ['characters'] });
-      queryClient.setQueryData(['character', character.id], character);
+      await queryClient.invalidateQueries({ queryKey: ["characters"] });
+      queryClient.setQueryData(["character", character.id], character);
     },
   });
 
@@ -46,25 +51,35 @@ export function CharacterGreetingsEditor({ characterId }: CharacterGreetingsEdit
   const isPending = saveMutation.isPending || characterQuery.isLoading;
 
   return (
-    <form className="mx-auto min-h-0 w-full max-w-2xl flex-1 overflow-y-auto" onSubmit={handleSubmit}>
+    <form
+      className="mx-auto min-h-0 w-full max-w-2xl flex-1 overflow-y-auto"
+      onSubmit={handleSubmit}
+    >
       <MobileFormSection title="其他开场">
-        <div className="space-y-3">
+        <div className="flex flex-col gap-3">
           {greetings.map((greeting, index) => (
-            <label className="block space-y-2" htmlFor={`${fieldPrefix}-greeting-${index}`} key={index}>
+            <Field key={index}>
               <div className="flex items-center justify-between gap-3">
-                <span className="text-sm font-medium leading-none">开场 {index + 1}</span>
-                <button
+                <FieldLabel htmlFor={`${fieldPrefix}-greeting-${index}`}>
+                  开场 {index + 1}
+                </FieldLabel>
+                <Button
                   aria-label={`删除开场 ${index + 1}`}
-                  className="inline-flex size-9 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-ring/30 disabled:pointer-events-none disabled:opacity-50"
                   disabled={isPending}
+                  size="icon"
                   type="button"
-                  onClick={() => setGreetings(greetings.filter((_, itemIndex) => itemIndex !== index))}
+                  variant="ghost"
+                  onClick={() =>
+                    setGreetings(
+                      greetings.filter((_, itemIndex) => itemIndex !== index),
+                    )
+                  }
                 >
-                  <Trash2 aria-hidden="true" className="size-4" />
-                </button>
+                  <Trash2 aria-hidden="true" />
+                </Button>
               </div>
-              <textarea
-                className={textareaClassName}
+              <Textarea
+                className="min-h-28"
                 disabled={isPending}
                 id={`${fieldPrefix}-greeting-${index}`}
                 value={greeting}
@@ -76,18 +91,21 @@ export function CharacterGreetingsEditor({ characterId }: CharacterGreetingsEdit
                   )
                 }
               />
-            </label>
+            </Field>
           ))}
         </div>
 
-        <NeutralButton disabled={isPending} onClick={() => setGreetings([...greetings, ''])}>
+        <FormActionButton
+          disabled={isPending}
+          onClick={() => setGreetings([...greetings, ""])}
+        >
           添加开场
-        </NeutralButton>
+        </FormActionButton>
       </MobileFormSection>
 
-      <div className="space-y-3 px-4 pb-6">
-        {saveMutation.isError ? <FieldError>保存开场失败</FieldError> : null}
-        <PrimaryButton disabled={isPending}>保存</PrimaryButton>
+      <div className="flex flex-col gap-3 px-4 pb-6">
+        {saveMutation.isError ? <FormError>保存开场失败</FormError> : null}
+        <FormSubmitButton disabled={isPending}>保存</FormSubmitButton>
       </div>
     </form>
   );

@@ -1,36 +1,87 @@
-import type { ChangeEventHandler, ReactNode } from 'react';
+import type { ChangeEventHandler, ReactNode } from "react";
+import { Alert, AlertDescription } from "../../../components/ui/alert";
+import {
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "../../../components/ui/accordion";
+import { Button } from "../../../components/ui/button";
+import {
+  Field,
+  FieldDescription,
+  FieldGroup,
+  FieldLabel,
+} from "../../../components/ui/field";
+import { Input } from "../../../components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectGroup,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "../../../components/ui/select";
+import { Textarea } from "../../../components/ui/textarea";
+import { cn } from "../../../lib/utils";
 
-const inputClassName =
-  'flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm outline-none transition-colors placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/20 disabled:cursor-not-allowed disabled:opacity-50';
+export interface CharacterFormSectionProps {
+  title: string;
+  value: string;
+  children: ReactNode;
+  description?: string;
+}
 
-export const textareaClassName =
-  'flex min-h-28 w-full rounded-md border border-input bg-background px-3 py-2 text-sm outline-none transition-colors placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/20 disabled:cursor-not-allowed disabled:opacity-50';
+export function CharacterFormSection({
+  title,
+  value,
+  children,
+  description,
+}: CharacterFormSectionProps) {
+  return (
+    <AccordionItem value={value}>
+      <AccordionTrigger className="px-4 py-3 hover:no-underline">
+        <span className="flex min-w-0 flex-col gap-1">
+          <span className="truncate">{title}</span>
+          {description ? (
+            <span className="text-xs font-normal text-muted-foreground">
+              {description}
+            </span>
+          ) : null}
+        </span>
+      </AccordionTrigger>
+      <AccordionContent className="px-4 pb-4">
+        <FieldGroup className="gap-4">{children}</FieldGroup>
+      </AccordionContent>
+    </AccordionItem>
+  );
+}
 
-export interface TextFieldProps {
+export interface CharacterTextFieldProps {
   id: string;
   label: string;
   value: string;
   onChange: ChangeEventHandler<HTMLInputElement>;
   autoComplete?: string;
   disabled?: boolean;
+  description?: string;
   placeholder?: string;
 }
 
-export function TextField({
+export function CharacterTextField({
   id,
   label,
   value,
   onChange,
   autoComplete,
   disabled = false,
+  description,
   placeholder,
-}: TextFieldProps) {
+}: CharacterTextFieldProps) {
   return (
-    <label className="block space-y-2" htmlFor={id}>
-      <span className="text-sm font-medium leading-none">{label}</span>
-      <input
+    <Field data-disabled={disabled}>
+      <FieldLabel htmlFor={id}>{label}</FieldLabel>
+      <Input
         autoComplete={autoComplete}
-        className={inputClassName}
         disabled={disabled}
         id={id}
         placeholder={placeholder}
@@ -38,84 +89,104 @@ export function TextField({
         value={value}
         onChange={onChange}
       />
-    </label>
+      {description ? <FieldDescription>{description}</FieldDescription> : null}
+    </Field>
   );
 }
 
-export interface TextAreaFieldProps {
+export interface CharacterTextAreaFieldProps {
   id: string;
   label: string;
   value: string;
   onChange: ChangeEventHandler<HTMLTextAreaElement>;
   disabled?: boolean;
+  description?: string;
+  placeholder?: string;
   rows?: number;
 }
 
-export function TextAreaField({
+export function CharacterTextAreaField({
   id,
   label,
   value,
   onChange,
   disabled = false,
-  rows = 5,
-}: TextAreaFieldProps) {
+  description,
+  placeholder,
+  rows = 6,
+}: CharacterTextAreaFieldProps) {
   return (
-    <label className="block space-y-2" htmlFor={id}>
-      <span className="text-sm font-medium leading-none">{label}</span>
-      <textarea
-        className={textareaClassName}
+    <Field data-disabled={disabled}>
+      <FieldLabel htmlFor={id}>{label}</FieldLabel>
+      <Textarea
+        className="min-h-28 resize-y overflow-auto [field-sizing:fixed]"
         disabled={disabled}
         id={id}
+        placeholder={placeholder}
         rows={rows}
+        style={{ fieldSizing: "fixed" }}
         value={value}
         onChange={onChange}
       />
-    </label>
+      {description ? <FieldDescription>{description}</FieldDescription> : null}
+    </Field>
   );
 }
 
-export interface SelectFieldProps {
+export interface CharacterSelectFieldProps<TValue extends string = string> {
   id: string;
   label: string;
-  value: string;
-  children: ReactNode;
-  onChange: ChangeEventHandler<HTMLSelectElement>;
+  value: TValue;
+  options: Array<{ value: TValue; label: string }>;
+  onChange: (value: TValue) => void;
   disabled?: boolean;
+  description?: string;
 }
 
-export function SelectField({
+export function CharacterSelectField<TValue extends string = string>({
   id,
   label,
   value,
-  children,
+  options,
   onChange,
   disabled = false,
-}: SelectFieldProps) {
+  description,
+}: CharacterSelectFieldProps<TValue>) {
   return (
-    <label className="block space-y-2" htmlFor={id}>
-      <span className="text-sm font-medium leading-none">{label}</span>
-      <select
-        className={inputClassName}
+    <Field data-disabled={disabled}>
+      <FieldLabel htmlFor={id}>{label}</FieldLabel>
+      <Select
         disabled={disabled}
-        id={id}
         value={value}
-        onChange={onChange}
+        onValueChange={(next) => onChange(next as TValue)}
       >
-        {children}
-      </select>
-    </label>
+        <SelectTrigger id={id}>
+          <SelectValue />
+        </SelectTrigger>
+        <SelectContent>
+          <SelectGroup>
+            {options.map((option) => (
+              <SelectItem key={option.value} value={option.value}>
+                {option.label}
+              </SelectItem>
+            ))}
+          </SelectGroup>
+        </SelectContent>
+      </Select>
+      {description ? <FieldDescription>{description}</FieldDescription> : null}
+    </Field>
   );
 }
 
-export function FieldError({ children }: { children: string }) {
+export function FormError({ children }: { children: string }) {
   return (
-    <p className="rounded-md border border-destructive/30 bg-destructive/10 px-3 py-2 text-sm text-destructive">
-      {children}
-    </p>
+    <Alert variant="destructive">
+      <AlertDescription>{children}</AlertDescription>
+    </Alert>
   );
 }
 
-export function PrimaryButton({
+export function FormSubmitButton({
   children,
   disabled = false,
 }: {
@@ -123,33 +194,32 @@ export function PrimaryButton({
   disabled?: boolean;
 }) {
   return (
-    <button
-      className="inline-flex h-10 w-full items-center justify-center rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-ring/30 disabled:pointer-events-none disabled:opacity-50"
-      disabled={disabled}
-      type="submit"
-    >
+    <Button className="w-full" disabled={disabled} type="submit">
       {children}
-    </button>
+    </Button>
   );
 }
 
-export function NeutralButton({
+export function FormActionButton({
   children,
   disabled = false,
+  className,
   onClick,
 }: {
   children: string;
   disabled?: boolean;
+  className?: string;
   onClick: () => void;
 }) {
   return (
-    <button
-      className="inline-flex h-10 w-full items-center justify-center rounded-md border border-border px-4 py-2 text-sm font-medium transition-colors hover:bg-muted focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-ring/30 disabled:pointer-events-none disabled:opacity-50"
+    <Button
+      className={cn("w-full", className)}
       disabled={disabled}
       type="button"
+      variant="outline"
       onClick={onClick}
     >
       {children}
-    </button>
+    </Button>
   );
 }
