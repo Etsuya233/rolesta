@@ -31,7 +31,7 @@ export function AssetSortMenu<TSort extends string = string>({
   const { t } = useTranslation();
 
   return (
-    <div className="grid grid-cols-[minmax(0,1fr)_6rem] gap-2">
+    <div className="grid grid-cols-[minmax(0,1fr)_7.5rem] gap-2">
       <Select
         value={sort}
         onValueChange={(value) => onSortChange(value as TSort)}

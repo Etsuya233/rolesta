@@ -8,6 +8,7 @@ export default defineConfig({
   plugins: [react(), tailwindcss()],
   resolve: {
     alias: {
+      '@rolesta/shared': path.resolve(import.meta.dirname, '../../packages/shared/src/index.ts'),
       '@': path.resolve(import.meta.dirname, './src'),
     },
   },

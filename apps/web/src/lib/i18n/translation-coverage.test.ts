@@ -11,12 +11,13 @@ describe("translation resources", () => {
     }
   });
 
-  it("keeps asset and character translation keys aligned across locales", () => {
+  it("keeps asset, character, and preset translation keys aligned across locales", () => {
     const baseTranslation = resources["en-US"].translation;
     const expectedAssetKeys = translationKeyPaths(baseTranslation.assets);
     const expectedCharacterKeys = translationKeyPaths(
       baseTranslation.characters,
     );
+    const expectedPresetKeys = translationKeyPaths(baseTranslation.presets);
 
     for (const resource of Object.values(resources)) {
       expect(translationKeyPaths(resource.translation.assets)).toEqual(
@@ -24,6 +25,9 @@ describe("translation resources", () => {
       );
       expect(translationKeyPaths(resource.translation.characters)).toEqual(
         expectedCharacterKeys,
+      );
+      expect(translationKeyPaths(resource.translation.presets)).toEqual(
+        expectedPresetKeys,
       );
     }
   });

@@ -22,6 +22,11 @@ const CharactersPage = lazy(() =>
     default: module.CharactersPage,
   })),
 );
+const PresetsPage = lazy(() =>
+  import('../features/presets/routes/presets-page').then((module) => ({
+    default: module.PresetsPage,
+  })),
+);
 
 export const router = createBrowserRouter([
   {
@@ -57,6 +62,14 @@ export const router = createBrowserRouter([
     element: (
       <AppRouteGuard>
         <CharactersPage />
+      </AppRouteGuard>
+    ),
+  },
+  {
+    path: '/app/presets',
+    element: (
+      <AppRouteGuard>
+        <PresetsPage />
       </AppRouteGuard>
     ),
   },

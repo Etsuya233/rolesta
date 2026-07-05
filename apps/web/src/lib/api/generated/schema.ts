@@ -164,6 +164,118 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/presets": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["PresetsController_list"];
+        put?: never;
+        post: operations["PresetsController_create"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/presets/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["PresetsController_get"];
+        put?: never;
+        post?: never;
+        delete: operations["PresetsController_delete"];
+        options?: never;
+        head?: never;
+        patch: operations["PresetsController_update"];
+        trace?: never;
+    };
+    "/presets/import": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["PresetsController_importPreset"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/presets/{id}/export/sillytavern": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["PresetsController_exportSillyTavern"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/presets/{id}/entries": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["PresetsController_createEntry"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/presets/{id}/entries/{entryId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete: operations["PresetsController_deleteEntry"];
+        options?: never;
+        head?: never;
+        patch: operations["PresetsController_updateEntry"];
+        trace?: never;
+    };
+    "/presets/{id}/prompt-items": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put: operations["PresetsController_updatePromptItems"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -316,6 +428,134 @@ export interface components {
                 [key: string]: unknown;
             };
             name?: string;
+        };
+        PresetSummaryResponseDto: {
+            id: string;
+            ownerUserId: string;
+            name: string;
+            entryCount: number;
+            promptItemCount: number;
+            tokenCount: number;
+            createdAtMs: number;
+            updatedAtMs: number;
+            lastUsedAtMs: number | null;
+            usageCount: number;
+        };
+        PresetPageResponseDto: {
+            items: components["schemas"]["PresetSummaryResponseDto"][];
+            pageIndex: number;
+            pageSize: number;
+            totalItems: number;
+            totalPages: number;
+        };
+        PresetModelSettingsResponseDto: {
+            contextLength: number | null;
+            maxResponseLength: number | null;
+            stream: boolean;
+            temperature: number | null;
+            presencePenalty: number | null;
+            frequencyPenalty: number | null;
+            repetitionPenalty: number | null;
+            topP: number | null;
+            topK: number | null;
+            minP: number | null;
+            topA: number | null;
+            seed: number | null;
+            n: number | null;
+            reasoningEffort: string;
+            verbosity: string;
+            showThoughts: boolean;
+        };
+        PresetEntryResponseDto: {
+            id: string;
+            presetId: string;
+            identifier: string;
+            name: string;
+            /** @enum {string} */
+            role: "system" | "user" | "assistant";
+            /** @enum {string} */
+            position: "system" | "chat" | "preHistory" | "postHistory" | "unknown";
+            content: string;
+            tokenCount: number;
+            metadata: {
+                [key: string]: unknown;
+            };
+            createdAtMs: number;
+            updatedAtMs: number;
+        };
+        PresetPromptItemResponseDto: {
+            entryId: string;
+            enabled: boolean;
+            orderIndex: number;
+        };
+        PresetDetailResponseDto: {
+            id: string;
+            ownerUserId: string;
+            name: string;
+            entryCount: number;
+            promptItemCount: number;
+            tokenCount: number;
+            createdAtMs: number;
+            updatedAtMs: number;
+            lastUsedAtMs: number | null;
+            usageCount: number;
+            modelProviderId: string | null;
+            modelSettings: components["schemas"]["PresetModelSettingsResponseDto"];
+            /** @enum {string} */
+            tokenizer: "cl100k_base";
+            /** @enum {string} */
+            sourceFormat: "sillytavern_preset" | "rolesta";
+            entries: components["schemas"]["PresetEntryResponseDto"][];
+            promptItems: components["schemas"]["PresetPromptItemResponseDto"][];
+        };
+        PresetModelSettingsDto: {
+            contextLength?: number | null;
+            maxResponseLength?: number | null;
+            stream?: boolean;
+            temperature?: number | null;
+            presencePenalty?: number | null;
+            frequencyPenalty?: number | null;
+            repetitionPenalty?: number | null;
+            topP?: number | null;
+            topK?: number | null;
+            minP?: number | null;
+            topA?: number | null;
+            seed?: number | null;
+            n?: number | null;
+            reasoningEffort?: string;
+            verbosity?: string;
+            showThoughts?: boolean;
+        };
+        CreatePresetRequestDto: {
+            name: string;
+            modelSettings?: components["schemas"]["PresetModelSettingsDto"];
+        };
+        UpdatePresetRequestDto: {
+            name?: string;
+            modelSettings?: components["schemas"]["PresetModelSettingsDto"];
+        };
+        CreatePresetEntryRequestDto: {
+            name: string;
+            /** @enum {string} */
+            role: "system" | "user" | "assistant";
+            /** @enum {string} */
+            position: "system" | "chat" | "preHistory" | "postHistory" | "unknown";
+            content: string;
+        };
+        UpdatePresetEntryRequestDto: {
+            name?: string;
+            /** @enum {string} */
+            role?: "system" | "user" | "assistant";
+            /** @enum {string} */
+            position?: "system" | "chat" | "preHistory" | "postHistory" | "unknown";
+            content?: string;
+        };
+        UpdatePresetPromptItemDto: {
+            entryId: string;
+            enabled: boolean;
+        };
+        UpdatePresetPromptItemsRequestDto: {
+            items: components["schemas"]["UpdatePresetPromptItemDto"][];
         };
     };
     responses: never;
@@ -727,6 +967,359 @@ export interface operations {
                 };
                 content: {
                     "application/json": Record<string, never>;
+                };
+            };
+        };
+    };
+    PresetsController_list: {
+        parameters: {
+            query?: {
+                sort?: "createdAt" | "updatedAt" | "name" | "lastUsedAt" | "usageCount";
+                direction?: "asc" | "desc";
+                pageIndex?: number;
+                pageSize?: number;
+                q?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /**
+                         * @example SUCCESS
+                         * @enum {string}
+                         */
+                        code: "SUCCESS";
+                        /** @example ok */
+                        msg: string;
+                        data: components["schemas"]["PresetPageResponseDto"];
+                    };
+                };
+            };
+        };
+    };
+    PresetsController_create: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CreatePresetRequestDto"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /**
+                         * @example SUCCESS
+                         * @enum {string}
+                         */
+                        code: "SUCCESS";
+                        /** @example ok */
+                        msg: string;
+                        data: components["schemas"]["PresetDetailResponseDto"];
+                    };
+                };
+            };
+        };
+    };
+    PresetsController_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /**
+                         * @example SUCCESS
+                         * @enum {string}
+                         */
+                        code: "SUCCESS";
+                        /** @example ok */
+                        msg: string;
+                        data: components["schemas"]["PresetDetailResponseDto"];
+                    };
+                };
+            };
+        };
+    };
+    PresetsController_delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /**
+                         * @example SUCCESS
+                         * @enum {string}
+                         */
+                        code: "SUCCESS";
+                        /** @example ok */
+                        msg: string;
+                        data: {
+                            ok?: boolean;
+                        };
+                    };
+                };
+            };
+        };
+    };
+    PresetsController_update: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UpdatePresetRequestDto"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /**
+                         * @example SUCCESS
+                         * @enum {string}
+                         */
+                        code: "SUCCESS";
+                        /** @example ok */
+                        msg: string;
+                        data: components["schemas"]["PresetDetailResponseDto"];
+                    };
+                };
+            };
+        };
+    };
+    PresetsController_importPreset: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "multipart/form-data": {
+                    /** Format: binary */
+                    file: string;
+                };
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /**
+                         * @example SUCCESS
+                         * @enum {string}
+                         */
+                        code: "SUCCESS";
+                        /** @example ok */
+                        msg: string;
+                        data: components["schemas"]["PresetDetailResponseDto"];
+                    };
+                };
+            };
+        };
+    };
+    PresetsController_exportSillyTavern: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description SillyTavern compatible preset JSON. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": Record<string, never>;
+                };
+            };
+        };
+    };
+    PresetsController_createEntry: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CreatePresetEntryRequestDto"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /**
+                         * @example SUCCESS
+                         * @enum {string}
+                         */
+                        code: "SUCCESS";
+                        /** @example ok */
+                        msg: string;
+                        data: components["schemas"]["PresetDetailResponseDto"];
+                    };
+                };
+            };
+        };
+    };
+    PresetsController_deleteEntry: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+                entryId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /**
+                         * @example SUCCESS
+                         * @enum {string}
+                         */
+                        code: "SUCCESS";
+                        /** @example ok */
+                        msg: string;
+                        data: components["schemas"]["PresetDetailResponseDto"];
+                    };
+                };
+            };
+        };
+    };
+    PresetsController_updateEntry: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+                entryId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UpdatePresetEntryRequestDto"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /**
+                         * @example SUCCESS
+                         * @enum {string}
+                         */
+                        code: "SUCCESS";
+                        /** @example ok */
+                        msg: string;
+                        data: components["schemas"]["PresetDetailResponseDto"];
+                    };
+                };
+            };
+        };
+    };
+    PresetsController_updatePromptItems: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UpdatePresetPromptItemsRequestDto"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /**
+                         * @example SUCCESS
+                         * @enum {string}
+                         */
+                        code: "SUCCESS";
+                        /** @example ok */
+                        msg: string;
+                        data: components["schemas"]["PresetDetailResponseDto"];
+                    };
                 };
             };
         };

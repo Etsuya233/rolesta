@@ -66,6 +66,11 @@ describe('database migrations', () => {
   it('returns the common migration set for dialects without overrides', async () => {
     const migrations = await createMigrationProvider('mysql').getMigrations();
 
-    expect(Object.keys(migrations)).toEqual(['0001_initial', '0002_username_accounts', '0003_character_cards']);
+    expect(Object.keys(migrations)).toEqual([
+      '0001_initial',
+      '0002_username_accounts',
+      '0003_character_cards',
+      '0004_presets',
+    ]);
   });
 });

@@ -3,6 +3,7 @@ import type { DatabaseDialect } from '../config/database-config.js';
 import * as initialMigration from './0001_initial.js';
 import * as usernameAccountsMigration from './0002_username_accounts.js';
 import * as characterCardsMigration from './0003_character_cards.js';
+import * as presetsMigration from './0004_presets.js';
 
 type DialectMigration = {
   common: Migration;
@@ -20,6 +21,9 @@ const migrations: Record<string, DialectMigration> = {
   },
   '0003_character_cards': {
     common: characterCardsMigration,
+  },
+  '0004_presets': {
+    common: presetsMigration,
   },
 };
 

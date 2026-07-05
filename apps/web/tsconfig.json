@@ -8,6 +8,7 @@
     "noEmit": true,
     "types": ["vite/client"],
     "paths": {
+      "@rolesta/shared": ["../../packages/shared/src/index.ts"],
       "@/*": ["./src/*"]
     }
   },
