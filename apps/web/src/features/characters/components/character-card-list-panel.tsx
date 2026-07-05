@@ -14,7 +14,6 @@ import { listCharacters } from "../api/characters-api";
 import { CharacterCardListItem } from "./character-card-list-item";
 
 export interface CharacterCardListPanelProps {
-  hidden?: boolean;
   onSelectCharacter: (characterId: string) => void;
 }
 
@@ -28,7 +27,6 @@ const characterSortOptions: Array<{ value: CharacterSortKey; label: string }> =
   ];
 
 export function CharacterCardListPanel({
-  hidden = false,
   onSelectCharacter,
 }: CharacterCardListPanelProps) {
   const [scope, setScope] = useState<CharacterListScope>("all");
@@ -54,10 +52,7 @@ export function CharacterCardListPanel({
   }
 
   return (
-    <section
-      aria-hidden={hidden}
-      className={hidden ? "hidden" : "min-h-0 flex-1 overflow-y-auto"}
-    >
+    <section className="min-h-0 flex-1 overflow-y-auto">
       <div className="mx-auto flex min-h-full w-full max-w-2xl flex-col">
         <div className="flex flex-col gap-3 border-b border-border px-4 py-3">
           <Input

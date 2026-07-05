@@ -1,152 +1,68 @@
-import { Import, Plus } from "lucide-react";
-import type { ReactNode } from "react";
-import { MobileTopBar } from "../../assets/components/mobile-top-bar";
-import { CharacterCardForm } from "./character-card-form";
-import { CharacterCardListPanel } from "./character-card-list-panel";
-import { CharacterGreetingsEditor } from "./character-greetings-editor";
-import { CharacterImportPanel } from "./character-import-panel";
+import { useMemo } from "react";
+import { KeepAliveStackViewport } from "../../../components/keep-alive-stack/keep-alive-stack-viewport";
+import { useKeepAliveStack } from "../../../components/keep-alive-stack/use-keep-alive-stack";
 import {
-  type CharacterCardPanel,
-  useCharacterCardManager,
-} from "../hooks/use-character-card-manager";
+  CharacterDraftSessionsProvider,
+  useRetainCharacterDraftSessions,
+} from "../hooks/use-character-draft-sessions";
+import { CharacterPageRenderer } from "./character-page-renderer";
+import { characterListPage, type CharacterPage } from "./character-pages";
 
 export interface CharacterCardManagerProps {
   onBack: () => void;
 }
 
 export function CharacterCardManager({ onBack }: CharacterCardManagerProps) {
-  const { currentPanel, isRoot, popPanel, pushPanel, replacePanel } =
-    useCharacterCardManager();
-
-  function handleBack() {
-    if (isRoot) {
-      onBack();
-      return;
-    }
-
-    popPanel();
-  }
+  const { pages, activePage, pushPage, popPage, replacePage } =
+    useKeepAliveStack(characterListPage);
+  const retainedSessionKeys = useMemo(
+    () => characterDraftSessionKeys(pages),
+    [pages],
+  );
 
   return (
     <main className="flex h-dvh min-h-screen flex-col bg-background text-foreground">
-      <MobileTopBar
-        actions={
-          currentPanel.name === "list" ? (
-            <>
-              <IconAction
-                label="导入角色卡"
-                onClick={() => pushPanel({ name: "import" })}
-              >
-                <Import aria-hidden="true" className="size-5" />
-              </IconAction>
-              <IconAction
-                label="新增角色卡"
-                onClick={() => pushPanel({ name: "create" })}
-              >
-                <Plus aria-hidden="true" className="size-5" />
-              </IconAction>
-            </>
-          ) : null
-        }
-        title={panelTitle(currentPanel)}
-        onBack={handleBack}
-      />
-
-      <CharacterCardListPanel
-        hidden={currentPanel.name !== "list"}
-        onSelectCharacter={(characterId) =>
-          pushPanel({ name: "edit", characterId })
-        }
-      />
-
-      {currentPanel.name !== "list" ? (
-        <PanelShell
-          panel={currentPanel}
-          pushPanel={pushPanel}
-          replacePanel={replacePanel}
+      <CharacterDraftSessionsProvider>
+        <CharacterDraftSessionRetainer sessionKeys={retainedSessionKeys} />
+        <KeepAliveStackViewport
+          activeKey={activePage.key}
+          pages={pages}
+          renderPage={(page) => (
+            <CharacterPageRenderer
+              page={page}
+              popPage={popPage}
+              pushPage={pushPage}
+              replacePage={replacePage}
+              onRootBack={onBack}
+            />
+          )}
         />
-      ) : null}
+      </CharacterDraftSessionsProvider>
     </main>
   );
 }
 
-function PanelShell({
-  panel,
-  pushPanel,
-  replacePanel,
+function CharacterDraftSessionRetainer({
+  sessionKeys,
 }: {
-  panel: Exclude<CharacterCardPanel, { name: "list" }>;
-  pushPanel: (panel: CharacterCardPanel) => void;
-  replacePanel: (panel: CharacterCardPanel) => void;
+  sessionKeys: string[];
 }) {
-  if (panel.name === "create") {
-    return (
-      <CharacterCardForm
-        onCreated={(characterId) => replacePanel({ name: "edit", characterId })}
-        onOpenGreetings={(characterId) =>
-          pushPanel({ name: "greetings", characterId })
-        }
-      />
-    );
-  }
-
-  if (panel.name === "edit") {
-    return (
-      <CharacterCardForm
-        characterId={panel.characterId}
-        onCreated={(characterId) => replacePanel({ name: "edit", characterId })}
-        onOpenGreetings={(characterId) =>
-          pushPanel({ name: "greetings", characterId })
-        }
-      />
-    );
-  }
-
-  if (panel.name === "greetings") {
-    return <CharacterGreetingsEditor characterId={panel.characterId} />;
-  }
-
-  return (
-    <CharacterImportPanel
-      onImported={(characterId) => replacePanel({ name: "edit", characterId })}
-    />
-  );
+  useRetainCharacterDraftSessions(sessionKeys);
+  return null;
 }
 
-function IconAction({
-  label,
-  children,
-  onClick,
-}: {
-  label: string;
-  children: ReactNode;
-  onClick: () => void;
-}) {
-  return (
-    <button
-      aria-label={label}
-      className="inline-flex size-10 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-ring/30"
-      type="button"
-      onClick={onClick}
-    >
-      {children}
-    </button>
-  );
-}
+function characterDraftSessionKeys(pages: CharacterPage[]): string[] {
+  const sessionKeys = new Set<string>();
 
-function panelTitle(panel: CharacterCardPanel): string {
-  if (panel.name === "list") {
-    return "角色卡";
-  }
-  if (panel.name === "create") {
-    return "新增角色卡";
-  }
-  if (panel.name === "edit") {
-    return "编辑角色卡";
-  }
-  if (panel.name === "greetings") {
-    return "开场消息";
+  for (const page of pages) {
+    if (
+      page.name === "create" ||
+      page.name === "editMain" ||
+      page.name === "alternateGreetings"
+    ) {
+      sessionKeys.add(page.sessionKey);
+    }
   }
 
-  return "导入角色卡";
+  return [...sessionKeys];
 }

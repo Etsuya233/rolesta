@@ -1,14 +1,8 @@
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { useEffect, useId, useState, type FormEvent } from "react";
+import { useId, useState } from "react";
 import { Accordion } from "../../../components/ui/accordion";
-import {
-  createCharacter,
-  getCharacter,
-  updateCharacter,
-  type CharacterCreateValues,
-  type CharacterDetailResponse,
-  type CharacterFormValues,
-} from "../api/characters-api";
+import { useCharacterDraftSession } from "../hooks/use-character-draft-sessions";
+import type { CharacterDetailResponse } from "../api/characters-api";
+import type { CharacterEditorFormState } from "../model/character-editor-form";
 import {
   CharacterFormSection,
   CharacterSelectField,
@@ -19,49 +13,13 @@ import {
   FormSubmitButton,
 } from "./character-form-fields";
 
-export interface CharacterCardFormProps {
+export interface CharacterCardMainEditorProps {
+  sessionKey: string;
   characterId?: string;
-  onCreated: (characterId: string) => void;
-  onOpenGreetings: (characterId: string) => void;
+  submitLabel: string;
+  onCreated?: (character: CharacterDetailResponse) => void;
+  onOpenGreetings?: () => void;
 }
-
-interface CharacterEditorFormState {
-  visibility: "private" | "public";
-  name: string;
-  comment: string;
-  tagsText: string;
-  version: string;
-  description: string;
-  firstMessage: string;
-  personality: string;
-  scenario: string;
-  creatorNotes: string;
-  messageExample: string;
-  systemPrompt: string;
-  postHistoryInstructions: string;
-  creator: string;
-  nickname: string;
-}
-
-type EditableCharacterValues = CharacterCreateValues & CharacterFormValues;
-
-const emptyCharacterEditorForm: CharacterEditorFormState = {
-  visibility: "private",
-  name: "",
-  comment: "",
-  tagsText: "",
-  version: "",
-  description: "",
-  firstMessage: "",
-  personality: "",
-  scenario: "",
-  creatorNotes: "",
-  messageExample: "",
-  systemPrompt: "",
-  postHistoryInstructions: "",
-  creator: "",
-  nickname: "",
-};
 
 const visibilityOptions: Array<{
   value: CharacterEditorFormState["visibility"];
@@ -71,77 +29,36 @@ const visibilityOptions: Array<{
   { value: "public", label: "公开" },
 ];
 
-export function CharacterCardForm({
+export function CharacterCardMainEditor({
+  sessionKey,
   characterId,
+  submitLabel,
   onCreated,
   onOpenGreetings,
-}: CharacterCardFormProps) {
+}: CharacterCardMainEditorProps) {
   const fieldPrefix = useId();
-  const queryClient = useQueryClient();
-  const [form, setForm] = useState<CharacterEditorFormState>(
-    emptyCharacterEditorForm,
-  );
-  const [errorMessage, setErrorMessage] = useState<string | null>(null);
-  const isEditing = Boolean(characterId);
-
-  const characterQuery = useQuery({
-    enabled: isEditing,
-    queryKey: ["character", characterId],
-    queryFn: () => getCharacter(characterId ?? ""),
-  });
-
-  useEffect(() => {
-    if (characterQuery.data) {
-      setForm(editorFormFromCharacter(characterQuery.data));
-    }
-  }, [characterQuery.data]);
-
-  const saveMutation = useMutation({
-    mutationFn: (values: EditableCharacterValues) =>
-      characterId
-        ? updateCharacter(characterId, values)
-        : createCharacter(values),
-    async onSuccess(character) {
-      await queryClient.invalidateQueries({ queryKey: ["characters"] });
-      queryClient.setQueryData(["character", character.id], character);
-
-      if (!characterId) {
-        onCreated(character.id);
-      }
-    },
-  });
-
-  function handleSubmit(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-    setErrorMessage(null);
-
-    if (!form.name.trim()) {
-      setErrorMessage("名称不能为空");
-      return;
-    }
-
-    const values = editorValuesFromForm(form);
-    if (!values.ok) {
-      setErrorMessage(values.message);
-      return;
-    }
-
-    saveMutation.mutate(values.data);
-  }
-
-  const isPending = saveMutation.isPending || characterQuery.isLoading;
-  const serverError = saveMutation.isError ? "保存角色卡失败" : null;
-  const visibleError = errorMessage ?? serverError;
+  const [openSections, setOpenSections] = useState<string[]>([
+    "basic",
+    "content",
+  ]);
+  const { form, setForm, isPending, visibleError, submit } =
+    useCharacterDraftSession({
+      sessionKey,
+      ...(characterId ? { characterId } : {}),
+      ...(onCreated ? { onCreated } : {}),
+    });
 
   return (
     <form
+      aria-label="角色卡主编辑"
       className="mx-auto min-h-0 w-full max-w-2xl flex-1 overflow-y-auto"
-      onSubmit={handleSubmit}
+      onSubmit={submit}
     >
       <Accordion
         className="border-b border-border"
-        defaultValue={["basic", "content"]}
         type="multiple"
+        value={openSections}
+        onValueChange={setOpenSections}
       >
         <CharacterFormSection
           description="角色卡在列表和聊天选择中的基本识别信息"
@@ -153,7 +70,9 @@ export function CharacterCardForm({
             id={`${fieldPrefix}-name`}
             label="名称"
             value={form.name}
-            onChange={(event) => setForm({ ...form, name: event.target.value })}
+            onChange={(event) =>
+              setForm({ ...form, name: event.target.value })
+            }
           />
           <CharacterTextField
             disabled={isPending}
@@ -252,11 +171,8 @@ export function CharacterCardForm({
               setForm({ ...form, messageExample: event.target.value })
             }
           />
-          {characterId ? (
-            <FormActionButton
-              disabled={isPending}
-              onClick={() => onOpenGreetings(characterId)}
-            >
+          {onOpenGreetings ? (
+            <FormActionButton disabled={isPending} onClick={onOpenGreetings}>
               其他开场
             </FormActionButton>
           ) : null}
@@ -282,7 +198,10 @@ export function CharacterCardForm({
             label="历史后提示"
             value={form.postHistoryInstructions}
             onChange={(event) =>
-              setForm({ ...form, postHistoryInstructions: event.target.value })
+              setForm({
+                ...form,
+                postHistoryInstructions: event.target.value,
+              })
             }
           />
         </CharacterFormSection>
@@ -315,65 +234,8 @@ export function CharacterCardForm({
 
       <div className="flex flex-col gap-3 px-4 py-4">
         {visibleError ? <FormError>{visibleError}</FormError> : null}
-        <FormSubmitButton disabled={isPending}>
-          {characterId ? "保存" : "创建"}
-        </FormSubmitButton>
+        <FormSubmitButton disabled={isPending}>{submitLabel}</FormSubmitButton>
       </div>
     </form>
   );
-}
-
-function editorFormFromCharacter(
-  character: CharacterDetailResponse,
-): CharacterEditorFormState {
-  return {
-    visibility: character.visibility,
-    name: character.name,
-    comment: character.comment,
-    tagsText: character.tags.join(", "),
-    version: character.version,
-    description: character.description,
-    firstMessage: character.firstMessage,
-    personality: character.personality,
-    scenario: character.scenario,
-    creatorNotes: character.creatorNotes,
-    messageExample: character.messageExample,
-    systemPrompt: character.systemPrompt,
-    postHistoryInstructions: character.postHistoryInstructions,
-    creator: character.creator ?? "",
-    nickname: character.nickname ?? "",
-  };
-}
-
-function editorValuesFromForm(
-  form: CharacterEditorFormState,
-):
-  { ok: true; data: EditableCharacterValues } | { ok: false; message: string } {
-  return {
-    ok: true,
-    data: {
-      visibility: form.visibility,
-      name: form.name.trim(),
-      comment: form.comment,
-      tags: tagsFromText(form.tagsText),
-      version: form.version,
-      description: form.description,
-      firstMessage: form.firstMessage,
-      personality: form.personality,
-      scenario: form.scenario,
-      creatorNotes: form.creatorNotes,
-      messageExample: form.messageExample,
-      systemPrompt: form.systemPrompt,
-      postHistoryInstructions: form.postHistoryInstructions,
-      creator: form.creator.trim() ? form.creator.trim() : null,
-      nickname: form.nickname.trim() ? form.nickname.trim() : null,
-    },
-  };
-}
-
-function tagsFromText(value: string): string[] {
-  return value
-    .split(",")
-    .map((tag) => tag.trim())
-    .filter(Boolean);
 }
