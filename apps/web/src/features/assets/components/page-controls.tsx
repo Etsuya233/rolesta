@@ -1,4 +1,22 @@
-import { cn } from '../../../lib/utils';
+import { ChevronFirst, ChevronLast } from "lucide-react";
+import type { ReactNode } from "react";
+import {
+  Pagination,
+  PaginationContent,
+  PaginationItem,
+  PaginationLink,
+  PaginationNext,
+  PaginationPrevious,
+} from "../../../components/ui/pagination";
+import {
+  Select,
+  SelectContent,
+  SelectGroup,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "../../../components/ui/select";
+import { cn } from "../../../lib/utils";
 
 export interface PageControlsProps {
   pageIndex: number;
@@ -23,71 +41,112 @@ export function PageControls({
 
   return (
     <div className="flex items-center justify-between gap-3">
-      <select
-        aria-label="每页数量"
-        className="h-9 rounded-md border border-input bg-background px-2 text-sm outline-none transition-colors focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/20"
-        value={pageSize}
-        onChange={(event) => onPageSizeChange(Number(event.target.value))}
+      <Select
+        value={String(pageSize)}
+        onValueChange={(value) => onPageSizeChange(Number(value))}
       >
-        {pageSizeOptions.map((option) => (
-          <option key={option} value={option}>
-            {option}
-          </option>
-        ))}
-      </select>
-      <div className="flex items-center gap-1">
-        <PageButton disabled={!canGoPrevious} label="第一页" onClick={() => onPageIndexChange(0)}>
-          «
-        </PageButton>
-        <PageButton
-          disabled={!canGoPrevious}
-          label="上一页"
-          onClick={() => onPageIndexChange(Math.max(pageIndex - 1, 0))}
-        >
-          ‹
-        </PageButton>
-        <span className="min-w-14 text-center text-xs text-muted-foreground">
-          {pageIndex + 1}/{Math.max(totalPages, 1)}
-        </span>
-        <PageButton
-          disabled={!canGoNext}
-          label="下一页"
-          onClick={() => onPageIndexChange(Math.min(pageIndex + 1, lastPageIndex))}
-        >
-          ›
-        </PageButton>
-        <PageButton
-          disabled={!canGoNext}
-          label="最后一页"
-          onClick={() => onPageIndexChange(lastPageIndex)}
-        >
-          »
-        </PageButton>
-      </div>
+        <SelectTrigger aria-label="每页数量" className="w-18">
+          <SelectValue />
+        </SelectTrigger>
+        <SelectContent>
+          <SelectGroup>
+            {pageSizeOptions.map((option) => (
+              <SelectItem key={option} value={String(option)}>
+                {option}
+              </SelectItem>
+            ))}
+          </SelectGroup>
+        </SelectContent>
+      </Select>
+      <Pagination className="mx-0 w-auto justify-end">
+        <PaginationContent>
+          <PaginationItem>
+            <CompactPageLink
+              disabled={!canGoPrevious}
+              label="第一页"
+              onClick={() => onPageIndexChange(0)}
+            >
+              <ChevronFirst aria-hidden="true" />
+            </CompactPageLink>
+          </PaginationItem>
+          <PaginationItem>
+            <PaginationPrevious
+              aria-disabled={!canGoPrevious}
+              className={cn(!canGoPrevious && "pointer-events-none opacity-40")}
+              href="#"
+              tabIndex={canGoPrevious ? undefined : -1}
+              text="上一页"
+              onClick={(event) => {
+                event.preventDefault();
+                if (canGoPrevious) {
+                  onPageIndexChange(Math.max(pageIndex - 1, 0));
+                }
+              }}
+            />
+          </PaginationItem>
+          <PaginationItem>
+            <span className="flex h-8 min-w-12 items-center justify-center text-xs text-muted-foreground">
+              {pageIndex + 1}/{Math.max(totalPages, 1)}
+            </span>
+          </PaginationItem>
+          <PaginationItem>
+            <PaginationNext
+              aria-disabled={!canGoNext}
+              className={cn(!canGoNext && "pointer-events-none opacity-40")}
+              href="#"
+              tabIndex={canGoNext ? undefined : -1}
+              text="下一页"
+              onClick={(event) => {
+                event.preventDefault();
+                if (canGoNext) {
+                  onPageIndexChange(Math.min(pageIndex + 1, lastPageIndex));
+                }
+              }}
+            />
+          </PaginationItem>
+          <PaginationItem>
+            <CompactPageLink
+              disabled={!canGoNext}
+              label="最后一页"
+              onClick={() => onPageIndexChange(lastPageIndex)}
+            >
+              <ChevronLast aria-hidden="true" />
+            </CompactPageLink>
+          </PaginationItem>
+        </PaginationContent>
+      </Pagination>
     </div>
   );
 }
 
-interface PageButtonProps {
-  children: string;
+interface CompactPageLinkProps {
+  children: ReactNode;
   disabled: boolean;
   label: string;
   onClick: () => void;
 }
 
-function PageButton({ children, disabled, label, onClick }: PageButtonProps) {
+function CompactPageLink({
+  children,
+  disabled,
+  label,
+  onClick,
+}: CompactPageLinkProps) {
   return (
-    <button
+    <PaginationLink
       aria-label={label}
-      className={cn(
-        'inline-flex size-9 items-center justify-center rounded-md border border-border text-base transition-colors hover:bg-muted focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-ring/30',
-        disabled && 'pointer-events-none opacity-40',
-      )}
-      disabled={disabled}
-      type="button"
-      onClick={onClick}
+      aria-disabled={disabled}
+      className={cn(disabled && "pointer-events-none opacity-40")}
+      href="#"
+      tabIndex={disabled ? -1 : undefined}
+      onClick={(event) => {
+        event.preventDefault();
+        if (!disabled) {
+          onClick();
+        }
+      }}
     >
       {children}
-    </button>
+    </PaginationLink>
   );
 }

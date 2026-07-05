@@ -1,44 +1,50 @@
-import { useQuery } from '@tanstack/react-query';
-import { useState } from 'react';
-import { AssetListItem } from '../../assets/components/asset-list-item';
-import { AssetScopeTabs } from '../../assets/components/asset-scope-tabs';
-import { AssetSortMenu } from '../../assets/components/asset-sort-menu';
-import { PageControls } from '../../assets/components/page-controls';
+import { useQuery } from "@tanstack/react-query";
+import { useState } from "react";
+import { Input } from "../../../components/ui/input";
+import { AssetScopeTabs } from "../../assets/components/asset-scope-tabs";
+import { AssetSortMenu } from "../../assets/components/asset-sort-menu";
+import { PageControls } from "../../assets/components/page-controls";
 import type {
   CharacterListScope,
   CharacterSortKey,
   CharacterSummaryResponse,
   SortDirection,
-} from '../api/characters-api';
-import { listCharacters } from '../api/characters-api';
+} from "../api/characters-api";
+import { listCharacters } from "../api/characters-api";
+import { CharacterCardListItem } from "./character-card-list-item";
 
 export interface CharacterCardListPanelProps {
   hidden?: boolean;
   onSelectCharacter: (characterId: string) => void;
 }
 
-const characterSortOptions: Array<{ value: CharacterSortKey; label: string }> = [
-  { value: 'createdAt', label: '创建时间' },
-  { value: 'updatedAt', label: '更新时间' },
-  { value: 'name', label: 'A-Z' },
-  { value: 'lastUsedAt', label: '最近使用' },
-  { value: 'usageCount', label: '最常使用' },
-];
+const characterSortOptions: Array<{ value: CharacterSortKey; label: string }> =
+  [
+    { value: "createdAt", label: "创建时间" },
+    { value: "updatedAt", label: "更新时间" },
+    { value: "name", label: "A-Z" },
+    { value: "lastUsedAt", label: "最近使用" },
+    { value: "usageCount", label: "最常使用" },
+  ];
 
 export function CharacterCardListPanel({
   hidden = false,
   onSelectCharacter,
 }: CharacterCardListPanelProps) {
-  const [scope, setScope] = useState<CharacterListScope>('all');
-  const [sort, setSort] = useState<CharacterSortKey>('createdAt');
-  const [direction, setDirection] = useState<SortDirection>('desc');
-  const [q, setQ] = useState('');
+  const [scope, setScope] = useState<CharacterListScope>("all");
+  const [sort, setSort] = useState<CharacterSortKey>("createdAt");
+  const [direction, setDirection] = useState<SortDirection>("desc");
+  const [q, setQ] = useState("");
   const [pageIndex, setPageIndex] = useState(0);
   const [pageSize, setPageSize] = useState(20);
 
   const charactersQuery = useQuery({
-    queryKey: ['characters', { scope, sort, direction, pageIndex, pageSize, q }],
-    queryFn: () => listCharacters({ scope, sort, direction, pageIndex, pageSize, q }),
+    queryKey: [
+      "characters",
+      { scope, sort, direction, pageIndex, pageSize, q },
+    ],
+    queryFn: () =>
+      listCharacters({ scope, sort, direction, pageIndex, pageSize, q }),
   });
 
   const page = charactersQuery.data;
@@ -50,13 +56,12 @@ export function CharacterCardListPanel({
   return (
     <section
       aria-hidden={hidden}
-      className={hidden ? 'hidden' : 'min-h-0 flex-1 overflow-y-auto'}
+      className={hidden ? "hidden" : "min-h-0 flex-1 overflow-y-auto"}
     >
       <div className="mx-auto flex min-h-full w-full max-w-2xl flex-col">
-        <div className="space-y-3 border-b border-border px-4 py-4">
-          <input
+        <div className="flex flex-col gap-3 border-b border-border px-4 py-3">
+          <Input
             aria-label="搜索角色卡"
-            className="h-10 w-full rounded-md border border-input bg-background px-3 text-sm outline-none transition-colors placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/20"
             placeholder="搜索名称、注释、标签"
             value={q}
             onChange={(event) => {
@@ -131,27 +136,14 @@ function CharacterListContent({
   }
 
   return (
-    <div>
+    <div className="flex flex-col gap-2 p-3">
       {characters.map((character) => (
-        <AssetListItem
+        <CharacterCardListItem
           key={character.id}
-          avatarLabel={character.name.slice(0, 1).toUpperCase()}
-          comment={character.comment}
-          meta={<CharacterListMeta character={character} />}
-          tags={character.tags}
-          title={character.name}
+          character={character}
           onClick={() => onSelectCharacter(character.id)}
         />
       ))}
-    </div>
-  );
-}
-
-function CharacterListMeta({ character }: { character: CharacterSummaryResponse }) {
-  return (
-    <div className="flex items-center gap-2">
-      <span>{character.visibility === 'public' ? '公开' : '私有'}</span>
-      <span>v{character.version}</span>
     </div>
   );
 }
