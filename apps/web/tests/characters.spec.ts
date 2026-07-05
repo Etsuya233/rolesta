@@ -50,6 +50,19 @@ test("renders character editor sections without advanced page entry", async ({
     page.getByRole("button", { name: "元数据 可直接维护的创作者信息" }),
   ).toBeVisible();
   await expect(page.getByRole("button", { name: "其他开场" })).toBeVisible();
+  const saveButton = page.getByRole("button", { name: "保存" });
+  const saveBoxBefore = await saveButton.boundingBox();
+  expect(saveBoxBefore).not.toBeNull();
+  await page.getByLabel("角色卡主编辑").evaluate((element) => {
+    element.scrollTop = element.scrollHeight;
+  });
+  const saveBoxAfter = await saveButton.boundingBox();
+  expect(saveBoxAfter).not.toBeNull();
+  const viewportHeight = await page.evaluate(() => window.innerHeight);
+  expect(saveBoxAfter!.y).toBeCloseTo(saveBoxBefore!.y, 0);
+  expect(saveBoxAfter!.y + saveBoxAfter!.height).toBeLessThanOrEqual(
+    viewportHeight,
+  );
   await expect(page.getByLabel("来源 JSON")).toHaveCount(0);
   await expect(page.getByLabel("素材 JSON")).toHaveCount(0);
   await expect(page.getByLabel("多语言备注 JSON")).toHaveCount(0);
@@ -124,12 +137,16 @@ test("keeps character views alive while editing alternate greetings", async ({
   await mainEditorScreen.evaluate((element) => {
     element.scrollTop = element.scrollHeight;
   });
+  const bottomScroll = await mainEditorScreen.evaluate(
+    (element) => element.scrollTop,
+  );
+  expect(bottomScroll).toBeGreaterThan(0);
+
+  await page.getByRole("button", { name: "其他开场" }).click();
   const scrollBefore = await mainEditorScreen.evaluate(
     (element) => element.scrollTop,
   );
   expect(scrollBefore).toBeGreaterThan(0);
-
-  await page.getByRole("button", { name: "其他开场" }).click();
   await expect(page.getByRole("heading", { name: "开场消息" })).toBeVisible();
   await page.getByRole("button", { name: "添加开场" }).click();
   await page
