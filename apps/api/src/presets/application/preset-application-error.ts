@@ -3,6 +3,7 @@ export type PresetApplicationErrorReason =
   | 'forbidden'
   | 'invalid-import-file'
   | 'invalid-preset'
+  | 'duplicate-entry'
   | 'unknown-entry';
 
 export class PresetApplicationError extends Error {

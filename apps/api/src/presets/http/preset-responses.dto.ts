@@ -6,6 +6,7 @@ import type {
   PresetEntryPosition,
   PresetEntryRole,
   PresetPromptItem,
+  PresetSummary,
   PresetSourceFormat,
 } from '../domain/preset.js';
 import type { PresetModelSettings } from '../domain/preset-model-settings.js';
@@ -175,7 +176,34 @@ export class PresetPageResponseDto {
   totalPages!: number;
 }
 
-export function toPresetSummaryResponse(preset: Preset): PresetSummaryResponseDto {
+export function toPresetSummaryResponse(preset: PresetSummary): PresetSummaryResponseDto {
+  return {
+    id: preset.id,
+    ownerUserId: preset.ownerUserId,
+    name: preset.name,
+    entryCount: preset.entryCount,
+    promptItemCount: preset.promptItemCount,
+    tokenCount: preset.tokenCount,
+    createdAtMs: preset.createdAtMs,
+    updatedAtMs: preset.updatedAtMs,
+    lastUsedAtMs: preset.lastUsedAtMs,
+    usageCount: preset.usageCount,
+  };
+}
+
+export function toPresetDetailResponse(preset: Preset): PresetDetailResponseDto {
+  return {
+    ...toPresetAggregateSummaryResponse(preset),
+    modelProviderId: preset.modelProviderId,
+    modelSettings: preset.modelSettings,
+    tokenizer: preset.tokenizer,
+    sourceFormat: preset.sourceFormat,
+    entries: preset.entries.map(toPresetEntryResponse),
+    promptItems: preset.promptItems.map(toPresetPromptItemResponse),
+  };
+}
+
+function toPresetAggregateSummaryResponse(preset: Preset): PresetSummaryResponseDto {
   return {
     id: preset.id,
     ownerUserId: preset.ownerUserId,
@@ -190,19 +218,7 @@ export function toPresetSummaryResponse(preset: Preset): PresetSummaryResponseDt
   };
 }
 
-export function toPresetDetailResponse(preset: Preset): PresetDetailResponseDto {
-  return {
-    ...toPresetSummaryResponse(preset),
-    modelProviderId: preset.modelProviderId,
-    modelSettings: preset.modelSettings,
-    tokenizer: preset.tokenizer,
-    sourceFormat: preset.sourceFormat,
-    entries: preset.entries.map(toPresetEntryResponse),
-    promptItems: preset.promptItems.map(toPresetPromptItemResponse),
-  };
-}
-
-export function toPresetPageResponse(page: PageResponse<Preset>): PresetPageResponseDto {
+export function toPresetPageResponse(page: PageResponse<PresetSummary>): PresetPageResponseDto {
   return {
     items: page.items.map(toPresetSummaryResponse),
     pageIndex: page.pageIndex,

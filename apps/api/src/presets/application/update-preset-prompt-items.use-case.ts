@@ -27,7 +27,15 @@ export class UpdatePresetPromptItemsUseCase {
       throw new PresetApplicationError('not-found');
     }
 
+    const entryIds = new Set<string>();
+
     for (const item of command.items) {
+      if (entryIds.has(item.entryId)) {
+        throw new PresetApplicationError('duplicate-entry');
+      }
+
+      entryIds.add(item.entryId);
+
       if (!current.entries.some((entry) => entry.id === item.entryId)) {
         throw new PresetApplicationError('unknown-entry');
       }

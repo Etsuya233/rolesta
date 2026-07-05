@@ -15,25 +15,39 @@ import type {
   PresetStore,
 } from '../application/preset-store.js';
 import type { PresetModelSettings } from '../domain/preset-model-settings.js';
-import { withPresetTokenCount, type Preset, type PresetEntry } from '../domain/preset.js';
+import {
+  withPresetTokenCount,
+  type Preset,
+  type PresetEntry,
+  type PresetSummary,
+} from '../domain/preset.js';
 
 @Injectable()
 export class KyselyPresetStore implements PresetStore {
   constructor(@Inject(KYSELY_DB) private readonly db: Kysely<Database>) {}
 
-  async list(request: ListPresetsRequest): Promise<PageResponse<Preset>> {
+  async list(request: ListPresetsRequest): Promise<PageResponse<PresetSummary>> {
     const filteredRows = withListFilters(this.db.selectFrom('presets'), request);
     const countRow = await withListFilters(this.db.selectFrom('presets'), request)
       .select((builder) => builder.fn.countAll<number>().as('count'))
       .executeTakeFirstOrThrow();
     const rows = await filteredRows
-      .selectAll()
+      .select([
+        'id',
+        'owner_user_id',
+        'name',
+        'created_at_ms',
+        'updated_at_ms',
+        'last_used_at_ms',
+        'usage_count',
+      ])
       .orderBy(sortColumns[request.sort], request.direction)
       .orderBy('id', 'asc')
       .limit(request.pageSize)
       .offset(request.pageIndex * request.pageSize)
       .execute();
-    const items = await Promise.all(rows.map((row) => this.aggregate(row)));
+    const stats = await this.summaryStats(rows.map((row) => row.id));
+    const items = rows.map((row) => toPresetSummary(row, stats.get(row.id)));
     const totalItems = Number(countRow.count);
 
     return {
@@ -139,15 +153,72 @@ export class KyselyPresetStore implements PresetStore {
       usageCount: row.usage_count,
     });
   }
+
+  private async summaryStats(presetIds: string[]): Promise<Map<string, PresetSummaryStats>> {
+    const stats = new Map<string, PresetSummaryStats>(
+      presetIds.map((id) => [id, { entryCount: 0, promptItemCount: 0, tokenCount: 0 }]),
+    );
+
+    if (presetIds.length === 0) {
+      return stats;
+    }
+
+    const entryRows = await this.db
+      .selectFrom('preset_entries')
+      .select(['id', 'preset_id', 'token_count'])
+      .where('preset_id', 'in', presetIds)
+      .execute();
+    const tokenCountByEntryId = new Map<string, number>();
+
+    for (const row of entryRows) {
+      tokenCountByEntryId.set(row.id, row.token_count);
+      const presetStats = stats.get(row.preset_id);
+
+      if (presetStats) {
+        presetStats.entryCount += 1;
+      }
+    }
+
+    const itemRows = await this.db
+      .selectFrom('preset_prompt_items')
+      .select(['preset_id', 'entry_id', 'enabled'])
+      .where('preset_id', 'in', presetIds)
+      .execute();
+
+    for (const row of itemRows) {
+      const presetStats = stats.get(row.preset_id);
+
+      if (presetStats) {
+        presetStats.promptItemCount += 1;
+
+        if (row.enabled === 1) {
+          presetStats.tokenCount += tokenCountByEntryId.get(row.entry_id) ?? 0;
+        }
+      }
+    }
+
+    return stats;
+  }
 }
 
 type PresetRow = Selectable<PresetsTable>;
+type PresetListRow = Pick<
+  PresetRow,
+  | 'id'
+  | 'owner_user_id'
+  | 'name'
+  | 'created_at_ms'
+  | 'updated_at_ms'
+  | 'last_used_at_ms'
+  | 'usage_count'
+>;
 type PresetInsert = Insertable<PresetsTable>;
 type PresetEntryRow = Selectable<PresetEntriesTable>;
 type PresetEntryInsert = Insertable<PresetEntriesTable>;
 type PresetPromptItemRow = Selectable<PresetPromptItemsTable>;
 type PresetPromptItemInsert = Insertable<PresetPromptItemsTable>;
 type PresetSelectQuery = SelectQueryBuilder<Database, 'presets', Record<string, never>>;
+type PresetSummaryStats = Pick<PresetSummary, 'entryCount' | 'promptItemCount' | 'tokenCount'>;
 
 const sortColumns = {
   createdAt: 'created_at_ms',
@@ -181,6 +252,24 @@ function toPresetRow(preset: Preset): PresetInsert {
     updated_at_ms: ensureEpochMillis(preset.updatedAtMs),
     last_used_at_ms: preset.lastUsedAtMs === null ? null : ensureEpochMillis(preset.lastUsedAtMs),
     usage_count: preset.usageCount,
+  };
+}
+
+function toPresetSummary(
+  row: PresetListRow,
+  stats: PresetSummaryStats | undefined,
+): PresetSummary {
+  return {
+    id: row.id,
+    ownerUserId: row.owner_user_id,
+    name: row.name,
+    entryCount: stats?.entryCount ?? 0,
+    promptItemCount: stats?.promptItemCount ?? 0,
+    tokenCount: stats?.tokenCount ?? 0,
+    createdAtMs: epochMillisColumn(row.created_at_ms),
+    updatedAtMs: epochMillisColumn(row.updated_at_ms),
+    lastUsedAtMs: nullableEpochMillisColumn(row.last_used_at_ms),
+    usageCount: row.usage_count,
   };
 }
 

@@ -4,7 +4,7 @@ import type {
   PresetStore,
   SortDirection,
 } from './preset-store.js';
-import type { Preset } from '../domain/preset.js';
+import type { PresetSummary } from '../domain/preset.js';
 
 export interface ListPresetsCommand {
   viewerUserId: string;
@@ -18,7 +18,7 @@ export interface ListPresetsCommand {
 export class ListPresetsUseCase {
   constructor(private readonly store: PresetStore) {}
 
-  execute(command: ListPresetsCommand): Promise<PageResponse<Preset>> {
+  execute(command: ListPresetsCommand): Promise<PageResponse<PresetSummary>> {
     return this.store.list({
       viewerUserId: command.viewerUserId,
       sort: command.sort ?? 'createdAt',

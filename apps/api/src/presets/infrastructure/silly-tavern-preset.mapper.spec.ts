@@ -51,6 +51,21 @@ describe('SillyTavern preset mapper', () => {
     ]);
   });
 
+  it('keeps the default stream setting when stream_openai is absent', () => {
+    const preset = fromSillyTavernPreset({
+      name: 'missing stream',
+      prompts: [{ identifier: 'main', name: 'Main', role: 'system', content: 'alpha' }],
+      prompt_order: [
+        {
+          character_id: 100000,
+          order: [{ identifier: 'main', enabled: true }],
+        },
+      ],
+    });
+
+    expect(preset.modelSettings.stream).toBe(true);
+  });
+
   it('exports only the Rolesta aggregate fields', () => {
     const preset: Preset = {
       id: 'preset-1',

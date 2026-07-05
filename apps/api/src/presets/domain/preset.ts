@@ -34,6 +34,19 @@ export interface Preset {
   usageCount: number;
 }
 
+export interface PresetSummary {
+  id: string;
+  ownerUserId: string;
+  name: string;
+  entryCount: number;
+  promptItemCount: number;
+  tokenCount: number;
+  createdAtMs: number;
+  updatedAtMs: number;
+  lastUsedAtMs: number | null;
+  usageCount: number;
+}
+
 export interface PresetEntry {
   id: string;
   presetId: string;

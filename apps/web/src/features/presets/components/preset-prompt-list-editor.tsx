@@ -90,6 +90,16 @@ export function PresetPromptListEditor({
     const entry = entryById.get(item.entryId);
     return total + (item.enabled ? entry?.tokenCount ?? 0 : 0);
   }, 0);
+  function linkEntry(entryId: string) {
+    setItems((current) => {
+      if (current.some((item) => item.entryId === entryId)) {
+        return current;
+      }
+
+      return [...current, { entryId, enabled: true }];
+    });
+  }
+
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 4 } }),
     useSensor(TouchSensor, {
@@ -207,12 +217,7 @@ export function PresetPromptListEditor({
                       className="min-w-0 justify-between px-2"
                       type="button"
                       variant="ghost"
-                      onClick={() =>
-                        setItems((current) => [
-                          ...current,
-                          { entryId: entry.id, enabled: true },
-                        ])
-                      }
+                      onClick={() => linkEntry(entry.id)}
                     >
                       <span className="truncate">{entry.name}</span>
                       <span className="ml-2 shrink-0 text-xs text-muted-foreground">
@@ -227,12 +232,7 @@ export function PresetPromptListEditor({
                       size="icon"
                       type="button"
                       variant="ghost"
-                      onClick={() =>
-                        setItems((current) => [
-                          ...current,
-                          { entryId: entry.id, enabled: true },
-                        ])
-                      }
+                      onClick={() => linkEntry(entry.id)}
                     >
                       <Plus aria-hidden="true" />
                     </Button>

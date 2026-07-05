@@ -1,215 +1,143 @@
-import type { ApiEnvelope } from "@rolesta/shared";
 import {
   API_BASE_URL,
   ApiError,
   applyActiveLocaleHeader,
   applyAuthTokenHeader,
+  openApiClient,
+  requestApi,
 } from "../../../lib/api/client";
+import type { components, operations } from "../../../lib/api/generated/schema";
 
-export type PresetEntryRole = "system" | "user" | "assistant";
-export type PresetEntryPosition =
-  | "system"
-  | "chat"
-  | "preHistory"
-  | "postHistory"
-  | "unknown";
-export type PresetSortKey =
-  | "createdAt"
-  | "updatedAt"
-  | "name"
-  | "lastUsedAt"
-  | "usageCount";
-export type SortDirection = "asc" | "desc";
+export type PresetModelSettings =
+  components["schemas"]["PresetModelSettingsResponseDto"];
+export type PresetSummaryResponse =
+  components["schemas"]["PresetSummaryResponseDto"];
+export type PresetEntryResponse =
+  components["schemas"]["PresetEntryResponseDto"];
+export type PresetPromptItemResponse =
+  components["schemas"]["PresetPromptItemResponseDto"];
+export type PresetDetailResponse =
+  components["schemas"]["PresetDetailResponseDto"];
+export type PresetPageResponse = components["schemas"]["PresetPageResponseDto"];
+export type PresetSaveValues = components["schemas"]["UpdatePresetRequestDto"];
+export type PresetCreateValues = components["schemas"]["CreatePresetRequestDto"];
+export type PresetEntryCreateValues =
+  components["schemas"]["CreatePresetEntryRequestDto"];
+export type PresetEntryUpdateValues =
+  components["schemas"]["UpdatePresetEntryRequestDto"];
 
-export interface PresetModelSettings {
-  contextLength: number | null;
-  maxResponseLength: number | null;
-  stream: boolean;
-  temperature: number | null;
-  presencePenalty: number | null;
-  frequencyPenalty: number | null;
-  repetitionPenalty: number | null;
-  topP: number | null;
-  topK: number | null;
-  minP: number | null;
-  topA: number | null;
-  seed: number | null;
-  n: number | null;
-  reasoningEffort: string;
-  verbosity: string;
-  showThoughts: boolean;
+export type PresetEntryRole = PresetEntryResponse["role"];
+export type PresetEntryPosition = PresetEntryResponse["position"];
+
+export type ListPresetsQuery = NonNullable<
+  operations["PresetsController_list"]["parameters"]["query"]
+>;
+export type PresetSortKey = NonNullable<ListPresetsQuery["sort"]>;
+export type SortDirection = NonNullable<ListPresetsQuery["direction"]>;
+
+export async function listPresets(
+  query: ListPresetsQuery,
+): Promise<PresetPageResponse> {
+  const result = await requestApi(
+    openApiClient.GET("/presets", { params: { query } }),
+  );
+  return result.data;
 }
 
-export interface PresetSummaryResponse {
-  id: string;
-  ownerUserId: string;
-  name: string;
-  entryCount: number;
-  promptItemCount: number;
-  tokenCount: number;
-  createdAtMs: number;
-  updatedAtMs: number;
-  lastUsedAtMs: number | null;
-  usageCount: number;
+export async function getPreset(id: string): Promise<PresetDetailResponse> {
+  const result = await requestApi(
+    openApiClient.GET("/presets/{id}", { params: { path: { id } } }),
+  );
+  return result.data;
 }
 
-export interface PresetEntryResponse {
-  id: string;
-  presetId: string;
-  identifier: string;
-  name: string;
-  role: PresetEntryRole;
-  position: PresetEntryPosition;
-  content: string;
-  tokenCount: number;
-  metadata: Record<string, unknown>;
-  createdAtMs: number;
-  updatedAtMs: number;
+export async function createPreset(
+  values: PresetCreateValues,
+): Promise<PresetDetailResponse> {
+  const result = await requestApi(openApiClient.POST("/presets", { body: values }));
+  return result.data;
 }
 
-export interface PresetPromptItemResponse {
-  entryId: string;
-  enabled: boolean;
-  orderIndex: number;
-}
-
-export interface PresetDetailResponse extends PresetSummaryResponse {
-  modelProviderId: string | null;
-  modelSettings: PresetModelSettings;
-  tokenizer: "cl100k_base";
-  sourceFormat: "sillytavern_preset" | "rolesta";
-  entries: PresetEntryResponse[];
-  promptItems: PresetPromptItemResponse[];
-}
-
-export interface PresetPageResponse {
-  items: PresetSummaryResponse[];
-  pageIndex: number;
-  pageSize: number;
-  totalItems: number;
-  totalPages: number;
-}
-
-export interface ListPresetsQuery {
-  sort?: PresetSortKey;
-  direction?: SortDirection;
-  pageIndex?: number;
-  pageSize?: number;
-  q?: string;
-}
-
-export interface PresetSaveValues {
-  name?: string;
-  modelSettings?: Partial<PresetModelSettings>;
-}
-
-export interface PresetCreateValues extends PresetSaveValues {
-  name: string;
-}
-
-export interface PresetEntryCreateValues {
-  name: string;
-  role: PresetEntryRole;
-  position: PresetEntryPosition;
-  content: string;
-}
-
-export interface PresetEntryUpdateValues {
-  name?: string;
-  role?: PresetEntryRole;
-  position?: PresetEntryPosition;
-  content?: string;
-}
-
-export async function listPresets(query: ListPresetsQuery): Promise<PresetPageResponse> {
-  const search = new URLSearchParams();
-
-  for (const [key, value] of Object.entries(query)) {
-    if (value !== undefined && value !== "") {
-      search.set(key, String(value));
-    }
-  }
-
-  return requestJson<PresetPageResponse>(`/presets?${search.toString()}`);
-}
-
-export function getPreset(id: string): Promise<PresetDetailResponse> {
-  return requestJson<PresetDetailResponse>(`/presets/${id}`);
-}
-
-export function createPreset(values: PresetCreateValues): Promise<PresetDetailResponse> {
-  return requestJson<PresetDetailResponse>("/presets", {
-    body: JSON.stringify(values),
-    method: "POST",
-  });
-}
-
-export function updatePreset(
+export async function updatePreset(
   id: string,
   values: PresetSaveValues,
 ): Promise<PresetDetailResponse> {
-  return requestJson<PresetDetailResponse>(`/presets/${id}`, {
-    body: JSON.stringify(values),
-    method: "PATCH",
-  });
+  const result = await requestApi(
+    openApiClient.PATCH("/presets/{id}", {
+      body: values,
+      params: { path: { id } },
+    }),
+  );
+  return result.data;
 }
 
-export function deletePreset(id: string): Promise<{ ok: true }> {
-  return requestJson<{ ok: true }>(`/presets/${id}`, { method: "DELETE" });
+export async function deletePreset(id: string): Promise<{ ok?: boolean }> {
+  const result = await requestApi(
+    openApiClient.DELETE("/presets/{id}", { params: { path: { id } } }),
+  );
+  return result.data;
 }
 
-export function createPresetEntry(
+export async function createPresetEntry(
   presetId: string,
   values: PresetEntryCreateValues,
 ): Promise<PresetDetailResponse> {
-  return requestJson<PresetDetailResponse>(`/presets/${presetId}/entries`, {
-    body: JSON.stringify(values),
-    method: "POST",
-  });
+  const result = await requestApi(
+    openApiClient.POST("/presets/{id}/entries", {
+      body: values,
+      params: { path: { id: presetId } },
+    }),
+  );
+  return result.data;
 }
 
-export function updatePresetEntry(
+export async function updatePresetEntry(
   presetId: string,
   entryId: string,
   values: PresetEntryUpdateValues,
 ): Promise<PresetDetailResponse> {
-  return requestJson<PresetDetailResponse>(
-    `/presets/${presetId}/entries/${entryId}`,
-    {
-      body: JSON.stringify(values),
-      method: "PATCH",
-    },
+  const result = await requestApi(
+    openApiClient.PATCH("/presets/{id}/entries/{entryId}", {
+      body: values,
+      params: { path: { id: presetId, entryId } },
+    }),
   );
+  return result.data;
 }
 
-export function deletePresetEntry(
+export async function deletePresetEntry(
   presetId: string,
   entryId: string,
 ): Promise<PresetDetailResponse> {
-  return requestJson<PresetDetailResponse>(
-    `/presets/${presetId}/entries/${entryId}`,
-    { method: "DELETE" },
+  const result = await requestApi(
+    openApiClient.DELETE("/presets/{id}/entries/{entryId}", {
+      params: { path: { id: presetId, entryId } },
+    }),
   );
+  return result.data;
 }
 
-export function updatePresetPromptItems(
+export async function updatePresetPromptItems(
   presetId: string,
   items: Array<{ entryId: string; enabled: boolean }>,
 ): Promise<PresetDetailResponse> {
-  return requestJson<PresetDetailResponse>(`/presets/${presetId}/prompt-items`, {
-    body: JSON.stringify({ items }),
-    method: "PUT",
-  });
+  const result = await requestApi(
+    openApiClient.PUT("/presets/{id}/prompt-items", {
+      body: { items },
+      params: { path: { id: presetId } },
+    }),
+  );
+  return result.data;
 }
 
 export async function importPreset(file: File): Promise<PresetDetailResponse> {
   const formData = new FormData();
   formData.set("file", file);
 
-  return requestJson<PresetDetailResponse>("/presets/import", {
-    body: formData,
-    method: "POST",
-  });
+  const result = await requestApi(
+    openApiClient.POST("/presets/import", { body: formData as never }),
+  );
+  return result.data;
 }
 
 export async function exportPreset(id: string): Promise<Blob> {
@@ -223,32 +151,6 @@ export async function exportPreset(id: string): Promise<Blob> {
   }
 
   return response.blob();
-}
-
-async function requestJson<TData>(
-  path: string,
-  init: RequestInit = {},
-): Promise<TData> {
-  const request = new Request(`${API_BASE_URL}${path}`, init);
-
-  if (!(init.body instanceof FormData)) {
-    request.headers.set("Content-Type", "application/json");
-  }
-  request.headers.set("Accept", "application/json");
-  applyActiveLocaleHeader(request);
-  applyAuthTokenHeader(request);
-
-  const response = await fetch(request);
-  const envelope = (await response.json()) as ApiEnvelope<TData>;
-
-  if (envelope.code !== "SUCCESS") {
-    throw new ApiError(envelope.msg, {
-      kind: "response",
-      rawResponse: response,
-    });
-  }
-
-  return envelope.data;
 }
 
 function fetchAuthed(input: string, init: RequestInit = {}): Promise<Response> {

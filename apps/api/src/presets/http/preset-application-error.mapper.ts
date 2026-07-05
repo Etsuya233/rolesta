@@ -17,6 +17,7 @@ export function toApiFailure(error: PresetApplicationError): ApiFailure {
       });
     case 'invalid-import-file':
     case 'invalid-preset':
+    case 'duplicate-entry':
     case 'unknown-entry':
       return new ApiFailure({
         status: HttpStatus.BAD_REQUEST,

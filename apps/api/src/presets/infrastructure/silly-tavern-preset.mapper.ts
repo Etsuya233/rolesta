@@ -179,7 +179,7 @@ function modelSettings(input: Record<string, unknown>): PresetModelSettings {
   return {
     contextLength: nullableNumberField(input, 'openai_max_context'),
     maxResponseLength: nullableNumberField(input, 'openai_max_tokens'),
-    stream: booleanField(input, 'stream_openai'),
+    stream: optionalBooleanField(input, 'stream_openai') ?? defaults.stream,
     temperature: nullableNumberField(input, 'temperature'),
     presencePenalty: nullableNumberField(input, 'presence_penalty'),
     frequencyPenalty: nullableNumberField(input, 'frequency_penalty'),
@@ -286,6 +286,20 @@ function booleanField(input: Record<string, unknown>, key: string): boolean {
 
   if (value === undefined || value === null) {
     return false;
+  }
+
+  if (typeof value === 'boolean') {
+    return value;
+  }
+
+  throw new PresetApplicationError('invalid-preset');
+}
+
+function optionalBooleanField(input: Record<string, unknown>, key: string): boolean | undefined {
+  const value = input[key];
+
+  if (value === undefined || value === null) {
+    return undefined;
   }
 
   if (typeof value === 'boolean') {

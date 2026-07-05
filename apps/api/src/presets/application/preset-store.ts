@@ -1,5 +1,5 @@
 import type { PageResponse } from '@rolesta/shared';
-import type { Preset } from '../domain/preset.js';
+import type { Preset, PresetSummary } from '../domain/preset.js';
 
 export const PRESET_STORE = Symbol('PresetStore');
 
@@ -25,7 +25,7 @@ export interface ListPresetsRequest {
 }
 
 export interface PresetStore {
-  list(request: ListPresetsRequest): Promise<PageResponse<Preset>>;
+  list(request: ListPresetsRequest): Promise<PageResponse<PresetSummary>>;
   findOwnedById(id: string, ownerUserId: string): Promise<Preset | null>;
   save(preset: Preset): Promise<void>;
   update(preset: Preset): Promise<void>;
