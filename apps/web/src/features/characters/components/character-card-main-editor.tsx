@@ -135,6 +135,11 @@ export function CharacterCardMainEditor({
               setForm({ ...form, firstMessage: event.target.value })
             }
           />
+          {onOpenGreetings ? (
+              <FormActionButton disabled={isPending} onClick={onOpenGreetings}>
+                其他开场
+              </FormActionButton>
+          ) : null}
           <CharacterTextAreaField
             disabled={isPending}
             id={`${fieldPrefix}-personality`}
@@ -171,11 +176,6 @@ export function CharacterCardMainEditor({
               setForm({ ...form, messageExample: event.target.value })
             }
           />
-          {onOpenGreetings ? (
-            <FormActionButton disabled={isPending} onClick={onOpenGreetings}>
-              其他开场
-            </FormActionButton>
-          ) : null}
         </CharacterFormSection>
 
         <CharacterFormSection

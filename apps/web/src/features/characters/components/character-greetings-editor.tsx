@@ -45,9 +45,11 @@ export function CharacterGreetingsEditor({
                 </Button>
               </div>
               <Textarea
-                className="min-h-28"
+                className="min-h-28 resize-y overflow-auto [field-sizing:fixed]"
                 disabled={disabled}
                 id={`${fieldPrefix}-greeting-${index}`}
+                rows={6}
+                style={{ fieldSizing: "fixed" }}
                 value={greeting}
                 onChange={(event) =>
                   onChange(

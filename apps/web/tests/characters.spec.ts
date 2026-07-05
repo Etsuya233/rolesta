@@ -56,6 +56,49 @@ test("renders character editor sections without advanced page entry", async ({
   await expect(page.getByRole("button", { name: "高级定义" })).toHaveCount(0);
 });
 
+test("keeps long character textareas partially visible by default", async ({
+  page,
+}) => {
+  const longDescription = Array.from(
+    { length: 12 },
+    (_, index) => `Forest memory line ${index + 1}.`,
+  ).join("\n");
+  const longGreeting = Array.from(
+    { length: 10 },
+    (_, index) => `Greeting branch ${index + 1}.`,
+  ).join("\n");
+
+  await mockAuthenticatedApp(page);
+  await mockCharacterList(page);
+  await mockCharacterDetail(page, {
+    alternateGreetings: [longGreeting],
+    description: longDescription,
+  });
+
+  await page.goto("/app/characters");
+  await page.getByRole("button", { name: "Seraphina" }).click();
+
+  const descriptionField = page.getByRole("textbox", { name: "角色描述" });
+  await expect(descriptionField).toHaveValue(longDescription);
+  const descriptionSize = await descriptionField.evaluate((element) => ({
+    clientHeight: element.clientHeight,
+    scrollHeight: element.scrollHeight,
+  }));
+  expect(descriptionSize.clientHeight).toBeLessThan(
+    descriptionSize.scrollHeight,
+  );
+
+  await page.getByRole("button", { name: "其他开场" }).click();
+
+  const greetingField = page.getByRole("textbox", { name: "开场 1" });
+  await expect(greetingField).toHaveValue(longGreeting);
+  const greetingSize = await greetingField.evaluate((element) => ({
+    clientHeight: element.clientHeight,
+    scrollHeight: element.scrollHeight,
+  }));
+  expect(greetingSize.clientHeight).toBeLessThan(greetingSize.scrollHeight);
+});
+
 test("keeps character views alive while editing alternate greetings", async ({
   page,
 }) => {
