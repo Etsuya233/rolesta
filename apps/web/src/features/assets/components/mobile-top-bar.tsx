@@ -1,7 +1,8 @@
-import { ArrowLeft } from 'lucide-react';
-import type { ReactNode } from 'react';
-import { Button } from '../../../components/ui/button';
-import { cn } from '../../../lib/utils';
+import { ArrowLeft } from "lucide-react";
+import type { ReactNode } from "react";
+import { useTranslation } from "react-i18next";
+import { Button } from "../../../components/ui/button";
+import { cn } from "../../../lib/utils";
 
 export interface MobileTopBarProps {
   title: string;
@@ -10,16 +11,23 @@ export interface MobileTopBarProps {
   onBack: () => void;
 }
 
-export function MobileTopBar({ title, actions, className, onBack }: MobileTopBarProps) {
+export function MobileTopBar({
+  title,
+  actions,
+  className,
+  onBack,
+}: MobileTopBarProps) {
+  const { t } = useTranslation();
+
   return (
     <header
       className={cn(
-        'sticky top-0 z-20 flex h-14 items-center gap-2 border-b border-border bg-background/95 px-3 backdrop-blur',
+        "sticky top-0 z-20 flex h-14 items-center gap-2 border-b border-border bg-background/95 px-3 backdrop-blur",
         className,
       )}
     >
       <Button
-        aria-label="返回"
+        aria-label={t("assets.navigation.back")}
         className="size-10"
         size="icon-lg"
         type="button"
@@ -28,8 +36,12 @@ export function MobileTopBar({ title, actions, className, onBack }: MobileTopBar
       >
         <ArrowLeft aria-hidden="true" />
       </Button>
-      <h1 className="min-w-0 flex-1 truncate text-base font-semibold">{title}</h1>
-      {actions ? <div className="flex shrink-0 items-center gap-1">{actions}</div> : null}
+      <h1 className="min-w-0 flex-1 truncate text-base font-semibold">
+        {title}
+      </h1>
+      {actions ? (
+        <div className="flex shrink-0 items-center gap-1">{actions}</div>
+      ) : null}
     </header>
   );
 }

@@ -1,5 +1,6 @@
 import { Import, Plus } from "lucide-react";
 import type { ReactNode } from "react";
+import { useTranslation } from "react-i18next";
 import { Button } from "../../../components/ui/button";
 import { MobileTopBar } from "../../assets/components/mobile-top-bar";
 import { CharacterCardListPanel } from "./character-card-list-panel";
@@ -18,20 +19,28 @@ export function CharacterListPage({
   onImport,
   onSelectCharacter,
 }: CharacterListPageProps) {
+  const { t } = useTranslation();
+
   return (
     <CharacterStackPage>
       <MobileTopBar
         actions={
           <>
-            <IconAction label="导入角色卡" onClick={onImport}>
+            <IconAction
+              label={t("characters.list.importAction")}
+              onClick={onImport}
+            >
               <Import aria-hidden="true" />
             </IconAction>
-            <IconAction label="新增角色卡" onClick={onCreate}>
+            <IconAction
+              label={t("characters.list.createAction")}
+              onClick={onCreate}
+            >
               <Plus aria-hidden="true" />
             </IconAction>
           </>
         }
-        title="角色卡"
+        title={t("characters.list.title")}
         onBack={onBack}
       />
       <CharacterCardListPanel onSelectCharacter={onSelectCharacter} />

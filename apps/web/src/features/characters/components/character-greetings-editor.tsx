@@ -1,5 +1,6 @@
 import { Trash2 } from "lucide-react";
 import { useId } from "react";
+import { useTranslation } from "react-i18next";
 import { Button } from "../../../components/ui/button";
 import { Field, FieldLabel } from "../../../components/ui/field";
 import { Textarea } from "../../../components/ui/textarea";
@@ -17,20 +18,23 @@ export function CharacterGreetingsEditor({
   greetings,
   onChange,
 }: CharacterGreetingsEditorProps) {
+  const { t } = useTranslation();
   const fieldPrefix = useId();
 
   return (
     <>
-      <MobileFormSection title="其他开场">
+      <MobileFormSection title={t("characters.greetings.sectionTitle")}>
         <div className="flex flex-col gap-3">
           {greetings.map((greeting, index) => (
             <Field key={index}>
               <div className="flex items-center justify-between gap-3">
                 <FieldLabel htmlFor={`${fieldPrefix}-greeting-${index}`}>
-                  开场 {index + 1}
+                  {t("characters.greetings.itemLabel", { index: index + 1 })}
                 </FieldLabel>
                 <Button
-                  aria-label={`删除开场 ${index + 1}`}
+                  aria-label={t("characters.greetings.deleteAction", {
+                    index: index + 1,
+                  })}
                   disabled={disabled}
                   size="icon"
                   type="button"
@@ -67,7 +71,7 @@ export function CharacterGreetingsEditor({
           disabled={disabled}
           onClick={() => onChange([...greetings, ""])}
         >
-          添加开场
+          {t("characters.greetings.addAction")}
         </FormActionButton>
       </MobileFormSection>
     </>

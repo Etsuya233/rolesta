@@ -11,6 +11,7 @@ import {
   type ReactNode,
   type SetStateAction,
 } from "react";
+import { useTranslation } from "react-i18next";
 import {
   createCharacter,
   getCharacter,
@@ -199,6 +200,7 @@ export function useCharacterDraftSession({
   characterId?: string;
   onCreated?: (character: CharacterDetailResponse) => void;
 }): CharacterDraftSession {
+  const { t } = useTranslation();
   const context = useContext(CharacterDraftSessionsContext);
 
   if (!context) {
@@ -207,12 +209,8 @@ export function useCharacterDraftSession({
     );
   }
 
-  const {
-    sessions,
-    setSessionError,
-    setSessionForm,
-    setSessionFromCharacter,
-  } = context;
+  const { sessions, setSessionError, setSessionForm, setSessionFromCharacter } =
+    context;
   const queryClient = useQueryClient();
   const draft = sessions[sessionKey] ?? emptyCharacterDraftRecord;
   const isEditing = Boolean(characterId);
@@ -265,7 +263,7 @@ export function useCharacterDraftSession({
       setSessionError(sessionKey, null);
 
       if (!draft.form.name.trim()) {
-        setSessionError(sessionKey, "名称不能为空");
+        setSessionError(sessionKey, "characters.editor.errors.nameRequired");
         return;
       }
 
@@ -274,8 +272,13 @@ export function useCharacterDraftSession({
     [draft.form, saveMutation, sessionKey, setSessionError],
   );
 
-  const visibleError =
-    draft.errorMessage ?? (saveMutation.isError ? "保存角色卡失败" : null);
+  let visibleError: string | null = null;
+
+  if (draft.errorMessage) {
+    visibleError = t(draft.errorMessage);
+  } else if (saveMutation.isError) {
+    visibleError = t("characters.editor.errors.saveFailed");
+  }
   const isPending = saveMutation.isPending || characterQuery.isLoading;
 
   return useMemo(

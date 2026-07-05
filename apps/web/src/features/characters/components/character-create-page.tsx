@@ -1,3 +1,4 @@
+import { useTranslation } from "react-i18next";
 import { MobileTopBar } from "../../assets/components/mobile-top-bar";
 import { useCharacterDraftSessionActions } from "../hooks/use-character-draft-sessions";
 import {
@@ -19,14 +20,18 @@ export function CharacterCreatePage({
   onBack,
   replacePage,
 }: CharacterCreatePageProps) {
+  const { t } = useTranslation();
   const { moveSessionToCharacter } = useCharacterDraftSessionActions();
 
   return (
     <CharacterStackPage>
-      <MobileTopBar title="新增角色卡" onBack={onBack} />
+      <MobileTopBar
+        title={t("characters.editor.createTitle")}
+        onBack={onBack}
+      />
       <CharacterCardMainEditor
         sessionKey={page.sessionKey}
-        submitLabel="创建"
+        submitLabel={t("characters.editor.createSubmit")}
         onCreated={(character) => {
           moveSessionToCharacter(
             page.sessionKey,

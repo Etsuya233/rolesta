@@ -1,4 +1,5 @@
 import { useId, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { Accordion } from "../../../components/ui/accordion";
 import { useCharacterDraftSession } from "../hooks/use-character-draft-sessions";
 import type { CharacterDetailResponse } from "../api/characters-api";
@@ -21,14 +22,6 @@ export interface CharacterCardMainEditorProps {
   onOpenGreetings?: () => void;
 }
 
-const visibilityOptions: Array<{
-  value: CharacterEditorFormState["visibility"];
-  label: string;
-}> = [
-  { value: "private", label: "私有" },
-  { value: "public", label: "公开" },
-];
-
 export function CharacterCardMainEditor({
   sessionKey,
   characterId,
@@ -36,6 +29,7 @@ export function CharacterCardMainEditor({
   onCreated,
   onOpenGreetings,
 }: CharacterCardMainEditorProps) {
+  const { t } = useTranslation();
   const fieldPrefix = useId();
   const [openSections, setOpenSections] = useState<string[]>([
     "basic",
@@ -47,13 +41,23 @@ export function CharacterCardMainEditor({
       ...(characterId ? { characterId } : {}),
       ...(onCreated ? { onCreated } : {}),
     });
+  const visibilityOptions: Array<{
+    value: CharacterEditorFormState["visibility"];
+    label: string;
+  }> = [
+    { value: "private", label: t("characters.list.privateVisibility") },
+    { value: "public", label: t("characters.list.publicVisibility") },
+  ];
 
   return (
     <form
       className="mx-auto flex h-full min-h-0 w-full max-w-2xl flex-1 flex-col overflow-hidden"
       onSubmit={submit}
     >
-      <div aria-label="角色卡主编辑" className="min-h-0 flex-1 overflow-y-auto">
+      <div
+        aria-label={t("characters.editor.mainEditorLabel")}
+        className="min-h-0 flex-1 overflow-y-auto"
+      >
         <Accordion
           className="border-b border-border"
           type="multiple"
@@ -61,14 +65,14 @@ export function CharacterCardMainEditor({
           onValueChange={setOpenSections}
         >
           <CharacterFormSection
-            description="角色卡在列表和聊天选择中的基本识别信息"
-            title="基础信息"
+            description={t("characters.editor.sections.basic.description")}
+            title={t("characters.editor.sections.basic.title")}
             value="basic"
           >
             <CharacterTextField
               disabled={isPending}
               id={`${fieldPrefix}-name`}
-              label="名称"
+              label={t("characters.editor.fields.name")}
               value={form.name}
               onChange={(event) =>
                 setForm({ ...form, name: event.target.value })
@@ -77,17 +81,17 @@ export function CharacterCardMainEditor({
             <CharacterTextField
               disabled={isPending}
               id={`${fieldPrefix}-comment`}
-              label="注释"
+              label={t("characters.editor.fields.comment")}
               value={form.comment}
               onChange={(event) =>
                 setForm({ ...form, comment: event.target.value })
               }
             />
             <CharacterTextField
-              description="用逗号分隔多个标签"
+              description={t("characters.editor.fields.tagsDescription")}
               disabled={isPending}
               id={`${fieldPrefix}-tags`}
-              label="标签"
+              label={t("characters.editor.fields.tags")}
               value={form.tagsText}
               onChange={(event) =>
                 setForm({ ...form, tagsText: event.target.value })
@@ -96,7 +100,7 @@ export function CharacterCardMainEditor({
             <CharacterTextField
               disabled={isPending}
               id={`${fieldPrefix}-version`}
-              label="版本号"
+              label={t("characters.editor.fields.version")}
               value={form.version}
               onChange={(event) =>
                 setForm({ ...form, version: event.target.value })
@@ -105,7 +109,7 @@ export function CharacterCardMainEditor({
             <CharacterSelectField
               disabled={isPending}
               id={`${fieldPrefix}-visibility`}
-              label="权限"
+              label={t("characters.editor.fields.visibility")}
               options={visibilityOptions}
               value={form.visibility}
               onChange={(visibility) => setForm({ ...form, visibility })}
@@ -113,14 +117,14 @@ export function CharacterCardMainEditor({
           </CharacterFormSection>
 
           <CharacterFormSection
-            description="控制角色人设、对话开场和示例语气"
-            title="角色内容"
+            description={t("characters.editor.sections.content.description")}
+            title={t("characters.editor.sections.content.title")}
             value="content"
           >
             <CharacterTextAreaField
               disabled={isPending}
               id={`${fieldPrefix}-description`}
-              label="角色描述"
+              label={t("characters.editor.fields.description")}
               value={form.description}
               onChange={(event) =>
                 setForm({ ...form, description: event.target.value })
@@ -129,7 +133,7 @@ export function CharacterCardMainEditor({
             <CharacterTextAreaField
               disabled={isPending}
               id={`${fieldPrefix}-first-message`}
-              label="第一条消息"
+              label={t("characters.editor.fields.firstMessage")}
               value={form.firstMessage}
               onChange={(event) =>
                 setForm({ ...form, firstMessage: event.target.value })
@@ -137,13 +141,13 @@ export function CharacterCardMainEditor({
             />
             {onOpenGreetings ? (
               <FormActionButton disabled={isPending} onClick={onOpenGreetings}>
-                其他开场
+                {t("characters.editor.fields.alternateGreetings")}
               </FormActionButton>
             ) : null}
             <CharacterTextAreaField
               disabled={isPending}
               id={`${fieldPrefix}-personality`}
-              label="角色设定摘要"
+              label={t("characters.editor.fields.personality")}
               value={form.personality}
               onChange={(event) =>
                 setForm({ ...form, personality: event.target.value })
@@ -152,7 +156,7 @@ export function CharacterCardMainEditor({
             <CharacterTextAreaField
               disabled={isPending}
               id={`${fieldPrefix}-scenario`}
-              label="情景"
+              label={t("characters.editor.fields.scenario")}
               value={form.scenario}
               onChange={(event) =>
                 setForm({ ...form, scenario: event.target.value })
@@ -161,7 +165,7 @@ export function CharacterCardMainEditor({
             <CharacterTextAreaField
               disabled={isPending}
               id={`${fieldPrefix}-creator-notes`}
-              label="角色备注"
+              label={t("characters.editor.fields.creatorNotes")}
               value={form.creatorNotes}
               onChange={(event) =>
                 setForm({ ...form, creatorNotes: event.target.value })
@@ -170,7 +174,7 @@ export function CharacterCardMainEditor({
             <CharacterTextAreaField
               disabled={isPending}
               id={`${fieldPrefix}-message-example`}
-              label="对话示例"
+              label={t("characters.editor.fields.messageExample")}
               value={form.messageExample}
               onChange={(event) =>
                 setForm({ ...form, messageExample: event.target.value })
@@ -179,14 +183,14 @@ export function CharacterCardMainEditor({
           </CharacterFormSection>
 
           <CharacterFormSection
-            description="覆盖上下文组装时使用的提示词片段"
-            title="提示词覆盖"
+            description={t("characters.editor.sections.prompts.description")}
+            title={t("characters.editor.sections.prompts.title")}
             value="prompts"
           >
             <CharacterTextAreaField
               disabled={isPending}
               id={`${fieldPrefix}-system-prompt`}
-              label="系统提示词"
+              label={t("characters.editor.fields.systemPrompt")}
               value={form.systemPrompt}
               onChange={(event) =>
                 setForm({ ...form, systemPrompt: event.target.value })
@@ -195,7 +199,7 @@ export function CharacterCardMainEditor({
             <CharacterTextAreaField
               disabled={isPending}
               id={`${fieldPrefix}-post-history`}
-              label="历史后提示"
+              label={t("characters.editor.fields.postHistoryInstructions")}
               value={form.postHistoryInstructions}
               onChange={(event) =>
                 setForm({
@@ -207,14 +211,14 @@ export function CharacterCardMainEditor({
           </CharacterFormSection>
 
           <CharacterFormSection
-            description="可直接维护的创作者信息"
-            title="元数据"
+            description={t("characters.editor.sections.metadata.description")}
+            title={t("characters.editor.sections.metadata.title")}
             value="metadata"
           >
             <CharacterTextField
               disabled={isPending}
               id={`${fieldPrefix}-creator`}
-              label="创建者"
+              label={t("characters.editor.fields.creator")}
               value={form.creator}
               onChange={(event) =>
                 setForm({ ...form, creator: event.target.value })
@@ -223,7 +227,7 @@ export function CharacterCardMainEditor({
             <CharacterTextField
               disabled={isPending}
               id={`${fieldPrefix}-nickname`}
-              label="昵称"
+              label={t("characters.editor.fields.nickname")}
               value={form.nickname}
               onChange={(event) =>
                 setForm({ ...form, nickname: event.target.value })

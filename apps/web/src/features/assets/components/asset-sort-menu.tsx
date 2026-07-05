@@ -1,3 +1,4 @@
+import { useTranslation } from "react-i18next";
 import {
   Select,
   SelectContent,
@@ -27,13 +28,18 @@ export function AssetSortMenu<TSort extends string = string>({
   onSortChange,
   onDirectionChange,
 }: AssetSortMenuProps<TSort>) {
+  const { t } = useTranslation();
+
   return (
     <div className="grid grid-cols-[minmax(0,1fr)_6rem] gap-2">
       <Select
         value={sort}
         onValueChange={(value) => onSortChange(value as TSort)}
       >
-        <SelectTrigger aria-label="排序字段" className="w-full">
+        <SelectTrigger
+          aria-label={t("assets.sort.fieldLabel")}
+          className="w-full"
+        >
           <SelectValue />
         </SelectTrigger>
         <SelectContent>
@@ -50,13 +56,16 @@ export function AssetSortMenu<TSort extends string = string>({
         value={direction}
         onValueChange={(value) => onDirectionChange(value as "asc" | "desc")}
       >
-        <SelectTrigger aria-label="排序方向" className="w-full">
+        <SelectTrigger
+          aria-label={t("assets.sort.directionLabel")}
+          className="w-full"
+        >
           <SelectValue />
         </SelectTrigger>
         <SelectContent>
           <SelectGroup>
-            <SelectItem value="desc">降序</SelectItem>
-            <SelectItem value="asc">升序</SelectItem>
+            <SelectItem value="desc">{t("assets.sort.descending")}</SelectItem>
+            <SelectItem value="asc">{t("assets.sort.ascending")}</SelectItem>
           </SelectGroup>
         </SelectContent>
       </Select>

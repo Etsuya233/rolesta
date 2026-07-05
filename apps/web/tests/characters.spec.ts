@@ -6,6 +6,12 @@ import {
   mockCharacterUpdate,
 } from "./api-mocks";
 
+test.beforeEach(async ({ page }) => {
+  await page.addInitScript(() => {
+    window.localStorage.setItem("rolesta.locale", "zh-CN");
+  });
+});
+
 test("renders character manager controls", async ({ page }) => {
   await mockAuthenticatedApp(page);
   await mockCharacterList(page);
@@ -15,8 +21,8 @@ test("renders character manager controls", async ({ page }) => {
   await expect(page.getByRole("heading", { name: "角色卡" })).toBeVisible();
   await expect(page.getByLabel("搜索角色卡")).toBeVisible();
   await expect(page.getByLabel("第一页")).toBeVisible();
-  await expect(page.getByLabel("Go to previous page")).toBeVisible();
-  await expect(page.getByLabel("Go to next page")).toBeVisible();
+  await expect(page.getByLabel("上一页")).toBeVisible();
+  await expect(page.getByLabel("下一页")).toBeVisible();
   await expect(page.getByLabel("最后一页")).toBeVisible();
 });
 

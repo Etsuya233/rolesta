@@ -1,5 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import { Input } from "../../../components/ui/input";
 import { AssetScopeTabs } from "../../assets/components/asset-scope-tabs";
 import { AssetSortMenu } from "../../assets/components/asset-sort-menu";
@@ -17,18 +18,10 @@ export interface CharacterCardListPanelProps {
   onSelectCharacter: (characterId: string) => void;
 }
 
-const characterSortOptions: Array<{ value: CharacterSortKey; label: string }> =
-  [
-    { value: "createdAt", label: "创建时间" },
-    { value: "updatedAt", label: "更新时间" },
-    { value: "name", label: "A-Z" },
-    { value: "lastUsedAt", label: "最近使用" },
-    { value: "usageCount", label: "最常使用" },
-  ];
-
 export function CharacterCardListPanel({
   onSelectCharacter,
 }: CharacterCardListPanelProps) {
+  const { t } = useTranslation();
   const [scope, setScope] = useState<CharacterListScope>("all");
   const [sort, setSort] = useState<CharacterSortKey>("createdAt");
   const [direction, setDirection] = useState<SortDirection>("desc");
@@ -46,6 +39,16 @@ export function CharacterCardListPanel({
   });
 
   const page = charactersQuery.data;
+  const characterSortOptions: Array<{
+    value: CharacterSortKey;
+    label: string;
+  }> = [
+    { value: "createdAt", label: t("characters.list.sort.createdAt") },
+    { value: "updatedAt", label: t("characters.list.sort.updatedAt") },
+    { value: "name", label: t("characters.list.sort.name") },
+    { value: "lastUsedAt", label: t("characters.list.sort.lastUsedAt") },
+    { value: "usageCount", label: t("characters.list.sort.usageCount") },
+  ];
 
   function resetPageIndex() {
     setPageIndex(0);
@@ -56,8 +59,8 @@ export function CharacterCardListPanel({
       <div className="mx-auto flex min-h-full w-full max-w-2xl flex-col">
         <div className="flex flex-col gap-3 border-b border-border px-4 py-3">
           <Input
-            aria-label="搜索角色卡"
-            placeholder="搜索名称、注释、标签"
+            aria-label={t("characters.list.searchLabel")}
+            placeholder={t("characters.list.searchPlaceholder")}
             value={q}
             onChange={(event) => {
               setQ(event.target.value);
@@ -118,16 +121,18 @@ function CharacterListContent({
   isLoading: boolean;
   onSelectCharacter: (characterId: string) => void;
 }) {
+  const { t } = useTranslation();
+
   if (isLoading) {
-    return <StatusMessage>正在加载角色卡</StatusMessage>;
+    return <StatusMessage>{t("characters.list.loading")}</StatusMessage>;
   }
 
   if (isError) {
-    return <StatusMessage>角色卡加载失败</StatusMessage>;
+    return <StatusMessage>{t("characters.list.loadFailed")}</StatusMessage>;
   }
 
   if (characters.length === 0) {
-    return <StatusMessage>暂无角色卡</StatusMessage>;
+    return <StatusMessage>{t("characters.list.empty")}</StatusMessage>;
   }
 
   return (

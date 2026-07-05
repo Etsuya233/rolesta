@@ -1,3 +1,4 @@
+import { useTranslation } from "react-i18next";
 import { MobileTopBar } from "../../assets/components/mobile-top-bar";
 import { useCharacterDraftSession } from "../hooks/use-character-draft-sessions";
 import type { CharacterPage } from "./character-pages";
@@ -13,6 +14,7 @@ export function CharacterGreetingsPage({
   page,
   onBack,
 }: CharacterGreetingsPageProps) {
+  const { t } = useTranslation();
   const { form, setForm, isPending } = useCharacterDraftSession({
     sessionKey: page.sessionKey,
     characterId: page.characterId,
@@ -20,7 +22,7 @@ export function CharacterGreetingsPage({
 
   return (
     <CharacterStackPage>
-      <MobileTopBar title="开场消息" onBack={onBack} />
+      <MobileTopBar title={t("characters.greetings.title")} onBack={onBack} />
       <div className="mx-auto min-h-0 w-full max-w-2xl flex-1 overflow-y-auto">
         <CharacterGreetingsEditor
           disabled={isPending}

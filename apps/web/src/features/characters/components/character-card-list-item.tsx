@@ -1,3 +1,4 @@
+import { useTranslation } from "react-i18next";
 import { Avatar, AvatarFallback } from "../../../components/ui/avatar";
 import { Badge } from "../../../components/ui/badge";
 import { cn } from "../../../lib/utils";
@@ -13,6 +14,8 @@ export function CharacterCardListItem({
   character,
   onClick,
 }: CharacterCardListItemProps) {
+  const { t } = useTranslation();
+
   return (
     <button
       className="group flex w-full items-start gap-3 rounded-lg border border-border bg-card px-3 py-3 text-left shadow-sm transition-all hover:border-primary/30 hover:bg-muted/30 hover:shadow-md focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ring/50 active:translate-y-px"
@@ -45,7 +48,9 @@ export function CharacterCardListItem({
             )}
             variant="outline"
           >
-            {character.visibility === "public" ? "公开" : "私有"}
+            {character.visibility === "public"
+              ? t("characters.list.publicVisibility")
+              : t("characters.list.privateVisibility")}
           </Badge>
         </div>
 
@@ -53,14 +58,16 @@ export function CharacterCardListItem({
           <AssetTagList className="flex-1" maxItems={3} tags={character.tags} />
           <div className="ml-auto flex shrink-0 items-center gap-2 text-xs text-muted-foreground">
             <span>v{character.version}</span>
-            <span>{usageLabel(character.usageCount)}</span>
+            <span>
+              {character.usageCount > 0
+                ? t("characters.list.usageCount", {
+                    count: character.usageCount,
+                  })
+                : t("characters.list.unused")}
+            </span>
           </div>
         </div>
       </div>
     </button>
   );
-}
-
-function usageLabel(usageCount: number): string {
-  return usageCount > 0 ? `${usageCount} 次` : "未使用";
 }

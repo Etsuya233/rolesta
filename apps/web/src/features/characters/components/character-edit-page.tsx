@@ -1,3 +1,4 @@
+import { useTranslation } from "react-i18next";
 import { MobileTopBar } from "../../assets/components/mobile-top-bar";
 import { alternateGreetingsPage, type CharacterPage } from "./character-pages";
 import { CharacterCardMainEditor } from "./character-card-main-editor";
@@ -14,13 +15,15 @@ export function CharacterEditPage({
   onBack,
   pushPage,
 }: CharacterEditPageProps) {
+  const { t } = useTranslation();
+
   return (
     <CharacterStackPage>
-      <MobileTopBar title="编辑角色卡" onBack={onBack} />
+      <MobileTopBar title={t("characters.editor.editTitle")} onBack={onBack} />
       <CharacterCardMainEditor
         characterId={page.characterId}
         sessionKey={page.sessionKey}
-        submitLabel="保存"
+        submitLabel={t("characters.editor.saveSubmit")}
         onOpenGreetings={() =>
           pushPage(alternateGreetingsPage(page.characterId, page.sessionKey))
         }

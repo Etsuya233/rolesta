@@ -1,5 +1,6 @@
 import { ChevronFirst, ChevronLast } from "lucide-react";
 import type { ReactNode } from "react";
+import { useTranslation } from "react-i18next";
 import {
   Pagination,
   PaginationContent,
@@ -35,6 +36,7 @@ export function PageControls({
   onPageIndexChange,
   onPageSizeChange,
 }: PageControlsProps) {
+  const { t } = useTranslation();
   const lastPageIndex = Math.max(totalPages - 1, 0);
   const canGoPrevious = pageIndex > 0;
   const canGoNext = pageIndex < lastPageIndex;
@@ -45,7 +47,10 @@ export function PageControls({
         value={String(pageSize)}
         onValueChange={(value) => onPageSizeChange(Number(value))}
       >
-        <SelectTrigger aria-label="每页数量" className="w-18">
+        <SelectTrigger
+          aria-label={t("assets.pagination.pageSizeLabel")}
+          className="w-18"
+        >
           <SelectValue />
         </SelectTrigger>
         <SelectContent>
@@ -58,12 +63,15 @@ export function PageControls({
           </SelectGroup>
         </SelectContent>
       </Select>
-      <Pagination className="mx-0 w-auto justify-end">
+      <Pagination
+        aria-label={t("assets.pagination.navigationLabel")}
+        className="mx-0 w-auto justify-end"
+      >
         <PaginationContent>
           <PaginationItem>
             <CompactPageLink
               disabled={!canGoPrevious}
-              label="第一页"
+              label={t("assets.pagination.firstPage")}
               onClick={() => onPageIndexChange(0)}
             >
               <ChevronFirst aria-hidden="true" />
@@ -71,11 +79,12 @@ export function PageControls({
           </PaginationItem>
           <PaginationItem>
             <PaginationPrevious
+              ariaLabel={t("assets.pagination.previousPage")}
               aria-disabled={!canGoPrevious}
               className={cn(!canGoPrevious && "pointer-events-none opacity-40")}
               href="#"
               tabIndex={canGoPrevious ? undefined : -1}
-              text="上一页"
+              text={t("assets.pagination.previousPage")}
               onClick={(event) => {
                 event.preventDefault();
                 if (canGoPrevious) {
@@ -91,11 +100,12 @@ export function PageControls({
           </PaginationItem>
           <PaginationItem>
             <PaginationNext
+              ariaLabel={t("assets.pagination.nextPage")}
               aria-disabled={!canGoNext}
               className={cn(!canGoNext && "pointer-events-none opacity-40")}
               href="#"
               tabIndex={canGoNext ? undefined : -1}
-              text="下一页"
+              text={t("assets.pagination.nextPage")}
               onClick={(event) => {
                 event.preventDefault();
                 if (canGoNext) {
@@ -107,7 +117,7 @@ export function PageControls({
           <PaginationItem>
             <CompactPageLink
               disabled={!canGoNext}
-              label="最后一页"
+              label={t("assets.pagination.lastPage")}
               onClick={() => onPageIndexChange(lastPageIndex)}
             >
               <ChevronLast aria-hidden="true" />
