@@ -62,7 +62,7 @@ export function PresetPromptListRow({
     >
       <Button
         aria-label={t("presets.promptList.dragLabel")}
-        className="size-9 cursor-grab"
+        className="size-9 touch-none cursor-grab select-none"
         size="icon"
         type="button"
         variant="ghost"

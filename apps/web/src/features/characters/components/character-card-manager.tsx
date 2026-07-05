@@ -21,7 +21,7 @@ export function CharacterCardManager({ onBack }: CharacterCardManagerProps) {
   );
 
   return (
-    <main className="flex h-dvh min-h-screen flex-col bg-background text-foreground">
+    <main className="flex h-dvh min-h-0 flex-col overflow-hidden bg-background text-foreground">
       <CharacterDraftSessionsProvider>
         <CharacterDraftSessionRetainer sessionKeys={retainedSessionKeys} />
         <KeepAliveStackViewport

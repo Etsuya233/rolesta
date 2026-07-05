@@ -1,6 +1,6 @@
 import {
   DndContext,
-  PointerSensor,
+  MouseSensor,
   TouchSensor,
   closestCenter,
   useSensor,
@@ -101,7 +101,7 @@ export function PresetPromptListEditor({
   }
 
   const sensors = useSensors(
-    useSensor(PointerSensor, { activationConstraint: { distance: 4 } }),
+    useSensor(MouseSensor, { activationConstraint: { distance: 4 } }),
     useSensor(TouchSensor, {
       activationConstraint: { delay: 180, tolerance: 6 },
     }),
