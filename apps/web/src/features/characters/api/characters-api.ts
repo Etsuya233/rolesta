@@ -9,32 +9,31 @@ import {
 import type { components, operations } from '../../../lib/api/generated/schema';
 
 export type CharacterSummaryResponse = components['schemas']['CharacterSummaryResponseDto'];
-export type CharacterPageResponse = components['schemas']['CharacterPageResponseDto'];
 export type CharacterDetailResponse = components['schemas']['CharacterDetailResponseDto'];
 export type CharacterCreateValues = components['schemas']['CreateCharacterRequestDto'];
 export type CharacterFormValues = components['schemas']['UpdateCharacterRequestDto'];
-
-export type CharacterListScope = 'all' | 'mine' | 'public';
-export type CharacterSortKey = 'createdAt' | 'updatedAt' | 'name' | 'lastUsedAt' | 'usageCount';
-export type SortDirection = 'asc' | 'desc';
 
 export type ListCharactersQuery = NonNullable<
   operations['CharactersController_list']['parameters']['query']
 >;
 
-export async function listCharacters(query: ListCharactersQuery): Promise<CharacterPageResponse> {
+export type CharacterListScope = NonNullable<ListCharactersQuery['scope']>;
+export type CharacterSortKey = NonNullable<ListCharactersQuery['sort']>;
+export type SortDirection = NonNullable<ListCharactersQuery['direction']>;
+
+export async function listCharacters(query: ListCharactersQuery) {
   const result = await requestApi(openApiClient.GET('/characters', { params: { query } }));
   return result.data;
 }
 
-export async function getCharacter(id: string): Promise<CharacterDetailResponse> {
+export async function getCharacter(id: string) {
   const result = await requestApi(
     openApiClient.GET('/characters/{id}', { params: { path: { id } } }),
   );
   return result.data;
 }
 
-export async function createCharacter(values: CharacterCreateValues): Promise<CharacterDetailResponse> {
+export async function createCharacter(values: CharacterCreateValues) {
   const result = await requestApi(openApiClient.POST('/characters', { body: values }));
   return result.data;
 }
@@ -42,21 +41,21 @@ export async function createCharacter(values: CharacterCreateValues): Promise<Ch
 export async function updateCharacter(
   id: string,
   values: CharacterFormValues,
-): Promise<CharacterDetailResponse> {
+) {
   const result = await requestApi(
     openApiClient.PATCH('/characters/{id}', { body: values, params: { path: { id } } }),
   );
   return result.data;
 }
 
-export async function deleteCharacter(id: string): Promise<{ ok?: boolean }> {
+export async function deleteCharacter(id: string) {
   const result = await requestApi(
     openApiClient.DELETE('/characters/{id}', { params: { path: { id } } }),
   );
   return result.data;
 }
 
-export async function importCharacterCard(file: File): Promise<CharacterDetailResponse> {
+export async function importCharacterCard(file: File) {
   const formData = new FormData();
   formData.set('file', file);
 
