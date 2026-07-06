@@ -27,6 +27,11 @@ const PresetsPage = lazy(() =>
     default: module.PresetsPage,
   })),
 );
+const ModelProvidersPage = lazy(() =>
+  import('../features/model-providers/routes/model-providers-page').then((module) => ({
+    default: module.ModelProvidersPage,
+  })),
+);
 
 export const router = createBrowserRouter([
   {
@@ -70,6 +75,14 @@ export const router = createBrowserRouter([
     element: (
       <AppRouteGuard>
         <PresetsPage />
+      </AppRouteGuard>
+    ),
+  },
+  {
+    path: '/app/model-providers',
+    element: (
+      <AppRouteGuard>
+        <ModelProvidersPage />
       </AppRouteGuard>
     ),
   },

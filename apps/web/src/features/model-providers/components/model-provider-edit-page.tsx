@@ -1,0 +1,76 @@
+import { KeyRound, Trash2 } from "lucide-react";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useTranslation } from "react-i18next";
+import { Button } from "../../../components/ui/button";
+import { MobileTopBar } from "../../assets/components/mobile-top-bar";
+import { deleteModelProvider } from "../api/model-providers-api";
+import { ModelProviderMainEditor } from "./model-provider-main-editor";
+import {
+  modelProviderApiKeysPage,
+  type ModelProviderPage,
+} from "./model-provider-pages";
+import { ModelProviderStackPage } from "./model-provider-stack-page";
+
+export function ModelProviderEditPage({
+  page,
+  pushPage,
+  onBack,
+}: {
+  page: Extract<ModelProviderPage, { name: "edit" }>;
+  pushPage: (page: ModelProviderPage) => void;
+  onBack: () => void;
+}) {
+  const { t } = useTranslation();
+  const queryClient = useQueryClient();
+  const deleteMutation = useMutation({
+    mutationFn: () => deleteModelProvider(page.configId),
+    async onSuccess() {
+      await queryClient.invalidateQueries({ queryKey: ["model-providers"] });
+      onBack();
+    },
+  });
+
+  return (
+    <ModelProviderStackPage>
+      <MobileTopBar
+        actions={
+          <>
+            <Button
+              aria-label={t("modelProviders.apiKeys.title")}
+              className="size-10"
+              size="icon-lg"
+              type="button"
+              variant="ghost"
+              onClick={() =>
+                pushPage(modelProviderApiKeysPage(page.configId, page.sessionKey))
+              }
+            >
+              <KeyRound aria-hidden="true" />
+            </Button>
+            <Button
+              aria-label={t("modelProviders.editor.deleteAction")}
+              className="size-10"
+              disabled={deleteMutation.isPending}
+              size="icon-lg"
+              type="button"
+              variant="ghost"
+              onClick={() => deleteMutation.mutate()}
+            >
+              <Trash2 aria-hidden="true" />
+            </Button>
+          </>
+        }
+        title={t("modelProviders.editor.editTitle")}
+        onBack={onBack}
+      />
+      <ModelProviderMainEditor
+        configId={page.configId}
+        sessionKey={page.sessionKey}
+        submitLabel={t("modelProviders.editor.saveSubmit")}
+        onOpenApiKeys={() =>
+          pushPage(modelProviderApiKeysPage(page.configId, page.sessionKey))
+        }
+      />
+    </ModelProviderStackPage>
+  );
+}

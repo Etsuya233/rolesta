@@ -4,6 +4,7 @@ import * as initialMigration from './0001_initial.js';
 import * as usernameAccountsMigration from './0002_username_accounts.js';
 import * as characterCardsMigration from './0003_character_cards.js';
 import * as presetsMigration from './0004_presets.js';
+import * as modelProvidersMigration from './0005_model_providers.js';
 
 type DialectMigration = {
   common: Migration;
@@ -24,6 +25,9 @@ const migrations: Record<string, DialectMigration> = {
   },
   '0004_presets': {
     common: presetsMigration,
+  },
+  '0005_model_providers': {
+    common: modelProvidersMigration,
   },
 };
 

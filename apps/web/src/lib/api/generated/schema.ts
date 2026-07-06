@@ -276,6 +276,166 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/model-providers/catalog": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["ModelProvidersController_catalog"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/model-providers": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["ModelProvidersController_list"];
+        put?: never;
+        post: operations["ModelProvidersController_create"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/model-providers/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["ModelProvidersController_get"];
+        put?: never;
+        post?: never;
+        delete: operations["ModelProvidersController_delete"];
+        options?: never;
+        head?: never;
+        patch: operations["ModelProvidersController_update"];
+        trace?: never;
+    };
+    "/model-providers/{id}/api-keys": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["ModelProvidersController_createApiKey"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/model-providers/{id}/api-keys/{apiKeyId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete: operations["ModelProvidersController_deleteApiKey"];
+        options?: never;
+        head?: never;
+        patch: operations["ModelProvidersController_updateApiKey"];
+        trace?: never;
+    };
+    "/model-providers/{id}/selected-api-key": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put: operations["ModelProvidersController_setSelectedApiKey"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/model-providers/models/preview": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["ModelProvidersController_previewModels"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/model-providers/test-connection/preview": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["ModelProvidersController_previewTestConnection"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/model-providers/{id}/models": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["ModelProvidersController_savedModels"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/model-providers/{id}/test-connection": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["ModelProvidersController_savedTestConnection"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -556,6 +716,118 @@ export interface components {
         };
         UpdatePresetPromptItemsRequestDto: {
             items: components["schemas"]["UpdatePresetPromptItemDto"][];
+        };
+        ModelProviderCatalogItemResponseDto: {
+            /** @enum {string} */
+            kind: "openai-compatible" | "openai" | "claude" | "z-ai" | "deepseek";
+            /** @enum {string} */
+            source: "custom" | "official";
+            displayName: string;
+            baseUrls: string[];
+            allowCustomBaseUrl: boolean;
+        };
+        ModelProviderCatalogResponseDto: {
+            items: components["schemas"]["ModelProviderCatalogItemResponseDto"][];
+        };
+        ModelProviderSummaryResponseDto: {
+            id: string;
+            ownerUserId: string;
+            name: string;
+            /** @enum {string} */
+            providerKind: "openai-compatible" | "openai" | "claude" | "z-ai" | "deepseek";
+            /** @enum {string} */
+            providerSource: "custom" | "official";
+            baseUrl: string;
+            defaultModelName: string;
+            selectedApiKeyId: string | null;
+            apiKeyCount: number;
+            createdAtMs: number;
+            updatedAtMs: number;
+            lastUsedAtMs: number | null;
+            usageCount: number;
+        };
+        ModelProviderPageResponseDto: {
+            items: components["schemas"]["ModelProviderSummaryResponseDto"][];
+            pageIndex: number;
+            pageSize: number;
+            totalItems: number;
+            totalPages: number;
+        };
+        ModelProviderApiKeyResponseDto: {
+            id: string;
+            configId: string;
+            name: string;
+            secret: string;
+            createdAtMs: number;
+            updatedAtMs: number;
+        };
+        ModelProviderDetailResponseDto: {
+            id: string;
+            ownerUserId: string;
+            name: string;
+            /** @enum {string} */
+            providerKind: "openai-compatible" | "openai" | "claude" | "z-ai" | "deepseek";
+            /** @enum {string} */
+            providerSource: "custom" | "official";
+            baseUrl: string;
+            defaultModelName: string;
+            selectedApiKeyId: string | null;
+            apiKeyCount: number;
+            createdAtMs: number;
+            updatedAtMs: number;
+            lastUsedAtMs: number | null;
+            usageCount: number;
+            apiKeys: components["schemas"]["ModelProviderApiKeyResponseDto"][];
+        };
+        CreateModelProviderRequestDto: {
+            name: string;
+            /** @enum {string} */
+            providerKind: "openai-compatible" | "openai" | "claude" | "z-ai" | "deepseek";
+            baseUrl: string;
+            defaultModelName?: string;
+            selectedApiKeyId?: string | null;
+        };
+        UpdateModelProviderRequestDto: {
+            name?: string;
+            /** @enum {string} */
+            providerKind?: "openai-compatible" | "openai" | "claude" | "z-ai" | "deepseek";
+            baseUrl?: string;
+            defaultModelName?: string;
+            selectedApiKeyId?: string | null;
+        };
+        CreateModelProviderApiKeyRequestDto: {
+            name: string;
+            secret: string;
+        };
+        SaveModelProviderApiKeyRequestDto: {
+            name?: string;
+            secret?: string;
+        };
+        SetSelectedModelProviderApiKeyRequestDto: {
+            selectedApiKeyId?: string | null;
+        };
+        ModelProviderModelListResponseDto: {
+            models: string[];
+            elapsedMs: number;
+        };
+        ModelProviderConnectionPreviewRequestDto: {
+            /** @enum {string} */
+            providerKind: "openai-compatible" | "openai" | "claude" | "z-ai" | "deepseek";
+            baseUrl: string;
+            apiKeySecret?: string;
+        };
+        TestModelProviderConnectionResponseDto: {
+            ok: boolean;
+            modelName: string;
+            elapsedMs: number;
+            remoteResponseId: string | null;
+        };
+        TestModelProviderConnectionRequestDto: {
+            /** @enum {string} */
+            providerKind: "openai-compatible" | "openai" | "claude" | "z-ai" | "deepseek";
+            baseUrl: string;
+            apiKeySecret?: string;
+            defaultModelName: string;
         };
     };
     responses: never;
@@ -1319,6 +1591,454 @@ export interface operations {
                         /** @example ok */
                         msg: string;
                         data: components["schemas"]["PresetDetailResponseDto"];
+                    };
+                };
+            };
+        };
+    };
+    ModelProvidersController_catalog: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /**
+                         * @example SUCCESS
+                         * @enum {string}
+                         */
+                        code: "SUCCESS";
+                        /** @example ok */
+                        msg: string;
+                        data: components["schemas"]["ModelProviderCatalogResponseDto"];
+                    };
+                };
+            };
+        };
+    };
+    ModelProvidersController_list: {
+        parameters: {
+            query?: {
+                sort?: "createdAt" | "updatedAt" | "name" | "lastUsedAt" | "usageCount";
+                direction?: "asc" | "desc";
+                pageIndex?: number;
+                pageSize?: number;
+                q?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /**
+                         * @example SUCCESS
+                         * @enum {string}
+                         */
+                        code: "SUCCESS";
+                        /** @example ok */
+                        msg: string;
+                        data: components["schemas"]["ModelProviderPageResponseDto"];
+                    };
+                };
+            };
+        };
+    };
+    ModelProvidersController_create: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CreateModelProviderRequestDto"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /**
+                         * @example SUCCESS
+                         * @enum {string}
+                         */
+                        code: "SUCCESS";
+                        /** @example ok */
+                        msg: string;
+                        data: components["schemas"]["ModelProviderDetailResponseDto"];
+                    };
+                };
+            };
+        };
+    };
+    ModelProvidersController_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /**
+                         * @example SUCCESS
+                         * @enum {string}
+                         */
+                        code: "SUCCESS";
+                        /** @example ok */
+                        msg: string;
+                        data: components["schemas"]["ModelProviderDetailResponseDto"];
+                    };
+                };
+            };
+        };
+    };
+    ModelProvidersController_delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /**
+                         * @example SUCCESS
+                         * @enum {string}
+                         */
+                        code: "SUCCESS";
+                        /** @example ok */
+                        msg: string;
+                        data: {
+                            ok?: boolean;
+                        };
+                    };
+                };
+            };
+        };
+    };
+    ModelProvidersController_update: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UpdateModelProviderRequestDto"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /**
+                         * @example SUCCESS
+                         * @enum {string}
+                         */
+                        code: "SUCCESS";
+                        /** @example ok */
+                        msg: string;
+                        data: components["schemas"]["ModelProviderDetailResponseDto"];
+                    };
+                };
+            };
+        };
+    };
+    ModelProvidersController_createApiKey: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CreateModelProviderApiKeyRequestDto"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /**
+                         * @example SUCCESS
+                         * @enum {string}
+                         */
+                        code: "SUCCESS";
+                        /** @example ok */
+                        msg: string;
+                        data: components["schemas"]["ModelProviderDetailResponseDto"];
+                    };
+                };
+            };
+        };
+    };
+    ModelProvidersController_deleteApiKey: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+                apiKeyId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /**
+                         * @example SUCCESS
+                         * @enum {string}
+                         */
+                        code: "SUCCESS";
+                        /** @example ok */
+                        msg: string;
+                        data: components["schemas"]["ModelProviderDetailResponseDto"];
+                    };
+                };
+            };
+        };
+    };
+    ModelProvidersController_updateApiKey: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+                apiKeyId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SaveModelProviderApiKeyRequestDto"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /**
+                         * @example SUCCESS
+                         * @enum {string}
+                         */
+                        code: "SUCCESS";
+                        /** @example ok */
+                        msg: string;
+                        data: components["schemas"]["ModelProviderDetailResponseDto"];
+                    };
+                };
+            };
+        };
+    };
+    ModelProvidersController_setSelectedApiKey: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SetSelectedModelProviderApiKeyRequestDto"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /**
+                         * @example SUCCESS
+                         * @enum {string}
+                         */
+                        code: "SUCCESS";
+                        /** @example ok */
+                        msg: string;
+                        data: components["schemas"]["ModelProviderDetailResponseDto"];
+                    };
+                };
+            };
+        };
+    };
+    ModelProvidersController_previewModels: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ModelProviderConnectionPreviewRequestDto"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /**
+                         * @example SUCCESS
+                         * @enum {string}
+                         */
+                        code: "SUCCESS";
+                        /** @example ok */
+                        msg: string;
+                        data: components["schemas"]["ModelProviderModelListResponseDto"];
+                    };
+                };
+            };
+        };
+    };
+    ModelProvidersController_previewTestConnection: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["TestModelProviderConnectionRequestDto"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /**
+                         * @example SUCCESS
+                         * @enum {string}
+                         */
+                        code: "SUCCESS";
+                        /** @example ok */
+                        msg: string;
+                        data: components["schemas"]["TestModelProviderConnectionResponseDto"];
+                    };
+                };
+            };
+        };
+    };
+    ModelProvidersController_savedModels: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /**
+                         * @example SUCCESS
+                         * @enum {string}
+                         */
+                        code: "SUCCESS";
+                        /** @example ok */
+                        msg: string;
+                        data: components["schemas"]["ModelProviderModelListResponseDto"];
+                    };
+                };
+            };
+        };
+    };
+    ModelProvidersController_savedTestConnection: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /**
+                         * @example SUCCESS
+                         * @enum {string}
+                         */
+                        code: "SUCCESS";
+                        /** @example ok */
+                        msg: string;
+                        data: components["schemas"]["TestModelProviderConnectionResponseDto"];
                     };
                 };
             };

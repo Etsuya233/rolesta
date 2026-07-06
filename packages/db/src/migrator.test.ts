@@ -71,6 +71,7 @@ describe('database migrations', () => {
       '0002_username_accounts',
       '0003_character_cards',
       '0004_presets',
+      '0005_model_providers',
     ]);
   });
 });
