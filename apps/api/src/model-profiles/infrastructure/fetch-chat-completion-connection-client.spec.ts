@@ -97,11 +97,13 @@ interface RemoteResponseLogFields {
 }
 
 type LoggerStub = PinoLogger & {
+  setContext: Mock<(context: string) => void>;
   warn: Mock<(fields: RemoteResponseLogFields, message: string) => void>;
 };
 
 function loggerStub(): LoggerStub {
   return {
+    setContext: vi.fn(),
     warn: vi.fn(),
   } as unknown as LoggerStub;
 }

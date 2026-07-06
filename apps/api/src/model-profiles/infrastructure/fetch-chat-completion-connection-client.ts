@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { InjectPinoLogger, PinoLogger } from 'nestjs-pino';
+import { PinoLogger } from 'nestjs-pino';
 import type {
   ChatCompletionConnectionClient,
   ListChatCompletionModelsRequest,
@@ -13,10 +13,9 @@ import {
 
 @Injectable()
 export class FetchChatCompletionConnectionClient implements ChatCompletionConnectionClient {
-  constructor(
-    @InjectPinoLogger(FetchChatCompletionConnectionClient.name)
-    private readonly logger: PinoLogger,
-  ) {}
+  constructor(private readonly logger: PinoLogger) {
+    this.logger.setContext(FetchChatCompletionConnectionClient.name);
+  }
 
   async listModels(request: ListChatCompletionModelsRequest): Promise<string[]> {
     const endpoint = joinEndpoint(request.baseUrl, 'models');

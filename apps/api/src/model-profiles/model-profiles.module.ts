@@ -3,6 +3,7 @@ import { AuthModule } from '../auth/auth.module.js';
 import { CryptoIdGenerator } from '../auth/infrastructure/crypto-id-generator.js';
 import { SystemClock } from '../auth/infrastructure/system-clock.js';
 import { DatabaseModule } from '../database/database.module.js';
+import { ApiLoggerModule } from '../logging/api-logger.module.js';
 import {
   CHAT_COMPLETION_CONNECTION_CLIENT,
   type ChatCompletionConnectionClient,
@@ -31,7 +32,7 @@ import { FetchChatCompletionConnectionClient } from './infrastructure/fetch-chat
 import { KyselyModelProviderStore } from './infrastructure/kysely-model-provider-store.js';
 
 @Module({
-  imports: [DatabaseModule, AuthModule],
+  imports: [DatabaseModule, AuthModule, ApiLoggerModule],
   controllers: [ModelProvidersController],
   providers: [
     KyselyModelProviderStore,

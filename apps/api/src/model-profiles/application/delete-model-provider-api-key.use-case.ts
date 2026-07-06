@@ -26,7 +26,12 @@ export class DeleteModelProviderApiKeyUseCase {
       throw new ModelProviderApplicationError('not-found');
     }
 
-    const deleted = await this.store.deleteApiKey(config.id, command.apiKeyId);
+    const updatedAtMs = this.clock.now().getTime();
+    const deleted = await this.store.deleteApiKeyAndTouchConfig(
+      config.id,
+      command.apiKeyId,
+      updatedAtMs,
+    );
 
     if (!deleted) {
       throw new ModelProviderApplicationError('not-found');
@@ -37,10 +42,8 @@ export class DeleteModelProviderApiKeyUseCase {
       selectedApiKeyId:
         config.selectedApiKeyId === command.apiKeyId ? null : config.selectedApiKeyId,
       apiKeys: config.apiKeys.filter((apiKey) => apiKey.id !== command.apiKeyId),
-      updatedAtMs: this.clock.now().getTime(),
+      updatedAtMs,
     };
-
-    await this.store.update(nextConfig);
 
     return nextConfig;
   }

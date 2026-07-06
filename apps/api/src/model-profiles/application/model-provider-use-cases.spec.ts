@@ -219,7 +219,11 @@ class InMemoryModelProviderStore implements ModelProviderStore {
     return Promise.resolve();
   }
 
-  deleteApiKey(configId: string, apiKeyId: string): Promise<boolean> {
+  deleteApiKeyAndTouchConfig(
+    configId: string,
+    apiKeyId: string,
+    updatedAtMs: number,
+  ): Promise<boolean> {
     const config = this.configs.get(configId);
 
     if (!config || !config.apiKeys.some((apiKey) => apiKey.id === apiKeyId)) {
@@ -228,7 +232,9 @@ class InMemoryModelProviderStore implements ModelProviderStore {
 
     this.configs.set(config.id, {
       ...config,
+      selectedApiKeyId: config.selectedApiKeyId === apiKeyId ? null : config.selectedApiKeyId,
       apiKeys: config.apiKeys.filter((apiKey) => apiKey.id !== apiKeyId),
+      updatedAtMs,
     });
 
     return Promise.resolve(true);

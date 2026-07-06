@@ -121,14 +121,36 @@ export class KyselyModelProviderStore implements ModelProviderStore {
       .execute();
   }
 
-  async deleteApiKey(configId: string, apiKeyId: string): Promise<boolean> {
-    const result = await this.db
-      .deleteFrom('model_provider_api_keys')
-      .where('id', '=', apiKeyId)
-      .where('config_id', '=', configId)
-      .executeTakeFirst();
+  async deleteApiKeyAndTouchConfig(
+    configId: string,
+    apiKeyId: string,
+    updatedAtMs: number,
+  ): Promise<boolean> {
+    return this.db.transaction().execute(async (trx) => {
+      const result = await trx
+        .deleteFrom('model_provider_api_keys')
+        .where('id', '=', apiKeyId)
+        .where('config_id', '=', configId)
+        .executeTakeFirst();
 
-    return Number(result.numDeletedRows) > 0;
+      if (Number(result.numDeletedRows) === 0) {
+        return false;
+      }
+
+      await trx
+        .updateTable('model_provider_configs')
+        .set({ selected_api_key_id: null, updated_at_ms: ensureEpochMillis(updatedAtMs) })
+        .where('id', '=', configId)
+        .where('selected_api_key_id', '=', apiKeyId)
+        .execute();
+      await trx
+        .updateTable('model_provider_configs')
+        .set({ updated_at_ms: ensureEpochMillis(updatedAtMs) })
+        .where('id', '=', configId)
+        .execute();
+
+      return true;
+    });
   }
 
   private async apiKeyCounts(configIds: string[]): Promise<Map<string, number>> {

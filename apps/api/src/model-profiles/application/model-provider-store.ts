@@ -36,5 +36,9 @@ export interface ModelProviderStore {
   deleteOwned(id: string, ownerUserId: string): Promise<boolean>;
   addApiKey(apiKey: ModelProviderApiKey): Promise<void>;
   updateApiKey(apiKey: ModelProviderApiKey): Promise<void>;
-  deleteApiKey(configId: string, apiKeyId: string): Promise<boolean>;
+  deleteApiKeyAndTouchConfig(
+    configId: string,
+    apiKeyId: string,
+    updatedAtMs: number,
+  ): Promise<boolean>;
 }
