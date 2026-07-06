@@ -1,4 +1,6 @@
 import { useMutation, useQuery } from "@tanstack/react-query";
+import type { TFunction } from "i18next";
+import { Activity, BadgeInfo, Bot, ChevronRight, Globe2, KeyRound } from "lucide-react";
 import { useId, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Accordion } from "../../../components/ui/accordion";
@@ -42,7 +44,7 @@ export interface ModelProviderMainEditorProps {
   configId?: string;
   submitLabel: string;
   onCreated?: (config: ModelProviderDetailResponse) => void;
-  onOpenApiKeys?: () => void;
+  onOpenApiKeys?: (apiKeyId?: string) => void;
 }
 
 export function ModelProviderMainEditor({
@@ -81,6 +83,9 @@ export function ModelProviderMainEditor({
   const selectedApiKeySecret = config?.apiKeys.find(
     (apiKey) => apiKey.id === config.selectedApiKeyId,
   )?.secret;
+  const selectedApiKeyName = config?.apiKeys.find(
+    (apiKey) => apiKey.id === config.selectedApiKeyId,
+  )?.name;
   const listModelsMutation = useMutation({
     mutationFn: () =>
       previewModelProviderModels({
@@ -104,6 +109,7 @@ export function ModelProviderMainEditor({
       }),
   });
   const connectionError = listModelsMutation.error ?? testMutation.error;
+  const baseUrlHost = hostFromBaseUrl(form.baseUrl);
 
   return (
     <form
@@ -118,7 +124,12 @@ export function ModelProviderMainEditor({
           onValueChange={setOpenSections}
         >
           <ModelProviderFormSection
-            description={t("modelProviders.editor.sections.basic.description")}
+            icon={BadgeInfo}
+            summary={basicSectionSummary({
+              name: form.name,
+              selectedApiKeyName,
+              t,
+            })}
             title={t("modelProviders.editor.sections.basic.title")}
             value="basic"
           >
@@ -130,14 +141,25 @@ export function ModelProviderMainEditor({
               onChange={(event) => setForm({ ...form, name: event.target.value })}
             />
             {onOpenApiKeys ? (
-              <FormActionButton disabled={isPending} onClick={onOpenApiKeys}>
-                {t("modelProviders.apiKeys.title")}
-              </FormActionButton>
+              <ApiKeySummaryButton
+                disabled={isPending}
+                label={t("modelProviders.apiKeys.title")}
+                value={
+                  selectedApiKeyName ??
+                  t("modelProviders.editor.summaries.noKey")
+                }
+                onClick={() => onOpenApiKeys(config?.selectedApiKeyId ?? undefined)}
+              />
             ) : null}
           </ModelProviderFormSection>
 
           <ModelProviderFormSection
-            description={t("modelProviders.editor.sections.provider.description")}
+            icon={Globe2}
+            summary={
+              baseUrlHost
+                ? `${selectedCatalogItem?.displayName ?? form.providerKind} · ${baseUrlHost}`
+                : t("modelProviders.editor.summaries.noBaseUrl")
+            }
             title={t("modelProviders.editor.sections.provider.title")}
             value="provider"
           >
@@ -183,7 +205,11 @@ export function ModelProviderMainEditor({
           </ModelProviderFormSection>
 
           <ModelProviderFormSection
-            description={t("modelProviders.editor.sections.model.description")}
+            icon={Bot}
+            summary={
+              form.defaultModelName.trim() ||
+              t("modelProviders.editor.summaries.noModel")
+            }
             title={t("modelProviders.editor.sections.model.title")}
             value="model"
           >
@@ -225,7 +251,14 @@ export function ModelProviderMainEditor({
           </ModelProviderFormSection>
 
           <ModelProviderFormSection
-            description={t("modelProviders.editor.sections.test.description")}
+            icon={Activity}
+            summary={testSectionSummary({
+              hasBaseUrl: Boolean(form.baseUrl.trim()),
+              hasModel: Boolean(form.defaultModelName.trim()),
+              hasError: Boolean(connectionError),
+              elapsedMs: testMutation.data?.elapsedMs,
+              t,
+            })}
             title={t("modelProviders.editor.sections.test.title")}
             value="test"
           >
@@ -263,6 +296,95 @@ export function ModelProviderMainEditor({
       </div>
     </form>
   );
+}
+
+function ApiKeySummaryButton({
+  label,
+  value,
+  disabled,
+  onClick,
+}: {
+  label: string;
+  value: string;
+  disabled: boolean;
+  onClick: () => void;
+}) {
+  return (
+    <button
+      className="flex w-full items-center gap-3 rounded-md border border-border px-3 py-2.5 text-left transition-colors hover:bg-muted/50 focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-50"
+      disabled={disabled}
+      type="button"
+      onClick={onClick}
+    >
+      <KeyRound aria-hidden="true" className="size-4 shrink-0 text-muted-foreground" />
+      <span className="grid min-w-0 flex-1 gap-0.5">
+        <span className="text-xs font-medium text-muted-foreground">{label}</span>
+        <span className="truncate text-sm font-medium">{value}</span>
+      </span>
+      <ChevronRight aria-hidden="true" className="size-4 shrink-0 text-muted-foreground" />
+    </button>
+  );
+}
+
+function hostFromBaseUrl(baseUrl: string): string {
+  const trimmed = baseUrl.trim();
+
+  if (!trimmed) {
+    return "";
+  }
+
+  try {
+    return new URL(trimmed).host;
+  } catch {
+    return trimmed;
+  }
+}
+
+function basicSectionSummary({
+  name,
+  selectedApiKeyName,
+  t,
+}: {
+  name: string;
+  selectedApiKeyName: string | undefined;
+  t: TFunction;
+}): string {
+  const trimmedName = name.trim();
+  const keySummary = selectedApiKeyName
+    ? t("modelProviders.editor.summaries.selectedKey", {
+        name: selectedApiKeyName,
+      })
+    : t("modelProviders.editor.summaries.noKey");
+
+  return trimmedName ? `${trimmedName} · ${keySummary}` : keySummary;
+}
+
+function testSectionSummary({
+  hasBaseUrl,
+  hasModel,
+  hasError,
+  elapsedMs,
+  t,
+}: {
+  hasBaseUrl: boolean;
+  hasModel: boolean;
+  hasError: boolean;
+  elapsedMs: number | undefined;
+  t: TFunction;
+}): string {
+  if (elapsedMs !== undefined) {
+    return t("modelProviders.editor.summaries.testConnected", { elapsed: elapsedMs });
+  }
+
+  if (hasError) {
+    return t("modelProviders.editor.summaries.testFailed");
+  }
+
+  if (hasBaseUrl && hasModel) {
+    return t("modelProviders.editor.summaries.testReady");
+  }
+
+  return t("modelProviders.editor.summaries.testNotReady");
 }
 
 function ProviderSelect({

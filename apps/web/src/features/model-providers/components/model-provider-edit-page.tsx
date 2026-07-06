@@ -67,8 +67,8 @@ export function ModelProviderEditPage({
         configId={page.configId}
         sessionKey={page.sessionKey}
         submitLabel={t("modelProviders.editor.saveSubmit")}
-        onOpenApiKeys={() =>
-          pushPage(modelProviderApiKeysPage(page.configId, page.sessionKey))
+        onOpenApiKeys={(apiKeyId) =>
+          pushPage(modelProviderApiKeysPage(page.configId, page.sessionKey, apiKeyId))
         }
       />
     </ModelProviderStackPage>

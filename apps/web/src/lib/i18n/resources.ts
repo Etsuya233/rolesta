@@ -297,20 +297,26 @@ export const resources = {
           sections: {
             basic: {
               title: "Basic info",
-              description: "Connection name and key management",
             },
             provider: {
               title: "Provider and Base URL",
-              description: "Choose a compatible provider endpoint",
             },
             model: {
               title: "Default model",
-              description: "Type a model name or fetch remote candidates",
             },
             test: {
               title: "Connection test",
-              description: "Send a short Chat Completions request",
             },
+          },
+          summaries: {
+            noKey: "No API key selected",
+            selectedKey: "Current key: {{name}}",
+            noBaseUrl: "No endpoint set",
+            noModel: "No default model",
+            testReady: "Ready to test",
+            testConnected: "Connected in {{elapsed}} ms",
+            testFailed: "Last test failed",
+            testNotReady: "Set endpoint and model first",
           },
           fields: {
             name: "Name",
@@ -336,11 +342,11 @@ export const resources = {
           title: "API keys",
           createTitle: "Add key",
           createAction: "Add key",
-          saveAction: "Save key",
+          saveAction: "Save",
           copyAction: "Copy key",
           deleteAction: "Delete key",
-          selectAction: "Use this key",
-          clearSelectedAction: "Use no key",
+          selectAction: "Use",
+          clearSelectedAction: "No key",
           currentBadge: "Current",
           loading: "Loading API keys",
           loadFailed: "Failed to load API keys",
@@ -672,20 +678,26 @@ export const resources = {
           sections: {
             basic: {
               title: "基础信息",
-              description: "连接名称和密钥管理",
             },
             provider: {
               title: "Provider 与 Base URL",
-              description: "选择兼容 Chat Completions 的端点",
             },
             model: {
               title: "默认模型",
-              description: "手写模型名，或从远程列表选择",
             },
             test: {
               title: "连接测试",
-              description: "发送一条短 Chat Completions 请求",
             },
+          },
+          summaries: {
+            noKey: "未选择 API 密钥",
+            selectedKey: "当前密钥：{{name}}",
+            noBaseUrl: "未设置端点",
+            noModel: "未设置默认模型",
+            testReady: "可以测试",
+            testConnected: "已连接，耗时 {{elapsed}} ms",
+            testFailed: "上次测试失败",
+            testNotReady: "请先设置端点和模型",
           },
           fields: {
             name: "名称",
@@ -711,11 +723,11 @@ export const resources = {
           title: "API 密钥",
           createTitle: "新增密钥",
           createAction: "新增密钥",
-          saveAction: "保存密钥",
+          saveAction: "保存",
           copyAction: "复制密钥",
           deleteAction: "删除密钥",
-          selectAction: "使用此密钥",
-          clearSelectedAction: "不使用密钥",
+          selectAction: "使用",
+          clearSelectedAction: "无密钥",
           currentBadge: "当前",
           loading: "正在加载 API 密钥",
           loadFailed: "API 密钥加载失败",
@@ -1047,20 +1059,26 @@ export const resources = {
           sections: {
             basic: {
               title: "基本資訊",
-              description: "連線名稱和密鑰管理",
             },
             provider: {
               title: "Provider 與 Base URL",
-              description: "選擇相容 Chat Completions 的端點",
             },
             model: {
               title: "預設模型",
-              description: "手寫模型名，或從遠端列表選擇",
             },
             test: {
               title: "連線測試",
-              description: "傳送一條短 Chat Completions 請求",
             },
+          },
+          summaries: {
+            noKey: "未選擇 API 密鑰",
+            selectedKey: "目前密鑰：{{name}}",
+            noBaseUrl: "未設定端點",
+            noModel: "未設定預設模型",
+            testReady: "可以測試",
+            testConnected: "已連線，耗時 {{elapsed}} ms",
+            testFailed: "上次測試失敗",
+            testNotReady: "請先設定端點與模型",
           },
           fields: {
             name: "名稱",
@@ -1086,11 +1104,11 @@ export const resources = {
           title: "API 密鑰",
           createTitle: "新增密鑰",
           createAction: "新增密鑰",
-          saveAction: "儲存密鑰",
+          saveAction: "儲存",
           copyAction: "複製密鑰",
           deleteAction: "刪除密鑰",
-          selectAction: "使用此密鑰",
-          clearSelectedAction: "不使用密鑰",
+          selectAction: "使用",
+          clearSelectedAction: "無密鑰",
           currentBadge: "目前",
           loading: "正在載入 API 密鑰",
           loadFailed: "API 密鑰載入失敗",
@@ -1426,20 +1444,26 @@ export const resources = {
           sections: {
             basic: {
               title: "基本情報",
-              description: "接続名とキー管理",
             },
             provider: {
               title: "Provider と Base URL",
-              description: "Chat Completions 互換エンドポイントを選択",
             },
             model: {
               title: "既定モデル",
-              description: "モデル名を入力するか、リモート候補を取得",
             },
             test: {
               title: "接続テスト",
-              description: "短い Chat Completions リクエストを送信",
             },
+          },
+          summaries: {
+            noKey: "API キー未選択",
+            selectedKey: "現在のキー：{{name}}",
+            noBaseUrl: "エンドポイント未設定",
+            noModel: "既定モデル未設定",
+            testReady: "テスト可能",
+            testConnected: "{{elapsed}} ms で接続",
+            testFailed: "前回のテスト失敗",
+            testNotReady: "先にエンドポイントとモデルを設定",
           },
           fields: {
             name: "名前",
@@ -1465,11 +1489,11 @@ export const resources = {
           title: "API キー",
           createTitle: "キーを追加",
           createAction: "キーを追加",
-          saveAction: "キーを保存",
+          saveAction: "保存",
           copyAction: "キーをコピー",
           deleteAction: "キーを削除",
-          selectAction: "このキーを使用",
-          clearSelectedAction: "キーを使用しない",
+          selectAction: "使用",
+          clearSelectedAction: "キーなし",
           currentBadge: "現在",
           loading: "API キーを読み込んでいます",
           loadFailed: "API キーの読み込みに失敗しました",

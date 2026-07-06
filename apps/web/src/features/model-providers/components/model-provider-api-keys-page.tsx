@@ -1,8 +1,9 @@
-import { Check, Clipboard, KeyRound, Trash2 } from "lucide-react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { useState } from "react";
+import { Check, Clipboard, KeyRound, Trash2 } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Button } from "../../../components/ui/button";
+import { cn } from "../../../lib/utils";
 import { MobileTopBar } from "../../assets/components/mobile-top-bar";
 import {
   createModelProviderApiKey,
@@ -120,6 +121,7 @@ export function ModelProviderApiKeysPage({
               key={apiKey.id}
               apiKey={apiKey}
               config={query.data}
+              shouldFocus={page.focusApiKeyId === apiKey.id}
               isSelecting={selectedMutation.isPending}
               onConfigChanged={updateCachedConfig}
               onSelect={() => selectedMutation.mutate(apiKey.id)}
@@ -146,20 +148,24 @@ export function ModelProviderApiKeysPage({
 function ApiKeyRow({
   apiKey,
   config,
+  shouldFocus,
   isSelecting,
   onConfigChanged,
   onSelect,
 }: {
   apiKey: ModelProviderApiKeyResponse;
   config: ModelProviderDetailResponse;
+  shouldFocus: boolean;
   isSelecting: boolean;
   onConfigChanged: (config: ModelProviderDetailResponse) => void;
   onSelect: () => void;
 }) {
   const { t } = useTranslation();
+  const rowRef = useRef<HTMLElement | null>(null);
   const [name, setName] = useState(apiKey.name);
   const [secret, setSecret] = useState(apiKey.secret);
   const [copyState, setCopyState] = useState<"idle" | "done" | "failed">("idle");
+  const [isHighlighted, setIsHighlighted] = useState(false);
   const isSelected = config.selectedApiKeyId === apiKey.id;
   const updateMutation = useMutation({
     mutationFn: () =>
@@ -174,8 +180,26 @@ function ApiKeyRow({
     onSuccess: onConfigChanged,
   });
 
+  useEffect(() => {
+    if (!shouldFocus) {
+      return;
+    }
+
+    rowRef.current?.scrollIntoView({ block: "center", behavior: "smooth" });
+    setIsHighlighted(true);
+    const timeoutId = window.setTimeout(() => setIsHighlighted(false), 1600);
+
+    return () => window.clearTimeout(timeoutId);
+  }, [shouldFocus]);
+
   return (
-    <section className="grid gap-3 border-b border-border p-4">
+    <section
+      ref={rowRef}
+      className={cn(
+        "grid gap-3 border-b border-border p-4 transition-colors",
+        isHighlighted ? "bg-primary/10" : "bg-background",
+      )}
+    >
       <div className="flex items-center justify-between gap-3">
         <div className="flex min-w-0 items-center gap-2">
           <KeyRound aria-hidden="true" className="size-4 text-muted-foreground" />
@@ -200,9 +224,16 @@ function ApiKeyRow({
         value={secret}
         onChange={(event) => setSecret(event.target.value)}
       />
-      <div className="grid grid-cols-4 gap-2">
+      <div className="grid grid-cols-[minmax(0,1fr)_minmax(0,1fr)_2.5rem_2.5rem] gap-2">
         <Button
-          className="col-span-2"
+          disabled={isSelecting || isSelected}
+          type="button"
+          variant="secondary"
+          onClick={onSelect}
+        >
+          {t("modelProviders.apiKeys.selectAction")}
+        </Button>
+        <Button
           disabled={updateMutation.isPending || !name.trim() || !secret}
           type="button"
           variant="outline"
@@ -233,14 +264,6 @@ function ApiKeyRow({
           <Trash2 aria-hidden="true" />
         </Button>
       </div>
-      <Button
-        disabled={isSelecting || isSelected}
-        type="button"
-        variant="secondary"
-        onClick={onSelect}
-      >
-        {t("modelProviders.apiKeys.selectAction")}
-      </Button>
       {copyState === "failed" ? (
         <p className="text-sm text-destructive">
           {t("modelProviders.apiKeys.errors.copyFailed")}

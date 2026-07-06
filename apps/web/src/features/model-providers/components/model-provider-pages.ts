@@ -12,6 +12,7 @@ export type ModelProviderPage =
       key: string;
       configId: string;
       sessionKey: string;
+      focusApiKeyId?: string;
     };
 
 export const modelProviderListPage: ModelProviderPage = {
@@ -39,12 +40,14 @@ export function editModelProviderPage(configId: string): ModelProviderPage {
 export function modelProviderApiKeysPage(
   configId: string,
   sessionKey: string,
+  focusApiKeyId?: string,
 ): ModelProviderPage {
   return {
     name: "apiKeys",
     key: `model-providers:api-keys:${configId}`,
     configId,
     sessionKey,
+    ...(focusApiKeyId ? { focusApiKeyId } : {}),
   };
 }
 

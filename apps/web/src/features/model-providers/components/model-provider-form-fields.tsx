@@ -1,4 +1,5 @@
 import type { ChangeEventHandler, ReactNode } from "react";
+import type { LucideIcon } from "lucide-react";
 import { Alert, AlertDescription } from "../../../components/ui/alert";
 import {
   AccordionContent,
@@ -27,26 +28,34 @@ export function ModelProviderFormSection({
   title,
   value,
   children,
-  description,
+  icon: Icon,
+  summary,
 }: {
   title: string;
   value: string;
   children: ReactNode;
-  description?: string;
+  icon: LucideIcon;
+  summary: string;
 }) {
   return (
-    <AccordionItem value={value}>
+    <AccordionItem
+      className="group/model-provider-section relative overflow-hidden bg-background"
+      value={value}
+    >
       <AccordionTrigger className="px-4 py-3 hover:no-underline">
-        <span className="flex min-w-0 flex-col gap-1">
-          <span className="truncate">{title}</span>
-          {description ? (
-            <span className="text-xs font-normal text-muted-foreground">
-              {description}
+        <span className="flex min-w-0 flex-1 items-start gap-3 pr-3">
+          <span className="mt-0.5 flex size-8 shrink-0 items-center justify-center rounded-md border border-border bg-muted/40 text-muted-foreground">
+            <Icon aria-hidden="true" className="size-4" />
+          </span>
+          <span className="grid min-w-0 flex-1 gap-1">
+            <span className="truncate text-base font-semibold">{title}</span>
+            <span className="truncate text-sm font-normal text-muted-foreground">
+              {summary}
             </span>
-          ) : null}
+          </span>
         </span>
       </AccordionTrigger>
-      <AccordionContent className="px-4 pb-4">
+      <AccordionContent className="px-4 pb-5 pl-16">
         <FieldGroup className="gap-4">{children}</FieldGroup>
       </AccordionContent>
     </AccordionItem>
