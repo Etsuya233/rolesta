@@ -1,3 +1,5 @@
+import type { TFunction } from "i18next";
+import { BadgeInfo, FileText, MessageSquareText, UserRound } from "lucide-react";
 import { useId, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Accordion } from "../../../components/ui/accordion";
@@ -65,7 +67,13 @@ export function CharacterCardMainEditor({
           onValueChange={setOpenSections}
         >
           <CharacterFormSection
-            description={t("characters.editor.sections.basic.description")}
+            icon={BadgeInfo}
+            summary={characterBasicSummary({
+              name: form.name,
+              tagsText: form.tagsText,
+              visibility: form.visibility,
+              t,
+            })}
             title={t("characters.editor.sections.basic.title")}
             value="basic"
           >
@@ -117,7 +125,11 @@ export function CharacterCardMainEditor({
           </CharacterFormSection>
 
           <CharacterFormSection
-            description={t("characters.editor.sections.content.description")}
+            icon={FileText}
+            summary={characterContentSummary({
+              form,
+              t,
+            })}
             title={t("characters.editor.sections.content.title")}
             value="content"
           >
@@ -183,7 +195,11 @@ export function CharacterCardMainEditor({
           </CharacterFormSection>
 
           <CharacterFormSection
-            description={t("characters.editor.sections.prompts.description")}
+            icon={MessageSquareText}
+            summary={characterPromptsSummary({
+              form,
+              t,
+            })}
             title={t("characters.editor.sections.prompts.title")}
             value="prompts"
           >
@@ -211,7 +227,12 @@ export function CharacterCardMainEditor({
           </CharacterFormSection>
 
           <CharacterFormSection
-            description={t("characters.editor.sections.metadata.description")}
+            icon={UserRound}
+            summary={characterMetadataSummary({
+              creator: form.creator,
+              nickname: form.nickname,
+              t,
+            })}
             title={t("characters.editor.sections.metadata.title")}
             value="metadata"
           >
@@ -243,4 +264,110 @@ export function CharacterCardMainEditor({
       </div>
     </form>
   );
+}
+
+function characterBasicSummary({
+  name,
+  tagsText,
+  visibility,
+  t,
+}: {
+  name: string;
+  tagsText: string;
+  visibility: CharacterEditorFormState["visibility"];
+  t: TFunction;
+}): string {
+  const title = name.trim() || t("characters.editor.summaries.unnamed");
+  const visibilityText =
+    visibility === "public"
+      ? t("characters.list.publicVisibility")
+      : t("characters.list.privateVisibility");
+  const tags = tagCount(tagsText);
+  const tagSummary =
+    tags > 0
+      ? t("characters.editor.summaries.tags", { count: tags })
+      : t("characters.editor.summaries.noTags");
+
+  return `${title} · ${visibilityText} · ${tagSummary}`;
+}
+
+function characterContentSummary({
+  form,
+  t,
+}: {
+  form: CharacterEditorFormState;
+  t: TFunction;
+}): string {
+  const filledFields = filledCount([
+    form.description,
+    form.firstMessage,
+    form.personality,
+    form.scenario,
+    form.creatorNotes,
+    form.messageExample,
+  ]);
+  const firstMessageSummary = form.firstMessage.trim()
+    ? t("characters.editor.summaries.firstMessageSet")
+    : t("characters.editor.summaries.firstMessageEmpty");
+
+  return `${t("characters.editor.summaries.filledFields", {
+    count: filledFields,
+  })} · ${firstMessageSummary}`;
+}
+
+function characterPromptsSummary({
+  form,
+  t,
+}: {
+  form: CharacterEditorFormState;
+  t: TFunction;
+}): string {
+  const overrides = filledCount([
+    form.systemPrompt,
+    form.postHistoryInstructions,
+  ]);
+
+  return overrides > 0
+    ? t("characters.editor.summaries.promptOverrides", { count: overrides })
+    : t("characters.editor.summaries.noPromptOverrides");
+}
+
+function characterMetadataSummary({
+  creator,
+  nickname,
+  t,
+}: {
+  creator: string;
+  nickname: string;
+  t: TFunction;
+}): string {
+  const creatorText = creator.trim();
+  const nicknameText = nickname.trim();
+
+  if (creatorText && nicknameText) {
+    return `${t("characters.editor.summaries.creator", {
+      name: creatorText,
+    })} · ${t("characters.editor.summaries.nickname", { name: nicknameText })}`;
+  }
+
+  if (creatorText) {
+    return t("characters.editor.summaries.creator", { name: creatorText });
+  }
+
+  if (nicknameText) {
+    return t("characters.editor.summaries.nickname", { name: nicknameText });
+  }
+
+  return t("characters.editor.summaries.noMetadata");
+}
+
+function tagCount(tagsText: string): number {
+  return tagsText
+    .split(",")
+    .map((tag) => tag.trim())
+    .filter(Boolean).length;
+}
+
+function filledCount(values: string[]): number {
+  return values.filter((value) => value.trim()).length;
 }

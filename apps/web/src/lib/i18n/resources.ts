@@ -82,23 +82,29 @@ export const resources = {
           sections: {
             basic: {
               title: "Basic info",
-              description:
-                "Core identity information used in lists and chat selection",
             },
             content: {
               title: "Character content",
-              description:
-                "Controls persona, opening dialogue, and example tone",
             },
             prompts: {
               title: "Prompt overrides",
-              description:
-                "Overrides prompt fragments used during context assembly",
             },
             metadata: {
               title: "Metadata",
-              description: "Creator information that can be edited directly",
             },
+          },
+          summaries: {
+            unnamed: "Unnamed character",
+            tags: "{{count}} tags",
+            noTags: "No tags",
+            filledFields: "{{count}} fields filled",
+            firstMessageSet: "First message set",
+            firstMessageEmpty: "No first message",
+            promptOverrides: "{{count}} prompt overrides",
+            noPromptOverrides: "No prompt overrides",
+            creator: "Creator: {{name}}",
+            nickname: "Nickname: {{name}}",
+            noMetadata: "No creator metadata",
           },
           fields: {
             name: "Name",
@@ -177,12 +183,21 @@ export const resources = {
           sections: {
             basic: {
               title: "Basic info",
-              description: "Name, provider status, and prompt list access",
             },
             model: {
               title: "Model settings",
-              description: "Context, sampling, penalties, and output controls",
             },
+          },
+          summaries: {
+            unnamed: "Unnamed preset",
+            tokens: "{{value}} tokens",
+            entries: "{{value}} entries",
+            contextLength: "Context {{value}}",
+            noContext: "No context limit",
+            maxResponseLength: "Reply {{value}}",
+            noMaxResponse: "No reply limit",
+            streamEnabled: "Streaming on",
+            streamDisabled: "Streaming off",
           },
           fields: {
             name: "Name",
@@ -466,20 +481,29 @@ export const resources = {
           sections: {
             basic: {
               title: "基础信息",
-              description: "角色卡在列表和聊天选择中的基本识别信息",
             },
             content: {
               title: "角色内容",
-              description: "控制角色人设、对话开场和示例语气",
             },
             prompts: {
               title: "提示词覆盖",
-              description: "覆盖上下文组装时使用的提示词片段",
             },
             metadata: {
               title: "元数据",
-              description: "可直接维护的创作者信息",
             },
+          },
+          summaries: {
+            unnamed: "未命名角色",
+            tags: "{{count}} 个标签",
+            noTags: "未设置标签",
+            filledFields: "已填写 {{count}} 项",
+            firstMessageSet: "已设置第一条消息",
+            firstMessageEmpty: "未设置第一条消息",
+            promptOverrides: "{{count}} 项提示词覆盖",
+            noPromptOverrides: "未设置提示词覆盖",
+            creator: "创建者：{{name}}",
+            nickname: "昵称：{{name}}",
+            noMetadata: "未设置创作者信息",
           },
           fields: {
             name: "名称",
@@ -558,12 +582,21 @@ export const resources = {
           sections: {
             basic: {
               title: "基础信息",
-              description: "名称、关联状态和提示词列表入口",
             },
             model: {
               title: "模型参数",
-              description: "上下文、采样、惩罚和输出控制参数",
             },
+          },
+          summaries: {
+            unnamed: "未命名预设",
+            tokens: "{{value}} tokens",
+            entries: "{{value}} entries",
+            contextLength: "上下文 {{value}}",
+            noContext: "未设置上下文长度",
+            maxResponseLength: "回复 {{value}}",
+            noMaxResponse: "未设置回复长度",
+            streamEnabled: "已开启流式",
+            streamDisabled: "已关闭流式",
           },
           fields: {
             name: "名称",
@@ -847,20 +880,29 @@ export const resources = {
           sections: {
             basic: {
               title: "基本資訊",
-              description: "角色卡在列表和聊天選擇中的基本識別資訊",
             },
             content: {
               title: "角色內容",
-              description: "控制角色人設、對話開場和示例語氣",
             },
             prompts: {
               title: "提示詞覆蓋",
-              description: "覆蓋組裝上下文時使用的提示詞片段",
             },
             metadata: {
               title: "中繼資料",
-              description: "可直接維護的創作者資訊",
             },
+          },
+          summaries: {
+            unnamed: "未命名角色",
+            tags: "{{count}} 個標籤",
+            noTags: "未設定標籤",
+            filledFields: "已填寫 {{count}} 項",
+            firstMessageSet: "已設定第一則訊息",
+            firstMessageEmpty: "未設定第一則訊息",
+            promptOverrides: "{{count}} 項提示詞覆蓋",
+            noPromptOverrides: "未設定提示詞覆蓋",
+            creator: "建立者：{{name}}",
+            nickname: "暱稱：{{name}}",
+            noMetadata: "未設定創作者資訊",
           },
           fields: {
             name: "名稱",
@@ -939,12 +981,21 @@ export const resources = {
           sections: {
             basic: {
               title: "基本資訊",
-              description: "名稱、關聯狀態和提示詞列表入口",
             },
             model: {
               title: "模型參數",
-              description: "上下文、採樣、懲罰和輸出控制參數",
             },
+          },
+          summaries: {
+            unnamed: "未命名預設",
+            tokens: "{{value}} tokens",
+            entries: "{{value}} entries",
+            contextLength: "上下文 {{value}}",
+            noContext: "未設定上下文長度",
+            maxResponseLength: "回覆 {{value}}",
+            noMaxResponse: "未設定回覆長度",
+            streamEnabled: "已開啟串流",
+            streamDisabled: "已關閉串流",
           },
           fields: {
             name: "名稱",
@@ -1229,21 +1280,29 @@ export const resources = {
           sections: {
             basic: {
               title: "基本情報",
-              description: "一覧とチャット選択で使う基本識別情報",
             },
             content: {
               title: "キャラクター内容",
-              description: "人物像、開始メッセージ、例示口調を制御します",
             },
             prompts: {
               title: "プロンプト上書き",
-              description:
-                "コンテキスト組み立て時に使うプロンプト断片を上書きします",
             },
             metadata: {
               title: "メタデータ",
-              description: "直接編集できる作成者情報",
             },
+          },
+          summaries: {
+            unnamed: "名前未設定のキャラクター",
+            tags: "{{count}} 件のタグ",
+            noTags: "タグ未設定",
+            filledFields: "{{count}} 項目入力済み",
+            firstMessageSet: "最初のメッセージ設定済み",
+            firstMessageEmpty: "最初のメッセージ未設定",
+            promptOverrides: "{{count}} 件のプロンプト上書き",
+            noPromptOverrides: "プロンプト上書きなし",
+            creator: "作成者：{{name}}",
+            nickname: "ニックネーム：{{name}}",
+            noMetadata: "作成者情報未設定",
           },
           fields: {
             name: "名前",
@@ -1322,14 +1381,21 @@ export const resources = {
           sections: {
             basic: {
               title: "基本情報",
-              description:
-                "名前、連携状態、プロンプトリストへの入口",
             },
             model: {
               title: "モデル設定",
-              description:
-                "コンテキスト、サンプリング、ペナルティ、出力制御",
             },
+          },
+          summaries: {
+            unnamed: "名前未設定のプリセット",
+            tokens: "{{value}} tokens",
+            entries: "{{value}} entries",
+            contextLength: "コンテキスト {{value}}",
+            noContext: "コンテキスト長未設定",
+            maxResponseLength: "応答 {{value}}",
+            noMaxResponse: "応答長未設定",
+            streamEnabled: "ストリーミング有効",
+            streamDisabled: "ストリーミング無効",
           },
           fields: {
             name: "名前",

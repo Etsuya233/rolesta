@@ -1,9 +1,14 @@
+import type { TFunction } from "i18next";
+import { BadgeInfo, SlidersHorizontal } from "lucide-react";
 import { useId, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Accordion } from "../../../components/ui/accordion";
 import { Badge } from "../../../components/ui/badge";
 import { usePresetDraftSession } from "../hooks/use-preset-draft-sessions";
-import type { PresetDetailResponse } from "../api/presets-api";
+import type {
+  PresetDetailResponse,
+  PresetModelSettings,
+} from "../api/presets-api";
 import {
   FormActionButton,
   FormError,
@@ -56,7 +61,13 @@ export function PresetMainEditor({
           onValueChange={setOpenSections}
         >
           <PresetFormSection
-            description={t("presets.editor.sections.basic.description")}
+            icon={BadgeInfo}
+            summary={presetBasicSummary({
+              name: form.name,
+              tokenCount: preset?.tokenCount ?? 0,
+              entryCount: preset?.entryCount ?? 0,
+              t,
+            })}
             title={t("presets.editor.sections.basic.title")}
             value="basic"
           >
@@ -91,7 +102,8 @@ export function PresetMainEditor({
           </PresetFormSection>
 
           <PresetFormSection
-            description={t("presets.editor.sections.model.description")}
+            icon={SlidersHorizontal}
+            summary={presetModelSummary({ settings, t })}
             title={t("presets.editor.sections.model.title")}
             value="model"
           >
@@ -194,6 +206,50 @@ export function PresetMainEditor({
       </div>
     </form>
   );
+}
+
+function presetBasicSummary({
+  name,
+  tokenCount,
+  entryCount,
+  t,
+}: {
+  name: string;
+  tokenCount: number;
+  entryCount: number;
+  t: TFunction;
+}): string {
+  const title = name.trim() || t("presets.editor.summaries.unnamed");
+
+  return `${title} · ${t("presets.editor.summaries.tokens", {
+    value: tokenCount,
+  })} · ${t("presets.editor.summaries.entries", { value: entryCount })}`;
+}
+
+function presetModelSummary({
+  settings,
+  t,
+}: {
+  settings: PresetModelSettings;
+  t: TFunction;
+}): string {
+  const contextLength =
+    settings.contextLength === null
+      ? t("presets.editor.summaries.noContext")
+      : t("presets.editor.summaries.contextLength", {
+          value: settings.contextLength,
+        });
+  const maxResponseLength =
+    settings.maxResponseLength === null
+      ? t("presets.editor.summaries.noMaxResponse")
+      : t("presets.editor.summaries.maxResponseLength", {
+          value: settings.maxResponseLength,
+        });
+  const stream = settings.stream
+    ? t("presets.editor.summaries.streamEnabled")
+    : t("presets.editor.summaries.streamDisabled");
+
+  return `${contextLength} · ${maxResponseLength} · ${stream}`;
 }
 
 function Metric({ label, value }: { label: string; value: string }) {

@@ -1,15 +1,10 @@
-import type { ChangeEventHandler, ReactNode } from "react";
+import type { ChangeEventHandler } from "react";
+import { EditorFormSection } from "../../../components/editor-form-section";
 import { Alert, AlertDescription } from "../../../components/ui/alert";
-import {
-  AccordionContent,
-  AccordionItem,
-  AccordionTrigger,
-} from "../../../components/ui/accordion";
 import { Button } from "../../../components/ui/button";
 import {
   Field,
   FieldDescription,
-  FieldGroup,
   FieldLabel,
 } from "../../../components/ui/field";
 import { Input } from "../../../components/ui/input";
@@ -24,35 +19,7 @@ import {
 import { Textarea } from "../../../components/ui/textarea";
 import { cn } from "../../../lib/utils";
 
-export function PresetFormSection({
-  title,
-  value,
-  children,
-  description,
-}: {
-  title: string;
-  value: string;
-  children: ReactNode;
-  description?: string;
-}) {
-  return (
-    <AccordionItem value={value}>
-      <AccordionTrigger className="px-4 py-3 hover:no-underline">
-        <span className="flex min-w-0 flex-col gap-1">
-          <span className="truncate">{title}</span>
-          {description ? (
-            <span className="text-xs font-normal text-muted-foreground">
-              {description}
-            </span>
-          ) : null}
-        </span>
-      </AccordionTrigger>
-      <AccordionContent className="px-4 pb-4">
-        <FieldGroup className="gap-4">{children}</FieldGroup>
-      </AccordionContent>
-    </AccordionItem>
-  );
-}
+export { EditorFormSection as PresetFormSection };
 
 export function PresetTextField({
   id,
