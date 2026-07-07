@@ -77,7 +77,9 @@ export function PresetNumberField({
         type="number"
         value={value ?? ""}
         onChange={(event) =>
-          onChange(event.target.value === "" ? null : Number(event.target.value))
+          onChange(
+            event.target.value === "" ? null : Number(event.target.value),
+          )
         }
       />
     </Field>
@@ -91,6 +93,7 @@ export function PresetTextAreaField({
   onChange,
   disabled = false,
   rows = 8,
+  compact = false,
 }: {
   id: string;
   label: string;
@@ -98,12 +101,16 @@ export function PresetTextAreaField({
   onChange: ChangeEventHandler<HTMLTextAreaElement>;
   disabled?: boolean;
   rows?: number;
+  compact?: boolean;
 }) {
   return (
     <Field data-disabled={disabled}>
       <FieldLabel htmlFor={id}>{label}</FieldLabel>
       <Textarea
-        className="min-h-40 resize-y overflow-auto [field-sizing:fixed]"
+        className={cn(
+          "resize-y overflow-auto [field-sizing:fixed]",
+          compact ? "min-h-20" : "min-h-40",
+        )}
         disabled={disabled}
         id={id}
         rows={rows}

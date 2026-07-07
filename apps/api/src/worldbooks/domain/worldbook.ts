@@ -8,14 +8,50 @@ export const WORLDBOOK_SOURCE_FORMATS = [
 export type WorldbookSourceFormat = (typeof WORLDBOOK_SOURCE_FORMATS)[number];
 
 export const WORLDBOOK_INSERTION_POSITIONS = [
-  "beforeChar",
-  "afterChar",
-  "beforeHistory",
-  "afterHistory",
+  "beforeCharacterDefinition",
+  "afterCharacterDefinition",
+  "beforeAuthorNote",
+  "afterAuthorNote",
+  "atDepth",
+  "beforeExampleMessages",
+  "afterExampleMessages",
+  "outlet",
   "unknown",
 ] as const;
 export type WorldbookInsertionPosition =
   (typeof WORLDBOOK_INSERTION_POSITIONS)[number];
+
+export const WORLDBOOK_DEPTH_ROLES = ["system", "user", "assistant"] as const;
+export type WorldbookDepthRole = (typeof WORLDBOOK_DEPTH_ROLES)[number];
+
+export const WORLDBOOK_CONDITION_LOGICS = [
+  "andAny",
+  "notAll",
+  "notAny",
+  "andAll",
+] as const;
+export type WorldbookConditionLogic =
+  (typeof WORLDBOOK_CONDITION_LOGICS)[number];
+
+export const WORLDBOOK_TRI_STATES = ["inherit", "enabled", "disabled"] as const;
+export type WorldbookTriState = (typeof WORLDBOOK_TRI_STATES)[number];
+
+export const WORLDBOOK_GENERATION_TRIGGERS = [
+  "normal",
+  "continue",
+  "impersonate",
+  "swipe",
+  "regenerate",
+  "quiet",
+] as const;
+export type WorldbookGenerationTrigger =
+  (typeof WORLDBOOK_GENERATION_TRIGGERS)[number];
+
+export interface WorldbookCharacterFilter {
+  isExclude: boolean;
+  names: string[];
+  tags: string[];
+}
 
 export interface Worldbook {
   id: string;
@@ -58,20 +94,50 @@ export interface WorldbookSummary {
 export interface WorldbookEntry {
   id: string;
   worldbookId: string;
+  externalUid: number | null;
   enabled: boolean;
   name: string;
+  addMemo: boolean;
   comment: string;
   content: string;
   primaryKeys: string[];
   secondaryKeys: string[];
+  conditionLogic: WorldbookConditionLogic;
   selective: boolean;
   constant: boolean;
-  caseSensitive: boolean;
-  matchWholeWords: boolean;
+  vectorized: boolean;
+  caseSensitive: WorldbookTriState;
+  matchWholeWords: WorldbookTriState;
   insertionPosition: WorldbookInsertionPosition;
+  depthRole: WorldbookDepthRole;
+  insertionDepth: number;
   insertionOrder: number;
-  depth: number;
+  displayOrder: number;
+  useProbability: boolean;
   probability: number;
+  scanDepth: number | null;
+  recursiveScan: boolean;
+  preventFurtherRecursion: boolean;
+  delayUntilRecursion: boolean;
+  recursionDelayLevel: number | null;
+  ignoreBudget: boolean;
+  group: string;
+  groupOverride: boolean;
+  groupWeight: number;
+  useGroupScoring: WorldbookTriState;
+  sticky: number | null;
+  cooldown: number | null;
+  delay: number | null;
+  matchPersonaDescription: boolean;
+  matchCharacterDescription: boolean;
+  matchCharacterPersonality: boolean;
+  matchScenario: boolean;
+  matchCreatorNotes: boolean;
+  matchCharacterDepthPrompt: boolean;
+  automationId: string;
+  generationTriggers: WorldbookGenerationTrigger[];
+  outletName: string;
+  characterFilter: WorldbookCharacterFilter;
   tokenCount: number;
   createdAtMs: number;
   updatedAtMs: number;

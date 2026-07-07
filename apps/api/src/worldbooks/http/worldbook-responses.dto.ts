@@ -2,10 +2,15 @@ import { ApiProperty } from "@nestjs/swagger";
 import type { PageResponse } from "@rolesta/shared";
 import type {
   Worldbook,
+  WorldbookCharacterFilter,
+  WorldbookConditionLogic,
+  WorldbookDepthRole,
   WorldbookEntry,
+  WorldbookGenerationTrigger,
   WorldbookInsertionPosition,
   WorldbookSourceFormat,
   WorldbookSummary,
+  WorldbookTriState,
   WorldbookVisibility,
 } from "../domain/worldbook.js";
 
@@ -66,11 +71,17 @@ export class WorldbookEntryResponseDto {
   @ApiProperty({ type: String })
   worldbookId!: string;
 
+  @ApiProperty({ nullable: true, type: Number })
+  externalUid!: number | null;
+
   @ApiProperty({ type: Boolean })
   enabled!: boolean;
 
   @ApiProperty({ type: String })
   name!: string;
+
+  @ApiProperty({ type: Boolean })
+  addMemo!: boolean;
 
   @ApiProperty({ type: String })
   comment!: string;
@@ -84,6 +95,9 @@ export class WorldbookEntryResponseDto {
   @ApiProperty({ type: [String] })
   secondaryKeys!: string[];
 
+  @ApiProperty({ enum: ["andAny", "notAll", "notAny", "andAll"] })
+  conditionLogic!: WorldbookConditionLogic;
+
   @ApiProperty({ type: Boolean })
   selective!: boolean;
 
@@ -91,30 +105,125 @@ export class WorldbookEntryResponseDto {
   constant!: boolean;
 
   @ApiProperty({ type: Boolean })
-  caseSensitive!: boolean;
+  vectorized!: boolean;
 
-  @ApiProperty({ type: Boolean })
-  matchWholeWords!: boolean;
+  @ApiProperty({ enum: ["inherit", "enabled", "disabled"] })
+  caseSensitive!: WorldbookTriState;
+
+  @ApiProperty({ enum: ["inherit", "enabled", "disabled"] })
+  matchWholeWords!: WorldbookTriState;
 
   @ApiProperty({
     enum: [
-      "beforeChar",
-      "afterChar",
-      "beforeHistory",
-      "afterHistory",
+      "beforeCharacterDefinition",
+      "afterCharacterDefinition",
+      "beforeAuthorNote",
+      "afterAuthorNote",
+      "atDepth",
+      "beforeExampleMessages",
+      "afterExampleMessages",
+      "outlet",
       "unknown",
     ],
   })
   insertionPosition!: WorldbookInsertionPosition;
 
+  @ApiProperty({ enum: ["system", "user", "assistant"] })
+  depthRole!: WorldbookDepthRole;
+
+  @ApiProperty({ type: Number })
+  insertionDepth!: number;
+
   @ApiProperty({ type: Number })
   insertionOrder!: number;
 
   @ApiProperty({ type: Number })
-  depth!: number;
+  displayOrder!: number;
+
+  @ApiProperty({ type: Boolean })
+  useProbability!: boolean;
 
   @ApiProperty({ type: Number })
   probability!: number;
+
+  @ApiProperty({ nullable: true, type: Number })
+  scanDepth!: number | null;
+
+  @ApiProperty({ type: Boolean })
+  recursiveScan!: boolean;
+
+  @ApiProperty({ type: Boolean })
+  preventFurtherRecursion!: boolean;
+
+  @ApiProperty({ type: Boolean })
+  delayUntilRecursion!: boolean;
+
+  @ApiProperty({ nullable: true, type: Number })
+  recursionDelayLevel!: number | null;
+
+  @ApiProperty({ type: Boolean })
+  ignoreBudget!: boolean;
+
+  @ApiProperty({ type: String })
+  group!: string;
+
+  @ApiProperty({ type: Boolean })
+  groupOverride!: boolean;
+
+  @ApiProperty({ type: Number })
+  groupWeight!: number;
+
+  @ApiProperty({ enum: ["inherit", "enabled", "disabled"] })
+  useGroupScoring!: WorldbookTriState;
+
+  @ApiProperty({ nullable: true, type: Number })
+  sticky!: number | null;
+
+  @ApiProperty({ nullable: true, type: Number })
+  cooldown!: number | null;
+
+  @ApiProperty({ nullable: true, type: Number })
+  delay!: number | null;
+
+  @ApiProperty({ type: Boolean })
+  matchPersonaDescription!: boolean;
+
+  @ApiProperty({ type: Boolean })
+  matchCharacterDescription!: boolean;
+
+  @ApiProperty({ type: Boolean })
+  matchCharacterPersonality!: boolean;
+
+  @ApiProperty({ type: Boolean })
+  matchScenario!: boolean;
+
+  @ApiProperty({ type: Boolean })
+  matchCreatorNotes!: boolean;
+
+  @ApiProperty({ type: Boolean })
+  matchCharacterDepthPrompt!: boolean;
+
+  @ApiProperty({ type: String })
+  automationId!: string;
+
+  @ApiProperty({
+    enum: ["normal", "continue", "impersonate", "swipe", "regenerate", "quiet"],
+    isArray: true,
+  })
+  generationTriggers!: WorldbookGenerationTrigger[];
+
+  @ApiProperty({ type: String })
+  outletName!: string;
+
+  @ApiProperty({
+    properties: {
+      isExclude: { type: "boolean" },
+      names: { items: { type: "string" }, type: "array" },
+      tags: { items: { type: "string" }, type: "array" },
+    },
+    type: "object",
+  })
+  characterFilter!: WorldbookCharacterFilter;
 
   @ApiProperty({ type: Number })
   tokenCount!: number;

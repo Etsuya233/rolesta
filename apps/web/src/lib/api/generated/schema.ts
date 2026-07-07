@@ -730,26 +730,71 @@ export interface components {
     WorldbookEntryResponseDto: {
       id: string;
       worldbookId: string;
+      externalUid: number | null;
       enabled: boolean;
       name: string;
+      addMemo: boolean;
       comment: string;
       content: string;
       primaryKeys: string[];
       secondaryKeys: string[];
+      /** @enum {string} */
+      conditionLogic: "andAny" | "notAll" | "notAny" | "andAll";
       selective: boolean;
       constant: boolean;
-      caseSensitive: boolean;
-      matchWholeWords: boolean;
+      vectorized: boolean;
+      /** @enum {string} */
+      caseSensitive: "inherit" | "enabled" | "disabled";
+      /** @enum {string} */
+      matchWholeWords: "inherit" | "enabled" | "disabled";
       /** @enum {string} */
       insertionPosition:
-        | "beforeChar"
-        | "afterChar"
-        | "beforeHistory"
-        | "afterHistory"
+        | "beforeCharacterDefinition"
+        | "afterCharacterDefinition"
+        | "beforeAuthorNote"
+        | "afterAuthorNote"
+        | "atDepth"
+        | "beforeExampleMessages"
+        | "afterExampleMessages"
+        | "outlet"
         | "unknown";
+      /** @enum {string} */
+      depthRole: "system" | "user" | "assistant";
+      insertionDepth: number;
       insertionOrder: number;
-      depth: number;
+      displayOrder: number;
+      useProbability: boolean;
       probability: number;
+      scanDepth: number | null;
+      recursiveScan: boolean;
+      preventFurtherRecursion: boolean;
+      delayUntilRecursion: boolean;
+      recursionDelayLevel: number | null;
+      ignoreBudget: boolean;
+      group: string;
+      groupOverride: boolean;
+      groupWeight: number;
+      /** @enum {string} */
+      useGroupScoring: "inherit" | "enabled" | "disabled";
+      sticky: number | null;
+      cooldown: number | null;
+      delay: number | null;
+      matchPersonaDescription: boolean;
+      matchCharacterDescription: boolean;
+      matchCharacterPersonality: boolean;
+      matchScenario: boolean;
+      matchCreatorNotes: boolean;
+      matchCharacterDepthPrompt: boolean;
+      automationId: string;
+      generationTriggers: (
+        "normal" | "continue" | "impersonate" | "swipe" | "regenerate" | "quiet"
+      )[];
+      outletName: string;
+      characterFilter: {
+        isExclude?: boolean;
+        names?: string[];
+        tags?: string[];
+      };
       tokenCount: number;
       createdAtMs: number;
       updatedAtMs: number;
@@ -796,49 +841,136 @@ export interface components {
       tokenBudget?: number;
       recursiveScan?: boolean;
     };
+    WorldbookCharacterFilterDto: {
+      isExclude: boolean;
+      names: string[];
+      tags: string[];
+    };
     CreateWorldbookEntryRequestDto: {
+      externalUid?: number | null;
       enabled?: boolean;
       name?: string;
+      addMemo?: boolean;
       comment?: string;
       content?: string;
       primaryKeys?: string[];
       secondaryKeys?: string[];
+      /** @enum {string} */
+      conditionLogic?: "andAny" | "notAll" | "notAny" | "andAll";
       selective?: boolean;
       constant?: boolean;
-      caseSensitive?: boolean;
-      matchWholeWords?: boolean;
+      vectorized?: boolean;
+      /** @enum {string} */
+      caseSensitive?: "inherit" | "enabled" | "disabled";
+      /** @enum {string} */
+      matchWholeWords?: "inherit" | "enabled" | "disabled";
       /** @enum {string} */
       insertionPosition?:
-        | "beforeChar"
-        | "afterChar"
-        | "beforeHistory"
-        | "afterHistory"
+        | "beforeCharacterDefinition"
+        | "afterCharacterDefinition"
+        | "beforeAuthorNote"
+        | "afterAuthorNote"
+        | "atDepth"
+        | "beforeExampleMessages"
+        | "afterExampleMessages"
+        | "outlet"
         | "unknown";
+      /** @enum {string} */
+      depthRole?: "system" | "user" | "assistant";
+      insertionDepth?: number;
       insertionOrder?: number;
-      depth?: number;
+      displayOrder?: number;
+      useProbability?: boolean;
       probability?: number;
+      scanDepth?: number | null;
+      recursiveScan?: boolean;
+      preventFurtherRecursion?: boolean;
+      delayUntilRecursion?: boolean;
+      recursionDelayLevel?: number | null;
+      ignoreBudget?: boolean;
+      group?: string;
+      groupOverride?: boolean;
+      groupWeight?: number;
+      /** @enum {string} */
+      useGroupScoring?: "inherit" | "enabled" | "disabled";
+      sticky?: number | null;
+      cooldown?: number | null;
+      delay?: number | null;
+      matchPersonaDescription?: boolean;
+      matchCharacterDescription?: boolean;
+      matchCharacterPersonality?: boolean;
+      matchScenario?: boolean;
+      matchCreatorNotes?: boolean;
+      matchCharacterDepthPrompt?: boolean;
+      automationId?: string;
+      generationTriggers?: (
+        "normal" | "continue" | "impersonate" | "swipe" | "regenerate" | "quiet"
+      )[];
+      outletName?: string;
+      characterFilter?: components["schemas"]["WorldbookCharacterFilterDto"];
     };
     UpdateWorldbookEntryRequestDto: {
+      externalUid?: number | null;
       enabled?: boolean;
       name?: string;
+      addMemo?: boolean;
       comment?: string;
       content?: string;
       primaryKeys?: string[];
       secondaryKeys?: string[];
+      /** @enum {string} */
+      conditionLogic?: "andAny" | "notAll" | "notAny" | "andAll";
       selective?: boolean;
       constant?: boolean;
-      caseSensitive?: boolean;
-      matchWholeWords?: boolean;
+      vectorized?: boolean;
+      /** @enum {string} */
+      caseSensitive?: "inherit" | "enabled" | "disabled";
+      /** @enum {string} */
+      matchWholeWords?: "inherit" | "enabled" | "disabled";
       /** @enum {string} */
       insertionPosition?:
-        | "beforeChar"
-        | "afterChar"
-        | "beforeHistory"
-        | "afterHistory"
+        | "beforeCharacterDefinition"
+        | "afterCharacterDefinition"
+        | "beforeAuthorNote"
+        | "afterAuthorNote"
+        | "atDepth"
+        | "beforeExampleMessages"
+        | "afterExampleMessages"
+        | "outlet"
         | "unknown";
+      /** @enum {string} */
+      depthRole?: "system" | "user" | "assistant";
+      insertionDepth?: number;
       insertionOrder?: number;
-      depth?: number;
+      displayOrder?: number;
+      useProbability?: boolean;
       probability?: number;
+      scanDepth?: number | null;
+      recursiveScan?: boolean;
+      preventFurtherRecursion?: boolean;
+      delayUntilRecursion?: boolean;
+      recursionDelayLevel?: number | null;
+      ignoreBudget?: boolean;
+      group?: string;
+      groupOverride?: boolean;
+      groupWeight?: number;
+      /** @enum {string} */
+      useGroupScoring?: "inherit" | "enabled" | "disabled";
+      sticky?: number | null;
+      cooldown?: number | null;
+      delay?: number | null;
+      matchPersonaDescription?: boolean;
+      matchCharacterDescription?: boolean;
+      matchCharacterPersonality?: boolean;
+      matchScenario?: boolean;
+      matchCreatorNotes?: boolean;
+      matchCharacterDepthPrompt?: boolean;
+      automationId?: string;
+      generationTriggers?: (
+        "normal" | "continue" | "impersonate" | "swipe" | "regenerate" | "quiet"
+      )[];
+      outletName?: string;
+      characterFilter?: components["schemas"]["WorldbookCharacterFilterDto"];
     };
     UpdateWorldbookEntryOrderItemDto: {
       entryId: string;

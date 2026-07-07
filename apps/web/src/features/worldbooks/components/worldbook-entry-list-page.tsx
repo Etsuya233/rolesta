@@ -88,7 +88,7 @@ function WorldbookEntryListEditor({
     if (query.data) {
       setItems(
         [...query.data.entries]
-          .sort((left, right) => left.insertionOrder - right.insertionOrder)
+          .sort((left, right) => left.displayOrder - right.displayOrder)
           .map((entry) => ({ entryId: entry.id, enabled: entry.enabled })),
       );
     }
@@ -278,7 +278,9 @@ function WorldbookEntryRow({
         <div className="truncate text-sm font-medium">{entry.name}</div>
         <div className="mt-1 flex flex-wrap gap-x-3 gap-y-1 text-xs text-muted-foreground">
           <span>{entry.tokenCount.toLocaleString()}</span>
-          <span>{entry.insertionPosition}</span>
+          <span>
+            {t(`worldbooks.entries.positions.${entry.insertionPosition}`)}
+          </span>
           <span>{entry.primaryKeys.slice(0, 3).join(", ")}</span>
         </div>
       </div>

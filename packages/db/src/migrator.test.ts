@@ -1,10 +1,10 @@
-import { sql } from 'kysely';
-import { afterEach, describe, expect, it } from 'vitest';
-import { loadDatabaseConfig } from './config/database-config.js';
-import { createMigrationProvider } from './migrations/index.js';
-import { createTestDatabase } from './test-utils/create-test-database.js';
+import { sql } from "kysely";
+import { afterEach, describe, expect, it } from "vitest";
+import { loadDatabaseConfig } from "./config/database-config.js";
+import { createMigrationProvider } from "./migrations/index.js";
+import { createTestDatabase } from "./test-utils/create-test-database.js";
 
-describe('database migrations', () => {
+describe("database migrations", () => {
   const databases: Array<Awaited<ReturnType<typeof createTestDatabase>>> = [];
 
   afterEach(async () => {
@@ -12,66 +12,101 @@ describe('database migrations', () => {
     databases.length = 0;
   });
 
-  it('creates the users table with portable columns', async () => {
+  it("creates the users table with portable columns", async () => {
     const database = await createTestDatabase();
     databases.push(database);
 
-    const rows = await sql<{ name: string }>`select name from sqlite_master where type = 'table'`
+    const rows = await sql<{
+      name: string;
+    }>`select name from sqlite_master where type = 'table'`
       .execute(database.db)
       .then((result) => result.rows.map((row) => row.name));
 
-    expect(rows).toContain('users');
+    expect(rows).toContain("users");
   });
 
-  it('creates the characters table with portable columns', async () => {
+  it("creates the characters table with portable columns", async () => {
     const database = await createTestDatabase();
     databases.push(database);
 
-    const tables = await sql<{ name: string }>`select name from sqlite_master where type = 'table'`
+    const tables = await sql<{
+      name: string;
+    }>`select name from sqlite_master where type = 'table'`
       .execute(database.db)
       .then((result) => result.rows.map((row) => row.name));
     const columns = await sql<{ name: string }>`pragma table_info(characters)`
       .execute(database.db)
       .then((result) => result.rows.map((row) => row.name));
 
-    expect(tables).toContain('characters');
-    expect(columns).toEqual(expect.arrayContaining(['created_at_ms', 'updated_at_ms', 'visibility', 'source_format']));
+    expect(tables).toContain("characters");
+    expect(columns).toEqual(
+      expect.arrayContaining([
+        "created_at_ms",
+        "updated_at_ms",
+        "visibility",
+        "source_format",
+      ]),
+    );
   });
 
-  it('loads sqlite configuration by default', () => {
+  it("creates worldbook entry compatibility columns", async () => {
+    const database = await createTestDatabase();
+    databases.push(database);
+
+    const columns = await sql<{
+      name: string;
+    }>`pragma table_info(worldbook_entries)`
+      .execute(database.db)
+      .then((result) => result.rows.map((row) => row.name));
+
+    expect(columns).toEqual(
+      expect.arrayContaining([
+        "external_uid",
+        "condition_logic",
+        "display_order",
+        "depth_role",
+        "use_group_scoring",
+        "character_filter_json",
+      ]),
+    );
+  });
+
+  it("loads sqlite configuration by default", () => {
     expect(loadDatabaseConfig({})).toEqual({
-      dialect: 'sqlite',
-      databasePath: '.data/rolesta.sqlite',
+      dialect: "sqlite",
+      databasePath: ".data/rolesta.sqlite",
     });
   });
 
-  it('loads connection string configuration for server databases', () => {
+  it("loads connection string configuration for server databases", () => {
     expect(
       loadDatabaseConfig({
-        DATABASE_DIALECT: 'postgres',
-        DATABASE_URL: 'postgres://rolesta:secret@localhost:5432/rolesta',
+        DATABASE_DIALECT: "postgres",
+        DATABASE_URL: "postgres://rolesta:secret@localhost:5432/rolesta",
       }),
     ).toEqual({
-      dialect: 'postgres',
-      connectionString: 'postgres://rolesta:secret@localhost:5432/rolesta',
+      dialect: "postgres",
+      connectionString: "postgres://rolesta:secret@localhost:5432/rolesta",
     });
   });
 
-  it('rejects unsupported database dialects', () => {
-    expect(() => loadDatabaseConfig({ DATABASE_DIALECT: 'oracle' })).toThrow(
+  it("rejects unsupported database dialects", () => {
+    expect(() => loadDatabaseConfig({ DATABASE_DIALECT: "oracle" })).toThrow(
       'Unsupported database dialect "oracle".',
     );
   });
 
-  it('returns the common migration set for dialects without overrides', async () => {
-    const migrations = await createMigrationProvider('mysql').getMigrations();
+  it("returns the common migration set for dialects without overrides", async () => {
+    const migrations = await createMigrationProvider("mysql").getMigrations();
 
     expect(Object.keys(migrations)).toEqual([
-      '0001_initial',
-      '0002_username_accounts',
-      '0003_character_cards',
-      '0004_presets',
-      '0005_model_providers',
+      "0001_initial",
+      "0002_username_accounts",
+      "0003_character_cards",
+      "0004_presets",
+      "0005_model_providers",
+      "0006_worldbooks",
+      "0007_worldbook_entry_compatibility_fields",
     ]);
   });
 });

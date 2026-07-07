@@ -28,6 +28,11 @@ export type WorldbookEntryUpdateValues =
 export type WorldbookVisibility = WorldbookSummaryResponse["visibility"];
 export type WorldbookInsertionPosition =
   WorldbookEntryResponse["insertionPosition"];
+export type WorldbookDepthRole = WorldbookEntryResponse["depthRole"];
+export type WorldbookConditionLogic = WorldbookEntryResponse["conditionLogic"];
+export type WorldbookTriState = WorldbookEntryResponse["caseSensitive"];
+export type WorldbookGenerationTrigger =
+  WorldbookEntryResponse["generationTriggers"][number];
 
 export type ListWorldbooksQuery = NonNullable<
   operations["WorldbooksController_list"]["parameters"]["query"]

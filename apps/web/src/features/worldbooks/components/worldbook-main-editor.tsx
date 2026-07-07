@@ -12,7 +12,6 @@ import {
   FormActionButton,
   FormError,
   FormSubmitButton,
-  WorldbookCheckboxField,
   WorldbookFormSection,
   WorldbookNumberField,
   WorldbookSelectField,
@@ -51,6 +50,10 @@ export function WorldbookMainEditor({
   }> = [
     { value: "private", label: t("worldbooks.list.privateVisibility") },
     { value: "public", label: t("worldbooks.list.publicVisibility") },
+  ];
+  const booleanOptions: Array<{ value: "true" | "false"; label: string }> = [
+    { value: "true", label: t("worldbooks.entries.boolean.enabled") },
+    { value: "false", label: t("worldbooks.entries.boolean.disabled") },
   ];
 
   return (
@@ -155,12 +158,15 @@ export function WorldbookMainEditor({
                 }
               />
             </div>
-            <WorldbookCheckboxField
-              checked={form.recursiveScan}
+            <WorldbookSelectField
               disabled={isPending}
               id={`${fieldPrefix}-recursive`}
               label={t("worldbooks.editor.fields.recursiveScan")}
-              onChange={(recursiveScan) => setForm({ ...form, recursiveScan })}
+              options={booleanOptions}
+              value={form.recursiveScan ? "true" : "false"}
+              onChange={(value) =>
+                setForm({ ...form, recursiveScan: value === "true" })
+              }
             />
           </WorldbookFormSection>
 

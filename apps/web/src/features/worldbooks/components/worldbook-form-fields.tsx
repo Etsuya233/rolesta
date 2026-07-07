@@ -2,7 +2,6 @@ export {
   FormActionButton,
   FormError,
   FormSubmitButton,
-  PresetCheckboxField as WorldbookCheckboxField,
   PresetFormSection as WorldbookFormSection,
   PresetNumberField as WorldbookNumberField,
   PresetSelectField as WorldbookSelectField,

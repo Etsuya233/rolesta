@@ -59,7 +59,7 @@ export class UpdateWorldbookEntryOrderUseCase {
       (item, index) => ({
         ...entryById.get(item.entryId)!,
         enabled: item.enabled,
-        insertionOrder: index,
+        displayOrder: index,
         updatedAtMs: nowMs,
       }),
     );

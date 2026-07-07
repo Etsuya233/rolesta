@@ -122,7 +122,7 @@ describe("worldbook use cases", () => {
       ordered.entries.map((entry) => [
         entry.id,
         entry.enabled,
-        entry.insertionOrder,
+        entry.displayOrder,
       ]),
     ).toEqual([
       ["entry-2", true, 0],
@@ -192,9 +192,9 @@ describe("worldbook use cases", () => {
       }),
     ).rejects.toMatchObject(new WorldbookApplicationError("unknown-entry"));
 
-    expect((await store.findOwnedById("book-1", "owner"))?.entries).toHaveLength(
-      2,
-    );
+    expect(
+      (await store.findOwnedById("book-1", "owner"))?.entries,
+    ).toHaveLength(2);
   });
 });
 
@@ -311,20 +311,55 @@ function worldbookEntry(
   return {
     id: overrides.id ?? "entry",
     worldbookId: overrides.worldbookId ?? "book",
+    externalUid: overrides.externalUid ?? null,
     enabled: overrides.enabled ?? true,
     name: overrides.name ?? "Entry",
+    addMemo: overrides.addMemo ?? true,
     comment: overrides.comment ?? "",
     content: overrides.content ?? "content",
     primaryKeys: overrides.primaryKeys ?? [],
     secondaryKeys: overrides.secondaryKeys ?? [],
+    conditionLogic: overrides.conditionLogic ?? "andAny",
     selective: overrides.selective ?? false,
     constant: overrides.constant ?? false,
-    caseSensitive: overrides.caseSensitive ?? false,
-    matchWholeWords: overrides.matchWholeWords ?? false,
-    insertionPosition: overrides.insertionPosition ?? "beforeChar",
+    vectorized: overrides.vectorized ?? false,
+    caseSensitive: overrides.caseSensitive ?? "inherit",
+    matchWholeWords: overrides.matchWholeWords ?? "inherit",
+    insertionPosition:
+      overrides.insertionPosition ?? "beforeCharacterDefinition",
+    depthRole: overrides.depthRole ?? "system",
+    insertionDepth: overrides.insertionDepth ?? 3,
     insertionOrder: overrides.insertionOrder ?? 0,
-    depth: overrides.depth ?? 3,
+    displayOrder: overrides.displayOrder ?? 0,
+    useProbability: overrides.useProbability ?? true,
     probability: overrides.probability ?? 100,
+    scanDepth: overrides.scanDepth ?? null,
+    recursiveScan: overrides.recursiveScan ?? true,
+    preventFurtherRecursion: overrides.preventFurtherRecursion ?? false,
+    delayUntilRecursion: overrides.delayUntilRecursion ?? false,
+    recursionDelayLevel: overrides.recursionDelayLevel ?? null,
+    ignoreBudget: overrides.ignoreBudget ?? false,
+    group: overrides.group ?? "",
+    groupOverride: overrides.groupOverride ?? false,
+    groupWeight: overrides.groupWeight ?? 100,
+    useGroupScoring: overrides.useGroupScoring ?? "inherit",
+    sticky: overrides.sticky ?? 0,
+    cooldown: overrides.cooldown ?? 0,
+    delay: overrides.delay ?? 0,
+    matchPersonaDescription: overrides.matchPersonaDescription ?? false,
+    matchCharacterDescription: overrides.matchCharacterDescription ?? false,
+    matchCharacterPersonality: overrides.matchCharacterPersonality ?? false,
+    matchScenario: overrides.matchScenario ?? false,
+    matchCreatorNotes: overrides.matchCreatorNotes ?? false,
+    matchCharacterDepthPrompt: overrides.matchCharacterDepthPrompt ?? false,
+    automationId: overrides.automationId ?? "",
+    generationTriggers: overrides.generationTriggers ?? [],
+    outletName: overrides.outletName ?? "",
+    characterFilter: overrides.characterFilter ?? {
+      isExclude: false,
+      names: [],
+      tags: [],
+    },
     tokenCount: overrides.tokenCount ?? 1,
     createdAtMs: overrides.createdAtMs ?? 1,
     updatedAtMs: overrides.updatedAtMs ?? 1,

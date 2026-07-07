@@ -19,9 +19,17 @@ import {
   type WorldbookSortKey,
 } from "../application/worldbook-store.js";
 import {
+  WORLDBOOK_CONDITION_LOGICS,
+  WORLDBOOK_DEPTH_ROLES,
+  WORLDBOOK_GENERATION_TRIGGERS,
   WORLDBOOK_INSERTION_POSITIONS,
+  WORLDBOOK_TRI_STATES,
   WORLDBOOK_VISIBILITIES,
+  type WorldbookConditionLogic,
+  type WorldbookDepthRole,
+  type WorldbookGenerationTrigger,
   type WorldbookInsertionPosition,
+  type WorldbookTriState,
   type WorldbookVisibility,
 } from "../domain/worldbook.js";
 
@@ -110,7 +118,29 @@ export class CreateWorldbookRequestDto extends WorldbookEditableFieldsDto {
 
 export class UpdateWorldbookRequestDto extends WorldbookEditableFieldsDto {}
 
+export class WorldbookCharacterFilterDto {
+  @ApiProperty({ type: Boolean })
+  @IsBoolean()
+  isExclude!: boolean;
+
+  @ApiProperty({ type: [String] })
+  @IsArray()
+  @IsString({ each: true })
+  names!: string[];
+
+  @ApiProperty({ type: [String] })
+  @IsArray()
+  @IsString({ each: true })
+  tags!: string[];
+}
+
 export class WorldbookEntryEditableFieldsDto {
+  @ApiPropertyOptional({ nullable: true, type: Number })
+  @IsOptional()
+  @Type(() => Number)
+  @IsInt()
+  externalUid?: number | null;
+
   @ApiPropertyOptional({ type: Boolean })
   @IsOptional()
   @IsBoolean()
@@ -121,6 +151,11 @@ export class WorldbookEntryEditableFieldsDto {
   @IsString()
   @MaxLength(255)
   name?: string;
+
+  @ApiPropertyOptional({ type: Boolean })
+  @IsOptional()
+  @IsBoolean()
+  addMemo?: boolean;
 
   @ApiPropertyOptional({ type: String })
   @IsOptional()
@@ -144,6 +179,11 @@ export class WorldbookEntryEditableFieldsDto {
   @IsString({ each: true })
   secondaryKeys?: string[];
 
+  @ApiPropertyOptional({ enum: WORLDBOOK_CONDITION_LOGICS })
+  @IsOptional()
+  @IsIn(WORLDBOOK_CONDITION_LOGICS)
+  conditionLogic?: WorldbookConditionLogic;
+
   @ApiPropertyOptional({ type: Boolean })
   @IsOptional()
   @IsBoolean()
@@ -157,17 +197,35 @@ export class WorldbookEntryEditableFieldsDto {
   @ApiPropertyOptional({ type: Boolean })
   @IsOptional()
   @IsBoolean()
-  caseSensitive?: boolean;
+  vectorized?: boolean;
 
-  @ApiPropertyOptional({ type: Boolean })
+  @ApiPropertyOptional({ enum: WORLDBOOK_TRI_STATES })
   @IsOptional()
-  @IsBoolean()
-  matchWholeWords?: boolean;
+  @IsIn(WORLDBOOK_TRI_STATES)
+  caseSensitive?: WorldbookTriState;
+
+  @ApiPropertyOptional({ enum: WORLDBOOK_TRI_STATES })
+  @IsOptional()
+  @IsIn(WORLDBOOK_TRI_STATES)
+  matchWholeWords?: WorldbookTriState;
 
   @ApiPropertyOptional({ enum: WORLDBOOK_INSERTION_POSITIONS })
   @IsOptional()
   @IsIn(WORLDBOOK_INSERTION_POSITIONS)
   insertionPosition?: WorldbookInsertionPosition;
+
+  @ApiPropertyOptional({ enum: WORLDBOOK_DEPTH_ROLES })
+  @IsOptional()
+  @IsIn(WORLDBOOK_DEPTH_ROLES)
+  depthRole?: WorldbookDepthRole;
+
+  @ApiPropertyOptional({ maximum: 9999, minimum: 0, type: Number })
+  @IsOptional()
+  @Type(() => Number)
+  @IsInt()
+  @Min(0)
+  @Max(9999)
+  insertionDepth?: number;
 
   @ApiPropertyOptional({ type: Number })
   @IsOptional()
@@ -175,12 +233,16 @@ export class WorldbookEntryEditableFieldsDto {
   @IsInt()
   insertionOrder?: number;
 
-  @ApiPropertyOptional({ minimum: 0, type: Number })
+  @ApiPropertyOptional({ type: Number })
   @IsOptional()
   @Type(() => Number)
   @IsInt()
-  @Min(0)
-  depth?: number;
+  displayOrder?: number;
+
+  @ApiPropertyOptional({ type: Boolean })
+  @IsOptional()
+  @IsBoolean()
+  useProbability?: boolean;
 
   @ApiPropertyOptional({ maximum: 100, minimum: 0, type: Number })
   @IsOptional()
@@ -189,6 +251,141 @@ export class WorldbookEntryEditableFieldsDto {
   @Min(0)
   @Max(100)
   probability?: number;
+
+  @ApiPropertyOptional({
+    maximum: 1000,
+    minimum: 0,
+    nullable: true,
+    type: Number,
+  })
+  @IsOptional()
+  @Type(() => Number)
+  @IsInt()
+  @Min(0)
+  @Max(1000)
+  scanDepth?: number | null;
+
+  @ApiPropertyOptional({ type: Boolean })
+  @IsOptional()
+  @IsBoolean()
+  recursiveScan?: boolean;
+
+  @ApiPropertyOptional({ type: Boolean })
+  @IsOptional()
+  @IsBoolean()
+  preventFurtherRecursion?: boolean;
+
+  @ApiPropertyOptional({ type: Boolean })
+  @IsOptional()
+  @IsBoolean()
+  delayUntilRecursion?: boolean;
+
+  @ApiPropertyOptional({ minimum: 1, nullable: true, type: Number })
+  @IsOptional()
+  @Type(() => Number)
+  @IsInt()
+  @Min(1)
+  recursionDelayLevel?: number | null;
+
+  @ApiPropertyOptional({ type: Boolean })
+  @IsOptional()
+  @IsBoolean()
+  ignoreBudget?: boolean;
+
+  @ApiPropertyOptional({ type: String })
+  @IsOptional()
+  @IsString()
+  group?: string;
+
+  @ApiPropertyOptional({ type: Boolean })
+  @IsOptional()
+  @IsBoolean()
+  groupOverride?: boolean;
+
+  @ApiPropertyOptional({ minimum: 1, type: Number })
+  @IsOptional()
+  @Type(() => Number)
+  @IsInt()
+  @Min(1)
+  groupWeight?: number;
+
+  @ApiPropertyOptional({ enum: WORLDBOOK_TRI_STATES })
+  @IsOptional()
+  @IsIn(WORLDBOOK_TRI_STATES)
+  useGroupScoring?: WorldbookTriState;
+
+  @ApiPropertyOptional({ minimum: 0, nullable: true, type: Number })
+  @IsOptional()
+  @Type(() => Number)
+  @IsInt()
+  @Min(0)
+  sticky?: number | null;
+
+  @ApiPropertyOptional({ minimum: 0, nullable: true, type: Number })
+  @IsOptional()
+  @Type(() => Number)
+  @IsInt()
+  @Min(0)
+  cooldown?: number | null;
+
+  @ApiPropertyOptional({ minimum: 0, nullable: true, type: Number })
+  @IsOptional()
+  @Type(() => Number)
+  @IsInt()
+  @Min(0)
+  delay?: number | null;
+
+  @ApiPropertyOptional({ type: Boolean })
+  @IsOptional()
+  @IsBoolean()
+  matchPersonaDescription?: boolean;
+
+  @ApiPropertyOptional({ type: Boolean })
+  @IsOptional()
+  @IsBoolean()
+  matchCharacterDescription?: boolean;
+
+  @ApiPropertyOptional({ type: Boolean })
+  @IsOptional()
+  @IsBoolean()
+  matchCharacterPersonality?: boolean;
+
+  @ApiPropertyOptional({ type: Boolean })
+  @IsOptional()
+  @IsBoolean()
+  matchScenario?: boolean;
+
+  @ApiPropertyOptional({ type: Boolean })
+  @IsOptional()
+  @IsBoolean()
+  matchCreatorNotes?: boolean;
+
+  @ApiPropertyOptional({ type: Boolean })
+  @IsOptional()
+  @IsBoolean()
+  matchCharacterDepthPrompt?: boolean;
+
+  @ApiPropertyOptional({ type: String })
+  @IsOptional()
+  @IsString()
+  automationId?: string;
+
+  @ApiPropertyOptional({ enum: WORLDBOOK_GENERATION_TRIGGERS, isArray: true })
+  @IsOptional()
+  @IsArray()
+  @IsIn(WORLDBOOK_GENERATION_TRIGGERS, { each: true })
+  generationTriggers?: WorldbookGenerationTrigger[];
+
+  @ApiPropertyOptional({ type: String })
+  @IsOptional()
+  @IsString()
+  outletName?: string;
+
+  @ApiPropertyOptional({ type: () => WorldbookCharacterFilterDto })
+  @IsOptional()
+  @ValidateNested()
+  @Type(() => WorldbookCharacterFilterDto)
+  characterFilter?: WorldbookCharacterFilterDto;
 }
 
 export class CreateWorldbookEntryRequestDto extends WorldbookEntryEditableFieldsDto {
