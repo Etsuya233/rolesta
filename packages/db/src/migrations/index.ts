@@ -1,10 +1,11 @@
-import type { Migration, MigrationProvider } from 'kysely/migration';
-import type { DatabaseDialect } from '../config/database-config.js';
-import * as initialMigration from './0001_initial.js';
-import * as usernameAccountsMigration from './0002_username_accounts.js';
-import * as characterCardsMigration from './0003_character_cards.js';
-import * as presetsMigration from './0004_presets.js';
-import * as modelProvidersMigration from './0005_model_providers.js';
+import type { Migration, MigrationProvider } from "kysely/migration";
+import type { DatabaseDialect } from "../config/database-config.js";
+import * as initialMigration from "./0001_initial.js";
+import * as usernameAccountsMigration from "./0002_username_accounts.js";
+import * as characterCardsMigration from "./0003_character_cards.js";
+import * as presetsMigration from "./0004_presets.js";
+import * as modelProvidersMigration from "./0005_model_providers.js";
+import * as worldbooksMigration from "./0006_worldbooks.js";
 
 type DialectMigration = {
   common: Migration;
@@ -14,30 +15,38 @@ type DialectMigration = {
 };
 
 const migrations: Record<string, DialectMigration> = {
-  '0001_initial': {
+  "0001_initial": {
     common: initialMigration,
   },
-  '0002_username_accounts': {
+  "0002_username_accounts": {
     common: usernameAccountsMigration,
   },
-  '0003_character_cards': {
+  "0003_character_cards": {
     common: characterCardsMigration,
   },
-  '0004_presets': {
+  "0004_presets": {
     common: presetsMigration,
   },
-  '0005_model_providers': {
+  "0005_model_providers": {
     common: modelProvidersMigration,
+  },
+  "0006_worldbooks": {
+    common: worldbooksMigration,
   },
 };
 
-export function createMigrationProvider(dialect: DatabaseDialect): MigrationProvider {
+export function createMigrationProvider(
+  dialect: DatabaseDialect,
+): MigrationProvider {
   return {
     async getMigrations() {
       await Promise.resolve();
 
       return Object.fromEntries(
-        Object.entries(migrations).map(([name, migration]) => [name, migration[dialect] ?? migration.common]),
+        Object.entries(migrations).map(([name, migration]) => [
+          name,
+          migration[dialect] ?? migration.common,
+        ]),
       );
     },
   };

@@ -1,14 +1,15 @@
-import type { CharactersTable } from './characters.js';
+import type { CharactersTable } from "./characters.js";
 import type {
   ModelProviderApiKeysTable,
   ModelProviderConfigsTable,
-} from './model-providers.js';
+} from "./model-providers.js";
 import type {
   PresetEntriesTable,
   PresetPromptItemsTable,
   PresetsTable,
-} from './presets.js';
-import type { MigrationLockTable, SessionsTable, UsersTable } from './users.js';
+} from "./presets.js";
+import type { MigrationLockTable, SessionsTable, UsersTable } from "./users.js";
+import type { WorldbookEntriesTable, WorldbooksTable } from "./worldbooks.js";
 
 export interface Database {
   users: UsersTable;
@@ -19,5 +20,7 @@ export interface Database {
   presets: PresetsTable;
   preset_entries: PresetEntriesTable;
   preset_prompt_items: PresetPromptItemsTable;
+  worldbooks: WorldbooksTable;
+  worldbook_entries: WorldbookEntriesTable;
   migration_lock: MigrationLockTable;
 }

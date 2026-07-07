@@ -4,2044 +4,2661 @@
  */
 
 export interface paths {
-    "/health": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get: operations["HealthController_getHealth"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
+  "/health": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
     };
-    "/auth/setup-status": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get: operations["AuthController_getSetupStatus"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
+    get: operations["HealthController_getHealth"];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/auth/setup-status": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
     };
-    "/auth/current-user": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get: operations["AuthController_getCurrentUser"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
+    get: operations["AuthController_getSetupStatus"];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/auth/current-user": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
     };
-    "/auth/login": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        post: operations["AuthController_login"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
+    get: operations["AuthController_getCurrentUser"];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/auth/login": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
     };
-    "/auth/setup-admin": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        post: operations["AuthController_setupAdmin"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
+    get?: never;
+    put?: never;
+    post: operations["AuthController_login"];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/auth/setup-admin": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
     };
-    "/auth/logout": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        post: operations["AuthController_logout"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
+    get?: never;
+    put?: never;
+    post: operations["AuthController_setupAdmin"];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/auth/logout": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
     };
-    "/characters": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get: operations["CharactersController_list"];
-        put?: never;
-        post: operations["CharactersController_create"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
+    get?: never;
+    put?: never;
+    post: operations["AuthController_logout"];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/characters": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
     };
-    "/characters/{id}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get: operations["CharactersController_get"];
-        put?: never;
-        post?: never;
-        delete: operations["CharactersController_delete"];
-        options?: never;
-        head?: never;
-        patch: operations["CharactersController_update"];
-        trace?: never;
+    get: operations["CharactersController_list"];
+    put?: never;
+    post: operations["CharactersController_create"];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/characters/{id}": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
     };
-    "/characters/import": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        post: operations["CharactersController_importCharacter"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
+    get: operations["CharactersController_get"];
+    put?: never;
+    post?: never;
+    delete: operations["CharactersController_delete"];
+    options?: never;
+    head?: never;
+    patch: operations["CharactersController_update"];
+    trace?: never;
+  };
+  "/characters/import": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
     };
-    "/characters/{id}/export/sillytavern": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get: operations["CharactersController_exportSillyTavern"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
+    get?: never;
+    put?: never;
+    post: operations["CharactersController_importCharacter"];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/characters/{id}/export/sillytavern": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
     };
-    "/presets": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get: operations["PresetsController_list"];
-        put?: never;
-        post: operations["PresetsController_create"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
+    get: operations["CharactersController_exportSillyTavern"];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/worldbooks": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
     };
-    "/presets/{id}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get: operations["PresetsController_get"];
-        put?: never;
-        post?: never;
-        delete: operations["PresetsController_delete"];
-        options?: never;
-        head?: never;
-        patch: operations["PresetsController_update"];
-        trace?: never;
+    get: operations["WorldbooksController_list"];
+    put?: never;
+    post: operations["WorldbooksController_create"];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/worldbooks/{id}": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
     };
-    "/presets/import": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        post: operations["PresetsController_importPreset"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
+    get: operations["WorldbooksController_get"];
+    put?: never;
+    post?: never;
+    delete: operations["WorldbooksController_delete"];
+    options?: never;
+    head?: never;
+    patch: operations["WorldbooksController_update"];
+    trace?: never;
+  };
+  "/worldbooks/import": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
     };
-    "/presets/{id}/export/sillytavern": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get: operations["PresetsController_exportSillyTavern"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
+    get?: never;
+    put?: never;
+    post: operations["WorldbooksController_importWorldbook"];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/worldbooks/{id}/export/sillytavern": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
     };
-    "/presets/{id}/entries": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        post: operations["PresetsController_createEntry"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
+    get: operations["WorldbooksController_exportSillyTavern"];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/worldbooks/{id}/entries": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
     };
-    "/presets/{id}/entries/{entryId}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        post?: never;
-        delete: operations["PresetsController_deleteEntry"];
-        options?: never;
-        head?: never;
-        patch: operations["PresetsController_updateEntry"];
-        trace?: never;
+    get?: never;
+    put?: never;
+    post: operations["WorldbooksController_createEntry"];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/worldbooks/{id}/entries/{entryId}": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
     };
-    "/presets/{id}/prompt-items": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put: operations["PresetsController_updatePromptItems"];
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
+    get?: never;
+    put?: never;
+    post?: never;
+    delete: operations["WorldbooksController_deleteEntry"];
+    options?: never;
+    head?: never;
+    patch: operations["WorldbooksController_updateEntry"];
+    trace?: never;
+  };
+  "/worldbooks/{id}/entries/order": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
     };
-    "/model-providers/catalog": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get: operations["ModelProvidersController_catalog"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
+    get?: never;
+    put: operations["WorldbooksController_updateEntryOrder"];
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/presets": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
     };
-    "/model-providers": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get: operations["ModelProvidersController_list"];
-        put?: never;
-        post: operations["ModelProvidersController_create"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
+    get: operations["PresetsController_list"];
+    put?: never;
+    post: operations["PresetsController_create"];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/presets/{id}": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
     };
-    "/model-providers/{id}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get: operations["ModelProvidersController_get"];
-        put?: never;
-        post?: never;
-        delete: operations["ModelProvidersController_delete"];
-        options?: never;
-        head?: never;
-        patch: operations["ModelProvidersController_update"];
-        trace?: never;
+    get: operations["PresetsController_get"];
+    put?: never;
+    post?: never;
+    delete: operations["PresetsController_delete"];
+    options?: never;
+    head?: never;
+    patch: operations["PresetsController_update"];
+    trace?: never;
+  };
+  "/presets/import": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
     };
-    "/model-providers/{id}/api-keys": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        post: operations["ModelProvidersController_createApiKey"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
+    get?: never;
+    put?: never;
+    post: operations["PresetsController_importPreset"];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/presets/{id}/export/sillytavern": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
     };
-    "/model-providers/{id}/api-keys/{apiKeyId}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        post?: never;
-        delete: operations["ModelProvidersController_deleteApiKey"];
-        options?: never;
-        head?: never;
-        patch: operations["ModelProvidersController_updateApiKey"];
-        trace?: never;
+    get: operations["PresetsController_exportSillyTavern"];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/presets/{id}/entries": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
     };
-    "/model-providers/{id}/selected-api-key": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put: operations["ModelProvidersController_setSelectedApiKey"];
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
+    get?: never;
+    put?: never;
+    post: operations["PresetsController_createEntry"];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/presets/{id}/entries/{entryId}": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
     };
-    "/model-providers/models/preview": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        post: operations["ModelProvidersController_previewModels"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
+    get?: never;
+    put?: never;
+    post?: never;
+    delete: operations["PresetsController_deleteEntry"];
+    options?: never;
+    head?: never;
+    patch: operations["PresetsController_updateEntry"];
+    trace?: never;
+  };
+  "/presets/{id}/prompt-items": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
     };
-    "/model-providers/test-connection/preview": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        post: operations["ModelProvidersController_previewTestConnection"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
+    get?: never;
+    put: operations["PresetsController_updatePromptItems"];
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/model-providers/catalog": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
     };
-    "/model-providers/{id}/models": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        post: operations["ModelProvidersController_savedModels"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
+    get: operations["ModelProvidersController_catalog"];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/model-providers": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
     };
-    "/model-providers/{id}/test-connection": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        post: operations["ModelProvidersController_savedTestConnection"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
+    get: operations["ModelProvidersController_list"];
+    put?: never;
+    post: operations["ModelProvidersController_create"];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/model-providers/{id}": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
     };
+    get: operations["ModelProvidersController_get"];
+    put?: never;
+    post?: never;
+    delete: operations["ModelProvidersController_delete"];
+    options?: never;
+    head?: never;
+    patch: operations["ModelProvidersController_update"];
+    trace?: never;
+  };
+  "/model-providers/{id}/api-keys": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    post: operations["ModelProvidersController_createApiKey"];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/model-providers/{id}/api-keys/{apiKeyId}": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    post?: never;
+    delete: operations["ModelProvidersController_deleteApiKey"];
+    options?: never;
+    head?: never;
+    patch: operations["ModelProvidersController_updateApiKey"];
+    trace?: never;
+  };
+  "/model-providers/{id}/selected-api-key": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put: operations["ModelProvidersController_setSelectedApiKey"];
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/model-providers/models/preview": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    post: operations["ModelProvidersController_previewModels"];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/model-providers/test-connection/preview": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    post: operations["ModelProvidersController_previewTestConnection"];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/model-providers/{id}/models": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    post: operations["ModelProvidersController_savedModels"];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/model-providers/{id}/test-connection": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    post: operations["ModelProvidersController_savedTestConnection"];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
 }
 export type webhooks = Record<string, never>;
 export interface components {
-    schemas: {
-        SetupStatusResponseDto: {
-            requiresSetup: boolean;
-        };
-        CurrentUserDto: {
-            id: string;
-            username: string;
-            displayName: string;
-            /** @enum {string} */
-            role: "admin" | "user";
-        };
-        CurrentUserResponseDto: {
-            user: components["schemas"]["CurrentUserDto"] | null;
-        };
-        AuthenticatedUserResponseDto: {
-            token: string;
-            user: components["schemas"]["CurrentUserDto"];
-        };
-        LoginRequestDto: {
-            username: string;
-            password: string;
-        };
-        SetupAdminCmdDTO: {
-            username: string;
-            password: string;
-        };
-        CharacterSummaryResponseDto: {
-            id: string;
-            ownerUserId: string;
-            /** @enum {string} */
-            visibility: "private" | "public";
-            name: string;
-            tags: string[];
-            version: string;
-            comment: string;
-            createdAtMs: number;
-            updatedAtMs: number;
-            lastUsedAtMs: number | null;
-            usageCount: number;
-        };
-        CharacterPageResponseDto: {
-            items: components["schemas"]["CharacterSummaryResponseDto"][];
-            pageIndex: number;
-            pageSize: number;
-            totalItems: number;
-            totalPages: number;
-        };
-        CharacterDetailResponseDto: {
-            id: string;
-            ownerUserId: string;
-            /** @enum {string} */
-            visibility: "private" | "public";
-            name: string;
-            tags: string[];
-            version: string;
-            comment: string;
-            createdAtMs: number;
-            updatedAtMs: number;
-            lastUsedAtMs: number | null;
-            usageCount: number;
-            nickname: string | null;
-            creator: string | null;
-            description: string;
-            personality: string;
-            scenario: string;
-            firstMessage: string;
-            alternateGreetings: string[];
-            groupOnlyGreetings: string[];
-            messageExample: string;
-            creatorNotes: string;
-            creatorNotesMultilingual: {
-                [key: string]: string;
-            };
-            systemPrompt: string;
-            postHistoryInstructions: string;
-            characterBook: {
-                [key: string]: unknown;
-            } | null;
-            assets: Record<string, never>[];
-            source: string[];
-            metadata: {
-                [key: string]: unknown;
-            };
-            /** @enum {string} */
-            sourceFormat: "sillytavern_v1" | "sillytavern_v2" | "sillytavern_v3";
-            creationDateMs: number | null;
-            modificationDateMs: number | null;
-        };
-        CreateCharacterRequestDto: {
-            /** @enum {string} */
-            visibility?: "private" | "public";
-            nickname?: string | null;
-            comment?: string;
-            tags?: string[];
-            version?: string;
-            creator?: string | null;
-            description?: string;
-            personality?: string;
-            scenario?: string;
-            firstMessage?: string;
-            alternateGreetings?: string[];
-            groupOnlyGreetings?: string[];
-            messageExample?: string;
-            creatorNotes?: string;
-            creatorNotesMultilingual?: {
-                [key: string]: string;
-            };
-            systemPrompt?: string;
-            postHistoryInstructions?: string;
-            characterBook?: {
-                [key: string]: unknown;
-            } | null;
-            assets?: unknown[];
-            source?: string[];
-            metadata?: {
-                [key: string]: unknown;
-            };
-            name: string;
-        };
-        UpdateCharacterRequestDto: {
-            /** @enum {string} */
-            visibility?: "private" | "public";
-            nickname?: string | null;
-            comment?: string;
-            tags?: string[];
-            version?: string;
-            creator?: string | null;
-            description?: string;
-            personality?: string;
-            scenario?: string;
-            firstMessage?: string;
-            alternateGreetings?: string[];
-            groupOnlyGreetings?: string[];
-            messageExample?: string;
-            creatorNotes?: string;
-            creatorNotesMultilingual?: {
-                [key: string]: string;
-            };
-            systemPrompt?: string;
-            postHistoryInstructions?: string;
-            characterBook?: {
-                [key: string]: unknown;
-            } | null;
-            assets?: unknown[];
-            source?: string[];
-            metadata?: {
-                [key: string]: unknown;
-            };
-            name?: string;
-        };
-        PresetSummaryResponseDto: {
-            id: string;
-            ownerUserId: string;
-            name: string;
-            entryCount: number;
-            promptItemCount: number;
-            tokenCount: number;
-            createdAtMs: number;
-            updatedAtMs: number;
-            lastUsedAtMs: number | null;
-            usageCount: number;
-        };
-        PresetPageResponseDto: {
-            items: components["schemas"]["PresetSummaryResponseDto"][];
-            pageIndex: number;
-            pageSize: number;
-            totalItems: number;
-            totalPages: number;
-        };
-        PresetModelSettingsResponseDto: {
-            contextLength: number | null;
-            maxResponseLength: number | null;
-            stream: boolean;
-            temperature: number | null;
-            presencePenalty: number | null;
-            frequencyPenalty: number | null;
-            repetitionPenalty: number | null;
-            topP: number | null;
-            topK: number | null;
-            minP: number | null;
-            topA: number | null;
-            seed: number | null;
-            n: number | null;
-            reasoningEffort: string;
-            verbosity: string;
-            showThoughts: boolean;
-        };
-        PresetEntryResponseDto: {
-            id: string;
-            presetId: string;
-            identifier: string;
-            name: string;
-            /** @enum {string} */
-            role: "system" | "user" | "assistant";
-            /** @enum {string} */
-            position: "system" | "chat" | "preHistory" | "postHistory" | "unknown";
-            content: string;
-            tokenCount: number;
-            metadata: {
-                [key: string]: unknown;
-            };
-            createdAtMs: number;
-            updatedAtMs: number;
-        };
-        PresetPromptItemResponseDto: {
-            entryId: string;
-            enabled: boolean;
-            orderIndex: number;
-        };
-        PresetDetailResponseDto: {
-            id: string;
-            ownerUserId: string;
-            name: string;
-            entryCount: number;
-            promptItemCount: number;
-            tokenCount: number;
-            createdAtMs: number;
-            updatedAtMs: number;
-            lastUsedAtMs: number | null;
-            usageCount: number;
-            modelProviderId: string | null;
-            modelSettings: components["schemas"]["PresetModelSettingsResponseDto"];
-            /** @enum {string} */
-            tokenizer: "cl100k_base";
-            /** @enum {string} */
-            sourceFormat: "sillytavern_preset" | "rolesta";
-            entries: components["schemas"]["PresetEntryResponseDto"][];
-            promptItems: components["schemas"]["PresetPromptItemResponseDto"][];
-        };
-        PresetModelSettingsDto: {
-            contextLength?: number | null;
-            maxResponseLength?: number | null;
-            stream?: boolean;
-            temperature?: number | null;
-            presencePenalty?: number | null;
-            frequencyPenalty?: number | null;
-            repetitionPenalty?: number | null;
-            topP?: number | null;
-            topK?: number | null;
-            minP?: number | null;
-            topA?: number | null;
-            seed?: number | null;
-            n?: number | null;
-            reasoningEffort?: string;
-            verbosity?: string;
-            showThoughts?: boolean;
-        };
-        CreatePresetRequestDto: {
-            name: string;
-            modelSettings?: components["schemas"]["PresetModelSettingsDto"];
-        };
-        UpdatePresetRequestDto: {
-            name?: string;
-            modelSettings?: components["schemas"]["PresetModelSettingsDto"];
-        };
-        CreatePresetEntryRequestDto: {
-            name: string;
-            /** @enum {string} */
-            role: "system" | "user" | "assistant";
-            /** @enum {string} */
-            position: "system" | "chat" | "preHistory" | "postHistory" | "unknown";
-            content: string;
-        };
-        UpdatePresetEntryRequestDto: {
-            name?: string;
-            /** @enum {string} */
-            role?: "system" | "user" | "assistant";
-            /** @enum {string} */
-            position?: "system" | "chat" | "preHistory" | "postHistory" | "unknown";
-            content?: string;
-        };
-        UpdatePresetPromptItemDto: {
-            entryId: string;
-            enabled: boolean;
-        };
-        UpdatePresetPromptItemsRequestDto: {
-            items: components["schemas"]["UpdatePresetPromptItemDto"][];
-        };
-        ModelProviderCatalogItemResponseDto: {
-            /** @enum {string} */
-            kind: "openai-compatible" | "openai" | "claude" | "z-ai" | "deepseek";
-            /** @enum {string} */
-            source: "custom" | "official";
-            displayName: string;
-            baseUrls: string[];
-            allowCustomBaseUrl: boolean;
-        };
-        ModelProviderCatalogResponseDto: {
-            items: components["schemas"]["ModelProviderCatalogItemResponseDto"][];
-        };
-        ModelProviderSummaryResponseDto: {
-            id: string;
-            ownerUserId: string;
-            name: string;
-            /** @enum {string} */
-            providerKind: "openai-compatible" | "openai" | "claude" | "z-ai" | "deepseek";
-            /** @enum {string} */
-            providerSource: "custom" | "official";
-            baseUrl: string;
-            defaultModelName: string;
-            selectedApiKeyId: string | null;
-            apiKeyCount: number;
-            createdAtMs: number;
-            updatedAtMs: number;
-            lastUsedAtMs: number | null;
-            usageCount: number;
-        };
-        ModelProviderPageResponseDto: {
-            items: components["schemas"]["ModelProviderSummaryResponseDto"][];
-            pageIndex: number;
-            pageSize: number;
-            totalItems: number;
-            totalPages: number;
-        };
-        ModelProviderApiKeyResponseDto: {
-            id: string;
-            configId: string;
-            name: string;
-            secret: string;
-            createdAtMs: number;
-            updatedAtMs: number;
-        };
-        ModelProviderDetailResponseDto: {
-            id: string;
-            ownerUserId: string;
-            name: string;
-            /** @enum {string} */
-            providerKind: "openai-compatible" | "openai" | "claude" | "z-ai" | "deepseek";
-            /** @enum {string} */
-            providerSource: "custom" | "official";
-            baseUrl: string;
-            defaultModelName: string;
-            selectedApiKeyId: string | null;
-            apiKeyCount: number;
-            createdAtMs: number;
-            updatedAtMs: number;
-            lastUsedAtMs: number | null;
-            usageCount: number;
-            apiKeys: components["schemas"]["ModelProviderApiKeyResponseDto"][];
-        };
-        CreateModelProviderRequestDto: {
-            name: string;
-            /** @enum {string} */
-            providerKind: "openai-compatible" | "openai" | "claude" | "z-ai" | "deepseek";
-            baseUrl: string;
-            defaultModelName?: string;
-            selectedApiKeyId?: string | null;
-        };
-        UpdateModelProviderRequestDto: {
-            name?: string;
-            /** @enum {string} */
-            providerKind?: "openai-compatible" | "openai" | "claude" | "z-ai" | "deepseek";
-            baseUrl?: string;
-            defaultModelName?: string;
-            selectedApiKeyId?: string | null;
-        };
-        CreateModelProviderApiKeyRequestDto: {
-            name: string;
-            secret: string;
-        };
-        SaveModelProviderApiKeyRequestDto: {
-            name?: string;
-            secret?: string;
-        };
-        SetSelectedModelProviderApiKeyRequestDto: {
-            selectedApiKeyId?: string | null;
-        };
-        ModelProviderModelListResponseDto: {
-            models: string[];
-            elapsedMs: number;
-        };
-        ModelProviderConnectionPreviewRequestDto: {
-            /** @enum {string} */
-            providerKind: "openai-compatible" | "openai" | "claude" | "z-ai" | "deepseek";
-            baseUrl: string;
-            apiKeySecret?: string;
-        };
-        TestModelProviderConnectionResponseDto: {
-            ok: boolean;
-            modelName: string;
-            elapsedMs: number;
-            remoteResponseId: string | null;
-        };
-        TestModelProviderConnectionRequestDto: {
-            /** @enum {string} */
-            providerKind: "openai-compatible" | "openai" | "claude" | "z-ai" | "deepseek";
-            baseUrl: string;
-            apiKeySecret?: string;
-            defaultModelName: string;
-        };
+  schemas: {
+    SetupStatusResponseDto: {
+      requiresSetup: boolean;
     };
-    responses: never;
-    parameters: never;
-    requestBodies: never;
-    headers: never;
-    pathItems: never;
+    CurrentUserDto: {
+      id: string;
+      username: string;
+      displayName: string;
+      /** @enum {string} */
+      role: "admin" | "user";
+    };
+    CurrentUserResponseDto: {
+      user: components["schemas"]["CurrentUserDto"] | null;
+    };
+    AuthenticatedUserResponseDto: {
+      token: string;
+      user: components["schemas"]["CurrentUserDto"];
+    };
+    LoginRequestDto: {
+      username: string;
+      password: string;
+    };
+    SetupAdminCmdDTO: {
+      username: string;
+      password: string;
+    };
+    CharacterSummaryResponseDto: {
+      id: string;
+      ownerUserId: string;
+      /** @enum {string} */
+      visibility: "private" | "public";
+      name: string;
+      tags: string[];
+      version: string;
+      comment: string;
+      createdAtMs: number;
+      updatedAtMs: number;
+      lastUsedAtMs: number | null;
+      usageCount: number;
+    };
+    CharacterPageResponseDto: {
+      items: components["schemas"]["CharacterSummaryResponseDto"][];
+      pageIndex: number;
+      pageSize: number;
+      totalItems: number;
+      totalPages: number;
+    };
+    CharacterDetailResponseDto: {
+      id: string;
+      ownerUserId: string;
+      /** @enum {string} */
+      visibility: "private" | "public";
+      name: string;
+      tags: string[];
+      version: string;
+      comment: string;
+      createdAtMs: number;
+      updatedAtMs: number;
+      lastUsedAtMs: number | null;
+      usageCount: number;
+      nickname: string | null;
+      creator: string | null;
+      description: string;
+      personality: string;
+      scenario: string;
+      firstMessage: string;
+      alternateGreetings: string[];
+      groupOnlyGreetings: string[];
+      messageExample: string;
+      creatorNotes: string;
+      creatorNotesMultilingual: {
+        [key: string]: string;
+      };
+      systemPrompt: string;
+      postHistoryInstructions: string;
+      characterBook: {
+        [key: string]: unknown;
+      } | null;
+      assets: Record<string, never>[];
+      source: string[];
+      metadata: {
+        [key: string]: unknown;
+      };
+      /** @enum {string} */
+      sourceFormat: "sillytavern_v1" | "sillytavern_v2" | "sillytavern_v3";
+      creationDateMs: number | null;
+      modificationDateMs: number | null;
+    };
+    CreateCharacterRequestDto: {
+      /** @enum {string} */
+      visibility?: "private" | "public";
+      nickname?: string | null;
+      comment?: string;
+      tags?: string[];
+      version?: string;
+      creator?: string | null;
+      description?: string;
+      personality?: string;
+      scenario?: string;
+      firstMessage?: string;
+      alternateGreetings?: string[];
+      groupOnlyGreetings?: string[];
+      messageExample?: string;
+      creatorNotes?: string;
+      creatorNotesMultilingual?: {
+        [key: string]: string;
+      };
+      systemPrompt?: string;
+      postHistoryInstructions?: string;
+      characterBook?: {
+        [key: string]: unknown;
+      } | null;
+      assets?: unknown[];
+      source?: string[];
+      metadata?: {
+        [key: string]: unknown;
+      };
+      name: string;
+    };
+    UpdateCharacterRequestDto: {
+      /** @enum {string} */
+      visibility?: "private" | "public";
+      nickname?: string | null;
+      comment?: string;
+      tags?: string[];
+      version?: string;
+      creator?: string | null;
+      description?: string;
+      personality?: string;
+      scenario?: string;
+      firstMessage?: string;
+      alternateGreetings?: string[];
+      groupOnlyGreetings?: string[];
+      messageExample?: string;
+      creatorNotes?: string;
+      creatorNotesMultilingual?: {
+        [key: string]: string;
+      };
+      systemPrompt?: string;
+      postHistoryInstructions?: string;
+      characterBook?: {
+        [key: string]: unknown;
+      } | null;
+      assets?: unknown[];
+      source?: string[];
+      metadata?: {
+        [key: string]: unknown;
+      };
+      name?: string;
+    };
+    WorldbookSummaryResponseDto: {
+      id: string;
+      ownerUserId: string;
+      /** @enum {string} */
+      visibility: "private" | "public";
+      name: string;
+      description: string;
+      tags: string[];
+      scanDepth: number;
+      tokenBudget: number;
+      recursiveScan: boolean;
+      entryCount: number;
+      enabledEntryCount: number;
+      tokenCount: number;
+      createdAtMs: number;
+      updatedAtMs: number;
+      lastUsedAtMs: number | null;
+      usageCount: number;
+    };
+    WorldbookPageResponseDto: {
+      items: components["schemas"]["WorldbookSummaryResponseDto"][];
+      pageIndex: number;
+      pageSize: number;
+      totalItems: number;
+      totalPages: number;
+    };
+    WorldbookEntryResponseDto: {
+      id: string;
+      worldbookId: string;
+      enabled: boolean;
+      name: string;
+      comment: string;
+      content: string;
+      primaryKeys: string[];
+      secondaryKeys: string[];
+      selective: boolean;
+      constant: boolean;
+      caseSensitive: boolean;
+      matchWholeWords: boolean;
+      /** @enum {string} */
+      insertionPosition:
+        | "beforeChar"
+        | "afterChar"
+        | "beforeHistory"
+        | "afterHistory"
+        | "unknown";
+      insertionOrder: number;
+      depth: number;
+      probability: number;
+      tokenCount: number;
+      createdAtMs: number;
+      updatedAtMs: number;
+    };
+    WorldbookDetailResponseDto: {
+      id: string;
+      ownerUserId: string;
+      /** @enum {string} */
+      visibility: "private" | "public";
+      name: string;
+      description: string;
+      tags: string[];
+      scanDepth: number;
+      tokenBudget: number;
+      recursiveScan: boolean;
+      entryCount: number;
+      enabledEntryCount: number;
+      tokenCount: number;
+      createdAtMs: number;
+      updatedAtMs: number;
+      lastUsedAtMs: number | null;
+      usageCount: number;
+      /** @enum {string} */
+      sourceFormat: "sillytavern_world_info" | "rolesta";
+      entries: components["schemas"]["WorldbookEntryResponseDto"][];
+    };
+    CreateWorldbookRequestDto: {
+      /** @enum {string} */
+      visibility?: "private" | "public";
+      name?: string;
+      description?: string;
+      tags?: string[];
+      scanDepth?: number;
+      tokenBudget?: number;
+      recursiveScan?: boolean;
+    };
+    UpdateWorldbookRequestDto: {
+      /** @enum {string} */
+      visibility?: "private" | "public";
+      name?: string;
+      description?: string;
+      tags?: string[];
+      scanDepth?: number;
+      tokenBudget?: number;
+      recursiveScan?: boolean;
+    };
+    CreateWorldbookEntryRequestDto: {
+      enabled?: boolean;
+      name?: string;
+      comment?: string;
+      content?: string;
+      primaryKeys?: string[];
+      secondaryKeys?: string[];
+      selective?: boolean;
+      constant?: boolean;
+      caseSensitive?: boolean;
+      matchWholeWords?: boolean;
+      /** @enum {string} */
+      insertionPosition?:
+        | "beforeChar"
+        | "afterChar"
+        | "beforeHistory"
+        | "afterHistory"
+        | "unknown";
+      insertionOrder?: number;
+      depth?: number;
+      probability?: number;
+    };
+    UpdateWorldbookEntryRequestDto: {
+      enabled?: boolean;
+      name?: string;
+      comment?: string;
+      content?: string;
+      primaryKeys?: string[];
+      secondaryKeys?: string[];
+      selective?: boolean;
+      constant?: boolean;
+      caseSensitive?: boolean;
+      matchWholeWords?: boolean;
+      /** @enum {string} */
+      insertionPosition?:
+        | "beforeChar"
+        | "afterChar"
+        | "beforeHistory"
+        | "afterHistory"
+        | "unknown";
+      insertionOrder?: number;
+      depth?: number;
+      probability?: number;
+    };
+    UpdateWorldbookEntryOrderItemDto: {
+      entryId: string;
+      enabled: boolean;
+    };
+    UpdateWorldbookEntryOrderRequestDto: {
+      entries: components["schemas"]["UpdateWorldbookEntryOrderItemDto"][];
+    };
+    PresetSummaryResponseDto: {
+      id: string;
+      ownerUserId: string;
+      name: string;
+      entryCount: number;
+      promptItemCount: number;
+      tokenCount: number;
+      createdAtMs: number;
+      updatedAtMs: number;
+      lastUsedAtMs: number | null;
+      usageCount: number;
+    };
+    PresetPageResponseDto: {
+      items: components["schemas"]["PresetSummaryResponseDto"][];
+      pageIndex: number;
+      pageSize: number;
+      totalItems: number;
+      totalPages: number;
+    };
+    PresetModelSettingsResponseDto: {
+      contextLength: number | null;
+      maxResponseLength: number | null;
+      stream: boolean;
+      temperature: number | null;
+      presencePenalty: number | null;
+      frequencyPenalty: number | null;
+      repetitionPenalty: number | null;
+      topP: number | null;
+      topK: number | null;
+      minP: number | null;
+      topA: number | null;
+      seed: number | null;
+      n: number | null;
+      reasoningEffort: string;
+      verbosity: string;
+      showThoughts: boolean;
+    };
+    PresetEntryResponseDto: {
+      id: string;
+      presetId: string;
+      identifier: string;
+      name: string;
+      /** @enum {string} */
+      role: "system" | "user" | "assistant";
+      /** @enum {string} */
+      position: "system" | "chat" | "preHistory" | "postHistory" | "unknown";
+      content: string;
+      tokenCount: number;
+      metadata: {
+        [key: string]: unknown;
+      };
+      createdAtMs: number;
+      updatedAtMs: number;
+    };
+    PresetPromptItemResponseDto: {
+      entryId: string;
+      enabled: boolean;
+      orderIndex: number;
+    };
+    PresetDetailResponseDto: {
+      id: string;
+      ownerUserId: string;
+      name: string;
+      entryCount: number;
+      promptItemCount: number;
+      tokenCount: number;
+      createdAtMs: number;
+      updatedAtMs: number;
+      lastUsedAtMs: number | null;
+      usageCount: number;
+      modelProviderId: string | null;
+      modelSettings: components["schemas"]["PresetModelSettingsResponseDto"];
+      /** @enum {string} */
+      tokenizer: "cl100k_base";
+      /** @enum {string} */
+      sourceFormat: "sillytavern_preset" | "rolesta";
+      entries: components["schemas"]["PresetEntryResponseDto"][];
+      promptItems: components["schemas"]["PresetPromptItemResponseDto"][];
+    };
+    PresetModelSettingsDto: {
+      contextLength?: number | null;
+      maxResponseLength?: number | null;
+      stream?: boolean;
+      temperature?: number | null;
+      presencePenalty?: number | null;
+      frequencyPenalty?: number | null;
+      repetitionPenalty?: number | null;
+      topP?: number | null;
+      topK?: number | null;
+      minP?: number | null;
+      topA?: number | null;
+      seed?: number | null;
+      n?: number | null;
+      reasoningEffort?: string;
+      verbosity?: string;
+      showThoughts?: boolean;
+    };
+    CreatePresetRequestDto: {
+      name: string;
+      modelSettings?: components["schemas"]["PresetModelSettingsDto"];
+    };
+    UpdatePresetRequestDto: {
+      name?: string;
+      modelSettings?: components["schemas"]["PresetModelSettingsDto"];
+    };
+    CreatePresetEntryRequestDto: {
+      name: string;
+      /** @enum {string} */
+      role: "system" | "user" | "assistant";
+      /** @enum {string} */
+      position: "system" | "chat" | "preHistory" | "postHistory" | "unknown";
+      content: string;
+    };
+    UpdatePresetEntryRequestDto: {
+      name?: string;
+      /** @enum {string} */
+      role?: "system" | "user" | "assistant";
+      /** @enum {string} */
+      position?: "system" | "chat" | "preHistory" | "postHistory" | "unknown";
+      content?: string;
+    };
+    UpdatePresetPromptItemDto: {
+      entryId: string;
+      enabled: boolean;
+    };
+    UpdatePresetPromptItemsRequestDto: {
+      items: components["schemas"]["UpdatePresetPromptItemDto"][];
+    };
+    ModelProviderCatalogItemResponseDto: {
+      /** @enum {string} */
+      kind: "openai-compatible" | "openai" | "claude" | "z-ai" | "deepseek";
+      /** @enum {string} */
+      source: "custom" | "official";
+      displayName: string;
+      baseUrls: string[];
+      allowCustomBaseUrl: boolean;
+    };
+    ModelProviderCatalogResponseDto: {
+      items: components["schemas"]["ModelProviderCatalogItemResponseDto"][];
+    };
+    ModelProviderSummaryResponseDto: {
+      id: string;
+      ownerUserId: string;
+      name: string;
+      /** @enum {string} */
+      providerKind:
+        "openai-compatible" | "openai" | "claude" | "z-ai" | "deepseek";
+      /** @enum {string} */
+      providerSource: "custom" | "official";
+      baseUrl: string;
+      defaultModelName: string;
+      selectedApiKeyId: string | null;
+      apiKeyCount: number;
+      createdAtMs: number;
+      updatedAtMs: number;
+      lastUsedAtMs: number | null;
+      usageCount: number;
+    };
+    ModelProviderPageResponseDto: {
+      items: components["schemas"]["ModelProviderSummaryResponseDto"][];
+      pageIndex: number;
+      pageSize: number;
+      totalItems: number;
+      totalPages: number;
+    };
+    ModelProviderApiKeyResponseDto: {
+      id: string;
+      configId: string;
+      name: string;
+      secret: string;
+      createdAtMs: number;
+      updatedAtMs: number;
+    };
+    ModelProviderDetailResponseDto: {
+      id: string;
+      ownerUserId: string;
+      name: string;
+      /** @enum {string} */
+      providerKind:
+        "openai-compatible" | "openai" | "claude" | "z-ai" | "deepseek";
+      /** @enum {string} */
+      providerSource: "custom" | "official";
+      baseUrl: string;
+      defaultModelName: string;
+      selectedApiKeyId: string | null;
+      apiKeyCount: number;
+      createdAtMs: number;
+      updatedAtMs: number;
+      lastUsedAtMs: number | null;
+      usageCount: number;
+      apiKeys: components["schemas"]["ModelProviderApiKeyResponseDto"][];
+    };
+    CreateModelProviderRequestDto: {
+      name: string;
+      /** @enum {string} */
+      providerKind:
+        "openai-compatible" | "openai" | "claude" | "z-ai" | "deepseek";
+      baseUrl: string;
+      defaultModelName?: string;
+      selectedApiKeyId?: string | null;
+    };
+    UpdateModelProviderRequestDto: {
+      name?: string;
+      /** @enum {string} */
+      providerKind?:
+        "openai-compatible" | "openai" | "claude" | "z-ai" | "deepseek";
+      baseUrl?: string;
+      defaultModelName?: string;
+      selectedApiKeyId?: string | null;
+    };
+    CreateModelProviderApiKeyRequestDto: {
+      name: string;
+      secret: string;
+    };
+    SaveModelProviderApiKeyRequestDto: {
+      name?: string;
+      secret?: string;
+    };
+    SetSelectedModelProviderApiKeyRequestDto: {
+      selectedApiKeyId?: string | null;
+    };
+    ModelProviderModelListResponseDto: {
+      models: string[];
+      elapsedMs: number;
+    };
+    ModelProviderConnectionPreviewRequestDto: {
+      /** @enum {string} */
+      providerKind:
+        "openai-compatible" | "openai" | "claude" | "z-ai" | "deepseek";
+      baseUrl: string;
+      apiKeySecret?: string;
+    };
+    TestModelProviderConnectionResponseDto: {
+      ok: boolean;
+      modelName: string;
+      elapsedMs: number;
+      remoteResponseId: string | null;
+    };
+    TestModelProviderConnectionRequestDto: {
+      /** @enum {string} */
+      providerKind:
+        "openai-compatible" | "openai" | "claude" | "z-ai" | "deepseek";
+      baseUrl: string;
+      apiKeySecret?: string;
+      defaultModelName: string;
+    };
+  };
+  responses: never;
+  parameters: never;
+  requestBodies: never;
+  headers: never;
+  pathItems: never;
 }
 export type $defs = Record<string, never>;
 export interface operations {
-    HealthController_getHealth: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        /**
-                         * @example SUCCESS
-                         * @enum {string}
-                         */
-                        code: "SUCCESS";
-                        /** @example ok */
-                        msg: string;
-                        data: {
-                            /** @enum {string} */
-                            status: "ok";
-                            /** @enum {string} */
-                            service: "rolesta-api";
-                        };
-                    };
-                };
-            };
-        };
+  HealthController_getHealth: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
     };
-    AuthController_getSetupStatus: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
+    requestBody?: never;
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
         };
-        requestBody?: never;
-        responses: {
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        /**
-                         * @example SUCCESS
-                         * @enum {string}
-                         */
-                        code: "SUCCESS";
-                        /** @example ok */
-                        msg: string;
-                        data: components["schemas"]["SetupStatusResponseDto"];
-                    };
-                };
+        content: {
+          "application/json": {
+            /**
+             * @example SUCCESS
+             * @enum {string}
+             */
+            code: "SUCCESS";
+            /** @example ok */
+            msg: string;
+            data: {
+              /** @enum {string} */
+              status: "ok";
+              /** @enum {string} */
+              service: "rolesta-api";
             };
+          };
         };
+      };
     };
-    AuthController_getCurrentUser: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        /**
-                         * @example SUCCESS
-                         * @enum {string}
-                         */
-                        code: "SUCCESS";
-                        /** @example ok */
-                        msg: string;
-                        data: components["schemas"]["CurrentUserResponseDto"];
-                    };
-                };
-            };
-        };
+  };
+  AuthController_getSetupStatus: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
     };
-    AuthController_login: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
+    requestBody?: never;
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
         };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["LoginRequestDto"];
-            };
+        content: {
+          "application/json": {
+            /**
+             * @example SUCCESS
+             * @enum {string}
+             */
+            code: "SUCCESS";
+            /** @example ok */
+            msg: string;
+            data: components["schemas"]["SetupStatusResponseDto"];
+          };
         };
-        responses: {
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        /**
-                         * @example SUCCESS
-                         * @enum {string}
-                         */
-                        code: "SUCCESS";
-                        /** @example ok */
-                        msg: string;
-                        data: components["schemas"]["AuthenticatedUserResponseDto"];
-                    };
-                };
-            };
-        };
+      };
     };
-    AuthController_setupAdmin: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["SetupAdminCmdDTO"];
-            };
-        };
-        responses: {
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        /**
-                         * @example SUCCESS
-                         * @enum {string}
-                         */
-                        code: "SUCCESS";
-                        /** @example ok */
-                        msg: string;
-                        data: components["schemas"]["AuthenticatedUserResponseDto"];
-                    };
-                };
-            };
-        };
+  };
+  AuthController_getCurrentUser: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
     };
-    AuthController_logout: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
+    requestBody?: never;
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
         };
-        requestBody?: never;
-        responses: {
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        /**
-                         * @example SUCCESS
-                         * @enum {string}
-                         */
-                        code: "SUCCESS";
-                        /** @example ok */
-                        msg: string;
-                        data: {
-                            ok?: boolean;
-                        };
-                    };
-                };
-            };
+        content: {
+          "application/json": {
+            /**
+             * @example SUCCESS
+             * @enum {string}
+             */
+            code: "SUCCESS";
+            /** @example ok */
+            msg: string;
+            data: components["schemas"]["CurrentUserResponseDto"];
+          };
         };
+      };
     };
-    CharactersController_list: {
-        parameters: {
-            query?: {
-                scope?: "all" | "mine" | "public";
-                sort?: "createdAt" | "updatedAt" | "name" | "lastUsedAt" | "usageCount";
-                direction?: "asc" | "desc";
-                pageIndex?: number;
-                pageSize?: number;
-                q?: string;
-            };
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        /**
-                         * @example SUCCESS
-                         * @enum {string}
-                         */
-                        code: "SUCCESS";
-                        /** @example ok */
-                        msg: string;
-                        data: components["schemas"]["CharacterPageResponseDto"];
-                    };
-                };
-            };
-        };
+  };
+  AuthController_login: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
     };
-    CharactersController_create: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["CreateCharacterRequestDto"];
-            };
-        };
-        responses: {
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        /**
-                         * @example SUCCESS
-                         * @enum {string}
-                         */
-                        code: "SUCCESS";
-                        /** @example ok */
-                        msg: string;
-                        data: components["schemas"]["CharacterDetailResponseDto"];
-                    };
-                };
-            };
-        };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["LoginRequestDto"];
+      };
     };
-    CharactersController_get: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                id: string;
-            };
-            cookie?: never;
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
         };
-        requestBody?: never;
-        responses: {
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        /**
-                         * @example SUCCESS
-                         * @enum {string}
-                         */
-                        code: "SUCCESS";
-                        /** @example ok */
-                        msg: string;
-                        data: components["schemas"]["CharacterDetailResponseDto"];
-                    };
-                };
-            };
+        content: {
+          "application/json": {
+            /**
+             * @example SUCCESS
+             * @enum {string}
+             */
+            code: "SUCCESS";
+            /** @example ok */
+            msg: string;
+            data: components["schemas"]["AuthenticatedUserResponseDto"];
+          };
         };
+      };
     };
-    CharactersController_delete: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        /**
-                         * @example SUCCESS
-                         * @enum {string}
-                         */
-                        code: "SUCCESS";
-                        /** @example ok */
-                        msg: string;
-                        data: {
-                            ok?: boolean;
-                        };
-                    };
-                };
-            };
-        };
+  };
+  AuthController_setupAdmin: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
     };
-    CharactersController_update: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                id: string;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["UpdateCharacterRequestDto"];
-            };
-        };
-        responses: {
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        /**
-                         * @example SUCCESS
-                         * @enum {string}
-                         */
-                        code: "SUCCESS";
-                        /** @example ok */
-                        msg: string;
-                        data: components["schemas"]["CharacterDetailResponseDto"];
-                    };
-                };
-            };
-        };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["SetupAdminCmdDTO"];
+      };
     };
-    CharactersController_importCharacter: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
         };
-        requestBody: {
-            content: {
-                "multipart/form-data": {
-                    /** Format: binary */
-                    file: string;
-                };
-            };
+        content: {
+          "application/json": {
+            /**
+             * @example SUCCESS
+             * @enum {string}
+             */
+            code: "SUCCESS";
+            /** @example ok */
+            msg: string;
+            data: components["schemas"]["AuthenticatedUserResponseDto"];
+          };
         };
-        responses: {
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        /**
-                         * @example SUCCESS
-                         * @enum {string}
-                         */
-                        code: "SUCCESS";
-                        /** @example ok */
-                        msg: string;
-                        data: components["schemas"]["CharacterDetailResponseDto"];
-                    };
-                };
-            };
-        };
+      };
     };
-    CharactersController_exportSillyTavern: {
-        parameters: {
-            query?: {
-                version?: "v2" | "v3";
-            };
-            header?: never;
-            path: {
-                id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description SillyTavern compatible character card JSON. */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": Record<string, never>;
-                };
-            };
-        };
+  };
+  AuthController_logout: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
     };
-    PresetsController_list: {
-        parameters: {
-            query?: {
-                sort?: "createdAt" | "updatedAt" | "name" | "lastUsedAt" | "usageCount";
-                direction?: "asc" | "desc";
-                pageIndex?: number;
-                pageSize?: number;
-                q?: string;
-            };
-            header?: never;
-            path?: never;
-            cookie?: never;
+    requestBody?: never;
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
         };
-        requestBody?: never;
-        responses: {
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        /**
-                         * @example SUCCESS
-                         * @enum {string}
-                         */
-                        code: "SUCCESS";
-                        /** @example ok */
-                        msg: string;
-                        data: components["schemas"]["PresetPageResponseDto"];
-                    };
-                };
+        content: {
+          "application/json": {
+            /**
+             * @example SUCCESS
+             * @enum {string}
+             */
+            code: "SUCCESS";
+            /** @example ok */
+            msg: string;
+            data: {
+              ok?: boolean;
             };
+          };
         };
+      };
     };
-    PresetsController_create: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["CreatePresetRequestDto"];
-            };
-        };
-        responses: {
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        /**
-                         * @example SUCCESS
-                         * @enum {string}
-                         */
-                        code: "SUCCESS";
-                        /** @example ok */
-                        msg: string;
-                        data: components["schemas"]["PresetDetailResponseDto"];
-                    };
-                };
-            };
-        };
+  };
+  CharactersController_list: {
+    parameters: {
+      query?: {
+        scope?: "all" | "mine" | "public";
+        sort?: "createdAt" | "updatedAt" | "name" | "lastUsedAt" | "usageCount";
+        direction?: "asc" | "desc";
+        pageIndex?: number;
+        pageSize?: number;
+        q?: string;
+      };
+      header?: never;
+      path?: never;
+      cookie?: never;
     };
-    PresetsController_get: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                id: string;
-            };
-            cookie?: never;
+    requestBody?: never;
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
         };
-        requestBody?: never;
-        responses: {
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        /**
-                         * @example SUCCESS
-                         * @enum {string}
-                         */
-                        code: "SUCCESS";
-                        /** @example ok */
-                        msg: string;
-                        data: components["schemas"]["PresetDetailResponseDto"];
-                    };
-                };
-            };
+        content: {
+          "application/json": {
+            /**
+             * @example SUCCESS
+             * @enum {string}
+             */
+            code: "SUCCESS";
+            /** @example ok */
+            msg: string;
+            data: components["schemas"]["CharacterPageResponseDto"];
+          };
         };
+      };
     };
-    PresetsController_delete: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        /**
-                         * @example SUCCESS
-                         * @enum {string}
-                         */
-                        code: "SUCCESS";
-                        /** @example ok */
-                        msg: string;
-                        data: {
-                            ok?: boolean;
-                        };
-                    };
-                };
-            };
-        };
+  };
+  CharactersController_create: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
     };
-    PresetsController_update: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                id: string;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["UpdatePresetRequestDto"];
-            };
-        };
-        responses: {
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        /**
-                         * @example SUCCESS
-                         * @enum {string}
-                         */
-                        code: "SUCCESS";
-                        /** @example ok */
-                        msg: string;
-                        data: components["schemas"]["PresetDetailResponseDto"];
-                    };
-                };
-            };
-        };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["CreateCharacterRequestDto"];
+      };
     };
-    PresetsController_importPreset: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
         };
-        requestBody: {
-            content: {
-                "multipart/form-data": {
-                    /** Format: binary */
-                    file: string;
-                };
-            };
+        content: {
+          "application/json": {
+            /**
+             * @example SUCCESS
+             * @enum {string}
+             */
+            code: "SUCCESS";
+            /** @example ok */
+            msg: string;
+            data: components["schemas"]["CharacterDetailResponseDto"];
+          };
         };
-        responses: {
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        /**
-                         * @example SUCCESS
-                         * @enum {string}
-                         */
-                        code: "SUCCESS";
-                        /** @example ok */
-                        msg: string;
-                        data: components["schemas"]["PresetDetailResponseDto"];
-                    };
-                };
-            };
-        };
+      };
     };
-    PresetsController_exportSillyTavern: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description SillyTavern compatible preset JSON. */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": Record<string, never>;
-                };
-            };
-        };
+  };
+  CharactersController_get: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        id: string;
+      };
+      cookie?: never;
     };
-    PresetsController_createEntry: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                id: string;
-            };
-            cookie?: never;
+    requestBody?: never;
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
         };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["CreatePresetEntryRequestDto"];
-            };
+        content: {
+          "application/json": {
+            /**
+             * @example SUCCESS
+             * @enum {string}
+             */
+            code: "SUCCESS";
+            /** @example ok */
+            msg: string;
+            data: components["schemas"]["CharacterDetailResponseDto"];
+          };
         };
-        responses: {
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        /**
-                         * @example SUCCESS
-                         * @enum {string}
-                         */
-                        code: "SUCCESS";
-                        /** @example ok */
-                        msg: string;
-                        data: components["schemas"]["PresetDetailResponseDto"];
-                    };
-                };
-            };
-        };
+      };
     };
-    PresetsController_deleteEntry: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                id: string;
-                entryId: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        /**
-                         * @example SUCCESS
-                         * @enum {string}
-                         */
-                        code: "SUCCESS";
-                        /** @example ok */
-                        msg: string;
-                        data: components["schemas"]["PresetDetailResponseDto"];
-                    };
-                };
-            };
-        };
+  };
+  CharactersController_delete: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        id: string;
+      };
+      cookie?: never;
     };
-    PresetsController_updateEntry: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                id: string;
-                entryId: string;
-            };
-            cookie?: never;
+    requestBody?: never;
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
         };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["UpdatePresetEntryRequestDto"];
+        content: {
+          "application/json": {
+            /**
+             * @example SUCCESS
+             * @enum {string}
+             */
+            code: "SUCCESS";
+            /** @example ok */
+            msg: string;
+            data: {
+              ok?: boolean;
             };
+          };
         };
-        responses: {
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        /**
-                         * @example SUCCESS
-                         * @enum {string}
-                         */
-                        code: "SUCCESS";
-                        /** @example ok */
-                        msg: string;
-                        data: components["schemas"]["PresetDetailResponseDto"];
-                    };
-                };
-            };
-        };
+      };
     };
-    PresetsController_updatePromptItems: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                id: string;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["UpdatePresetPromptItemsRequestDto"];
-            };
-        };
-        responses: {
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        /**
-                         * @example SUCCESS
-                         * @enum {string}
-                         */
-                        code: "SUCCESS";
-                        /** @example ok */
-                        msg: string;
-                        data: components["schemas"]["PresetDetailResponseDto"];
-                    };
-                };
-            };
-        };
+  };
+  CharactersController_update: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        id: string;
+      };
+      cookie?: never;
     };
-    ModelProvidersController_catalog: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        /**
-                         * @example SUCCESS
-                         * @enum {string}
-                         */
-                        code: "SUCCESS";
-                        /** @example ok */
-                        msg: string;
-                        data: components["schemas"]["ModelProviderCatalogResponseDto"];
-                    };
-                };
-            };
-        };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["UpdateCharacterRequestDto"];
+      };
     };
-    ModelProvidersController_list: {
-        parameters: {
-            query?: {
-                sort?: "createdAt" | "updatedAt" | "name" | "lastUsedAt" | "usageCount";
-                direction?: "asc" | "desc";
-                pageIndex?: number;
-                pageSize?: number;
-                q?: string;
-            };
-            header?: never;
-            path?: never;
-            cookie?: never;
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
         };
-        requestBody?: never;
-        responses: {
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        /**
-                         * @example SUCCESS
-                         * @enum {string}
-                         */
-                        code: "SUCCESS";
-                        /** @example ok */
-                        msg: string;
-                        data: components["schemas"]["ModelProviderPageResponseDto"];
-                    };
-                };
-            };
+        content: {
+          "application/json": {
+            /**
+             * @example SUCCESS
+             * @enum {string}
+             */
+            code: "SUCCESS";
+            /** @example ok */
+            msg: string;
+            data: components["schemas"]["CharacterDetailResponseDto"];
+          };
         };
+      };
     };
-    ModelProvidersController_create: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["CreateModelProviderRequestDto"];
-            };
-        };
-        responses: {
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        /**
-                         * @example SUCCESS
-                         * @enum {string}
-                         */
-                        code: "SUCCESS";
-                        /** @example ok */
-                        msg: string;
-                        data: components["schemas"]["ModelProviderDetailResponseDto"];
-                    };
-                };
-            };
-        };
+  };
+  CharactersController_importCharacter: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
     };
-    ModelProvidersController_get: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                id: string;
-            };
-            cookie?: never;
+    requestBody: {
+      content: {
+        "multipart/form-data": {
+          /** Format: binary */
+          file: string;
         };
-        requestBody?: never;
-        responses: {
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        /**
-                         * @example SUCCESS
-                         * @enum {string}
-                         */
-                        code: "SUCCESS";
-                        /** @example ok */
-                        msg: string;
-                        data: components["schemas"]["ModelProviderDetailResponseDto"];
-                    };
-                };
-            };
-        };
+      };
     };
-    ModelProvidersController_delete: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                id: string;
-            };
-            cookie?: never;
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
         };
-        requestBody?: never;
-        responses: {
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        /**
-                         * @example SUCCESS
-                         * @enum {string}
-                         */
-                        code: "SUCCESS";
-                        /** @example ok */
-                        msg: string;
-                        data: {
-                            ok?: boolean;
-                        };
-                    };
-                };
-            };
+        content: {
+          "application/json": {
+            /**
+             * @example SUCCESS
+             * @enum {string}
+             */
+            code: "SUCCESS";
+            /** @example ok */
+            msg: string;
+            data: components["schemas"]["CharacterDetailResponseDto"];
+          };
         };
+      };
     };
-    ModelProvidersController_update: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                id: string;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["UpdateModelProviderRequestDto"];
-            };
-        };
-        responses: {
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        /**
-                         * @example SUCCESS
-                         * @enum {string}
-                         */
-                        code: "SUCCESS";
-                        /** @example ok */
-                        msg: string;
-                        data: components["schemas"]["ModelProviderDetailResponseDto"];
-                    };
-                };
-            };
-        };
+  };
+  CharactersController_exportSillyTavern: {
+    parameters: {
+      query?: {
+        version?: "v2" | "v3";
+      };
+      header?: never;
+      path: {
+        id: string;
+      };
+      cookie?: never;
     };
-    ModelProvidersController_createApiKey: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                id: string;
-            };
-            cookie?: never;
+    requestBody?: never;
+    responses: {
+      /** @description SillyTavern compatible character card JSON. */
+      200: {
+        headers: {
+          [name: string]: unknown;
         };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["CreateModelProviderApiKeyRequestDto"];
-            };
+        content: {
+          "application/json": Record<string, never>;
         };
-        responses: {
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        /**
-                         * @example SUCCESS
-                         * @enum {string}
-                         */
-                        code: "SUCCESS";
-                        /** @example ok */
-                        msg: string;
-                        data: components["schemas"]["ModelProviderDetailResponseDto"];
-                    };
-                };
-            };
-        };
+      };
     };
-    ModelProvidersController_deleteApiKey: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                id: string;
-                apiKeyId: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        /**
-                         * @example SUCCESS
-                         * @enum {string}
-                         */
-                        code: "SUCCESS";
-                        /** @example ok */
-                        msg: string;
-                        data: components["schemas"]["ModelProviderDetailResponseDto"];
-                    };
-                };
-            };
-        };
+  };
+  WorldbooksController_list: {
+    parameters: {
+      query?: {
+        sort?: "createdAt" | "updatedAt" | "name" | "lastUsedAt" | "usageCount";
+        direction?: "asc" | "desc";
+        pageIndex?: number;
+        pageSize?: number;
+        q?: string;
+      };
+      header?: never;
+      path?: never;
+      cookie?: never;
     };
-    ModelProvidersController_updateApiKey: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                id: string;
-                apiKeyId: string;
-            };
-            cookie?: never;
+    requestBody?: never;
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
         };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["SaveModelProviderApiKeyRequestDto"];
-            };
+        content: {
+          "application/json": {
+            /**
+             * @example SUCCESS
+             * @enum {string}
+             */
+            code: "SUCCESS";
+            /** @example ok */
+            msg: string;
+            data: components["schemas"]["WorldbookPageResponseDto"];
+          };
         };
-        responses: {
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        /**
-                         * @example SUCCESS
-                         * @enum {string}
-                         */
-                        code: "SUCCESS";
-                        /** @example ok */
-                        msg: string;
-                        data: components["schemas"]["ModelProviderDetailResponseDto"];
-                    };
-                };
-            };
-        };
+      };
     };
-    ModelProvidersController_setSelectedApiKey: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                id: string;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["SetSelectedModelProviderApiKeyRequestDto"];
-            };
-        };
-        responses: {
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        /**
-                         * @example SUCCESS
-                         * @enum {string}
-                         */
-                        code: "SUCCESS";
-                        /** @example ok */
-                        msg: string;
-                        data: components["schemas"]["ModelProviderDetailResponseDto"];
-                    };
-                };
-            };
-        };
+  };
+  WorldbooksController_create: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
     };
-    ModelProvidersController_previewModels: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["ModelProviderConnectionPreviewRequestDto"];
-            };
-        };
-        responses: {
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        /**
-                         * @example SUCCESS
-                         * @enum {string}
-                         */
-                        code: "SUCCESS";
-                        /** @example ok */
-                        msg: string;
-                        data: components["schemas"]["ModelProviderModelListResponseDto"];
-                    };
-                };
-            };
-        };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["CreateWorldbookRequestDto"];
+      };
     };
-    ModelProvidersController_previewTestConnection: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
         };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["TestModelProviderConnectionRequestDto"];
-            };
+        content: {
+          "application/json": {
+            /**
+             * @example SUCCESS
+             * @enum {string}
+             */
+            code: "SUCCESS";
+            /** @example ok */
+            msg: string;
+            data: components["schemas"]["WorldbookDetailResponseDto"];
+          };
         };
-        responses: {
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        /**
-                         * @example SUCCESS
-                         * @enum {string}
-                         */
-                        code: "SUCCESS";
-                        /** @example ok */
-                        msg: string;
-                        data: components["schemas"]["TestModelProviderConnectionResponseDto"];
-                    };
-                };
-            };
-        };
+      };
     };
-    ModelProvidersController_savedModels: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        /**
-                         * @example SUCCESS
-                         * @enum {string}
-                         */
-                        code: "SUCCESS";
-                        /** @example ok */
-                        msg: string;
-                        data: components["schemas"]["ModelProviderModelListResponseDto"];
-                    };
-                };
-            };
-        };
+  };
+  WorldbooksController_get: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        id: string;
+      };
+      cookie?: never;
     };
-    ModelProvidersController_savedTestConnection: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                id: string;
-            };
-            cookie?: never;
+    requestBody?: never;
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
         };
-        requestBody?: never;
-        responses: {
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        /**
-                         * @example SUCCESS
-                         * @enum {string}
-                         */
-                        code: "SUCCESS";
-                        /** @example ok */
-                        msg: string;
-                        data: components["schemas"]["TestModelProviderConnectionResponseDto"];
-                    };
-                };
-            };
+        content: {
+          "application/json": {
+            /**
+             * @example SUCCESS
+             * @enum {string}
+             */
+            code: "SUCCESS";
+            /** @example ok */
+            msg: string;
+            data: components["schemas"]["WorldbookDetailResponseDto"];
+          };
         };
+      };
     };
+  };
+  WorldbooksController_delete: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        id: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": {
+            /**
+             * @example SUCCESS
+             * @enum {string}
+             */
+            code: "SUCCESS";
+            /** @example ok */
+            msg: string;
+            data: {
+              ok?: boolean;
+            };
+          };
+        };
+      };
+    };
+  };
+  WorldbooksController_update: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        id: string;
+      };
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["UpdateWorldbookRequestDto"];
+      };
+    };
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": {
+            /**
+             * @example SUCCESS
+             * @enum {string}
+             */
+            code: "SUCCESS";
+            /** @example ok */
+            msg: string;
+            data: components["schemas"]["WorldbookDetailResponseDto"];
+          };
+        };
+      };
+    };
+  };
+  WorldbooksController_importWorldbook: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "multipart/form-data": {
+          /** Format: binary */
+          file: string;
+        };
+      };
+    };
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": {
+            /**
+             * @example SUCCESS
+             * @enum {string}
+             */
+            code: "SUCCESS";
+            /** @example ok */
+            msg: string;
+            data: components["schemas"]["WorldbookDetailResponseDto"];
+          };
+        };
+      };
+    };
+  };
+  WorldbooksController_exportSillyTavern: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        id: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description SillyTavern compatible world info JSON. */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": Record<string, never>;
+        };
+      };
+    };
+  };
+  WorldbooksController_createEntry: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        id: string;
+      };
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["CreateWorldbookEntryRequestDto"];
+      };
+    };
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": {
+            /**
+             * @example SUCCESS
+             * @enum {string}
+             */
+            code: "SUCCESS";
+            /** @example ok */
+            msg: string;
+            data: components["schemas"]["WorldbookDetailResponseDto"];
+          };
+        };
+      };
+    };
+  };
+  WorldbooksController_deleteEntry: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        id: string;
+        entryId: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": {
+            /**
+             * @example SUCCESS
+             * @enum {string}
+             */
+            code: "SUCCESS";
+            /** @example ok */
+            msg: string;
+            data: components["schemas"]["WorldbookDetailResponseDto"];
+          };
+        };
+      };
+    };
+  };
+  WorldbooksController_updateEntry: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        id: string;
+        entryId: string;
+      };
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["UpdateWorldbookEntryRequestDto"];
+      };
+    };
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": {
+            /**
+             * @example SUCCESS
+             * @enum {string}
+             */
+            code: "SUCCESS";
+            /** @example ok */
+            msg: string;
+            data: components["schemas"]["WorldbookDetailResponseDto"];
+          };
+        };
+      };
+    };
+  };
+  WorldbooksController_updateEntryOrder: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        id: string;
+      };
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["UpdateWorldbookEntryOrderRequestDto"];
+      };
+    };
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": {
+            /**
+             * @example SUCCESS
+             * @enum {string}
+             */
+            code: "SUCCESS";
+            /** @example ok */
+            msg: string;
+            data: components["schemas"]["WorldbookDetailResponseDto"];
+          };
+        };
+      };
+    };
+  };
+  PresetsController_list: {
+    parameters: {
+      query?: {
+        sort?: "createdAt" | "updatedAt" | "name" | "lastUsedAt" | "usageCount";
+        direction?: "asc" | "desc";
+        pageIndex?: number;
+        pageSize?: number;
+        q?: string;
+      };
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": {
+            /**
+             * @example SUCCESS
+             * @enum {string}
+             */
+            code: "SUCCESS";
+            /** @example ok */
+            msg: string;
+            data: components["schemas"]["PresetPageResponseDto"];
+          };
+        };
+      };
+    };
+  };
+  PresetsController_create: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["CreatePresetRequestDto"];
+      };
+    };
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": {
+            /**
+             * @example SUCCESS
+             * @enum {string}
+             */
+            code: "SUCCESS";
+            /** @example ok */
+            msg: string;
+            data: components["schemas"]["PresetDetailResponseDto"];
+          };
+        };
+      };
+    };
+  };
+  PresetsController_get: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        id: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": {
+            /**
+             * @example SUCCESS
+             * @enum {string}
+             */
+            code: "SUCCESS";
+            /** @example ok */
+            msg: string;
+            data: components["schemas"]["PresetDetailResponseDto"];
+          };
+        };
+      };
+    };
+  };
+  PresetsController_delete: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        id: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": {
+            /**
+             * @example SUCCESS
+             * @enum {string}
+             */
+            code: "SUCCESS";
+            /** @example ok */
+            msg: string;
+            data: {
+              ok?: boolean;
+            };
+          };
+        };
+      };
+    };
+  };
+  PresetsController_update: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        id: string;
+      };
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["UpdatePresetRequestDto"];
+      };
+    };
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": {
+            /**
+             * @example SUCCESS
+             * @enum {string}
+             */
+            code: "SUCCESS";
+            /** @example ok */
+            msg: string;
+            data: components["schemas"]["PresetDetailResponseDto"];
+          };
+        };
+      };
+    };
+  };
+  PresetsController_importPreset: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "multipart/form-data": {
+          /** Format: binary */
+          file: string;
+        };
+      };
+    };
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": {
+            /**
+             * @example SUCCESS
+             * @enum {string}
+             */
+            code: "SUCCESS";
+            /** @example ok */
+            msg: string;
+            data: components["schemas"]["PresetDetailResponseDto"];
+          };
+        };
+      };
+    };
+  };
+  PresetsController_exportSillyTavern: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        id: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description SillyTavern compatible preset JSON. */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": Record<string, never>;
+        };
+      };
+    };
+  };
+  PresetsController_createEntry: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        id: string;
+      };
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["CreatePresetEntryRequestDto"];
+      };
+    };
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": {
+            /**
+             * @example SUCCESS
+             * @enum {string}
+             */
+            code: "SUCCESS";
+            /** @example ok */
+            msg: string;
+            data: components["schemas"]["PresetDetailResponseDto"];
+          };
+        };
+      };
+    };
+  };
+  PresetsController_deleteEntry: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        id: string;
+        entryId: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": {
+            /**
+             * @example SUCCESS
+             * @enum {string}
+             */
+            code: "SUCCESS";
+            /** @example ok */
+            msg: string;
+            data: components["schemas"]["PresetDetailResponseDto"];
+          };
+        };
+      };
+    };
+  };
+  PresetsController_updateEntry: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        id: string;
+        entryId: string;
+      };
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["UpdatePresetEntryRequestDto"];
+      };
+    };
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": {
+            /**
+             * @example SUCCESS
+             * @enum {string}
+             */
+            code: "SUCCESS";
+            /** @example ok */
+            msg: string;
+            data: components["schemas"]["PresetDetailResponseDto"];
+          };
+        };
+      };
+    };
+  };
+  PresetsController_updatePromptItems: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        id: string;
+      };
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["UpdatePresetPromptItemsRequestDto"];
+      };
+    };
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": {
+            /**
+             * @example SUCCESS
+             * @enum {string}
+             */
+            code: "SUCCESS";
+            /** @example ok */
+            msg: string;
+            data: components["schemas"]["PresetDetailResponseDto"];
+          };
+        };
+      };
+    };
+  };
+  ModelProvidersController_catalog: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": {
+            /**
+             * @example SUCCESS
+             * @enum {string}
+             */
+            code: "SUCCESS";
+            /** @example ok */
+            msg: string;
+            data: components["schemas"]["ModelProviderCatalogResponseDto"];
+          };
+        };
+      };
+    };
+  };
+  ModelProvidersController_list: {
+    parameters: {
+      query?: {
+        sort?: "createdAt" | "updatedAt" | "name" | "lastUsedAt" | "usageCount";
+        direction?: "asc" | "desc";
+        pageIndex?: number;
+        pageSize?: number;
+        q?: string;
+      };
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": {
+            /**
+             * @example SUCCESS
+             * @enum {string}
+             */
+            code: "SUCCESS";
+            /** @example ok */
+            msg: string;
+            data: components["schemas"]["ModelProviderPageResponseDto"];
+          };
+        };
+      };
+    };
+  };
+  ModelProvidersController_create: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["CreateModelProviderRequestDto"];
+      };
+    };
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": {
+            /**
+             * @example SUCCESS
+             * @enum {string}
+             */
+            code: "SUCCESS";
+            /** @example ok */
+            msg: string;
+            data: components["schemas"]["ModelProviderDetailResponseDto"];
+          };
+        };
+      };
+    };
+  };
+  ModelProvidersController_get: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        id: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": {
+            /**
+             * @example SUCCESS
+             * @enum {string}
+             */
+            code: "SUCCESS";
+            /** @example ok */
+            msg: string;
+            data: components["schemas"]["ModelProviderDetailResponseDto"];
+          };
+        };
+      };
+    };
+  };
+  ModelProvidersController_delete: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        id: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": {
+            /**
+             * @example SUCCESS
+             * @enum {string}
+             */
+            code: "SUCCESS";
+            /** @example ok */
+            msg: string;
+            data: {
+              ok?: boolean;
+            };
+          };
+        };
+      };
+    };
+  };
+  ModelProvidersController_update: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        id: string;
+      };
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["UpdateModelProviderRequestDto"];
+      };
+    };
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": {
+            /**
+             * @example SUCCESS
+             * @enum {string}
+             */
+            code: "SUCCESS";
+            /** @example ok */
+            msg: string;
+            data: components["schemas"]["ModelProviderDetailResponseDto"];
+          };
+        };
+      };
+    };
+  };
+  ModelProvidersController_createApiKey: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        id: string;
+      };
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["CreateModelProviderApiKeyRequestDto"];
+      };
+    };
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": {
+            /**
+             * @example SUCCESS
+             * @enum {string}
+             */
+            code: "SUCCESS";
+            /** @example ok */
+            msg: string;
+            data: components["schemas"]["ModelProviderDetailResponseDto"];
+          };
+        };
+      };
+    };
+  };
+  ModelProvidersController_deleteApiKey: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        id: string;
+        apiKeyId: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": {
+            /**
+             * @example SUCCESS
+             * @enum {string}
+             */
+            code: "SUCCESS";
+            /** @example ok */
+            msg: string;
+            data: components["schemas"]["ModelProviderDetailResponseDto"];
+          };
+        };
+      };
+    };
+  };
+  ModelProvidersController_updateApiKey: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        id: string;
+        apiKeyId: string;
+      };
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["SaveModelProviderApiKeyRequestDto"];
+      };
+    };
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": {
+            /**
+             * @example SUCCESS
+             * @enum {string}
+             */
+            code: "SUCCESS";
+            /** @example ok */
+            msg: string;
+            data: components["schemas"]["ModelProviderDetailResponseDto"];
+          };
+        };
+      };
+    };
+  };
+  ModelProvidersController_setSelectedApiKey: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        id: string;
+      };
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["SetSelectedModelProviderApiKeyRequestDto"];
+      };
+    };
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": {
+            /**
+             * @example SUCCESS
+             * @enum {string}
+             */
+            code: "SUCCESS";
+            /** @example ok */
+            msg: string;
+            data: components["schemas"]["ModelProviderDetailResponseDto"];
+          };
+        };
+      };
+    };
+  };
+  ModelProvidersController_previewModels: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["ModelProviderConnectionPreviewRequestDto"];
+      };
+    };
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": {
+            /**
+             * @example SUCCESS
+             * @enum {string}
+             */
+            code: "SUCCESS";
+            /** @example ok */
+            msg: string;
+            data: components["schemas"]["ModelProviderModelListResponseDto"];
+          };
+        };
+      };
+    };
+  };
+  ModelProvidersController_previewTestConnection: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["TestModelProviderConnectionRequestDto"];
+      };
+    };
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": {
+            /**
+             * @example SUCCESS
+             * @enum {string}
+             */
+            code: "SUCCESS";
+            /** @example ok */
+            msg: string;
+            data: components["schemas"]["TestModelProviderConnectionResponseDto"];
+          };
+        };
+      };
+    };
+  };
+  ModelProvidersController_savedModels: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        id: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": {
+            /**
+             * @example SUCCESS
+             * @enum {string}
+             */
+            code: "SUCCESS";
+            /** @example ok */
+            msg: string;
+            data: components["schemas"]["ModelProviderModelListResponseDto"];
+          };
+        };
+      };
+    };
+  };
+  ModelProvidersController_savedTestConnection: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        id: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": {
+            /**
+             * @example SUCCESS
+             * @enum {string}
+             */
+            code: "SUCCESS";
+            /** @example ok */
+            msg: string;
+            data: components["schemas"]["TestModelProviderConnectionResponseDto"];
+          };
+        };
+      };
+    };
+  };
 }
