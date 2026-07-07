@@ -28,6 +28,8 @@ export type WorldbookEntryUpdateValues =
 export type WorldbookVisibility = WorldbookSummaryResponse["visibility"];
 export type WorldbookInsertionPosition =
   WorldbookEntryResponse["insertionPosition"];
+export type WorldbookEntryRole = WorldbookEntryResponse["insertionRole"];
+export type WorldbookSelectiveLogic = WorldbookEntryResponse["selectiveLogic"];
 
 export type ListWorldbooksQuery = NonNullable<
   operations["WorldbooksController_list"]["parameters"]["query"]

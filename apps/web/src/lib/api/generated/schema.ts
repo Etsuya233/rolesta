@@ -737,18 +737,31 @@ export interface components {
       primaryKeys: string[];
       secondaryKeys: string[];
       selective: boolean;
+      /** @enum {string} */
+      selectiveLogic: "andAny" | "notAll" | "notAny" | "andAll";
       constant: boolean;
       caseSensitive: boolean;
       matchWholeWords: boolean;
       /** @enum {string} */
       insertionPosition:
-        | "beforeChar"
-        | "afterChar"
-        | "beforeHistory"
-        | "afterHistory"
+        | "beforeCharacterDefinition"
+        | "afterCharacterDefinition"
+        | "beforeAuthorsNote"
+        | "afterAuthorsNote"
+        | "atDepth"
+        | "beforeExampleMessages"
+        | "afterExampleMessages"
+        | "atAnchor"
         | "unknown";
       insertionOrder: number;
       depth: number;
+      /** @enum {string} */
+      insertionRole: "system" | "user" | "assistant";
+      anchorName: string;
+      scanDepth: number | null;
+      excludeRecursion: boolean;
+      preventRecursion: boolean;
+      delayUntilRecursion: boolean;
       probability: number;
       tokenCount: number;
       createdAtMs: number;
@@ -804,18 +817,31 @@ export interface components {
       primaryKeys?: string[];
       secondaryKeys?: string[];
       selective?: boolean;
+      /** @enum {string} */
+      selectiveLogic?: "andAny" | "notAll" | "notAny" | "andAll";
       constant?: boolean;
       caseSensitive?: boolean;
       matchWholeWords?: boolean;
       /** @enum {string} */
       insertionPosition?:
-        | "beforeChar"
-        | "afterChar"
-        | "beforeHistory"
-        | "afterHistory"
+        | "beforeCharacterDefinition"
+        | "afterCharacterDefinition"
+        | "beforeAuthorsNote"
+        | "afterAuthorsNote"
+        | "atDepth"
+        | "beforeExampleMessages"
+        | "afterExampleMessages"
+        | "atAnchor"
         | "unknown";
       insertionOrder?: number;
       depth?: number;
+      /** @enum {string} */
+      insertionRole?: "system" | "user" | "assistant";
+      anchorName?: string;
+      scanDepth?: number | null;
+      excludeRecursion?: boolean;
+      preventRecursion?: boolean;
+      delayUntilRecursion?: boolean;
       probability?: number;
     };
     UpdateWorldbookEntryRequestDto: {
@@ -826,18 +852,31 @@ export interface components {
       primaryKeys?: string[];
       secondaryKeys?: string[];
       selective?: boolean;
+      /** @enum {string} */
+      selectiveLogic?: "andAny" | "notAll" | "notAny" | "andAll";
       constant?: boolean;
       caseSensitive?: boolean;
       matchWholeWords?: boolean;
       /** @enum {string} */
       insertionPosition?:
-        | "beforeChar"
-        | "afterChar"
-        | "beforeHistory"
-        | "afterHistory"
+        | "beforeCharacterDefinition"
+        | "afterCharacterDefinition"
+        | "beforeAuthorsNote"
+        | "afterAuthorsNote"
+        | "atDepth"
+        | "beforeExampleMessages"
+        | "afterExampleMessages"
+        | "atAnchor"
         | "unknown";
       insertionOrder?: number;
       depth?: number;
+      /** @enum {string} */
+      insertionRole?: "system" | "user" | "assistant";
+      anchorName?: string;
+      scanDepth?: number | null;
+      excludeRecursion?: boolean;
+      preventRecursion?: boolean;
+      delayUntilRecursion?: boolean;
       probability?: number;
     };
     UpdateWorldbookEntryOrderItemDto: {

@@ -26,6 +26,7 @@ import {
   getWorldbook,
   updateWorldbookEntryOrder,
   type WorldbookEntryResponse,
+  type WorldbookInsertionPosition,
 } from "../api/worldbooks-api";
 import {
   type WorldbookPage,
@@ -33,6 +34,8 @@ import {
   worldbookEntryEditPage,
 } from "./worldbook-pages";
 import { WorldbookStackPage } from "./worldbook-stack-page";
+
+type TranslationFunction = ReturnType<typeof useTranslation>["t"];
 
 export function WorldbookEntryListPage({
   page,
@@ -256,6 +259,7 @@ function WorldbookEntryRow({
   const { t } = useTranslation();
   const { attributes, listeners, setNodeRef, transform, transition } =
     useSortable({ id });
+  const insertionSummary = worldbookEntryInsertionSummary(entry, t);
 
   return (
     <div
@@ -278,7 +282,7 @@ function WorldbookEntryRow({
         <div className="truncate text-sm font-medium">{entry.name}</div>
         <div className="mt-1 flex flex-wrap gap-x-3 gap-y-1 text-xs text-muted-foreground">
           <span>{entry.tokenCount.toLocaleString()}</span>
-          <span>{entry.insertionPosition}</span>
+          <span>{insertionSummary}</span>
           <span>{entry.primaryKeys.slice(0, 3).join(", ")}</span>
         </div>
       </div>
@@ -313,6 +317,31 @@ function WorldbookEntryRow({
       </Button>
     </div>
   );
+}
+
+function worldbookEntryInsertionSummary(
+  entry: WorldbookEntryResponse,
+  t: TranslationFunction,
+): string {
+  const position: WorldbookInsertionPosition = entry.insertionPosition;
+  const positionLabel = t(`worldbooks.entries.positions.${position}`);
+
+  if (entry.insertionPosition === "atDepth") {
+    return t("worldbooks.entries.insertionSummary.atDepth", {
+      position: positionLabel,
+      depth: entry.depth,
+      role: t(`worldbooks.entries.roles.${entry.insertionRole}`),
+    });
+  }
+
+  if (entry.insertionPosition === "atAnchor" && entry.anchorName.length > 0) {
+    return t("worldbooks.entries.insertionSummary.atAnchor", {
+      position: positionLabel,
+      anchor: entry.anchorName,
+    });
+  }
+
+  return positionLabel;
 }
 
 function setItemsAfterDrag(

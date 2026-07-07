@@ -19,9 +19,13 @@ import {
   type WorldbookSortKey,
 } from "../application/worldbook-store.js";
 import {
+  WORLDBOOK_ENTRY_ROLES,
   WORLDBOOK_INSERTION_POSITIONS,
+  WORLDBOOK_SELECTIVE_LOGICS,
   WORLDBOOK_VISIBILITIES,
+  type WorldbookEntryRole,
   type WorldbookInsertionPosition,
+  type WorldbookSelectiveLogic,
   type WorldbookVisibility,
 } from "../domain/worldbook.js";
 
@@ -149,6 +153,11 @@ export class WorldbookEntryEditableFieldsDto {
   @IsBoolean()
   selective?: boolean;
 
+  @ApiPropertyOptional({ enum: WORLDBOOK_SELECTIVE_LOGICS })
+  @IsOptional()
+  @IsIn(WORLDBOOK_SELECTIVE_LOGICS)
+  selectiveLogic?: WorldbookSelectiveLogic;
+
   @ApiPropertyOptional({ type: Boolean })
   @IsOptional()
   @IsBoolean()
@@ -181,6 +190,39 @@ export class WorldbookEntryEditableFieldsDto {
   @IsInt()
   @Min(0)
   depth?: number;
+
+  @ApiPropertyOptional({ enum: WORLDBOOK_ENTRY_ROLES })
+  @IsOptional()
+  @IsIn(WORLDBOOK_ENTRY_ROLES)
+  insertionRole?: WorldbookEntryRole;
+
+  @ApiPropertyOptional({ maxLength: 255, type: String })
+  @IsOptional()
+  @IsString()
+  @MaxLength(255)
+  anchorName?: string;
+
+  @ApiPropertyOptional({ minimum: 0, nullable: true, type: Number })
+  @IsOptional()
+  @Type(() => Number)
+  @IsInt()
+  @Min(0)
+  scanDepth?: number | null;
+
+  @ApiPropertyOptional({ type: Boolean })
+  @IsOptional()
+  @IsBoolean()
+  excludeRecursion?: boolean;
+
+  @ApiPropertyOptional({ type: Boolean })
+  @IsOptional()
+  @IsBoolean()
+  preventRecursion?: boolean;
+
+  @ApiPropertyOptional({ type: Boolean })
+  @IsOptional()
+  @IsBoolean()
+  delayUntilRecursion?: boolean;
 
   @ApiPropertyOptional({ maximum: 100, minimum: 0, type: Number })
   @IsOptional()

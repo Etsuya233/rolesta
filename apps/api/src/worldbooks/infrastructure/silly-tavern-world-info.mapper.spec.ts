@@ -37,7 +37,13 @@ describe("SillyTavern world info mapper", () => {
       selective: true,
       caseSensitive: false,
       matchWholeWords: false,
-      insertionPosition: "beforeChar",
+      insertionPosition: "beforeCharacterDefinition",
+      selectiveLogic: "andAny",
+      insertionRole: "system",
+      scanDepth: 3,
+      excludeRecursion: true,
+      preventRecursion: false,
+      delayUntilRecursion: false,
       insertionOrder: 0,
       depth: 4,
       probability: 100,
@@ -67,8 +73,15 @@ describe("SillyTavern world info mapper", () => {
             caseSensitive: true,
             matchWholeWords: true,
             position: 2,
+            role: 2,
+            selectiveLogic: 3,
             order: 7,
             depth: 3,
+            scanDepth: 6,
+            excludeRecursion: true,
+            preventRecursion: true,
+            delayUntilRecursion: true,
+            outletName: "gate-anchor",
             probability: 40,
             unsupported: "snapshot only",
           },
@@ -91,10 +104,52 @@ describe("SillyTavern world info mapper", () => {
       comment: "Gate comment",
       primaryKeys: ["gate"],
       secondaryKeys: ["silver"],
-      insertionPosition: "beforeHistory",
+      insertionPosition: "beforeAuthorsNote",
+      insertionRole: "assistant",
+      selectiveLogic: "andAll",
+      scanDepth: 6,
+      excludeRecursion: true,
+      preventRecursion: true,
+      delayUntilRecursion: true,
+      anchorName: "gate-anchor",
       insertionOrder: 7,
     });
     expect(worldbook.entries[0]).not.toHaveProperty("unsupported");
+  });
+
+  it("imports compatible extension fields", () => {
+    const worldbook = fromSillyTavernWorldInfo(
+      {
+        entries: [
+          {
+            comment: "Anchor",
+            content: "Anchored lore.",
+            extensions: {
+              position: 7,
+              role: 1,
+              selectiveLogic: 2,
+              scan_depth: 9,
+              exclude_recursion: true,
+              prevent_recursion: true,
+              delay_until_recursion: true,
+              outlet_name: "anchor-slot",
+            },
+          },
+        ],
+      },
+      "anchors.json",
+    );
+
+    expect(worldbook.entries[0]).toMatchObject({
+      insertionPosition: "atAnchor",
+      insertionRole: "user",
+      selectiveLogic: "notAny",
+      scanDepth: 9,
+      excludeRecursion: true,
+      preventRecursion: true,
+      delayUntilRecursion: true,
+      anchorName: "anchor-slot",
+    });
   });
 
   it("rejects missing or malformed entries", () => {
@@ -137,9 +192,16 @@ describe("SillyTavern world info mapper", () => {
           constant: true,
           caseSensitive: false,
           matchWholeWords: true,
-          insertionPosition: "afterChar",
+          selectiveLogic: "notAll",
+          insertionPosition: "atDepth",
           insertionOrder: 2,
           depth: 4,
+          insertionRole: "assistant",
+          anchorName: "slot",
+          scanDepth: 8,
+          excludeRecursion: true,
+          preventRecursion: true,
+          delayUntilRecursion: true,
           probability: 100,
           tokenCount: 1,
           createdAtMs: 1,
@@ -157,7 +219,14 @@ describe("SillyTavern world info mapper", () => {
       disable: false,
       constant: true,
       matchWholeWords: true,
-      position: 1,
+      position: 4,
+      role: 2,
+      selectiveLogic: 1,
+      scanDepth: 8,
+      excludeRecursion: true,
+      preventRecursion: true,
+      delayUntilRecursion: true,
+      outletName: "slot",
     });
     expect(output).not.toHaveProperty("providerOnly");
   });

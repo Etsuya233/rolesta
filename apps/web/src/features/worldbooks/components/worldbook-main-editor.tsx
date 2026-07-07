@@ -81,20 +81,22 @@ export function WorldbookMainEditor({
               }
             />
             <WorldbookTextAreaField
+              className="min-h-12"
               disabled={isPending}
               id={`${fieldPrefix}-description`}
               label={t("worldbooks.editor.fields.description")}
-              rows={5}
+              rows={3}
               value={form.description}
               onChange={(event) =>
                 setForm({ ...form, description: event.target.value })
               }
             />
             <WorldbookTextAreaField
+              className="min-h-8"
               disabled={isPending}
               id={`${fieldPrefix}-tags`}
               label={t("worldbooks.editor.fields.tags")}
-              rows={3}
+              rows={2}
               value={form.tagsText}
               onChange={(event) =>
                 setForm({ ...form, tagsText: event.target.value })

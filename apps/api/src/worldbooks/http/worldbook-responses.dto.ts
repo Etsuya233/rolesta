@@ -2,11 +2,18 @@ import { ApiProperty } from "@nestjs/swagger";
 import type { PageResponse } from "@rolesta/shared";
 import type {
   Worldbook,
+  WorldbookEntryRole,
   WorldbookEntry,
   WorldbookInsertionPosition,
+  WorldbookSelectiveLogic,
   WorldbookSourceFormat,
   WorldbookSummary,
   WorldbookVisibility,
+} from "../domain/worldbook.js";
+import {
+  WORLDBOOK_ENTRY_ROLES,
+  WORLDBOOK_INSERTION_POSITIONS,
+  WORLDBOOK_SELECTIVE_LOGICS,
 } from "../domain/worldbook.js";
 
 export class WorldbookSummaryResponseDto {
@@ -87,6 +94,9 @@ export class WorldbookEntryResponseDto {
   @ApiProperty({ type: Boolean })
   selective!: boolean;
 
+  @ApiProperty({ enum: WORLDBOOK_SELECTIVE_LOGICS })
+  selectiveLogic!: WorldbookSelectiveLogic;
+
   @ApiProperty({ type: Boolean })
   constant!: boolean;
 
@@ -96,15 +106,7 @@ export class WorldbookEntryResponseDto {
   @ApiProperty({ type: Boolean })
   matchWholeWords!: boolean;
 
-  @ApiProperty({
-    enum: [
-      "beforeChar",
-      "afterChar",
-      "beforeHistory",
-      "afterHistory",
-      "unknown",
-    ],
-  })
+  @ApiProperty({ enum: WORLDBOOK_INSERTION_POSITIONS })
   insertionPosition!: WorldbookInsertionPosition;
 
   @ApiProperty({ type: Number })
@@ -112,6 +114,24 @@ export class WorldbookEntryResponseDto {
 
   @ApiProperty({ type: Number })
   depth!: number;
+
+  @ApiProperty({ enum: WORLDBOOK_ENTRY_ROLES })
+  insertionRole!: WorldbookEntryRole;
+
+  @ApiProperty({ type: String })
+  anchorName!: string;
+
+  @ApiProperty({ nullable: true, type: Number })
+  scanDepth!: number | null;
+
+  @ApiProperty({ type: Boolean })
+  excludeRecursion!: boolean;
+
+  @ApiProperty({ type: Boolean })
+  preventRecursion!: boolean;
+
+  @ApiProperty({ type: Boolean })
+  delayUntilRecursion!: boolean;
 
   @ApiProperty({ type: Number })
   probability!: number;

@@ -86,6 +86,14 @@ describe("worldbook use cases", () => {
       name: "Alpha",
       content: "alpha content",
       primaryKeys: ["alpha"],
+      selectiveLogic: "andAll",
+      insertionPosition: "atAnchor",
+      insertionRole: "user",
+      anchorName: "alpha-anchor",
+      scanDepth: 5,
+      excludeRecursion: true,
+      preventRecursion: true,
+      delayUntilRecursion: true,
     });
     await createUseCase.execute({
       worldbookId: "book-1",
@@ -105,6 +113,14 @@ describe("worldbook use cases", () => {
     expect(updated.entries[0]).toMatchObject({
       id: "entry-1",
       content: "alpha edited",
+      selectiveLogic: "andAll",
+      insertionPosition: "atAnchor",
+      insertionRole: "user",
+      anchorName: "alpha-anchor",
+      scanDepth: 5,
+      excludeRecursion: true,
+      preventRecursion: true,
+      delayUntilRecursion: true,
       probability: 80,
     });
     expect(updated.entries[0]?.tokenCount).toBeGreaterThan(0);
@@ -192,9 +208,9 @@ describe("worldbook use cases", () => {
       }),
     ).rejects.toMatchObject(new WorldbookApplicationError("unknown-entry"));
 
-    expect((await store.findOwnedById("book-1", "owner"))?.entries).toHaveLength(
-      2,
-    );
+    expect(
+      (await store.findOwnedById("book-1", "owner"))?.entries,
+    ).toHaveLength(2);
   });
 });
 
@@ -318,12 +334,20 @@ function worldbookEntry(
     primaryKeys: overrides.primaryKeys ?? [],
     secondaryKeys: overrides.secondaryKeys ?? [],
     selective: overrides.selective ?? false,
+    selectiveLogic: overrides.selectiveLogic ?? "andAny",
     constant: overrides.constant ?? false,
     caseSensitive: overrides.caseSensitive ?? false,
     matchWholeWords: overrides.matchWholeWords ?? false,
-    insertionPosition: overrides.insertionPosition ?? "beforeChar",
+    insertionPosition:
+      overrides.insertionPosition ?? "beforeCharacterDefinition",
     insertionOrder: overrides.insertionOrder ?? 0,
     depth: overrides.depth ?? 3,
+    insertionRole: overrides.insertionRole ?? "system",
+    anchorName: overrides.anchorName ?? "",
+    scanDepth: overrides.scanDepth ?? null,
+    excludeRecursion: overrides.excludeRecursion ?? false,
+    preventRecursion: overrides.preventRecursion ?? false,
+    delayUntilRecursion: overrides.delayUntilRecursion ?? false,
     probability: overrides.probability ?? 100,
     tokenCount: overrides.tokenCount ?? 1,
     createdAtMs: overrides.createdAtMs ?? 1,

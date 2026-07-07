@@ -8,14 +8,30 @@ export const WORLDBOOK_SOURCE_FORMATS = [
 export type WorldbookSourceFormat = (typeof WORLDBOOK_SOURCE_FORMATS)[number];
 
 export const WORLDBOOK_INSERTION_POSITIONS = [
-  "beforeChar",
-  "afterChar",
-  "beforeHistory",
-  "afterHistory",
+  "beforeCharacterDefinition",
+  "afterCharacterDefinition",
+  "beforeAuthorsNote",
+  "afterAuthorsNote",
+  "atDepth",
+  "beforeExampleMessages",
+  "afterExampleMessages",
+  "atAnchor",
   "unknown",
 ] as const;
 export type WorldbookInsertionPosition =
   (typeof WORLDBOOK_INSERTION_POSITIONS)[number];
+
+export const WORLDBOOK_ENTRY_ROLES = ["system", "user", "assistant"] as const;
+export type WorldbookEntryRole = (typeof WORLDBOOK_ENTRY_ROLES)[number];
+
+export const WORLDBOOK_SELECTIVE_LOGICS = [
+  "andAny",
+  "notAll",
+  "notAny",
+  "andAll",
+] as const;
+export type WorldbookSelectiveLogic =
+  (typeof WORLDBOOK_SELECTIVE_LOGICS)[number];
 
 export interface Worldbook {
   id: string;
@@ -65,12 +81,19 @@ export interface WorldbookEntry {
   primaryKeys: string[];
   secondaryKeys: string[];
   selective: boolean;
+  selectiveLogic: WorldbookSelectiveLogic;
   constant: boolean;
   caseSensitive: boolean;
   matchWholeWords: boolean;
   insertionPosition: WorldbookInsertionPosition;
   insertionOrder: number;
   depth: number;
+  insertionRole: WorldbookEntryRole;
+  anchorName: string;
+  scanDepth: number | null;
+  excludeRecursion: boolean;
+  preventRecursion: boolean;
+  delayUntilRecursion: boolean;
   probability: number;
   tokenCount: number;
   createdAtMs: number;

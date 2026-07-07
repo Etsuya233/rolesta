@@ -2,8 +2,10 @@ import { countPromptTokens } from "@rolesta/shared";
 import { WorldbookApplicationError } from "../application/worldbook-application-error.js";
 import type {
   Worldbook,
+  WorldbookEntryRole,
   WorldbookEntry,
   WorldbookInsertionPosition,
+  WorldbookSelectiveLogic,
 } from "../domain/worldbook.js";
 
 export interface ImportedSillyTavernWorldInfo {
@@ -39,10 +41,16 @@ export interface SillyTavernWorldInfoEntryOutput {
   caseSensitive: boolean;
   matchWholeWords: boolean;
   position: number | string;
+  role: number;
+  selectiveLogic: number;
   order: number;
   depth: number;
   probability: number;
   scanDepth: number;
+  excludeRecursion: boolean;
+  preventRecursion: boolean;
+  delayUntilRecursion: boolean;
+  outletName: string;
 }
 
 export function fromSillyTavernWorldInfo(
@@ -88,13 +96,19 @@ export function toSillyTavernWorldInfo(
           disable: !entry.enabled,
           constant: entry.constant,
           selective: entry.selective,
+          selectiveLogic: sillyTavernSelectiveLogic(entry.selectiveLogic),
           caseSensitive: entry.caseSensitive,
           matchWholeWords: entry.matchWholeWords,
           position: sillyTavernPosition(entry.insertionPosition),
+          role: sillyTavernRole(entry.insertionRole),
           order: entry.insertionOrder,
           depth: entry.depth,
           probability: entry.probability,
-          scanDepth: worldbook.scanDepth,
+          scanDepth: entry.scanDepth ?? worldbook.scanDepth,
+          excludeRecursion: entry.excludeRecursion,
+          preventRecursion: entry.preventRecursion,
+          delayUntilRecursion: entry.delayUntilRecursion,
+          outletName: entry.anchorName,
         },
       ]),
     ),
@@ -119,10 +133,15 @@ function toImportedEntry(
     primaryKeys: keysField(entry, ["key", "keys"]),
     secondaryKeys: keysField(entry, ["keysecondary", "secondaryKeys"]),
     selective: optionalBooleanField(entry, "selective") ?? false,
+    selectiveLogic: worldbookSelectiveLogic(
+      compatibleField(entry, "selectiveLogic", "selectiveLogic"),
+    ),
     constant: optionalBooleanField(entry, "constant") ?? false,
     caseSensitive: optionalBooleanField(entry, "caseSensitive") ?? false,
     matchWholeWords: optionalBooleanField(entry, "matchWholeWords") ?? false,
-    insertionPosition: worldbookInsertionPosition(entry.position),
+    insertionPosition: worldbookInsertionPosition(
+      compatibleField(entry, "position", "position"),
+    ),
     insertionOrder:
       optionalNumberField(entry, "displayIndex") ??
       optionalNumberField(entry, "order") ??
@@ -131,6 +150,28 @@ function toImportedEntry(
       optionalNumberField(entry, "depth") ??
       optionalNumberField(entry, "scanDepth") ??
       3,
+    insertionRole: worldbookEntryRole(compatibleField(entry, "role", "role")),
+    anchorName: stringCompatibleField(entry, "outletName", "outlet_name"),
+    scanDepth:
+      optionalNumberCompatibleField(entry, "scanDepth", "scan_depth") ?? null,
+    excludeRecursion:
+      optionalBooleanCompatibleField(
+        entry,
+        "excludeRecursion",
+        "exclude_recursion",
+      ) ?? false,
+    preventRecursion:
+      optionalBooleanCompatibleField(
+        entry,
+        "preventRecursion",
+        "prevent_recursion",
+      ) ?? false,
+    delayUntilRecursion:
+      optionalBooleanCompatibleField(
+        entry,
+        "delayUntilRecursion",
+        "delay_until_recursion",
+      ) ?? false,
     probability: optionalNumberField(entry, "probability") ?? 100,
     tokenCount: countPromptTokens(content),
   };
@@ -183,46 +224,227 @@ function worldbookInsertionPosition(
   value: unknown,
 ): WorldbookInsertionPosition {
   if (
-    value === "beforeChar" ||
-    value === "afterChar" ||
-    value === "beforeHistory" ||
-    value === "afterHistory" ||
+    value === "beforeCharacterDefinition" ||
+    value === "afterCharacterDefinition" ||
+    value === "beforeAuthorsNote" ||
+    value === "afterAuthorsNote" ||
+    value === "atDepth" ||
+    value === "beforeExampleMessages" ||
+    value === "afterExampleMessages" ||
+    value === "atAnchor" ||
     value === "unknown"
   ) {
     return value;
   }
 
+  if (value === "beforeChar") {
+    return "beforeCharacterDefinition";
+  }
+
+  if (value === "afterChar") {
+    return "afterCharacterDefinition";
+  }
+
+  if (value === "beforeHistory") {
+    return "beforeAuthorsNote";
+  }
+
+  if (value === "afterHistory") {
+    return "afterAuthorsNote";
+  }
+
   if (value === undefined || value === null || value === 0) {
-    return "beforeChar";
+    return "beforeCharacterDefinition";
   }
 
   if (value === 1) {
-    return "afterChar";
+    return "afterCharacterDefinition";
   }
 
   if (value === 2) {
-    return "beforeHistory";
+    return "beforeAuthorsNote";
   }
 
   if (value === 3) {
-    return "afterHistory";
+    return "afterAuthorsNote";
+  }
+
+  if (value === 4) {
+    return "atDepth";
+  }
+
+  if (value === 5) {
+    return "beforeExampleMessages";
+  }
+
+  if (value === 6) {
+    return "afterExampleMessages";
+  }
+
+  if (value === 7) {
+    return "atAnchor";
   }
 
   return "unknown";
+}
+
+function worldbookEntryRole(value: unknown): WorldbookEntryRole {
+  if (
+    value === "system" ||
+    value === undefined ||
+    value === null ||
+    value === 0
+  ) {
+    return "system";
+  }
+
+  if (value === "user" || value === 1) {
+    return "user";
+  }
+
+  if (value === "assistant" || value === 2) {
+    return "assistant";
+  }
+
+  throw new WorldbookApplicationError("invalid-worldbook");
+}
+
+function worldbookSelectiveLogic(value: unknown): WorldbookSelectiveLogic {
+  if (
+    value === "andAny" ||
+    value === undefined ||
+    value === null ||
+    value === 0
+  ) {
+    return "andAny";
+  }
+
+  if (value === "notAll" || value === 1) {
+    return "notAll";
+  }
+
+  if (value === "notAny" || value === 2) {
+    return "notAny";
+  }
+
+  if (value === "andAll" || value === 3) {
+    return "andAll";
+  }
+
+  throw new WorldbookApplicationError("invalid-worldbook");
 }
 
 function sillyTavernPosition(
   position: WorldbookInsertionPosition,
 ): number | string {
   const positions: Record<WorldbookInsertionPosition, number | string> = {
-    beforeChar: 0,
-    afterChar: 1,
-    beforeHistory: 2,
-    afterHistory: 3,
+    beforeCharacterDefinition: 0,
+    afterCharacterDefinition: 1,
+    beforeAuthorsNote: 2,
+    afterAuthorsNote: 3,
+    atDepth: 4,
+    beforeExampleMessages: 5,
+    afterExampleMessages: 6,
+    atAnchor: 7,
     unknown: "unknown",
   };
 
   return positions[position];
+}
+
+function sillyTavernRole(role: WorldbookEntryRole): number {
+  const roles: Record<WorldbookEntryRole, number> = {
+    system: 0,
+    user: 1,
+    assistant: 2,
+  };
+
+  return roles[role];
+}
+
+function sillyTavernSelectiveLogic(logic: WorldbookSelectiveLogic): number {
+  const logics: Record<WorldbookSelectiveLogic, number> = {
+    andAny: 0,
+    notAll: 1,
+    notAny: 2,
+    andAll: 3,
+  };
+
+  return logics[logic];
+}
+
+function compatibleField(
+  input: Record<string, unknown>,
+  directKey: string,
+  extensionKey: string,
+): unknown {
+  const value = input[directKey];
+
+  if (value !== undefined && value !== null) {
+    return value;
+  }
+
+  const extensions = input.extensions;
+
+  if (!isRecord(extensions)) {
+    return undefined;
+  }
+
+  return extensions[extensionKey];
+}
+
+function stringCompatibleField(
+  input: Record<string, unknown>,
+  directKey: string,
+  extensionKey: string,
+): string {
+  const value = compatibleField(input, directKey, extensionKey);
+
+  if (value === undefined || value === null) {
+    return "";
+  }
+
+  if (typeof value === "string") {
+    return value;
+  }
+
+  throw new WorldbookApplicationError("invalid-worldbook");
+}
+
+function optionalBooleanCompatibleField(
+  input: Record<string, unknown>,
+  directKey: string,
+  extensionKey: string,
+): boolean | undefined {
+  const value = compatibleField(input, directKey, extensionKey);
+
+  if (value === undefined || value === null) {
+    return undefined;
+  }
+
+  if (typeof value === "boolean") {
+    return value;
+  }
+
+  throw new WorldbookApplicationError("invalid-worldbook");
+}
+
+function optionalNumberCompatibleField(
+  input: Record<string, unknown>,
+  directKey: string,
+  extensionKey: string,
+): number | undefined {
+  const value = compatibleField(input, directKey, extensionKey);
+
+  if (value === undefined || value === null || value === "") {
+    return undefined;
+  }
+
+  if (typeof value === "number" && Number.isFinite(value)) {
+    return value;
+  }
+
+  throw new WorldbookApplicationError("invalid-worldbook");
 }
 
 function stringField(input: Record<string, unknown>, key: string): string {

@@ -26,13 +26,28 @@ export interface WorldbookEntriesTable {
   primary_keys_json: string;
   secondary_keys_json: string;
   selective: number;
+  selective_logic: "andAny" | "notAll" | "notAny" | "andAll";
   constant: number;
   case_sensitive: number;
   match_whole_words: number;
   insertion_position:
-    "beforeChar" | "afterChar" | "beforeHistory" | "afterHistory" | "unknown";
+    | "beforeCharacterDefinition"
+    | "afterCharacterDefinition"
+    | "beforeAuthorsNote"
+    | "afterAuthorsNote"
+    | "atDepth"
+    | "beforeExampleMessages"
+    | "afterExampleMessages"
+    | "atAnchor"
+    | "unknown";
   insertion_order: number;
   depth: number;
+  insertion_role: "system" | "user" | "assistant";
+  anchor_name: string;
+  entry_scan_depth: number | null;
+  exclude_recursion: number;
+  prevent_recursion: number;
+  delay_until_recursion: number;
   probability: number;
   token_count: number;
   created_at_ms: number;

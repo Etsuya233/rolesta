@@ -6,6 +6,7 @@ import * as characterCardsMigration from "./0003_character_cards.js";
 import * as presetsMigration from "./0004_presets.js";
 import * as modelProvidersMigration from "./0005_model_providers.js";
 import * as worldbooksMigration from "./0006_worldbooks.js";
+import * as worldbookEntryCompatibilityMigration from "./0007_worldbook_entry_compatibility.js";
 
 type DialectMigration = {
   common: Migration;
@@ -32,6 +33,9 @@ const migrations: Record<string, DialectMigration> = {
   },
   "0006_worldbooks": {
     common: worldbooksMigration,
+  },
+  "0007_worldbook_entry_compatibility": {
+    common: worldbookEntryCompatibilityMigration,
   },
 };
 
