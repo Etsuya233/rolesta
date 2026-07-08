@@ -27,6 +27,7 @@ export interface WorldbookEntryEditorFormState {
   selective: boolean;
   selectiveLogic: WorldbookSelectiveLogic;
   constant: boolean;
+  vectorized: boolean;
   caseSensitive: boolean;
   matchWholeWords: boolean;
   insertionPosition: WorldbookInsertionPosition;
@@ -61,6 +62,7 @@ export const emptyWorldbookEntryEditorForm: WorldbookEntryEditorFormState = {
   selective: false,
   selectiveLogic: "andAny",
   constant: false,
+  vectorized: false,
   caseSensitive: false,
   matchWholeWords: false,
   insertionPosition: "beforeCharacterDefinition",
@@ -102,6 +104,7 @@ export function worldbookEntryEditorFormFromEntry(
     selective: entry.selective,
     selectiveLogic: entry.selectiveLogic,
     constant: entry.constant,
+    vectorized: entry.vectorized,
     caseSensitive: entry.caseSensitive,
     matchWholeWords: entry.matchWholeWords,
     insertionPosition: entry.insertionPosition,
@@ -143,6 +146,7 @@ export function worldbookEntryValuesFromForm(
     selective: form.selective,
     selectiveLogic: form.selectiveLogic,
     constant: form.constant,
+    vectorized: form.vectorized,
     caseSensitive: form.caseSensitive,
     matchWholeWords: form.matchWholeWords,
     insertionPosition: form.insertionPosition,

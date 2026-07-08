@@ -83,6 +83,7 @@ export interface WorldbookEntry {
   selective: boolean;
   selectiveLogic: WorldbookSelectiveLogic;
   constant: boolean;
+  vectorized: boolean;
   caseSensitive: boolean;
   matchWholeWords: boolean;
   insertionPosition: WorldbookInsertionPosition;

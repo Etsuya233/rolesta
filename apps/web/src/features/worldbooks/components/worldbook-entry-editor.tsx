@@ -268,6 +268,13 @@ export function WorldbookEntryEditor({
                 onChange={(constant) => setForm({ ...form, constant })}
               />
               <WorldbookCheckboxField
+                checked={form.vectorized}
+                disabled={saveMutation.isPending}
+                id={`${fieldPrefix}-vectorized`}
+                label={t("worldbooks.entries.fields.vectorized")}
+                onChange={(vectorized) => setForm({ ...form, vectorized })}
+              />
+              <WorldbookCheckboxField
                 checked={form.selective}
                 disabled={saveMutation.isPending}
                 id={`${fieldPrefix}-selective`}

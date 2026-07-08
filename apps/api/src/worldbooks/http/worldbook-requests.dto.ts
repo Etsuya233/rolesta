@@ -166,6 +166,11 @@ export class WorldbookEntryEditableFieldsDto {
   @ApiPropertyOptional({ type: Boolean })
   @IsOptional()
   @IsBoolean()
+  vectorized?: boolean;
+
+  @ApiPropertyOptional({ type: Boolean })
+  @IsOptional()
+  @IsBoolean()
   caseSensitive?: boolean;
 
   @ApiPropertyOptional({ type: Boolean })

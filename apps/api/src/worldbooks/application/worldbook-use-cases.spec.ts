@@ -87,6 +87,7 @@ describe("worldbook use cases", () => {
       content: "alpha content",
       primaryKeys: ["alpha"],
       selectiveLogic: "andAll",
+      vectorized: true,
       insertionPosition: "atAnchor",
       insertionRole: "user",
       anchorName: "alpha-anchor",
@@ -114,6 +115,7 @@ describe("worldbook use cases", () => {
       id: "entry-1",
       content: "alpha edited",
       selectiveLogic: "andAll",
+      vectorized: true,
       insertionPosition: "atAnchor",
       insertionRole: "user",
       anchorName: "alpha-anchor",
@@ -336,6 +338,7 @@ function worldbookEntry(
     selective: overrides.selective ?? false,
     selectiveLogic: overrides.selectiveLogic ?? "andAny",
     constant: overrides.constant ?? false,
+    vectorized: overrides.vectorized ?? false,
     caseSensitive: overrides.caseSensitive ?? false,
     matchWholeWords: overrides.matchWholeWords ?? false,
     insertionPosition:

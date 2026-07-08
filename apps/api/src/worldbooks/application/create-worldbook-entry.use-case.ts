@@ -26,6 +26,7 @@ export interface CreateWorldbookEntryCommand {
   selective?: boolean;
   selectiveLogic?: WorldbookSelectiveLogic;
   constant?: boolean;
+  vectorized?: boolean;
   caseSensitive?: boolean;
   matchWholeWords?: boolean;
   insertionPosition?: WorldbookInsertionPosition;
@@ -80,6 +81,7 @@ export class CreateWorldbookEntryUseCase {
       selective: command.selective ?? false,
       selectiveLogic: command.selectiveLogic ?? "andAny",
       constant: command.constant ?? false,
+      vectorized: command.vectorized ?? false,
       caseSensitive: command.caseSensitive ?? false,
       matchWholeWords: command.matchWholeWords ?? false,
       insertionPosition:

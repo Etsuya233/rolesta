@@ -101,6 +101,9 @@ export class WorldbookEntryResponseDto {
   constant!: boolean;
 
   @ApiProperty({ type: Boolean })
+  vectorized!: boolean;
+
+  @ApiProperty({ type: Boolean })
   caseSensitive!: boolean;
 
   @ApiProperty({ type: Boolean })

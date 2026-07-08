@@ -28,6 +28,7 @@ export interface WorldbookEntriesTable {
   selective: number;
   selective_logic: "andAny" | "notAll" | "notAny" | "andAll";
   constant: number;
+  vectorized: number;
   case_sensitive: number;
   match_whole_words: number;
   insertion_position:

@@ -12,6 +12,7 @@ import {
   type SetStateAction,
 } from "react";
 import { useTranslation } from "react-i18next";
+import { getFormErrorMessage } from "../../../lib/forms/form-error";
 import {
   createWorldbook,
   getWorldbook,
@@ -254,7 +255,7 @@ export function useWorldbookDraftSession({
   if (draft.errorMessage) {
     visibleError = draft.errorMessage;
   } else if (saveMutation.isError) {
-    visibleError = t("worldbooks.editor.errors.saveFailed");
+    visibleError = getFormErrorMessage(saveMutation.error);
   }
 
   return useMemo(

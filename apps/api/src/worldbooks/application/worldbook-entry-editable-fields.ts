@@ -16,6 +16,7 @@ export interface WorldbookEntryEditableFields {
   selective?: boolean;
   selectiveLogic?: WorldbookSelectiveLogic;
   constant?: boolean;
+  vectorized?: boolean;
   caseSensitive?: boolean;
   matchWholeWords?: boolean;
   insertionPosition?: WorldbookInsertionPosition;
@@ -47,6 +48,7 @@ export function applyWorldbookEntryEditableFields(
     selective: fields.selective ?? entry.selective,
     selectiveLogic: fields.selectiveLogic ?? entry.selectiveLogic,
     constant: fields.constant ?? entry.constant,
+    vectorized: fields.vectorized ?? entry.vectorized,
     caseSensitive: fields.caseSensitive ?? entry.caseSensitive,
     matchWholeWords: fields.matchWholeWords ?? entry.matchWholeWords,
     insertionPosition: fields.insertionPosition ?? entry.insertionPosition,

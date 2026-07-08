@@ -37,6 +37,7 @@ export interface SillyTavernWorldInfoEntryOutput {
   content: string;
   disable: boolean;
   constant: boolean;
+  vectorized: boolean;
   selective: boolean;
   caseSensitive: boolean;
   matchWholeWords: boolean;
@@ -95,6 +96,7 @@ export function toSillyTavernWorldInfo(
           content: entry.content,
           disable: !entry.enabled,
           constant: entry.constant,
+          vectorized: entry.vectorized,
           selective: entry.selective,
           selectiveLogic: sillyTavernSelectiveLogic(entry.selectiveLogic),
           caseSensitive: entry.caseSensitive,
@@ -137,6 +139,9 @@ function toImportedEntry(
       compatibleField(entry, "selectiveLogic", "selectiveLogic"),
     ),
     constant: optionalBooleanField(entry, "constant") ?? false,
+    vectorized:
+      optionalBooleanCompatibleField(entry, "vectorized", "vectorized") ??
+      false,
     caseSensitive: optionalBooleanField(entry, "caseSensitive") ?? false,
     matchWholeWords: optionalBooleanField(entry, "matchWholeWords") ?? false,
     insertionPosition: worldbookInsertionPosition(

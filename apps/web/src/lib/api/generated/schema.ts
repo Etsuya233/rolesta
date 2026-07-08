@@ -740,6 +740,7 @@ export interface components {
       /** @enum {string} */
       selectiveLogic: "andAny" | "notAll" | "notAny" | "andAll";
       constant: boolean;
+      vectorized: boolean;
       caseSensitive: boolean;
       matchWholeWords: boolean;
       /** @enum {string} */
@@ -820,6 +821,7 @@ export interface components {
       /** @enum {string} */
       selectiveLogic?: "andAny" | "notAll" | "notAny" | "andAll";
       constant?: boolean;
+      vectorized?: boolean;
       caseSensitive?: boolean;
       matchWholeWords?: boolean;
       /** @enum {string} */
@@ -855,6 +857,7 @@ export interface components {
       /** @enum {string} */
       selectiveLogic?: "andAny" | "notAll" | "notAny" | "andAll";
       constant?: boolean;
+      vectorized?: boolean;
       caseSensitive?: boolean;
       matchWholeWords?: boolean;
       /** @enum {string} */

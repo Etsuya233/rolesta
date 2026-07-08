@@ -15,19 +15,48 @@ import {
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { GripVertical, Pencil, Plus, Search, Trash2 } from "lucide-react";
-import { useEffect, useMemo, useState } from "react";
+import {
+  Copy,
+  GripVertical,
+  MoreVertical,
+  Plus,
+  Search,
+  Trash2,
+} from "lucide-react";
+import {
+  useEffect,
+  useMemo,
+  useState,
+  type KeyboardEvent,
+  type MouseEvent,
+} from "react";
 import { useTranslation } from "react-i18next";
 import { Button } from "../../../components/ui/button";
 import { Input } from "../../../components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectGroup,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "../../../components/ui/select";
+import { getFormErrorMessage } from "../../../lib/forms/form-error";
+import { cn } from "../../../lib/utils";
 import { MobileTopBar } from "../../assets/components/mobile-top-bar";
 import {
+  createWorldbookEntry,
   deleteWorldbookEntry,
   getWorldbook,
+  listWorldbooks,
+  updateWorldbookEntry,
   updateWorldbookEntryOrder,
+  type WorldbookEntryCreateValues,
   type WorldbookEntryResponse,
   type WorldbookInsertionPosition,
+  type WorldbookSummaryResponse,
 } from "../api/worldbooks-api";
+import { FormError } from "./worldbook-form-fields";
 import {
   type WorldbookPage,
   worldbookEntryCreatePage,
@@ -81,6 +110,17 @@ function WorldbookEntryListEditor({
     queryKey: ["worldbook", worldbookId],
     queryFn: () => getWorldbook(worldbookId),
   });
+  const worldbooksQuery = useQuery({
+    queryKey: ["worldbooks", "entry-move-targets"],
+    queryFn: () =>
+      listWorldbooks({
+        direction: "asc",
+        pageIndex: 0,
+        pageSize: 100,
+        q: "",
+        sort: "name",
+      }),
+  });
   const [items, setItems] = useState<
     Array<{ entryId: string; enabled: boolean }>
   >([]);
@@ -111,10 +151,74 @@ function WorldbookEntryListEditor({
       queryClient.setQueryData(["worldbook", worldbook.id], worldbook);
     },
   });
+  const statusMutation = useMutation({
+    mutationFn: (entry: WorldbookEntryResponse) =>
+      updateWorldbookEntry(worldbookId, entry.id, {
+        constant: !entry.constant,
+        vectorized: false,
+      }),
+    async onSuccess(worldbook) {
+      await queryClient.invalidateQueries({ queryKey: ["worldbooks"] });
+      queryClient.setQueryData(["worldbook", worldbook.id], worldbook);
+    },
+  });
+  const copyMutation = useMutation({
+    mutationFn: (entry: WorldbookEntryResponse) =>
+      createWorldbookEntry(worldbookId, worldbookEntryCreateValues(entry)),
+    async onSuccess(worldbook) {
+      await queryClient.invalidateQueries({ queryKey: ["worldbooks"] });
+      queryClient.setQueryData(["worldbook", worldbook.id], worldbook);
+    },
+  });
+  const moveMutation = useMutation({
+    async mutationFn({
+      entry,
+      targetWorldbookId,
+    }: {
+      entry: WorldbookEntryResponse;
+      targetWorldbookId: string;
+    }) {
+      const targetWorldbook = await createWorldbookEntry(
+        targetWorldbookId,
+        worldbookEntryCreateValues(entry),
+      );
+      const sourceWorldbook = await deleteWorldbookEntry(worldbookId, entry.id);
+
+      return { sourceWorldbook, targetWorldbook };
+    },
+    async onSuccess({ sourceWorldbook, targetWorldbook }) {
+      await queryClient.invalidateQueries({ queryKey: ["worldbooks"] });
+      queryClient.setQueryData(
+        ["worldbook", sourceWorldbook.id],
+        sourceWorldbook,
+      );
+      queryClient.setQueryData(
+        ["worldbook", targetWorldbook.id],
+        targetWorldbook,
+      );
+    },
+  });
   const entryById = useMemo(
     () => new Map(query.data?.entries.map((entry) => [entry.id, entry]) ?? []),
     [query.data?.entries],
   );
+  const moveTargetWorldbooks =
+    worldbooksQuery.data?.items.filter(
+      (worldbook) =>
+        worldbook.id !== worldbookId &&
+        worldbook.ownerUserId === query.data?.ownerUserId,
+    ) ?? [];
+  const visibleError = saveMutation.isError
+    ? getFormErrorMessage(saveMutation.error)
+    : deleteMutation.isError
+      ? getFormErrorMessage(deleteMutation.error)
+      : statusMutation.isError
+        ? getFormErrorMessage(statusMutation.error)
+        : copyMutation.isError
+          ? getFormErrorMessage(copyMutation.error)
+          : moveMutation.isError
+            ? getFormErrorMessage(moveMutation.error)
+            : null;
   const keyword = debouncedQ.trim().toLocaleLowerCase();
   const visibleItems = items.filter((item) => {
     const entry = entryById.get(item.entryId);
@@ -211,6 +315,11 @@ function WorldbookEntryListEditor({
                   id={item.entryId}
                   onDelete={() => deleteMutation.mutate(entry.id)}
                   onEdit={() => onEditEntry(entry.id)}
+                  onCopy={() => copyMutation.mutate(entry)}
+                  onMove={(targetWorldbookId) =>
+                    moveMutation.mutate({ entry, targetWorldbookId })
+                  }
+                  onToggleTriggerMode={() => statusMutation.mutate(entry)}
                   onToggle={(enabled) =>
                     setItems((current) =>
                       current.map((candidate) =>
@@ -220,6 +329,13 @@ function WorldbookEntryListEditor({
                       ),
                     )
                   }
+                  pending={
+                    deleteMutation.isPending ||
+                    statusMutation.isPending ||
+                    copyMutation.isPending ||
+                    moveMutation.isPending
+                  }
+                  moveTargetWorldbooks={moveTargetWorldbooks}
                 />
               );
             })}
@@ -228,6 +344,11 @@ function WorldbookEntryListEditor({
       </div>
 
       <div className="shrink-0 border-t border-border p-3">
+        {visibleError ? (
+          <div className="mb-3">
+            <FormError>{visibleError}</FormError>
+          </div>
+        ) : null}
         <Button
           className="w-full"
           disabled={saveMutation.isPending}
@@ -247,74 +368,228 @@ function WorldbookEntryRow({
   enabled,
   onToggle,
   onEdit,
+  onCopy,
+  onMove,
+  onToggleTriggerMode,
   onDelete,
+  pending,
+  moveTargetWorldbooks,
 }: {
   id: string;
   entry: WorldbookEntryResponse;
   enabled: boolean;
   onToggle: (enabled: boolean) => void;
   onEdit: () => void;
+  onCopy: () => void;
+  onMove: (targetWorldbookId: string) => void;
+  onToggleTriggerMode: () => void;
   onDelete: () => void;
+  pending: boolean;
+  moveTargetWorldbooks: WorldbookSummaryResponse[];
 }) {
   const { t } = useTranslation();
-  const { attributes, listeners, setNodeRef, transform, transition } =
-    useSortable({ id });
+  const [isConfirmingDelete, setIsConfirmingDelete] = useState(false);
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [targetWorldbookId, setTargetWorldbookId] = useState("");
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({ id });
   const insertionSummary = worldbookEntryInsertionSummary(entry, t);
+  const triggerMode = entry.constant ? "green" : "blue";
+
+  useEffect(() => {
+    if (!isConfirmingDelete) {
+      return;
+    }
+
+    const timeoutId = window.setTimeout(
+      () => setIsConfirmingDelete(false),
+      2500,
+    );
+    return () => window.clearTimeout(timeoutId);
+  }, [isConfirmingDelete]);
+
+  useEffect(() => {
+    if (
+      targetWorldbookId.length > 0 &&
+      !moveTargetWorldbooks.some(
+        (worldbook) => worldbook.id === targetWorldbookId,
+      )
+    ) {
+      setTargetWorldbookId("");
+    }
+  }, [moveTargetWorldbooks, targetWorldbookId]);
+
+  function deleteAfterConfirmation(event: MouseEvent<HTMLButtonElement>) {
+    event.stopPropagation();
+
+    if (!isConfirmingDelete) {
+      setIsConfirmingDelete(true);
+      return;
+    }
+
+    setIsConfirmingDelete(false);
+    onDelete();
+  }
+
+  function handleRowKeyDown(event: KeyboardEvent<HTMLDivElement>) {
+    if (event.key !== "Enter" && event.key !== " ") {
+      return;
+    }
+
+    event.preventDefault();
+    onEdit();
+  }
 
   return (
     <div
       ref={setNodeRef}
-      className="grid min-h-16 grid-cols-[2rem_minmax(0,1fr)_2.5rem_2.5rem_2.5rem] items-center gap-1 border-b border-border px-3 py-2"
+      className={cn(
+        "border-b border-border",
+        isDragging && "relative z-10 bg-muted shadow-sm",
+      )}
       style={{ transform: CSS.Transform.toString(transform), transition }}
     >
-      <Button
-        aria-label={t("worldbooks.entries.dragLabel")}
-        className="size-8 touch-none"
-        size="icon"
-        type="button"
-        variant="ghost"
-        {...attributes}
-        {...listeners}
-      >
-        <GripVertical aria-hidden="true" />
-      </Button>
-      <div className="min-w-0">
-        <div className="truncate text-sm font-medium">{entry.name}</div>
-        <div className="mt-1 flex flex-wrap gap-x-3 gap-y-1 text-xs text-muted-foreground">
-          <span>{entry.tokenCount.toLocaleString()}</span>
-          <span>{insertionSummary}</span>
-          <span>{entry.primaryKeys.slice(0, 3).join(", ")}</span>
-        </div>
-      </div>
-      <label className="flex size-10 items-center justify-center">
-        <input
-          checked={enabled}
-          className="size-4 accent-primary"
-          type="checkbox"
-          aria-label={t("worldbooks.entries.enableLabel")}
-          onChange={(event) => onToggle(event.target.checked)}
-        />
-      </label>
-      <Button
-        aria-label={t("worldbooks.entries.editAction")}
-        className="size-10"
-        size="icon"
-        type="button"
-        variant="ghost"
+      <div
+        className="grid min-h-16 cursor-pointer grid-cols-[2rem_minmax(0,1fr)_2.5rem_2.5rem_2.5rem_2.5rem] items-center gap-1 px-3 py-2"
+        role="button"
+        tabIndex={0}
         onClick={onEdit}
+        onKeyDown={handleRowKeyDown}
       >
-        <Pencil aria-hidden="true" />
-      </Button>
-      <Button
-        aria-label={t("worldbooks.entries.deleteAction")}
-        className="size-10"
-        size="icon"
-        type="button"
-        variant="ghost"
-        onClick={onDelete}
-      >
-        <Trash2 aria-hidden="true" />
-      </Button>
+        <Button
+          aria-label={t("worldbooks.entries.dragLabel")}
+          className="size-8 touch-none"
+          size="icon"
+          type="button"
+          variant="ghost"
+          onClick={(event) => event.stopPropagation()}
+          {...attributes}
+          {...listeners}
+        >
+          <GripVertical aria-hidden="true" />
+        </Button>
+        <div className="min-w-0">
+          <div className="truncate text-sm font-medium">{entry.name}</div>
+          <div className="mt-1 flex flex-wrap gap-x-3 gap-y-1 text-xs text-muted-foreground">
+            <span>{entry.tokenCount.toLocaleString()}</span>
+            <span>{insertionSummary}</span>
+            <span>{entry.primaryKeys.slice(0, 3).join(", ")}</span>
+          </div>
+        </div>
+        <Button
+          aria-label={t(`worldbooks.entries.triggerModes.${triggerMode}`)}
+          className="size-10"
+          disabled={pending}
+          size="icon"
+          type="button"
+          variant="ghost"
+          onClick={(event) => {
+            event.stopPropagation();
+            onToggleTriggerMode();
+          }}
+        >
+          <span
+            aria-hidden="true"
+            className={cn(
+              "size-3 rounded-full shadow-sm",
+              triggerMode === "green" ? "bg-emerald-500" : "bg-sky-500",
+            )}
+          />
+        </Button>
+        <label
+          className="flex size-10 items-center justify-center"
+          onClick={(event) => event.stopPropagation()}
+        >
+          <input
+            checked={enabled}
+            className="size-4 accent-primary"
+            type="checkbox"
+            aria-label={t("worldbooks.entries.enableLabel")}
+            onChange={(event) => onToggle(event.target.checked)}
+          />
+        </label>
+        <Button
+          aria-label={t("worldbooks.entries.menuAction")}
+          aria-expanded={isMenuOpen}
+          className="size-10"
+          size="icon"
+          type="button"
+          variant="ghost"
+          onClick={(event) => {
+            event.stopPropagation();
+            setIsMenuOpen((value) => !value);
+          }}
+        >
+          <MoreVertical aria-hidden="true" />
+        </Button>
+        <Button
+          aria-label={t(
+            isConfirmingDelete
+              ? "worldbooks.entries.confirmDeleteAction"
+              : "worldbooks.entries.deleteAction",
+          )}
+          className="size-10"
+          disabled={pending}
+          size="icon"
+          type="button"
+          variant={isConfirmingDelete ? "destructive" : "ghost"}
+          onClick={deleteAfterConfirmation}
+        >
+          <Trash2 aria-hidden="true" />
+        </Button>
+      </div>
+      {isMenuOpen ? (
+        <div className="grid gap-2 border-t border-border bg-muted/30 px-4 py-3">
+          <Button
+            className="justify-start"
+            disabled={pending}
+            type="button"
+            variant="ghost"
+            onClick={onCopy}
+          >
+            <Copy aria-hidden="true" />
+            {t("worldbooks.entries.copyAction")}
+          </Button>
+          <div className="grid grid-cols-[minmax(0,1fr)_auto] gap-2">
+            <Select
+              value={targetWorldbookId}
+              onValueChange={setTargetWorldbookId}
+            >
+              <SelectTrigger
+                aria-label={t("worldbooks.entries.moveTargetLabel")}
+                className="w-full"
+              >
+                <SelectValue
+                  placeholder={t("worldbooks.entries.moveTargetPlaceholder")}
+                />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectGroup>
+                  {moveTargetWorldbooks.map((worldbook) => (
+                    <SelectItem key={worldbook.id} value={worldbook.id}>
+                      {worldbook.name}
+                    </SelectItem>
+                  ))}
+                </SelectGroup>
+              </SelectContent>
+            </Select>
+            <Button
+              disabled={pending || targetWorldbookId.length === 0}
+              type="button"
+              variant="outline"
+              onClick={() => onMove(targetWorldbookId)}
+            >
+              {t("worldbooks.entries.moveAction")}
+            </Button>
+          </div>
+        </div>
+      ) : null}
     </div>
   );
 }
@@ -361,6 +636,34 @@ function setItemsAfterDrag(
   if (oldIndex >= 0 && newIndex >= 0) {
     setItems(arrayMove(items, oldIndex, newIndex));
   }
+}
+
+function worldbookEntryCreateValues(
+  entry: WorldbookEntryResponse,
+): WorldbookEntryCreateValues {
+  return {
+    enabled: entry.enabled,
+    name: entry.name,
+    comment: entry.comment,
+    content: entry.content,
+    primaryKeys: entry.primaryKeys,
+    secondaryKeys: entry.secondaryKeys,
+    selective: entry.selective,
+    selectiveLogic: entry.selectiveLogic,
+    constant: entry.constant,
+    vectorized: entry.vectorized,
+    caseSensitive: entry.caseSensitive,
+    matchWholeWords: entry.matchWholeWords,
+    insertionPosition: entry.insertionPosition,
+    depth: entry.depth,
+    insertionRole: entry.insertionRole,
+    anchorName: entry.anchorName,
+    scanDepth: entry.scanDepth,
+    excludeRecursion: entry.excludeRecursion,
+    preventRecursion: entry.preventRecursion,
+    delayUntilRecursion: entry.delayUntilRecursion,
+    probability: entry.probability,
+  };
 }
 
 function useDebouncedValue(value: string, delayMs: number): string {

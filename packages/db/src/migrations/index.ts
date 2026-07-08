@@ -7,6 +7,7 @@ import * as presetsMigration from "./0004_presets.js";
 import * as modelProvidersMigration from "./0005_model_providers.js";
 import * as worldbooksMigration from "./0006_worldbooks.js";
 import * as worldbookEntryCompatibilityMigration from "./0007_worldbook_entry_compatibility.js";
+import * as worldbookEntryVectorizedMigration from "./0008_worldbook_entry_vectorized.js";
 
 type DialectMigration = {
   common: Migration;
@@ -36,6 +37,9 @@ const migrations: Record<string, DialectMigration> = {
   },
   "0007_worldbook_entry_compatibility": {
     common: worldbookEntryCompatibilityMigration,
+  },
+  "0008_worldbook_entry_vectorized": {
+    common: worldbookEntryVectorizedMigration,
   },
 };
 
