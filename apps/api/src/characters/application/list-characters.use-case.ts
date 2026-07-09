@@ -1,4 +1,5 @@
 import { clampPageIndex, clampPageSize, type PageResponse } from '@rolesta/shared';
+import { UseCase } from '../../common/errors/index.js';
 import type {
   CharacterCardStore,
   CharacterListScope,
@@ -6,6 +7,7 @@ import type {
   SortDirection,
 } from '../ports/character-card-store.js';
 import type { CharacterCard } from '../domain/character-card.js';
+import { translateCharacterError } from './character-error.mapper.js';
 
 export interface ListCharactersCommand {
   viewerUserId: string;
@@ -20,6 +22,7 @@ export interface ListCharactersCommand {
 export class ListCharactersUseCase {
   constructor(private readonly store: CharacterCardStore) {}
 
+  @UseCase(translateCharacterError)
   execute(command: ListCharactersCommand): Promise<PageResponse<CharacterCard>> {
     return this.store.list({
       viewerUserId: command.viewerUserId,

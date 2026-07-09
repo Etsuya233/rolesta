@@ -1,8 +1,10 @@
+import { UseCase } from '../../common/errors/index.js';
 import type { CharacterClock, CharacterIdGenerator } from './character-application-services.js';
 import type { CharacterCard } from '../domain/character-card.js';
 import { ensureEpochMillis } from '../../shared/epoch-millis.js';
 import type { CharacterCardCodec } from '../ports/character-card-codec.js';
 import type { CharacterCardStore } from '../ports/character-card-store.js';
+import { translateCharacterError } from './character-error.mapper.js';
 
 export interface ImportCharacterCardCommand {
   ownerUserId: string;
@@ -18,6 +20,7 @@ export class ImportCharacterCardUseCase {
     private readonly clock: CharacterClock,
   ) {}
 
+  @UseCase(translateCharacterError)
   async execute(command: ImportCharacterCardCommand): Promise<CharacterCard> {
     const imported = this.codec.importFile({
       fileName: command.fileName,

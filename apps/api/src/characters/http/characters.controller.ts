@@ -20,7 +20,10 @@ import type { Response } from 'express';
 import { AuthGuard } from '../../auth/http/auth.guard.js';
 import type { AuthenticatedRequest } from '../../auth/http/authenticated-request.js';
 import { ApiEnvelopeOkResponse } from '../../openapi/api-envelope-response.decorator.js';
-import { CharacterApplicationError } from '../application/character-application-error.js';
+import {
+  CharacterApplicationError,
+  type CharacterApplicationErrorReason,
+} from '../application/character-application-error.js';
 import { CreateCharacterUseCase } from '../application/create-character.use-case.js';
 import { DeleteCharacterUseCase } from '../application/delete-character.use-case.js';
 import { ExportCharacterCardUseCase } from '../application/export-character-card.use-case.js';
@@ -91,11 +94,13 @@ export class CharactersController {
     @Req() request: AuthenticatedRequest,
     @Body() body: CreateCharacterRequestDto,
   ): Promise<CharacterDetailResponseDto> {
-    return toCharacterDetailResponse(
-      await this.createCharacterUseCase.execute({
-        ownerUserId: request.authUser.id,
-        ...body,
-      }),
+    return this.withApplicationErrors(async () =>
+      toCharacterDetailResponse(
+        await this.createCharacterUseCase.execute({
+          ownerUserId: request.authUser.id,
+          ...body,
+        }),
+      ),
     );
   }
 
@@ -148,7 +153,13 @@ export class CharactersController {
   ): Promise<CharacterDetailResponseDto> {
     return this.withApplicationErrors(async () => {
       if (file === undefined) {
-        throw new CharacterApplicationError('invalid-import-file');
+        throw new CharacterApplicationError({
+          reason: 'invalid-import-file',
+          params: {
+            field: 'file',
+            detail: 'Missing uploaded file.',
+          },
+        });
       }
 
       return toCharacterDetailResponse(
@@ -192,7 +203,7 @@ export class CharactersController {
       return await handler();
     } catch (error) {
       if (error instanceof CharacterApplicationError) {
-        throw toApiFailure(error);
+        throw toApiFailure(error as CharacterApplicationError<CharacterApplicationErrorReason>);
       }
 
       throw error;
@@ -207,7 +218,14 @@ function characterCardExportVersion(
     return version ?? 'v3';
   }
 
-  throw new CharacterApplicationError('invalid-character-card');
+  throw new CharacterApplicationError({
+    reason: 'invalid-character-card',
+    params: {
+      field: 'version',
+      value: version,
+      detail: 'Unsupported character card export version.',
+    },
+  });
 }
 
 interface UploadedCharacterFile {

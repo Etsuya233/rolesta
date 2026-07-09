@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { CharacterApplicationError } from '../../application/character-application-error.js';
+import { CharacterPortError } from '../../ports/character-port-error.js';
 import type { CharacterCard, CharacterCardSourceFormat } from '../../domain/character-card.js';
 import type {
   CharacterCardCodec,
@@ -18,7 +18,7 @@ export interface SillyTavernCharacterCardOutput {
 @Injectable()
 export class SillyTavernCharacterCardCodec implements CharacterCardCodec {
   importFile(file: ImportCharacterCardFile): ImportedCharacterCard {
-    return fromSillyTavernCharacterCard(importFileContent(file.fileName, file.content));
+    return fromSillyTavernCharacterCard(importFileContent(file.fileName, file.content), file.fileName);
   }
 
   exportCard(card: CharacterCard, options: { version: CharacterCardExportVersion }): object {
@@ -26,8 +26,8 @@ export class SillyTavernCharacterCardCodec implements CharacterCardCodec {
   }
 }
 
-export function fromSillyTavernCharacterCard(input: unknown): ImportedCharacterCard {
-  const envelope = characterCardEnvelope(input);
+export function fromSillyTavernCharacterCard(input: unknown, fileName?: string): ImportedCharacterCard {
+  const envelope = characterCardEnvelope(input, fileName);
 
   return {
     name: requiredStringField(envelope.data, 'name'),
@@ -102,9 +102,15 @@ interface CharacterCardEnvelope {
   data: Record<string, unknown>;
 }
 
-function characterCardEnvelope(input: unknown): CharacterCardEnvelope {
+function characterCardEnvelope(input: unknown, fileName?: string): CharacterCardEnvelope {
   if (!isRecord(input)) {
-    throw new CharacterApplicationError('unsupported-character-card');
+    throw new CharacterPortError({
+      reason: 'unsupported-character-card',
+      params: {
+        ...(fileName !== undefined ? { fileName } : {}),
+        detail: 'Character card input is not a record.',
+      },
+    });
   }
 
   if (input.spec === 'chara_card_v3' && isRecord(input.data)) {
@@ -119,7 +125,18 @@ function characterCardEnvelope(input: unknown): CharacterCardEnvelope {
     return { sourceFormat: 'sillytavern_v1', data: input };
   }
 
-  throw new CharacterApplicationError('unsupported-character-card');
+  const params = {
+    detail: 'Unsupported character card envelope.',
+    ...(fileName !== undefined ? { fileName } : {}),
+    ...(input.spec === 'chara_card_v2' || input.spec === 'chara_card_v3'
+      ? { sourceFormat: String(input.spec) }
+      : {}),
+  };
+
+  throw new CharacterPortError({
+    reason: 'unsupported-character-card',
+    params,
+  });
 }
 
 function hasV1CardField(input: Record<string, unknown>): boolean {
@@ -133,7 +150,13 @@ function requiredStringField(input: Record<string, unknown>, key: string): strin
     return value;
   }
 
-  throw new CharacterApplicationError('invalid-character-card');
+  throw new CharacterPortError({
+    reason: 'invalid-character-card',
+    params: {
+      field: key,
+      detail: 'Expected a string field.',
+    },
+  });
 }
 
 function stringField(input: Record<string, unknown>, key: string): string {
@@ -147,7 +170,13 @@ function stringField(input: Record<string, unknown>, key: string): string {
     return value;
   }
 
-  throw new CharacterApplicationError('invalid-character-card');
+  throw new CharacterPortError({
+    reason: 'invalid-character-card',
+    params: {
+      field: key,
+      detail: 'Expected a string or null field.',
+    },
+  });
 }
 
 function nullableStringField(input: Record<string, unknown>, key: string): string | null {
@@ -161,7 +190,13 @@ function nullableStringField(input: Record<string, unknown>, key: string): strin
     return value;
   }
 
-  throw new CharacterApplicationError('invalid-character-card');
+  throw new CharacterPortError({
+    reason: 'invalid-character-card',
+    params: {
+      field: key,
+      detail: 'Expected a string or null field.',
+    },
+  });
 }
 
 function stringArrayField(input: Record<string, unknown>, key: string): string[] {
@@ -175,7 +210,13 @@ function stringArrayField(input: Record<string, unknown>, key: string): string[]
     return value;
   }
 
-  throw new CharacterApplicationError('invalid-character-card');
+  throw new CharacterPortError({
+    reason: 'invalid-character-card',
+    params: {
+      field: key,
+      detail: 'Expected an array value.',
+    },
+  });
 }
 
 function unknownArrayField(input: Record<string, unknown>, key: string): unknown[] {
@@ -189,7 +230,13 @@ function unknownArrayField(input: Record<string, unknown>, key: string): unknown
     return value;
   }
 
-  throw new CharacterApplicationError('invalid-character-card');
+  throw new CharacterPortError({
+    reason: 'invalid-character-card',
+    params: {
+      field: key,
+      detail: 'Expected an array value.',
+    },
+  });
 }
 
 function stringRecordField(input: Record<string, unknown>, key: string): Record<string, string> {
@@ -200,13 +247,25 @@ function stringRecordField(input: Record<string, unknown>, key: string): Record<
   }
 
   if (!isRecord(value)) {
-    throw new CharacterApplicationError('invalid-character-card');
+    throw new CharacterPortError({
+      reason: 'invalid-character-card',
+      params: {
+        field: key,
+        detail: 'Expected a record of string values.',
+      },
+    });
   }
 
   return Object.fromEntries(
     Object.entries(value).map(([entryKey, entryValue]) => {
       if (typeof entryValue !== 'string') {
-        throw new CharacterApplicationError('invalid-character-card');
+        throw new CharacterPortError({
+          reason: 'invalid-character-card',
+          params: {
+            field: key,
+            detail: 'Expected a record of string values.',
+          },
+        });
       }
 
       return [entryKey, entryValue];
@@ -225,7 +284,13 @@ function unknownRecordField(input: Record<string, unknown>, key: string): Record
     return value;
   }
 
-  throw new CharacterApplicationError('invalid-character-card');
+  throw new CharacterPortError({
+    reason: 'invalid-character-card',
+    params: {
+      field: key,
+      detail: 'Expected a record value.',
+    },
+  });
 }
 
 function objectOrNullField(input: Record<string, unknown>, key: string): Record<string, unknown> | null {
@@ -239,7 +304,13 @@ function objectOrNullField(input: Record<string, unknown>, key: string): Record<
     return value;
   }
 
-  throw new CharacterApplicationError('invalid-character-card');
+  throw new CharacterPortError({
+    reason: 'invalid-character-card',
+    params: {
+      field: key,
+      detail: 'Expected an object value or null.',
+    },
+  });
 }
 
 function epochMillisField(input: Record<string, unknown>, key: string): number | null {
@@ -276,17 +347,29 @@ function importFileContent(fileName: string, content: Buffer): unknown {
   const normalizedFileName = fileName.toLowerCase();
 
   if (normalizedFileName.endsWith('.png')) {
-    return readSillyTavernPngMetadata(content);
+    return readSillyTavernPngMetadata(content, fileName);
   }
 
   if (!normalizedFileName.endsWith('.json')) {
-    throw new CharacterApplicationError('invalid-import-file');
+    throw new CharacterPortError({
+      reason: 'invalid-import-file',
+      params: {
+        ...(fileName !== undefined ? { fileName } : {}),
+        detail: 'Expected a PNG or JSON file.',
+      },
+    });
   }
 
   try {
     return JSON.parse(content.toString('utf8')) as unknown;
   } catch {
-    throw new CharacterApplicationError('invalid-import-file');
+    throw new CharacterPortError({
+      reason: 'invalid-import-file',
+      params: {
+        ...(fileName !== undefined ? { fileName } : {}),
+        detail: 'Invalid JSON content.',
+      },
+    });
   }
 }
 

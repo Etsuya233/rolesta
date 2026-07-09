@@ -7,10 +7,12 @@ import type {
   ImportedCharacterCard,
   ImportCharacterCardFile,
 } from '../ports/character-card-codec.js';
+import { CharacterPortError } from '../ports/character-port-error.js';
 import type { CharacterCardStore, ListCharactersRequest } from '../ports/character-card-store.js';
 import { CharacterApplicationError } from './character-application-error.js';
 import { CreateCharacterUseCase } from './create-character.use-case.js';
 import { ExportCharacterCardUseCase } from './export-character-card.use-case.js';
+import { ImportCharacterCardUseCase } from './import-character-card.use-case.js';
 import { UpdateCharacterUseCase } from './update-character.use-case.js';
 
 describe('character use cases', () => {
@@ -49,7 +51,15 @@ describe('character use cases', () => {
         viewerUserId: 'reader',
         comment: 'edited',
       }),
-    ).rejects.toMatchObject(new CharacterApplicationError('forbidden'));
+    ).rejects.toMatchObject(
+      new CharacterApplicationError({
+        reason: 'forbidden',
+        params: {
+          characterId: 'card_1',
+          viewerUserId: 'reader',
+        },
+      }),
+    );
   });
 
   it('exports a visible card as SillyTavern V3 by default', async () => {
@@ -63,6 +73,27 @@ describe('character use cases', () => {
       version: 'v3',
       name: 'Exported',
     });
+  });
+
+  it('maps codec port errors to application errors for import use cases', async () => {
+    const store = new InMemoryCharacterCardStore();
+    const useCase = new ImportCharacterCardUseCase(store, new ThrowingCharacterCardCodec(), new FixedIdGenerator('card_1'), new FixedClock(1783090000000));
+
+    await expect(
+      useCase.execute({
+        ownerUserId: 'owner',
+        fileName: 'character.json',
+        content: Buffer.from('{}', 'utf8'),
+      }),
+    ).rejects.toMatchObject(
+      new CharacterApplicationError({
+        reason: 'invalid-character-card',
+        params: {
+          field: 'name',
+          detail: 'Missing required name field.',
+        },
+      }),
+    );
   });
 });
 
@@ -85,6 +116,27 @@ class FakeCharacterCardCodec implements CharacterCardCodec {
       version: options.version,
       name: card.name,
     };
+  }
+}
+
+class ThrowingCharacterCardCodec implements CharacterCardCodec {
+  importFile(file: ImportCharacterCardFile): ImportedCharacterCard {
+    void file;
+
+    throw new CharacterPortError({
+      reason: 'invalid-character-card',
+      params: {
+        field: 'name',
+        detail: 'Missing required name field.',
+      },
+    });
+  }
+
+  exportCard(card: CharacterCard, options: ExportCharacterCardOptions): object {
+    void card;
+    void options;
+
+    return {};
   }
 }
 

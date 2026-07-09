@@ -101,7 +101,7 @@ domain -> domain-local only
 - 做用例级权限判断，例如 owner 才能修改、公开资产可读取。
 - 调用 domain 规则得到新状态。
 - 调用 port 保存、查询、导入、导出或访问外部能力。
-- 抛出稳定的 application error reason。
+- 接住 domain/port 错误，并翻译成稳定的 application error reason。
 
 以角色卡导入为例，`ImportCharacterCardUseCase` 负责生成 ID、设置 owner、写入创建时间、保存角色卡。文件是 JSON 还是 PNG、SillyTavern 字段怎么解析，由 `CharacterCardCodec` 的具体实现处理。
 
@@ -141,7 +141,7 @@ worldbooks/adapters/silly-tavern/
 - 世界书：`entries`、`keysecondary`、`selectiveLogic`、extension 字段。
 - 预设：SillyTavern preset prompt item 和模型参数字段。
 
-adapter 的职责是把外部格式翻译成模块内部对象，或把内部对象导出成兼容格式。它可以抛出该模块的 application error reason，例如 `invalid-import-file`、`invalid-character-card`。
+adapter 的职责是把外部格式翻译成模块内部对象，或把内部对象导出成兼容格式。它可以抛出该模块的 port error，例如 `invalid-import-file`、`invalid-character-card`、`remote-unreachable`。
 
 ## persistence
 
@@ -199,25 +199,44 @@ ExportCharacterCardUseCase(store, codec)
 
 module 可以依赖具体类，但只做接线和生命周期注册。业务判断不要写在 module 里。
 
-## 错误处理
+## 错误模型
 
-业务模块用 application error reason 表达稳定错误：
+Rolesta API 的异常按层分开管理，但共用同一个基础形状。
 
-```txt
-CharacterApplicationError('invalid-import-file')
-PresetApplicationError('unknown-entry')
-WorldbookApplicationError('duplicate-entry')
-ModelProviderApplicationError('remote-unreachable')
-```
+### 基类
 
-HTTP 层负责把这些 reason 映射成协议响应：
+`apps/api/src/common/errors` 放公共错误基类 `RolestaError`。它只负责：
+
+- `reason`：模块内稳定的枚举值。
+- `params`：语义参数，字段名必须能直接说明业务含义。
+- `cause`：底层原始异常，只用于日志和排障。
+
+`message` 不承载用户可见文案。对外文案由 HTTP 层翻成 i18n key。
+
+### 分层
+
+- `DomainError`：领域规则失败，只在 domain 和 application 之间流动。
+- `PortError`：外部能力失败，只在 ports、adapter、persistence 和 application 之间流动。
+- `ApplicationError`：应用层稳定错误，由 application 统一收口后向上抛出。
+- `ApiFailure`：HTTP 协议异常，只在 `http` 层对外输出。
+
+### 映射
+
+application 层负责接住下层错误，并翻成本模块的 `ApplicationError`。HTTP 层负责把 `ApplicationError` 映射成：
 
 - HTTP status。
 - `ApiFailure` code。
+- `msg` 使用 `i18n:<key>`。
 - i18n message key。
-- 响应 envelope。
+- 响应 envelope 的 `data`。
 
-domain/application 不写用户可见文案，不关心 HTTP status。数据库异常、SDK 异常、token、URL、SQL 和堆栈不要透出到响应体。
+controller 可以做协议层判断，例如没有上传文件时抛出模块自己的 `ApplicationError`。更深的文件内容解析交给 codec adapter。数据库异常、SDK 异常、token、URL、SQL 和堆栈不要透出到响应体。
+
+`UseCase` 的 `execute()` 方法建议通过共享的方法级 decorator 包住，decorator 负责调用模块内 mapper，把 `DomainError`、`PortError` 翻成该模块的 `ApplicationError`。这样每个 use case 仍然只暴露一个入口，错误收口也集中在 application 边界。
+
+### 错误日志
+
+错误日志集中在边界层打印一次。预期业务失败使用 `warn` 或 `info`，未知异常使用 `error`。日志至少保留 `reason`、`params`、请求方法、路径和 `cause`。
 
 ## 配置
 
