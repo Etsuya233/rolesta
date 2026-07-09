@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import type { Preset } from '../../domain/preset.js';
+import { PresetPortError } from '../../ports/preset-port-error.js';
 import {
   SillyTavernPresetCodec,
   fromSillyTavernPreset,
@@ -10,7 +11,7 @@ describe('SillyTavern preset mapper', () => {
   it('rejects invalid JSON import files', () => {
     const codec = new SillyTavernPresetCodec();
 
-    expect(() => codec.importFile(Buffer.from('{'))).toThrowError('invalid-import-file');
+    expect(() => codec.importFile(Buffer.from('{'))).toThrowError(PresetPortError);
   });
 
   it('imports the sample preset with the default character order', () => {

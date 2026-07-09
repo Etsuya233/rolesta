@@ -1,6 +1,8 @@
+import { UseCase } from '../../common/errors/index.js';
 import { ensureEpochMillis } from '../../shared/epoch-millis.js';
 import type { PresetClock, PresetIdGenerator } from './preset-application-services.js';
 import { PresetApplicationError } from './preset-application-error.js';
+import { translatePresetError } from './preset-error.mapper.js';
 import type { PresetStore } from '../ports/preset-store.js';
 import type { PresetCodec } from '../ports/preset-codec.js';
 import { withPresetTokenCount, type Preset } from '../domain/preset.js';
@@ -18,6 +20,7 @@ export class ImportPresetUseCase {
     private readonly clock: PresetClock,
   ) {}
 
+  @UseCase(translatePresetError)
   async execute(command: ImportPresetCommand): Promise<Preset> {
     const imported = this.codec.importFile(command.content);
     const nowMs = ensureEpochMillis(this.clock.now().getTime());
@@ -33,7 +36,13 @@ export class ImportPresetUseCase {
       const entry = entries.find((candidate) => candidate.identifier === item.identifier);
 
       if (entry === undefined) {
-        throw new PresetApplicationError('unknown-entry');
+        throw new PresetApplicationError({
+          reason: 'unknown-entry',
+          params: {
+            presetId,
+            identifier: item.identifier,
+          },
+        });
       }
 
       return {

@@ -1,5 +1,7 @@
+import { UseCase } from '../../common/errors/index.js';
 import { UserAccount } from '../domain/user-account.js';
 import { AuthApplicationError } from './auth-application-error.js';
+import { translateAuthError } from './auth-error.mapper.js';
 import type {
   Clock,
   IdGenerator,
@@ -26,15 +28,13 @@ export class SetupAdminUseCase {
     private readonly idGenerator: IdGenerator,
   ) {}
 
+  @UseCase(translateAuthError)
   async execute(command: SetupAdminCommand): Promise<AuthenticatedUserResult> {
     if ((await this.users.count()) > 0) {
-      throw new AuthApplicationError('setup-already-completed');
-    }
-
-    const username = command.username.trim();
-
-    if (username.length === 0) {
-      throw new AuthApplicationError('invalid-username');
+      throw new AuthApplicationError({
+        reason: 'setup-already-completed',
+        params: { operation: 'setup-admin' },
+      });
     }
 
     await this.sessions.deleteExpired(this.clock.now());
@@ -42,7 +42,7 @@ export class SetupAdminUseCase {
     const passwordHash = await this.passwordHashing.hash(command.password);
     const user = UserAccount.createAdmin({
       id: this.idGenerator.createId(),
-      username,
+      username: command.username,
       passwordHash,
       now: this.clock.now().toISOString(),
     });

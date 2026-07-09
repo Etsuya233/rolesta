@@ -1,6 +1,8 @@
 import { countPromptTokens } from '@rolesta/shared';
+import { UseCase } from '../../common/errors/index.js';
 import { ensureEpochMillis } from '../../shared/epoch-millis.js';
 import { PresetApplicationError } from './preset-application-error.js';
+import { translatePresetError } from './preset-error.mapper.js';
 import type { PresetClock, PresetIdGenerator } from './preset-application-services.js';
 import type { PresetStore } from '../ports/preset-store.js';
 import type { Preset, PresetEntryPosition, PresetEntryRole } from '../domain/preset.js';
@@ -22,11 +24,17 @@ export class CreatePresetEntryUseCase {
     private readonly clock: PresetClock,
   ) {}
 
+  @UseCase(translatePresetError)
   async execute(command: CreatePresetEntryCommand): Promise<Preset> {
     const current = await this.store.findOwnedById(command.presetId, command.viewerUserId);
 
     if (current === null) {
-      throw new PresetApplicationError('not-found');
+      throw new PresetApplicationError({
+        reason: 'not-found',
+        params: {
+          presetId: command.presetId,
+        },
+      });
     }
 
     const nowMs = ensureEpochMillis(this.clock.now().getTime());

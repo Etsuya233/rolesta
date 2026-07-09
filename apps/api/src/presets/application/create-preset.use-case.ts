@@ -1,5 +1,7 @@
 import { PROMPT_TOKENIZER } from '@rolesta/shared';
+import { UseCase } from '../../common/errors/index.js';
 import { ensureEpochMillis } from '../../shared/epoch-millis.js';
+import { translatePresetError } from './preset-error.mapper.js';
 import type { PresetClock, PresetIdGenerator } from './preset-application-services.js';
 import {
   applyPresetEditableFields,
@@ -20,6 +22,7 @@ export class CreatePresetUseCase {
     private readonly clock: PresetClock,
   ) {}
 
+  @UseCase(translatePresetError)
   async execute(command: CreatePresetCommand): Promise<Preset> {
     const nowMs = ensureEpochMillis(this.clock.now().getTime());
     const draft = withPresetTokenCount({

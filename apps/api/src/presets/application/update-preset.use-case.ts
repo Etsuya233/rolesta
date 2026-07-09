@@ -1,5 +1,7 @@
 import { ensureEpochMillis } from '../../shared/epoch-millis.js';
+import { UseCase } from '../../common/errors/index.js';
 import { PresetApplicationError } from './preset-application-error.js';
+import { translatePresetError } from './preset-error.mapper.js';
 import type { PresetClock } from './preset-application-services.js';
 import {
   applyPresetEditableFields,
@@ -19,11 +21,17 @@ export class UpdatePresetUseCase {
     private readonly clock: PresetClock,
   ) {}
 
+  @UseCase(translatePresetError)
   async execute(command: UpdatePresetCommand): Promise<Preset> {
     const current = await this.store.findOwnedById(command.id, command.viewerUserId);
 
     if (current === null) {
-      throw new PresetApplicationError('not-found');
+      throw new PresetApplicationError({
+        reason: 'not-found',
+        params: {
+          presetId: command.id,
+        },
+      });
     }
 
     const updated = applyPresetEditableFields(

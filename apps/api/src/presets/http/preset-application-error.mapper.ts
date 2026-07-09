@@ -9,11 +9,13 @@ export function toApiFailure(error: PresetApplicationError): ApiFailure {
       return new ApiFailure({
         status: HttpStatus.NOT_FOUND,
         code: ERROR_CODES.NOT_FOUND,
+        params: error.params,
       });
     case 'forbidden':
       return new ApiFailure({
         status: HttpStatus.FORBIDDEN,
         code: ERROR_CODES.FORBIDDEN,
+        params: error.params,
       });
     case 'invalid-import-file':
     case 'invalid-preset':
@@ -22,6 +24,7 @@ export function toApiFailure(error: PresetApplicationError): ApiFailure {
       return new ApiFailure({
         status: HttpStatus.BAD_REQUEST,
         code: ERROR_CODES.VALIDATION_FAILED,
+        params: error.params,
       });
   }
 }

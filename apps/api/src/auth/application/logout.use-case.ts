@@ -1,3 +1,5 @@
+import { UseCase } from '../../common/errors/index.js';
+import { translateAuthError } from './auth-error.mapper.js';
 import type { SessionStore, SessionTokenIssuer } from '../ports/auth-ports.js';
 
 export class LogoutUseCase {
@@ -6,6 +8,7 @@ export class LogoutUseCase {
     private readonly tokenIssuer: SessionTokenIssuer,
   ) {}
 
+  @UseCase(translateAuthError)
   async execute(token: string | null): Promise<{ ok: true }> {
     if (token) {
       await this.sessions.deleteByTokenHash(this.tokenIssuer.hash(token));

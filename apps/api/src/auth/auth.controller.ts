@@ -3,6 +3,7 @@ import { ApiTags } from '@nestjs/swagger';
 import type { Request } from 'express';
 import { ApiEnvelopeOkResponse } from '../openapi/api-envelope-response.decorator.js';
 import { AuthApplicationError } from './application/auth-application-error.js';
+import type { AuthApplicationErrorReason } from './application/auth-application-error.js';
 import { GetCurrentUserUseCase } from './application/get-current-user.use-case.js';
 import { GetSetupStatusUseCase } from './application/get-setup-status.use-case.js';
 import { LoginUseCase } from './application/login.use-case.js';
@@ -47,7 +48,7 @@ export class AuthController {
       return await this.loginUseCase.execute(body);
     } catch (error) {
       if (error instanceof AuthApplicationError) {
-        throw toApiFailure(error);
+        throw toApiFailure(error as AuthApplicationError<AuthApplicationErrorReason>);
       }
 
       throw error;
@@ -61,7 +62,7 @@ export class AuthController {
       return await this.setupAdminUseCase.execute(body);
     } catch (error) {
       if (error instanceof AuthApplicationError) {
-        throw toApiFailure(error);
+        throw toApiFailure(error as AuthApplicationError<AuthApplicationErrorReason>);
       }
 
       throw error;

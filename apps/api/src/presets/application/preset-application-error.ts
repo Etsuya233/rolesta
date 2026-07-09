@@ -1,3 +1,5 @@
+import { ApplicationError } from '../../common/errors/index.js';
+
 export type PresetApplicationErrorReason =
   | 'not-found'
   | 'forbidden'
@@ -6,9 +8,47 @@ export type PresetApplicationErrorReason =
   | 'duplicate-entry'
   | 'unknown-entry';
 
-export class PresetApplicationError extends Error {
-  constructor(readonly reason: PresetApplicationErrorReason) {
-    super(reason);
-    this.name = 'PresetApplicationError';
+export interface PresetApplicationErrorParamsMap {
+  'not-found': {
+    presetId: string;
+  };
+  forbidden: {
+    presetId: string;
+    viewerUserId: string;
+  };
+  'invalid-import-file': {
+    fileName?: string;
+    field?: string;
+  };
+  'invalid-preset': {
+    fileName?: string;
+    field?: string;
+  };
+  'duplicate-entry': {
+    presetId: string;
+    entryId: string;
+  };
+  'unknown-entry': {
+    presetId: string;
+    entryId?: string;
+    identifier?: string;
+  };
+}
+
+export type PresetApplicationErrorParams<
+  R extends PresetApplicationErrorReason = PresetApplicationErrorReason,
+> = PresetApplicationErrorParamsMap[R];
+
+export interface PresetApplicationErrorOptions<R extends PresetApplicationErrorReason> {
+  reason: R;
+  params: PresetApplicationErrorParams<R>;
+  cause?: unknown;
+}
+
+export class PresetApplicationError<
+  R extends PresetApplicationErrorReason = PresetApplicationErrorReason,
+> extends ApplicationError<R, PresetApplicationErrorParams<R>> {
+  constructor(options: PresetApplicationErrorOptions<R>) {
+    super(options);
   }
 }

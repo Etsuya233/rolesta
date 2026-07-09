@@ -1,4 +1,6 @@
+import { UseCase } from '../../common/errors/index.js';
 import { AuthApplicationError } from './auth-application-error.js';
+import { translateAuthError } from './auth-error.mapper.js';
 import type {
   Clock,
   PasswordHashing,
@@ -23,17 +25,24 @@ export class LoginUseCase {
     private readonly clock: Clock,
   ) {}
 
+  @UseCase(translateAuthError)
   async execute(command: LoginCommand): Promise<AuthenticatedUserResult> {
     const user = await this.users.findByUsername(command.username.trim());
 
     if (!user) {
-      throw new AuthApplicationError('invalid-credentials');
+      throw new AuthApplicationError({
+        reason: 'invalid-credentials',
+        params: { operation: 'login' },
+      });
     }
 
     const passwordMatches = await this.passwordHashing.verify(command.password, user.passwordHash);
 
     if (!passwordMatches) {
-      throw new AuthApplicationError('invalid-credentials');
+      throw new AuthApplicationError({
+        reason: 'invalid-credentials',
+        params: { operation: 'login' },
+      });
     }
 
     await this.sessions.deleteExpired(this.clock.now());

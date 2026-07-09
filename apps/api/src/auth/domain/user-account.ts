@@ -1,3 +1,5 @@
+import { AuthDomainError } from './auth-domain-error.js';
+
 export type UserRole = 'admin' | 'user';
 
 export type UserAccountSnapshot = {
@@ -22,7 +24,12 @@ export class UserAccount {
     const username = options.username.trim();
 
     if (username.length === 0) {
-      throw new Error('Username is required.');
+      throw new AuthDomainError({
+        reason: 'invalid-username',
+        params: {
+          field: 'username',
+        },
+      });
     }
 
     return new UserAccount({

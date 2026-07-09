@@ -146,7 +146,7 @@ describe('Auth API', () => {
         expect(response.body).toEqual({
           code: ERROR_CODES.FORBIDDEN,
           msg: `${I18N_MESSAGE_PREFIX}errors.forbidden`,
-          data: {},
+          data: { operation: 'setup-admin' },
         });
       });
   });
@@ -176,7 +176,7 @@ describe('Auth API', () => {
         expect(response.body).toEqual({
           code: ERROR_CODES.UNAUTHENTICATED,
           msg: `${I18N_MESSAGE_PREFIX}errors.unauthenticated`,
-          data: {},
+          data: { operation: 'login' },
         });
       });
   });

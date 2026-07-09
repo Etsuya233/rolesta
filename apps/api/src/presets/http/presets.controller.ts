@@ -21,6 +21,8 @@ import type { Response } from 'express';
 import { AuthGuard } from '../../auth/http/auth.guard.js';
 import type { AuthenticatedRequest } from '../../auth/http/authenticated-request.js';
 import { ApiEnvelopeOkResponse } from '../../openapi/api-envelope-response.decorator.js';
+import { PresetApplicationError } from '../application/preset-application-error.js';
+import type { PresetApplicationErrorReason } from '../application/preset-application-error.js';
 import { CreatePresetEntryUseCase } from '../application/create-preset-entry.use-case.js';
 import { CreatePresetUseCase } from '../application/create-preset.use-case.js';
 import { DeletePresetEntryUseCase } from '../application/delete-preset-entry.use-case.js';
@@ -29,7 +31,6 @@ import { ExportPresetUseCase } from '../application/export-preset.use-case.js';
 import { GetPresetUseCase } from '../application/get-preset.use-case.js';
 import { ImportPresetUseCase } from '../application/import-preset.use-case.js';
 import { ListPresetsUseCase } from '../application/list-presets.use-case.js';
-import { PresetApplicationError } from '../application/preset-application-error.js';
 import { UpdatePresetEntryUseCase } from '../application/update-preset-entry.use-case.js';
 import { UpdatePresetPromptItemsUseCase } from '../application/update-preset-prompt-items.use-case.js';
 import { UpdatePresetUseCase } from '../application/update-preset.use-case.js';
@@ -159,15 +160,20 @@ export class PresetsController {
   ): Promise<PresetDetailResponseDto> {
     return this.withApplicationErrors(async () => {
       if (file === undefined) {
-        throw new PresetApplicationError('invalid-import-file');
+        throw new PresetApplicationError({
+          reason: 'invalid-import-file',
+          params: {
+            field: 'file',
+          },
+        });
       }
 
-        return toPresetDetailResponse(
-          await this.importPresetUseCase.execute({
-            ownerUserId: request.authUser.id,
-            content: file.buffer,
-          }),
-        );
+      return toPresetDetailResponse(
+        await this.importPresetUseCase.execute({
+          ownerUserId: request.authUser.id,
+          content: file.buffer,
+        }),
+      );
     });
   }
 
@@ -281,7 +287,7 @@ export class PresetsController {
       return await handler();
     } catch (error) {
       if (error instanceof PresetApplicationError) {
-        throw toApiFailure(error);
+        throw toApiFailure(error as PresetApplicationError<PresetApplicationErrorReason>);
       }
 
       throw error;

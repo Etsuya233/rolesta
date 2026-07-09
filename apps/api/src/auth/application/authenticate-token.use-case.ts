@@ -1,3 +1,5 @@
+import { UseCase } from '../../common/errors/index.js';
+import { translateAuthError } from './auth-error.mapper.js';
 import type { Clock, SessionStore, SessionTokenIssuer, UserAccountStore } from '../ports/auth-ports.js';
 import type { CurrentUserResult } from './auth-results.js';
 
@@ -9,6 +11,7 @@ export class AuthenticateTokenUseCase {
     private readonly clock: Clock,
   ) {}
 
+  @UseCase(translateAuthError)
   async execute(token: string): Promise<CurrentUserResult | null> {
     const tokenHash = this.tokenIssuer.hash(token);
     const session = await this.sessions.findByTokenHash(tokenHash);

@@ -1,6 +1,8 @@
+import { UseCase } from '../../common/errors/index.js';
 import { countPromptTokens } from '@rolesta/shared';
 import { ensureEpochMillis } from '../../shared/epoch-millis.js';
 import { PresetApplicationError } from './preset-application-error.js';
+import { translatePresetError } from './preset-error.mapper.js';
 import type { PresetClock } from './preset-application-services.js';
 import type { PresetStore } from '../ports/preset-store.js';
 import type { Preset, PresetEntryPosition, PresetEntryRole } from '../domain/preset.js';
@@ -22,15 +24,27 @@ export class UpdatePresetEntryUseCase {
     private readonly clock: PresetClock,
   ) {}
 
+  @UseCase(translatePresetError)
   async execute(command: UpdatePresetEntryCommand): Promise<Preset> {
     const current = await this.store.findOwnedById(command.presetId, command.viewerUserId);
 
     if (current === null) {
-      throw new PresetApplicationError('not-found');
+      throw new PresetApplicationError({
+        reason: 'not-found',
+        params: {
+          presetId: command.presetId,
+        },
+      });
     }
 
     if (!current.entries.some((entry) => entry.id === command.entryId)) {
-      throw new PresetApplicationError('unknown-entry');
+      throw new PresetApplicationError({
+        reason: 'unknown-entry',
+        params: {
+          presetId: command.presetId,
+          entryId: command.entryId,
+        },
+      });
     }
 
     const nowMs = ensureEpochMillis(this.clock.now().getTime());

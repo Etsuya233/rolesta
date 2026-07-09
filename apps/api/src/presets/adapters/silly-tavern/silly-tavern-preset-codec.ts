@@ -1,6 +1,6 @@
 import { countPromptTokens, PROMPT_TOKENIZER } from '@rolesta/shared';
 import { Injectable } from '@nestjs/common';
-import { PresetApplicationError } from '../../application/preset-application-error.js';
+import { PresetPortError } from '../../ports/preset-port-error.js';
 import type { PresetEntryPosition, PresetEntryRole, Preset } from '../../domain/preset.js';
 import { createDefaultPresetModelSettings } from '../../domain/preset-model-settings.js';
 import type {
@@ -54,7 +54,12 @@ export class SillyTavernPresetCodec implements PresetCodec {
 
 export function fromSillyTavernPreset(input: unknown): ImportedPreset {
   if (!isRecord(input)) {
-    throw new PresetApplicationError('invalid-preset');
+    throw new PresetPortError({
+      reason: 'invalid-preset',
+      params: {
+        field: 'input',
+      },
+    });
   }
 
   const prompts = promptArray(input);
@@ -186,7 +191,12 @@ function promptArray(input: Record<string, unknown>): Array<Record<string, unkno
     return value;
   }
 
-  throw new PresetApplicationError('invalid-preset');
+  throw new PresetPortError({
+    reason: 'invalid-preset',
+    params: {
+      field: 'prompts',
+    },
+  });
 }
 
 function defaultPromptOrder(input: Record<string, unknown>): Array<Record<string, unknown>> {
@@ -215,7 +225,12 @@ function entryRole(value: unknown): PresetEntryRole {
     return value;
   }
 
-  throw new PresetApplicationError('invalid-preset');
+  throw new PresetPortError({
+    reason: 'invalid-preset',
+    params: {
+      field: 'role',
+    },
+  });
 }
 
 function entryPosition(value: unknown): PresetEntryPosition {
@@ -261,7 +276,12 @@ function stringField(input: Record<string, unknown>, key: string): string {
     return value;
   }
 
-  throw new PresetApplicationError('invalid-preset');
+  throw new PresetPortError({
+    reason: 'invalid-preset',
+    params: {
+      field: key,
+    },
+  });
 }
 
 function booleanField(input: Record<string, unknown>, key: string): boolean {
@@ -275,7 +295,12 @@ function booleanField(input: Record<string, unknown>, key: string): boolean {
     return value;
   }
 
-  throw new PresetApplicationError('invalid-preset');
+  throw new PresetPortError({
+    reason: 'invalid-preset',
+    params: {
+      field: key,
+    },
+  });
 }
 
 function optionalBooleanField(input: Record<string, unknown>, key: string): boolean | undefined {
@@ -289,7 +314,12 @@ function optionalBooleanField(input: Record<string, unknown>, key: string): bool
     return value;
   }
 
-  throw new PresetApplicationError('invalid-preset');
+  throw new PresetPortError({
+    reason: 'invalid-preset',
+    params: {
+      field: key,
+    },
+  });
 }
 
 function nullableNumberField(input: Record<string, unknown>, key: string): number | null {
@@ -303,14 +333,24 @@ function nullableNumberField(input: Record<string, unknown>, key: string): numbe
     return value;
   }
 
-  throw new PresetApplicationError('invalid-preset');
+  throw new PresetPortError({
+    reason: 'invalid-preset',
+    params: {
+      field: key,
+    },
+  });
 }
 
 function importFileContent(content: Buffer): unknown {
   try {
     return JSON.parse(content.toString('utf8')) as unknown;
   } catch {
-    throw new PresetApplicationError('invalid-import-file');
+    throw new PresetPortError({
+      reason: 'invalid-import-file',
+      params: {
+        field: 'content',
+      },
+    });
   }
 }
 
