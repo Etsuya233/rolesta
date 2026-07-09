@@ -74,6 +74,14 @@ export function useWorkspaceLayout(): WorkspaceLayoutState {
         [targetArea]: panelKey,
       }));
 
+      if (targetArea === "left") {
+        setLeftVisible(true);
+      }
+
+      if (targetArea === "right") {
+        setRightVisible(true);
+      }
+
       if (options.activateMobileArea === false) {
         return;
       }

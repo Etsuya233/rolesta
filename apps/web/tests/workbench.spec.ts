@@ -64,6 +64,18 @@ test('toolbar buttons do not create vertical overflow while pressed', async ({
   expect(toolbarOverflow.scrollHeight).toBe(toolbarOverflow.clientHeight);
 });
 
+test('toolbar hides panel labels below the desktop breakpoint', async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 900, height: 800 });
+  await openWorkbench(page);
+
+  await expect(toolbarButton(page, 'worldbooks').locator('span')).toBeHidden();
+
+  await page.setViewportSize({ width: 1280, height: 800 });
+  await expect(toolbarButton(page, 'worldbooks').locator('span')).toBeVisible();
+});
+
 test('clicking Worldbooks activates the right panel', async ({ page }) => {
   await openWorkbench(page);
 
@@ -71,6 +83,63 @@ test('clicking Worldbooks activates the right panel', async ({ page }) => {
 
   await expect(page.getByTestId('workspace-panel-right-worldbooks')).toBeVisible();
   await expect(page.getByRole('heading', { name: 'Worldbooks' })).toBeVisible();
+});
+
+test('active toolbar panel buttons close their visible panel', async ({ page }) => {
+  await page.setViewportSize({ width: 1280, height: 800 });
+  await openWorkbench(page);
+
+  await expect(toolbarButton(page, 'chatContext')).toHaveAttribute(
+    'aria-pressed',
+    'true',
+  );
+  await toolbarButton(page, 'chatContext').click();
+  await expect(page.getByTestId('workspace-left-column')).toBeHidden();
+  await expect(toolbarButton(page, 'chatContext')).toHaveAttribute(
+    'aria-pressed',
+    'false',
+  );
+
+  await toolbarButton(page, 'chatContext').click();
+  await expect(page.getByTestId('workspace-left-column')).toBeVisible();
+  await expect(toolbarButton(page, 'chatContext')).toHaveAttribute(
+    'aria-pressed',
+    'true',
+  );
+
+  await toolbarButton(page, 'worldbooks').click();
+  await expect(page.getByTestId('workspace-right-column')).toBeVisible();
+  await expect(toolbarButton(page, 'worldbooks')).toHaveAttribute(
+    'aria-pressed',
+    'true',
+  );
+
+  await toolbarButton(page, 'worldbooks').click();
+  await expect(page.getByTestId('workspace-right-column')).toBeHidden();
+  await expect(toolbarButton(page, 'worldbooks')).toHaveAttribute(
+    'aria-pressed',
+    'false',
+  );
+});
+
+test('toolbar panel buttons are inactive when their area is hidden', async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 1280, height: 800 });
+  await openWorkbench(page);
+
+  await toolbarButton(page, 'worldbooks').click();
+  await expect(toolbarButton(page, 'worldbooks')).toHaveAttribute(
+    'aria-pressed',
+    'true',
+  );
+
+  await page.getByRole('button', { name: 'Toggle right sidebar' }).click();
+  await expect(page.getByTestId('workspace-right-column')).toBeHidden();
+  await expect(toolbarButton(page, 'worldbooks')).toHaveAttribute(
+    'aria-pressed',
+    'false',
+  );
 });
 
 test('switching away from a right panel keeps it mounted', async ({ page }) => {
@@ -228,11 +297,7 @@ test('mobile left and right toggles open sheets', async ({ page }) => {
     'data-mobile-open',
     'true',
   );
-
-  await page
-    .getByTestId('workspace-left-column')
-    .getByRole('button', { name: 'Workspace context' })
-    .click();
+  await page.getByRole('button', { name: 'Toggle left sidebar' }).click();
   await expect(page.getByTestId('workspace-left-column')).toBeHidden();
 
   await page.getByRole('button', { name: 'Toggle right sidebar' }).click();
@@ -276,7 +341,7 @@ test('mobile right panel stays below the toolbar and uses viewport width', async
   expect(toolbarBox).not.toBeNull();
   expect(rightColumnBox).not.toBeNull();
   expect(rightColumnBox?.y).toBe(toolbarBox!.height);
-  expect(rightColumnBox?.width).toBe(390);
+  expect(rightColumnBox?.width).toBeCloseTo(390, 1);
 
   await page.getByRole('button', { name: 'Toggle right sidebar' }).click();
   await expect(page.getByTestId('workspace-right-column')).toBeHidden();

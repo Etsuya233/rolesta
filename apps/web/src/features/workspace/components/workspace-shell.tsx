@@ -1,7 +1,5 @@
-import { XIcon } from "lucide-react";
-import { useEffect, useMemo, useState, type ReactNode } from "react";
+import { useCallback, useEffect, useMemo, useState, type ReactNode } from "react";
 import { useTranslation } from "react-i18next";
-import { Button } from "../../../components/ui/button";
 import {
   Empty,
   EmptyDescription,
@@ -10,7 +8,11 @@ import {
 } from "../../../components/ui/empty";
 import { cn } from "../../../lib/utils";
 import { useWorkspaceLayout } from "../model/use-workspace-layout";
-import type { WorkspaceArea, WorkspacePanelRuntime } from "../model/workspace-panels";
+import type {
+  WorkspaceArea,
+  WorkspacePanelKey,
+  WorkspacePanelRuntime,
+} from "../model/workspace-panels";
 import { WorkspacePanelHost } from "./workspace-panel-host";
 import { WorkspaceToolbar } from "./workspace-toolbar";
 
@@ -18,10 +20,33 @@ interface WorkspaceShellProps {
   activeChatId?: string | undefined;
 }
 
+const workspaceAreas: WorkspaceArea[] = ["left", "center", "right", "bottom"];
+
 export function WorkspaceShell({ activeChatId }: WorkspaceShellProps) {
-  const { t } = useTranslation();
   const layout = useWorkspaceLayout();
   const desktopLayout = useDesktopWorkspaceLayout();
+  const visibleByArea = useMemo<Record<WorkspaceArea, boolean>>(
+    () => ({
+      left: desktopLayout ? layout.leftVisible : layout.mobileArea === "left",
+      center: true,
+      right: desktopLayout ? layout.rightVisible : layout.mobileArea === "right",
+      bottom: layout.mobileArea === "bottom",
+    }),
+    [desktopLayout, layout.leftVisible, layout.mobileArea, layout.rightVisible],
+  );
+  const activeToolbarPanelKeys = useMemo(() => {
+    const panelKeys = new Set<WorkspacePanelKey>();
+
+    for (const area of workspaceAreas) {
+      const panelKey = layout.activeByArea[area];
+
+      if (visibleByArea[area] && panelKey) {
+        panelKeys.add(panelKey);
+      }
+    }
+
+    return panelKeys;
+  }, [layout.activeByArea, visibleByArea]);
   const runtime = useMemo<WorkspacePanelRuntime>(
     () => ({
       activeChatId,
@@ -30,27 +55,40 @@ export function WorkspaceShell({ activeChatId }: WorkspaceShellProps) {
     }),
     [activeChatId, layout.closeArea, layout.openPanel],
   );
+  const toggleToolbarPanel = useCallback(
+    (panelKey: WorkspacePanelKey) => {
+      const activeArea = workspaceAreas.find(
+        (area) => visibleByArea[area] && layout.activeByArea[area] === panelKey,
+      );
+
+      if (activeArea) {
+        layout.closeArea(activeArea);
+        return;
+      }
+
+      layout.openPanel(panelKey);
+    },
+    [layout.activeByArea, layout.closeArea, layout.openPanel, visibleByArea],
+  );
 
   return (
     <main className="flex h-dvh min-h-0 flex-col overflow-hidden bg-background text-foreground">
       <WorkspaceToolbar
-        activeByArea={layout.activeByArea}
-        leftVisible={layout.leftVisible}
-        rightVisible={layout.rightVisible}
+        activePanelKeys={activeToolbarPanelKeys}
+        leftVisible={visibleByArea.left}
+        rightVisible={visibleByArea.right}
         onToggleLeft={layout.toggleLeft}
         onToggleRight={layout.toggleRight}
-        onOpenPanel={layout.openPanel}
+        onOpenPanel={toggleToolbarPanel}
       />
 
       <div className="grid min-h-0 flex-1 grid-cols-1 bg-muted/30 lg:grid-cols-[auto_minmax(0,1fr)_auto]">
         <WorkspaceSideArea
           area="left"
-          title={t("chats.workbench.mobile.leftTitle")}
           visible={layout.leftVisible}
           mobileOpen={layout.mobileArea === "left"}
           desktopLayout={desktopLayout}
           side="left"
-          onClose={layout.closeMobileArea}
           className="border-r bg-sidebar lg:col-start-1 lg:w-72"
         >
           <WorkspacePanelHost
@@ -79,12 +117,10 @@ export function WorkspaceShell({ activeChatId }: WorkspaceShellProps) {
 
         <WorkspaceSideArea
           area="right"
-          title={t("chats.workbench.mobile.rightTitle")}
           visible={layout.rightVisible}
           mobileOpen={layout.mobileArea === "right"}
           desktopLayout={desktopLayout}
           side="right"
-          onClose={layout.closeMobileArea}
           className="border-l bg-background lg:col-start-3 lg:w-[28rem] xl:w-[32rem]"
         >
           <WorkspacePanelHost
@@ -102,22 +138,18 @@ export function WorkspaceShell({ activeChatId }: WorkspaceShellProps) {
 
 function WorkspaceSideArea({
   area,
-  title,
   visible,
   mobileOpen,
   desktopLayout,
   side,
-  onClose,
   className,
   children,
 }: {
   area: WorkspaceArea;
-  title: string;
   visible: boolean;
   mobileOpen: boolean;
   desktopLayout: boolean;
   side: "left" | "right";
-  onClose: () => void;
   className?: string;
   children: ReactNode;
 }) {
@@ -142,18 +174,6 @@ function WorkspaceSideArea({
         className,
       )}
     >
-      <div className="flex h-12 shrink-0 flex-row items-center justify-between gap-3 border-b px-3 lg:hidden">
-        <h2 className="truncate text-sm font-semibold">{title}</h2>
-        <Button
-          type="button"
-          variant="ghost"
-          size="icon-sm"
-          aria-label={title}
-          onClick={onClose}
-        >
-          <XIcon />
-        </Button>
-      </div>
       <div className="min-h-0 flex-1 overflow-hidden">{children}</div>
     </aside>
   );

@@ -10,12 +10,11 @@ import {
 import { cn } from "../../../lib/utils";
 import {
   workspacePanelDefinitions,
-  type WorkspaceActivePanels,
   type WorkspacePanelKey,
 } from "../model/workspace-panels";
 
 interface WorkspaceToolbarProps {
-  activeByArea: WorkspaceActivePanels;
+  activePanelKeys: Set<WorkspacePanelKey>;
   leftVisible: boolean;
   rightVisible: boolean;
   onToggleLeft: () => void;
@@ -24,7 +23,7 @@ interface WorkspaceToolbarProps {
 }
 
 export function WorkspaceToolbar({
-  activeByArea,
+  activePanelKeys,
   leftVisible,
   rightVisible,
   onToggleLeft,
@@ -32,7 +31,6 @@ export function WorkspaceToolbar({
   onOpenPanel,
 }: WorkspaceToolbarProps) {
   const { t } = useTranslation();
-  const activePanelKeys = new Set(Object.values(activeByArea).filter(Boolean));
   const toolbarPanels = [...workspacePanelDefinitions].sort(
     (left, right) => left.toolbarOrder - right.toolbarOrder,
   );
@@ -82,13 +80,13 @@ export function WorkspaceToolbar({
                 data-testid={`workspace-toolbar-panel-${panel.key}`}
                 onClick={() => onOpenPanel(panel.key)}
                 className={cn(
-                  "shrink-0",
+                  "shrink-0 max-lg:size-7 max-lg:gap-0 max-lg:px-0 max-lg:has-data-[icon=inline-start]:pl-0",
                   toolbarButtonClassName,
                   active && "border-border",
                 )}
               >
                 <Icon data-icon="inline-start" />
-                <span className="hidden sm:inline">{label}</span>
+                <span className="hidden lg:inline">{label}</span>
               </Button>
             </ToolbarTooltip>
           );
