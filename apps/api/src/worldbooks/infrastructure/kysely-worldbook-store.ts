@@ -11,7 +11,7 @@ import type {
   Selectable,
   SelectQueryBuilder,
 } from "kysely";
-import { ensureEpochMillis } from "../../characters/domain/epoch-millis.js";
+import { ensureEpochMillis } from '../../shared/epoch-millis.js';
 import { KYSELY_DB } from "../../database/database.provider.js";
 import type {
   ListWorldbooksRequest,

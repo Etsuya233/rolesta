@@ -1,4 +1,4 @@
-import { ensureEpochMillis } from "../../characters/domain/epoch-millis.js";
+import { ensureEpochMillis } from '../../shared/epoch-millis.js';
 import type { Worldbook } from "../domain/worldbook.js";
 import { fromSillyTavernWorldInfo } from "../infrastructure/silly-tavern-world-info.mapper.js";
 import { WorldbookApplicationError } from "./worldbook-application-error.js";

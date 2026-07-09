@@ -1,5 +1,5 @@
 import { countPromptTokens } from "@rolesta/shared";
-import { ensureEpochMillis } from "../../characters/domain/epoch-millis.js";
+import { ensureEpochMillis } from '../../shared/epoch-millis.js';
 import type {
   Worldbook,
   WorldbookEntryRole,

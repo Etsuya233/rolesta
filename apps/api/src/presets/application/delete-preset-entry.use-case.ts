@@ -1,7 +1,7 @@
-import { ensureEpochMillis } from '../../characters/domain/epoch-millis.js';
+import { ensureEpochMillis } from '../../shared/epoch-millis.js';
 import { PresetApplicationError } from './preset-application-error.js';
 import type { PresetClock } from './preset-application-services.js';
-import type { PresetStore } from './preset-store.js';
+import type { PresetStore } from '../ports/preset-store.js';
 import type { Preset } from '../domain/preset.js';
 import { withPresetTokenCount } from '../domain/preset.js';
 

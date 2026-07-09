@@ -1,4 +1,4 @@
-import { ensureEpochMillis } from "../../characters/domain/epoch-millis.js";
+import { ensureEpochMillis } from '../../shared/epoch-millis.js';
 import type { Worldbook, WorldbookEntry } from "../domain/worldbook.js";
 import { WorldbookApplicationError } from "./worldbook-application-error.js";
 import type { WorldbookClock } from "./worldbook-application-services.js";

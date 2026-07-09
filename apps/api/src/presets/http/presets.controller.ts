@@ -162,13 +162,12 @@ export class PresetsController {
         throw new PresetApplicationError('invalid-import-file');
       }
 
-      return toPresetDetailResponse(
-        await this.importPresetUseCase.execute({
-          ownerUserId: request.authUser.id,
-          fileName: file.originalname,
-          content: file.buffer,
-        }),
-      );
+        return toPresetDetailResponse(
+          await this.importPresetUseCase.execute({
+            ownerUserId: request.authUser.id,
+            content: file.buffer,
+          }),
+        );
     });
   }
 

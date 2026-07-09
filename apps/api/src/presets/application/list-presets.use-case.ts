@@ -3,7 +3,7 @@ import type {
   PresetSortKey,
   PresetStore,
   SortDirection,
-} from './preset-store.js';
+} from '../ports/preset-store.js';
 import type { PresetSummary } from '../domain/preset.js';
 
 export interface ListPresetsCommand {

@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { createEmptyCharacterCardDraft } from './character-card.js';
-import { ensureEpochMillis } from './epoch-millis.js';
+import { ensureEpochMillis } from '../../shared/epoch-millis.js';
 
 describe('character card domain', () => {
   it('rejects epoch millis values outside safe integer storage', () => {

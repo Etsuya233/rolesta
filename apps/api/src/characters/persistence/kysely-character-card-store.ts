@@ -9,7 +9,7 @@ import type {
   ListCharactersRequest,
 } from '../ports/character-card-store.js';
 import type { CharacterCard } from '../domain/character-card.js';
-import { ensureEpochMillis } from '../domain/epoch-millis.js';
+import { ensureEpochMillis } from '../../shared/epoch-millis.js';
 
 @Injectable()
 export class KyselyCharacterCardStore implements CharacterCardStore {

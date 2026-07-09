@@ -1,5 +1,5 @@
 import type { CharacterVisibility } from './character-visibility.js';
-import { ensureEpochMillis, type EpochMillis } from './epoch-millis.js';
+import { ensureEpochMillis, type EpochMillis } from '../../shared/epoch-millis.js';
 
 export type CharacterCardSourceFormat = 'sillytavern_v1' | 'sillytavern_v2' | 'sillytavern_v3';
 

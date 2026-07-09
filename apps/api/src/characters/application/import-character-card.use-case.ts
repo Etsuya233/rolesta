@@ -1,6 +1,6 @@
 import type { CharacterClock, CharacterIdGenerator } from './character-application-services.js';
 import type { CharacterCard } from '../domain/character-card.js';
-import { ensureEpochMillis } from '../domain/epoch-millis.js';
+import { ensureEpochMillis } from '../../shared/epoch-millis.js';
 import type { CharacterCardCodec } from '../ports/character-card-codec.js';
 import type { CharacterCardStore } from '../ports/character-card-store.js';
 

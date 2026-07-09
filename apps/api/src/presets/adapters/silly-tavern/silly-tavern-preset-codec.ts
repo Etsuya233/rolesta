@@ -1,40 +1,12 @@
 import { countPromptTokens, PROMPT_TOKENIZER } from '@rolesta/shared';
-import { PresetApplicationError } from '../application/preset-application-error.js';
+import { Injectable } from '@nestjs/common';
+import { PresetApplicationError } from '../../application/preset-application-error.js';
+import type { PresetEntryPosition, PresetEntryRole, Preset } from '../../domain/preset.js';
+import { createDefaultPresetModelSettings } from '../../domain/preset-model-settings.js';
 import type {
-  Preset,
-  PresetEntry,
-  PresetEntryPosition,
-  PresetEntryRole,
-} from '../domain/preset.js';
-import {
-  createDefaultPresetModelSettings,
-  type PresetModelSettings,
-} from '../domain/preset-model-settings.js';
-
-export interface ImportedSillyTavernPreset {
-  name: string;
-  modelSettings: PresetModelSettings;
-  tokenizer: typeof PROMPT_TOKENIZER;
-  entries: ImportedPresetEntry[];
-  promptItems: ImportedPresetPromptItem[];
-  sourceSnapshot: unknown;
-}
-
-export interface ImportedPresetEntry {
-  identifier: string;
-  name: string;
-  role: PresetEntryRole;
-  position: PresetEntryPosition;
-  content: string;
-  tokenCount: number;
-  metadata: Record<string, unknown>;
-}
-
-export interface ImportedPresetPromptItem {
-  identifier: string;
-  enabled: boolean;
-  orderIndex: number;
-}
+  ImportedPreset,
+  PresetCodec,
+} from '../../ports/preset-codec.js';
 
 export interface SillyTavernPresetOutput {
   name: string;
@@ -64,12 +36,23 @@ export interface SillyTavernPresetOutput {
 interface SillyTavernPromptOutput {
   identifier: string;
   name: string;
-  role: PresetEntryRole;
+  role: string;
   content: string;
   injection_position: number | string;
 }
 
-export function fromSillyTavernPreset(input: unknown): ImportedSillyTavernPreset {
+@Injectable()
+export class SillyTavernPresetCodec implements PresetCodec {
+  importFile(content: Buffer): ImportedPreset {
+    return fromSillyTavernPreset(importFileContent(content));
+  }
+
+  exportPreset(preset: Preset): object {
+    return toSillyTavernPreset(preset);
+  }
+}
+
+export function fromSillyTavernPreset(input: unknown): ImportedPreset {
   if (!isRecord(input)) {
     throw new PresetApplicationError('invalid-preset');
   }
@@ -128,7 +111,7 @@ export function toSillyTavernPreset(preset: Preset): SillyTavernPresetOutput {
   };
 }
 
-function toImportedEntry(prompt: Record<string, unknown>): ImportedPresetEntry {
+function toImportedEntry(prompt: Record<string, unknown>): ImportedPreset['entries'][number] {
   const identifier = stringField(prompt, 'identifier');
   const name = stringField(prompt, 'name') || identifier || 'Untitled entry';
   const content = stringField(prompt, 'content');
@@ -152,7 +135,7 @@ function toImportedEntry(prompt: Record<string, unknown>): ImportedPresetEntry {
 function toImportedPromptItem(
   input: Record<string, unknown>,
   orderIndex: number,
-): ImportedPresetPromptItem {
+): ImportedPreset['promptItems'][number] {
   const identifier = stringField(input, 'identifier');
 
   return {
@@ -162,7 +145,7 @@ function toImportedPromptItem(
   };
 }
 
-function toSillyTavernPrompt(entry: PresetEntry): SillyTavernPromptOutput {
+function toSillyTavernPrompt(entry: Preset['entries'][number]): SillyTavernPromptOutput {
   return {
     identifier: entry.identifier,
     name: entry.name,
@@ -173,7 +156,7 @@ function toSillyTavernPrompt(entry: PresetEntry): SillyTavernPromptOutput {
   };
 }
 
-function modelSettings(input: Record<string, unknown>): PresetModelSettings {
+function modelSettings(input: Record<string, unknown>): ImportedPreset['modelSettings'] {
   const defaults = createDefaultPresetModelSettings();
 
   return {
@@ -321,6 +304,14 @@ function nullableNumberField(input: Record<string, unknown>, key: string): numbe
   }
 
   throw new PresetApplicationError('invalid-preset');
+}
+
+function importFileContent(content: Buffer): unknown {
+  try {
+    return JSON.parse(content.toString('utf8')) as unknown;
+  } catch {
+    throw new PresetApplicationError('invalid-import-file');
+  }
 }
 
 function isRecord(value: unknown): value is Record<string, unknown> {

@@ -4,7 +4,7 @@ import {
 } from './character-card-editable-fields.js';
 import type { CharacterClock, CharacterIdGenerator } from './character-application-services.js';
 import { createEmptyCharacterCardDraft, type CharacterCard } from '../domain/character-card.js';
-import { ensureEpochMillis } from '../domain/epoch-millis.js';
+import { ensureEpochMillis } from '../../shared/epoch-millis.js';
 import type { CharacterCardStore } from '../ports/character-card-store.js';
 
 export interface CreateCharacterCommand extends CharacterCardEditableFields {

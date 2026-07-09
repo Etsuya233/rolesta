@@ -1,11 +1,11 @@
 import { PROMPT_TOKENIZER } from '@rolesta/shared';
-import { ensureEpochMillis } from '../../characters/domain/epoch-millis.js';
+import { ensureEpochMillis } from '../../shared/epoch-millis.js';
 import type { PresetClock, PresetIdGenerator } from './preset-application-services.js';
 import {
   applyPresetEditableFields,
   type PresetEditableFields,
 } from './preset-editable-fields.js';
-import type { PresetStore } from './preset-store.js';
+import type { PresetStore } from '../ports/preset-store.js';
 import { createDefaultPresetModelSettings } from '../domain/preset-model-settings.js';
 import { withPresetTokenCount, type Preset } from '../domain/preset.js';
 

@@ -1,25 +1,58 @@
-import { readFileSync } from 'node:fs';
-import { resolve } from 'node:path';
 import { describe, expect, it } from 'vitest';
-import type { Preset } from '../domain/preset.js';
+import type { Preset } from '../../domain/preset.js';
 import {
+  SillyTavernPresetCodec,
   fromSillyTavernPreset,
   toSillyTavernPreset,
-} from './silly-tavern-preset.mapper.js';
+} from './silly-tavern-preset-codec.js';
 
 describe('SillyTavern preset mapper', () => {
+  it('rejects invalid JSON import files', () => {
+    const codec = new SillyTavernPresetCodec();
+
+    expect(() => codec.importFile(Buffer.from('{'))).toThrowError('invalid-import-file');
+  });
+
   it('imports the sample preset with the default character order', () => {
-    const input = JSON.parse(
-      readFileSync(
-        resolve(process.cwd(), '../../tmp/Preset-Ako1.86-VintageNovel-4.json'),
-        'utf8',
-      ),
-    ) as unknown;
+    const input = {
+      name: 'Ako1.86-VintageNovel (1)',
+      prompts: [
+        {
+          identifier: 'main',
+          name: 'Main',
+          role: 'system',
+          content: 'alpha',
+          injection_position: 'system',
+        },
+        {
+          identifier: 'post',
+          name: 'Post',
+          role: 'assistant',
+          content: 'beta',
+          injection_position: 2,
+        },
+      ],
+      prompt_order: [
+        {
+          character_id: 100000,
+          order: [
+            { identifier: 'main', enabled: true },
+            { identifier: 'post', enabled: false },
+          ],
+        },
+      ],
+      openai_max_context: 2000000,
+      openai_max_tokens: 65535,
+      temperature: 0.7,
+      reasoning_effort: 'medium',
+      verbosity: 'low',
+      show_thoughts: false,
+    } as const;
     const preset = fromSillyTavernPreset(input);
 
     expect(preset.name).toBe('Ako1.86-VintageNovel (1)');
-    expect(preset.entries).toHaveLength(271);
-    expect(preset.promptItems).toHaveLength(11);
+    expect(preset.entries).toHaveLength(2);
+    expect(preset.promptItems).toHaveLength(2);
     expect(preset.promptItems[0]).toMatchObject({
       identifier: 'main',
       enabled: true,
