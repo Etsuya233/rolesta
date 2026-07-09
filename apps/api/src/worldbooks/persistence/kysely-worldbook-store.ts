@@ -11,13 +11,13 @@ import type {
   Selectable,
   SelectQueryBuilder,
 } from "kysely";
-import { ensureEpochMillis } from '../../shared/epoch-millis.js';
+import { ensureEpochMillis } from "../../shared/epoch-millis.js";
 import { KYSELY_DB } from "../../database/database.provider.js";
 import type {
   ListWorldbooksRequest,
   WorldbookSortKey,
   WorldbookStore,
-} from "../application/worldbook-store.js";
+} from "../ports/worldbook-store.js";
 import type {
   Worldbook,
   WorldbookEntry,

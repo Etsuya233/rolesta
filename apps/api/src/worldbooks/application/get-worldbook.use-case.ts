@@ -1,6 +1,8 @@
+import { UseCase } from "../../common/errors/index.js";
 import type { Worldbook } from "../domain/worldbook.js";
+import type { WorldbookStore } from "../ports/worldbook-store.js";
+import { translateWorldbookError } from "./worldbook-error.mapper.js";
 import { WorldbookApplicationError } from "./worldbook-application-error.js";
-import type { WorldbookStore } from "./worldbook-store.js";
 
 export interface GetWorldbookCommand {
   id: string;
@@ -10,6 +12,7 @@ export interface GetWorldbookCommand {
 export class GetWorldbookUseCase {
   constructor(private readonly store: WorldbookStore) {}
 
+  @UseCase(translateWorldbookError)
   async execute(command: GetWorldbookCommand): Promise<Worldbook> {
     const worldbook = await this.store.findVisibleById(
       command.id,
@@ -17,7 +20,10 @@ export class GetWorldbookUseCase {
     );
 
     if (worldbook === null) {
-      throw new WorldbookApplicationError("not-found");
+      throw new WorldbookApplicationError({
+        reason: "not-found",
+        params: { worldbookId: command.id },
+      });
     }
 
     return worldbook;

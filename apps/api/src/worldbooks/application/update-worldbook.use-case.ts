@@ -1,12 +1,14 @@
-import { ensureEpochMillis } from '../../shared/epoch-millis.js';
+import { UseCase } from "../../common/errors/index.js";
+import { ensureEpochMillis } from "../../shared/epoch-millis.js";
 import type { Worldbook } from "../domain/worldbook.js";
+import type { WorldbookStore } from "../ports/worldbook-store.js";
+import { translateWorldbookError } from "./worldbook-error.mapper.js";
 import { WorldbookApplicationError } from "./worldbook-application-error.js";
 import type { WorldbookClock } from "./worldbook-application-services.js";
 import {
   applyWorldbookEditableFields,
   type WorldbookEditableFields,
 } from "./worldbook-editable-fields.js";
-import type { WorldbookStore } from "./worldbook-store.js";
 
 export interface UpdateWorldbookCommand extends WorldbookEditableFields {
   id: string;
@@ -19,6 +21,7 @@ export class UpdateWorldbookUseCase {
     private readonly clock: WorldbookClock,
   ) {}
 
+  @UseCase(translateWorldbookError)
   async execute(command: UpdateWorldbookCommand): Promise<Worldbook> {
     const current = await this.store.findVisibleById(
       command.id,
@@ -26,11 +29,20 @@ export class UpdateWorldbookUseCase {
     );
 
     if (current === null) {
-      throw new WorldbookApplicationError("not-found");
+      throw new WorldbookApplicationError({
+        reason: "not-found",
+        params: { worldbookId: command.id },
+      });
     }
 
     if (current.ownerUserId !== command.viewerUserId) {
-      throw new WorldbookApplicationError("forbidden");
+      throw new WorldbookApplicationError({
+        reason: "forbidden",
+        params: {
+          worldbookId: command.id,
+          viewerUserId: command.viewerUserId,
+        },
+      });
     }
 
     const updated = applyWorldbookEditableFields(

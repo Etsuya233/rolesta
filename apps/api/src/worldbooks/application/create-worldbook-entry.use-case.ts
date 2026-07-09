@@ -1,5 +1,6 @@
 import { countPromptTokens } from "@rolesta/shared";
-import { ensureEpochMillis } from '../../shared/epoch-millis.js';
+import { UseCase } from "../../common/errors/index.js";
+import { ensureEpochMillis } from "../../shared/epoch-millis.js";
 import type {
   Worldbook,
   WorldbookEntryRole,
@@ -7,12 +8,13 @@ import type {
   WorldbookInsertionPosition,
   WorldbookSelectiveLogic,
 } from "../domain/worldbook.js";
+import { translateWorldbookError } from "./worldbook-error.mapper.js";
 import { WorldbookApplicationError } from "./worldbook-application-error.js";
 import type {
   WorldbookClock,
   WorldbookIdGenerator,
 } from "./worldbook-application-services.js";
-import type { WorldbookStore } from "./worldbook-store.js";
+import type { WorldbookStore } from "../ports/worldbook-store.js";
 
 export interface CreateWorldbookEntryCommand {
   worldbookId: string;
@@ -48,6 +50,7 @@ export class CreateWorldbookEntryUseCase {
     private readonly clock: WorldbookClock,
   ) {}
 
+  @UseCase(translateWorldbookError)
   async execute(command: CreateWorldbookEntryCommand): Promise<Worldbook> {
     const current = await this.store.findVisibleById(
       command.worldbookId,
@@ -55,11 +58,20 @@ export class CreateWorldbookEntryUseCase {
     );
 
     if (current === null) {
-      throw new WorldbookApplicationError("not-found");
+      throw new WorldbookApplicationError({
+        reason: "not-found",
+        params: { worldbookId: command.worldbookId },
+      });
     }
 
     if (current.ownerUserId !== command.viewerUserId) {
-      throw new WorldbookApplicationError("forbidden");
+      throw new WorldbookApplicationError({
+        reason: "forbidden",
+        params: {
+          worldbookId: command.worldbookId,
+          viewerUserId: command.viewerUserId,
+        },
+      });
     }
 
     const nowMs = ensureEpochMillis(this.clock.now().getTime());

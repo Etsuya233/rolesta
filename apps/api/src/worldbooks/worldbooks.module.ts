@@ -18,21 +18,28 @@ import type {
   WorldbookClock,
   WorldbookIdGenerator,
 } from "./application/worldbook-application-services.js";
+import { SillyTavernWorldbookCodec } from "./adapters/silly-tavern/silly-tavern-worldbook-codec.js";
+import {
+  WORLDBOOK_CODEC,
+  type WorldbookCodec,
+} from "./ports/worldbook-codec.js";
 import {
   WORLDBOOK_STORE,
   type WorldbookStore,
-} from "./application/worldbook-store.js";
+} from "./ports/worldbook-store.js";
 import { WorldbooksController } from "./http/worldbooks.controller.js";
-import { KyselyWorldbookStore } from "./infrastructure/kysely-worldbook-store.js";
+import { KyselyWorldbookStore } from "./persistence/kysely-worldbook-store.js";
 
 @Module({
   imports: [DatabaseModule, AuthModule],
   controllers: [WorldbooksController],
   providers: [
     KyselyWorldbookStore,
+    SillyTavernWorldbookCodec,
     CryptoIdGenerator,
     SystemClock,
     { provide: WORLDBOOK_STORE, useExisting: KyselyWorldbookStore },
+    { provide: WORLDBOOK_CODEC, useExisting: SillyTavernWorldbookCodec },
     {
       provide: ListWorldbooksUseCase,
       useFactory: (store: WorldbookStore) => new ListWorldbooksUseCase(store),
@@ -67,15 +74,22 @@ import { KyselyWorldbookStore } from "./infrastructure/kysely-worldbook-store.js
       provide: ImportWorldbookUseCase,
       useFactory: (
         store: WorldbookStore,
+        codec: WorldbookCodec,
         idGenerator: WorldbookIdGenerator,
         clock: WorldbookClock,
-      ) => new ImportWorldbookUseCase(store, idGenerator, clock),
-      inject: [WORLDBOOK_STORE, CryptoIdGenerator, SystemClock],
+      ) => new ImportWorldbookUseCase(store, codec, idGenerator, clock),
+      inject: [
+        WORLDBOOK_STORE,
+        WORLDBOOK_CODEC,
+        CryptoIdGenerator,
+        SystemClock,
+      ],
     },
     {
       provide: ExportWorldbookUseCase,
-      useFactory: (store: WorldbookStore) => new ExportWorldbookUseCase(store),
-      inject: [WORLDBOOK_STORE],
+      useFactory: (store: WorldbookStore, codec: WorldbookCodec) =>
+        new ExportWorldbookUseCase(store, codec),
+      inject: [WORLDBOOK_STORE, WORLDBOOK_CODEC],
     },
     {
       provide: CreateWorldbookEntryUseCase,

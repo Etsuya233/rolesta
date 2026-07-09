@@ -1,12 +1,14 @@
-import { ensureEpochMillis } from '../../shared/epoch-millis.js';
+import { UseCase } from "../../common/errors/index.js";
+import { ensureEpochMillis } from "../../shared/epoch-millis.js";
 import type { Worldbook } from "../domain/worldbook.js";
+import type { WorldbookStore } from "../ports/worldbook-store.js";
+import { translateWorldbookError } from "./worldbook-error.mapper.js";
 import { WorldbookApplicationError } from "./worldbook-application-error.js";
 import type { WorldbookClock } from "./worldbook-application-services.js";
 import {
   applyWorldbookEntryEditableFields,
   type WorldbookEntryEditableFields,
 } from "./worldbook-entry-editable-fields.js";
-import type { WorldbookStore } from "./worldbook-store.js";
 
 export interface UpdateWorldbookEntryCommand extends WorldbookEntryEditableFields {
   worldbookId: string;
@@ -20,6 +22,7 @@ export class UpdateWorldbookEntryUseCase {
     private readonly clock: WorldbookClock,
   ) {}
 
+  @UseCase(translateWorldbookError)
   async execute(command: UpdateWorldbookEntryCommand): Promise<Worldbook> {
     const current = await this.store.findVisibleById(
       command.worldbookId,
@@ -27,11 +30,20 @@ export class UpdateWorldbookEntryUseCase {
     );
 
     if (current === null) {
-      throw new WorldbookApplicationError("not-found");
+      throw new WorldbookApplicationError({
+        reason: "not-found",
+        params: { worldbookId: command.worldbookId },
+      });
     }
 
     if (current.ownerUserId !== command.viewerUserId) {
-      throw new WorldbookApplicationError("forbidden");
+      throw new WorldbookApplicationError({
+        reason: "forbidden",
+        params: {
+          worldbookId: command.worldbookId,
+          viewerUserId: command.viewerUserId,
+        },
+      });
     }
 
     const nowMs = ensureEpochMillis(this.clock.now().getTime());
@@ -49,7 +61,13 @@ export class UpdateWorldbookEntryUseCase {
     });
 
     if (!found) {
-      throw new WorldbookApplicationError("unknown-entry");
+      throw new WorldbookApplicationError({
+        reason: "unknown-entry",
+        params: {
+          worldbookId: command.worldbookId,
+          entryId: command.entryId,
+        },
+      });
     }
 
     const updated = { ...current, entries, updatedAtMs: nowMs };

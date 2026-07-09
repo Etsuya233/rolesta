@@ -1,28 +1,18 @@
+import { Injectable } from "@nestjs/common";
 import { countPromptTokens } from "@rolesta/shared";
-import { WorldbookApplicationError } from "../application/worldbook-application-error.js";
 import type {
   Worldbook,
   WorldbookEntryRole,
-  WorldbookEntry,
   WorldbookInsertionPosition,
   WorldbookSelectiveLogic,
-} from "../domain/worldbook.js";
-
-export interface ImportedSillyTavernWorldInfo {
-  name: string;
-  description: string;
-  tags: string[];
-  scanDepth: number;
-  tokenBudget: number;
-  recursiveScan: boolean;
-  entries: ImportedWorldbookEntry[];
-  sourceSnapshot: unknown;
-}
-
-export type ImportedWorldbookEntry = Omit<
-  WorldbookEntry,
-  "id" | "worldbookId" | "createdAtMs" | "updatedAtMs"
->;
+} from "../../domain/worldbook.js";
+import type {
+  ImportedWorldbook,
+  ImportedWorldbookEntry,
+  ImportWorldbookFile,
+  WorldbookCodec,
+} from "../../ports/worldbook-codec.js";
+import { WorldbookPortError } from "../../ports/worldbook-port-error.js";
 
 export interface SillyTavernWorldInfoOutput {
   name: string;
@@ -54,12 +44,26 @@ export interface SillyTavernWorldInfoEntryOutput {
   outletName: string;
 }
 
+@Injectable()
+export class SillyTavernWorldbookCodec implements WorldbookCodec {
+  importFile(file: ImportWorldbookFile): ImportedWorldbook {
+    return fromSillyTavernWorldInfo(importFileContent(file), file.fileName);
+  }
+
+  exportWorldbook(worldbook: Worldbook): object {
+    return toSillyTavernWorldInfo(worldbook);
+  }
+}
+
 export function fromSillyTavernWorldInfo(
   input: unknown,
   fileName: string,
-): ImportedSillyTavernWorldInfo {
+): ImportedWorldbook {
   if (!isRecord(input)) {
-    throw new WorldbookApplicationError("invalid-worldbook");
+    throw new WorldbookPortError({
+      reason: "invalid-worldbook",
+      params: { fileName, field: "input" },
+    });
   }
 
   const entries = entriesArray(input).map(toImportedEntry);
@@ -195,13 +199,19 @@ function entriesArray(
     const entryValues = Object.values(entries);
 
     if (!entryValues.every(isRecord)) {
-      throw new WorldbookApplicationError("invalid-worldbook");
+      throw new WorldbookPortError({
+        reason: "invalid-worldbook",
+        params: { field: "entries" },
+      });
     }
 
     return entryValues;
   }
 
-  throw new WorldbookApplicationError("invalid-worldbook");
+  throw new WorldbookPortError({
+    reason: "invalid-worldbook",
+    params: { field: "entries" },
+  });
 }
 
 function keysField(input: Record<string, unknown>, keys: string[]): string[] {
@@ -219,7 +229,10 @@ function keysField(input: Record<string, unknown>, keys: string[]): string[] {
       return value;
     }
 
-    throw new WorldbookApplicationError("invalid-worldbook");
+    throw new WorldbookPortError({
+      reason: "invalid-worldbook",
+      params: { field: key },
+    });
   }
 
   return [];
@@ -311,7 +324,10 @@ function worldbookEntryRole(value: unknown): WorldbookEntryRole {
     return "assistant";
   }
 
-  throw new WorldbookApplicationError("invalid-worldbook");
+  throw new WorldbookPortError({
+    reason: "invalid-worldbook",
+    params: { field: "role" },
+  });
 }
 
 function worldbookSelectiveLogic(value: unknown): WorldbookSelectiveLogic {
@@ -336,7 +352,10 @@ function worldbookSelectiveLogic(value: unknown): WorldbookSelectiveLogic {
     return "andAll";
   }
 
-  throw new WorldbookApplicationError("invalid-worldbook");
+  throw new WorldbookPortError({
+    reason: "invalid-worldbook",
+    params: { field: "selectiveLogic" },
+  });
 }
 
 function sillyTavernPosition(
@@ -413,7 +432,10 @@ function stringCompatibleField(
     return value;
   }
 
-  throw new WorldbookApplicationError("invalid-worldbook");
+  throw new WorldbookPortError({
+    reason: "invalid-worldbook",
+    params: { field: directKey },
+  });
 }
 
 function optionalBooleanCompatibleField(
@@ -431,7 +453,10 @@ function optionalBooleanCompatibleField(
     return value;
   }
 
-  throw new WorldbookApplicationError("invalid-worldbook");
+  throw new WorldbookPortError({
+    reason: "invalid-worldbook",
+    params: { field: directKey },
+  });
 }
 
 function optionalNumberCompatibleField(
@@ -449,7 +474,10 @@ function optionalNumberCompatibleField(
     return value;
   }
 
-  throw new WorldbookApplicationError("invalid-worldbook");
+  throw new WorldbookPortError({
+    reason: "invalid-worldbook",
+    params: { field: directKey },
+  });
 }
 
 function stringField(input: Record<string, unknown>, key: string): string {
@@ -463,7 +491,10 @@ function stringField(input: Record<string, unknown>, key: string): string {
     return value;
   }
 
-  throw new WorldbookApplicationError("invalid-worldbook");
+  throw new WorldbookPortError({
+    reason: "invalid-worldbook",
+    params: { field: key },
+  });
 }
 
 function stringArrayField(
@@ -480,7 +511,10 @@ function stringArrayField(
     return value;
   }
 
-  throw new WorldbookApplicationError("invalid-worldbook");
+  throw new WorldbookPortError({
+    reason: "invalid-worldbook",
+    params: { field: key },
+  });
 }
 
 function optionalBooleanField(
@@ -497,7 +531,10 @@ function optionalBooleanField(
     return value;
   }
 
-  throw new WorldbookApplicationError("invalid-worldbook");
+  throw new WorldbookPortError({
+    reason: "invalid-worldbook",
+    params: { field: key },
+  });
 }
 
 function optionalNumberField(
@@ -514,7 +551,22 @@ function optionalNumberField(
     return value;
   }
 
-  throw new WorldbookApplicationError("invalid-worldbook");
+  throw new WorldbookPortError({
+    reason: "invalid-worldbook",
+    params: { field: key },
+  });
+}
+
+function importFileContent(file: ImportWorldbookFile): unknown {
+  try {
+    return JSON.parse(file.content.toString("utf8")) as unknown;
+  } catch (error) {
+    throw new WorldbookPortError({
+      reason: "invalid-import-file",
+      params: { fileName: file.fileName, field: "content" },
+      cause: error,
+    });
+  }
 }
 
 function worldbookNameFromFileName(fileName: string): string {

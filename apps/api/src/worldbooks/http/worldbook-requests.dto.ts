@@ -17,7 +17,7 @@ import {
   WORLDBOOK_SORT_KEYS,
   type SortDirection,
   type WorldbookSortKey,
-} from "../application/worldbook-store.js";
+} from "../ports/worldbook-store.js";
 import {
   WORLDBOOK_ENTRY_ROLES,
   WORLDBOOK_INSERTION_POSITIONS,

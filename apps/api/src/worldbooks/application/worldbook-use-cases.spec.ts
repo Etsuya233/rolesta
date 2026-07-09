@@ -5,18 +5,24 @@ import {
   type Worldbook,
   type WorldbookSummary,
 } from "../domain/worldbook.js";
+import type {
+  ImportedWorldbook,
+  ImportWorldbookFile,
+  WorldbookCodec,
+} from "../ports/worldbook-codec.js";
+import { WorldbookPortError } from "../ports/worldbook-port-error.js";
+import type {
+  ListWorldbooksRequest,
+  WorldbookStore,
+} from "../ports/worldbook-store.js";
 import { CreateWorldbookEntryUseCase } from "./create-worldbook-entry.use-case.js";
 import { CreateWorldbookUseCase } from "./create-worldbook.use-case.js";
 import { DeleteWorldbookEntryUseCase } from "./delete-worldbook-entry.use-case.js";
 import { GetWorldbookUseCase } from "./get-worldbook.use-case.js";
+import { ImportWorldbookUseCase } from "./import-worldbook.use-case.js";
 import { UpdateWorldbookEntryOrderUseCase } from "./update-worldbook-entry-order.use-case.js";
 import { UpdateWorldbookEntryUseCase } from "./update-worldbook-entry.use-case.js";
 import { UpdateWorldbookUseCase } from "./update-worldbook.use-case.js";
-import { WorldbookApplicationError } from "./worldbook-application-error.js";
-import type {
-  ListWorldbooksRequest,
-  WorldbookStore,
-} from "./worldbook-store.js";
 
 describe("worldbook use cases", () => {
   it("creates private worldbooks with generated id and timestamps", async () => {
@@ -68,7 +74,30 @@ describe("worldbook use cases", () => {
         viewerUserId: "reader",
         name: "Blocked",
       }),
-    ).rejects.toMatchObject(new WorldbookApplicationError("forbidden"));
+    ).rejects.toMatchObject({
+      reason: "forbidden",
+      params: { worldbookId: "book-1", viewerUserId: "reader" },
+    });
+  });
+
+  it("translates worldbook codec failures at the application boundary", async () => {
+    const useCase = new ImportWorldbookUseCase(
+      new InMemoryWorldbookStore(),
+      new FailingWorldbookCodec(),
+      new SequenceIdGenerator(["book-1"]),
+      new FixedClock(1783090000100),
+    );
+
+    await expect(
+      useCase.execute({
+        ownerUserId: "owner",
+        fileName: "bad.json",
+        content: Buffer.from("{"),
+      }),
+    ).rejects.toMatchObject({
+      reason: "invalid-import-file",
+      params: { fileName: "bad.json", field: "content" },
+    });
   });
 
   it("creates, updates, deletes, orders, and toggles entries", async () => {
@@ -177,14 +206,20 @@ describe("worldbook use cases", () => {
           { entryId: "entry-1", enabled: false },
         ],
       }),
-    ).rejects.toMatchObject(new WorldbookApplicationError("duplicate-entry"));
+    ).rejects.toMatchObject({
+      reason: "duplicate-entry",
+      params: { worldbookId: "book-1", entryId: "entry-1" },
+    });
     await expect(
       useCase.execute({
         worldbookId: "book-1",
         viewerUserId: "owner",
         entries: [{ entryId: "missing", enabled: true }],
       }),
-    ).rejects.toMatchObject(new WorldbookApplicationError("unknown-entry"));
+    ).rejects.toMatchObject({
+      reason: "unknown-entry",
+      params: { worldbookId: "book-1", entryId: "missing" },
+    });
   });
 
   it("rejects entry order updates that omit existing entries", async () => {
@@ -208,7 +243,10 @@ describe("worldbook use cases", () => {
         viewerUserId: "owner",
         entries: [{ entryId: "entry-1", enabled: true }],
       }),
-    ).rejects.toMatchObject(new WorldbookApplicationError("unknown-entry"));
+    ).rejects.toMatchObject({
+      reason: "unknown-entry",
+      params: { worldbookId: "book-1" },
+    });
 
     expect(
       (await store.findOwnedById("book-1", "owner"))?.entries,
@@ -279,6 +317,19 @@ class InMemoryWorldbookStore implements WorldbookStore {
     }
 
     return this.worldbooks.delete(id);
+  }
+}
+
+class FailingWorldbookCodec implements WorldbookCodec {
+  importFile(file: ImportWorldbookFile): ImportedWorldbook {
+    throw new WorldbookPortError({
+      reason: "invalid-import-file",
+      params: { fileName: file.fileName, field: "content" },
+    });
+  }
+
+  exportWorldbook(): object {
+    return {};
   }
 }
 

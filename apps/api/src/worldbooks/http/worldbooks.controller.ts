@@ -176,7 +176,10 @@ export class WorldbooksController {
   ): Promise<WorldbookDetailResponseDto> {
     return this.withApplicationErrors(async () => {
       if (file === undefined) {
-        throw new WorldbookApplicationError("invalid-import-file");
+        throw new WorldbookApplicationError({
+          reason: "invalid-import-file",
+          params: { field: "file" },
+        });
       }
 
       return toWorldbookDetailResponse(

@@ -1,8 +1,10 @@
-import { ensureEpochMillis } from '../../shared/epoch-millis.js';
+import { UseCase } from "../../common/errors/index.js";
+import { ensureEpochMillis } from "../../shared/epoch-millis.js";
 import type { Worldbook, WorldbookEntry } from "../domain/worldbook.js";
+import type { WorldbookStore } from "../ports/worldbook-store.js";
+import { translateWorldbookError } from "./worldbook-error.mapper.js";
 import { WorldbookApplicationError } from "./worldbook-application-error.js";
 import type { WorldbookClock } from "./worldbook-application-services.js";
-import type { WorldbookStore } from "./worldbook-store.js";
 
 export interface UpdateWorldbookEntryOrderCommand {
   worldbookId: string;
@@ -19,6 +21,7 @@ export class UpdateWorldbookEntryOrderUseCase {
     private readonly clock: WorldbookClock,
   ) {}
 
+  @UseCase(translateWorldbookError)
   async execute(command: UpdateWorldbookEntryOrderCommand): Promise<Worldbook> {
     const current = await this.store.findVisibleById(
       command.worldbookId,
@@ -26,29 +29,53 @@ export class UpdateWorldbookEntryOrderUseCase {
     );
 
     if (current === null) {
-      throw new WorldbookApplicationError("not-found");
+      throw new WorldbookApplicationError({
+        reason: "not-found",
+        params: { worldbookId: command.worldbookId },
+      });
     }
 
     if (current.ownerUserId !== command.viewerUserId) {
-      throw new WorldbookApplicationError("forbidden");
+      throw new WorldbookApplicationError({
+        reason: "forbidden",
+        params: {
+          worldbookId: command.worldbookId,
+          viewerUserId: command.viewerUserId,
+        },
+      });
     }
 
     const entryIds = new Set<string>();
 
     for (const item of command.entries) {
       if (entryIds.has(item.entryId)) {
-        throw new WorldbookApplicationError("duplicate-entry");
+        throw new WorldbookApplicationError({
+          reason: "duplicate-entry",
+          params: {
+            worldbookId: command.worldbookId,
+            entryId: item.entryId,
+          },
+        });
       }
 
       entryIds.add(item.entryId);
 
       if (!current.entries.some((entry) => entry.id === item.entryId)) {
-        throw new WorldbookApplicationError("unknown-entry");
+        throw new WorldbookApplicationError({
+          reason: "unknown-entry",
+          params: {
+            worldbookId: command.worldbookId,
+            entryId: item.entryId,
+          },
+        });
       }
     }
 
     if (entryIds.size !== current.entries.length) {
-      throw new WorldbookApplicationError("unknown-entry");
+      throw new WorldbookApplicationError({
+        reason: "unknown-entry",
+        params: { worldbookId: command.worldbookId },
+      });
     }
 
     const nowMs = ensureEpochMillis(this.clock.now().getTime());

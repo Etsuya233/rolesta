@@ -1,8 +1,10 @@
-import { ensureEpochMillis } from '../../shared/epoch-millis.js';
+import { UseCase } from "../../common/errors/index.js";
+import { ensureEpochMillis } from "../../shared/epoch-millis.js";
 import type { Worldbook } from "../domain/worldbook.js";
+import type { WorldbookStore } from "../ports/worldbook-store.js";
+import { translateWorldbookError } from "./worldbook-error.mapper.js";
 import { WorldbookApplicationError } from "./worldbook-application-error.js";
 import type { WorldbookClock } from "./worldbook-application-services.js";
-import type { WorldbookStore } from "./worldbook-store.js";
 
 export interface DeleteWorldbookEntryCommand {
   worldbookId: string;
@@ -16,6 +18,7 @@ export class DeleteWorldbookEntryUseCase {
     private readonly clock: WorldbookClock,
   ) {}
 
+  @UseCase(translateWorldbookError)
   async execute(command: DeleteWorldbookEntryCommand): Promise<Worldbook> {
     const current = await this.store.findVisibleById(
       command.worldbookId,
@@ -23,15 +26,30 @@ export class DeleteWorldbookEntryUseCase {
     );
 
     if (current === null) {
-      throw new WorldbookApplicationError("not-found");
+      throw new WorldbookApplicationError({
+        reason: "not-found",
+        params: { worldbookId: command.worldbookId },
+      });
     }
 
     if (current.ownerUserId !== command.viewerUserId) {
-      throw new WorldbookApplicationError("forbidden");
+      throw new WorldbookApplicationError({
+        reason: "forbidden",
+        params: {
+          worldbookId: command.worldbookId,
+          viewerUserId: command.viewerUserId,
+        },
+      });
     }
 
     if (!current.entries.some((entry) => entry.id === command.entryId)) {
-      throw new WorldbookApplicationError("unknown-entry");
+      throw new WorldbookApplicationError({
+        reason: "unknown-entry",
+        params: {
+          worldbookId: command.worldbookId,
+          entryId: command.entryId,
+        },
+      });
     }
 
     const updated = {

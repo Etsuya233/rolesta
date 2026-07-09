@@ -1,5 +1,7 @@
-import { ensureEpochMillis } from '../../shared/epoch-millis.js';
+import { UseCase } from "../../common/errors/index.js";
+import { ensureEpochMillis } from "../../shared/epoch-millis.js";
 import type { Worldbook } from "../domain/worldbook.js";
+import { translateWorldbookError } from "./worldbook-error.mapper.js";
 import type {
   WorldbookClock,
   WorldbookIdGenerator,
@@ -8,7 +10,7 @@ import {
   applyWorldbookEditableFields,
   type WorldbookEditableFields,
 } from "./worldbook-editable-fields.js";
-import type { WorldbookStore } from "./worldbook-store.js";
+import type { WorldbookStore } from "../ports/worldbook-store.js";
 
 export interface CreateWorldbookCommand extends WorldbookEditableFields {
   ownerUserId: string;
@@ -21,6 +23,7 @@ export class CreateWorldbookUseCase {
     private readonly clock: WorldbookClock,
   ) {}
 
+  @UseCase(translateWorldbookError)
   async execute(command: CreateWorldbookCommand): Promise<Worldbook> {
     const nowMs = ensureEpochMillis(this.clock.now().getTime());
     const draft: Worldbook = {

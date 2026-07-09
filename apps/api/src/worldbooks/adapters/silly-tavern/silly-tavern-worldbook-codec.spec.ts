@@ -1,12 +1,12 @@
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { describe, expect, it } from "vitest";
-import { WorldbookApplicationError } from "../application/worldbook-application-error.js";
-import type { Worldbook } from "../domain/worldbook.js";
+import type { Worldbook } from "../../domain/worldbook.js";
+import { WorldbookPortError } from "../../ports/worldbook-port-error.js";
 import {
   fromSillyTavernWorldInfo,
   toSillyTavernWorldInfo,
-} from "./silly-tavern-world-info.mapper.js";
+} from "./silly-tavern-worldbook-codec.js";
 
 describe("SillyTavern world info mapper", () => {
   it("imports object entries from the sample worldbook", () => {
@@ -159,11 +159,11 @@ describe("SillyTavern world info mapper", () => {
 
   it("rejects missing or malformed entries", () => {
     expect(() => fromSillyTavernWorldInfo({}, "book.json")).toThrow(
-      new WorldbookApplicationError("invalid-worldbook"),
+      WorldbookPortError,
     );
     expect(() =>
       fromSillyTavernWorldInfo({ entries: [{ content: 42 }] }, "book.json"),
-    ).toThrow(new WorldbookApplicationError("invalid-worldbook"));
+    ).toThrow(WorldbookPortError);
   });
 
   it("exports SillyTavern compatible core fields without source snapshot merging", () => {
