@@ -7,7 +7,7 @@ import type {
   CharacterCardStore,
   CharacterSortKey,
   ListCharactersRequest,
-} from '../application/character-card-store.js';
+} from '../ports/character-card-store.js';
 import type { CharacterCard } from '../domain/character-card.js';
 import { ensureEpochMillis } from '../domain/epoch-millis.js';
 

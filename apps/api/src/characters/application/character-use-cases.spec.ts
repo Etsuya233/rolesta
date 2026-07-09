@@ -1,8 +1,14 @@
 import { describe, expect, it } from 'vitest';
 import type { PageResponse } from '@rolesta/shared';
 import { createEmptyCharacterCardDraft, type CharacterCard } from '../domain/character-card.js';
+import type {
+  CharacterCardCodec,
+  ExportCharacterCardOptions,
+  ImportedCharacterCard,
+  ImportCharacterCardFile,
+} from '../ports/character-card-codec.js';
+import type { CharacterCardStore, ListCharactersRequest } from '../ports/character-card-store.js';
 import { CharacterApplicationError } from './character-application-error.js';
-import type { CharacterCardStore, ListCharactersRequest } from './character-card-store.js';
 import { CreateCharacterUseCase } from './create-character.use-case.js';
 import { ExportCharacterCardUseCase } from './export-character-card.use-case.js';
 import { UpdateCharacterUseCase } from './update-character.use-case.js';
@@ -50,14 +56,37 @@ describe('character use cases', () => {
     const store = new InMemoryCharacterCardStore([
       characterCard({ id: 'card_1', ownerUserId: 'owner', name: 'Exported', firstMessage: 'Hello' }),
     ]);
-    const useCase = new ExportCharacterCardUseCase(store);
+    const useCase = new ExportCharacterCardUseCase(store, new FakeCharacterCardCodec());
 
     await expect(useCase.execute({ id: 'card_1', viewerUserId: 'owner' })).resolves.toMatchObject({
-      spec: 'chara_card_v3',
-      data: { name: 'Exported', first_mes: 'Hello' },
+      format: 'character-card',
+      version: 'v3',
+      name: 'Exported',
     });
   });
 });
+
+class FakeCharacterCardCodec implements CharacterCardCodec {
+  importFile(file: ImportCharacterCardFile): ImportedCharacterCard {
+    return {
+      ...createEmptyCharacterCardDraft({
+        id: 'imported',
+        ownerUserId: 'importer',
+        nowMs: 1783090000000,
+      }),
+      name: file.fileName,
+      sourceSnapshot: file.content.toString('utf8'),
+    };
+  }
+
+  exportCard(card: CharacterCard, options: ExportCharacterCardOptions): object {
+    return {
+      format: 'character-card',
+      version: options.version,
+      name: card.name,
+    };
+  }
+}
 
 class InMemoryCharacterCardStore implements CharacterCardStore {
   private readonly cards = new Map<string, CharacterCard>();

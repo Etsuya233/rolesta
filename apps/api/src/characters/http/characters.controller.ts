@@ -28,7 +28,7 @@ import { GetCharacterUseCase } from '../application/get-character.use-case.js';
 import { ImportCharacterCardUseCase } from '../application/import-character-card.use-case.js';
 import { ListCharactersUseCase } from '../application/list-characters.use-case.js';
 import { UpdateCharacterUseCase } from '../application/update-character.use-case.js';
-import type { SillyTavernExportVersion } from '../infrastructure/silly-tavern-character-card.mapper.js';
+import type { CharacterCardExportVersion } from '../ports/character-card-codec.js';
 import { toApiFailure } from './character-application-error.mapper.js';
 import {
   CreateCharacterRequestDto,
@@ -172,7 +172,7 @@ export class CharactersController {
   async exportSillyTavern(
     @Req() request: AuthenticatedRequest,
     @Param('id') id: string,
-    @Query('version') version: SillyTavernExportVersion | undefined,
+    @Query('version') version: CharacterCardExportVersion | undefined,
     @Res() response: Response,
   ): Promise<void> {
     await this.withApplicationErrors(async () => {
@@ -201,8 +201,8 @@ export class CharactersController {
 }
 
 function characterCardExportVersion(
-  version: SillyTavernExportVersion | undefined,
-): SillyTavernExportVersion {
+  version: CharacterCardExportVersion | undefined,
+): CharacterCardExportVersion {
   if (version === undefined || version === 'v2' || version === 'v3') {
     return version ?? 'v3';
   }

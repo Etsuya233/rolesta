@@ -1,5 +1,5 @@
 import { CharacterApplicationError } from './character-application-error.js';
-import type { CharacterCardStore } from './character-card-store.js';
+import type { CharacterCardStore } from '../ports/character-card-store.js';
 
 export interface DeleteCharacterCommand {
   id: string;

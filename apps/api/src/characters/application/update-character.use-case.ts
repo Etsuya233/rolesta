@@ -3,10 +3,10 @@ import {
   applyCharacterCardEditableFields,
   type CharacterCardEditableFields,
 } from './character-card-editable-fields.js';
-import type { CharacterCardStore } from './character-card-store.js';
 import type { CharacterClock } from './character-application-services.js';
 import type { CharacterCard } from '../domain/character-card.js';
 import { ensureEpochMillis } from '../domain/epoch-millis.js';
+import type { CharacterCardStore } from '../ports/character-card-store.js';
 
 export interface UpdateCharacterCommand extends CharacterCardEditableFields {
   id: string;

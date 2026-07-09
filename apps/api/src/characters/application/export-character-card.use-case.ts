@@ -1,27 +1,29 @@
 import { CharacterApplicationError } from './character-application-error.js';
-import type { CharacterCardStore } from './character-card-store.js';
 import {
-  toSillyTavernCharacterCard,
-  type SillyTavernCharacterCardOutput,
-  type SillyTavernExportVersion,
-} from '../infrastructure/silly-tavern-character-card.mapper.js';
+  type CharacterCardCodec,
+  type CharacterCardExportVersion,
+} from '../ports/character-card-codec.js';
+import type { CharacterCardStore } from '../ports/character-card-store.js';
 
 export interface ExportCharacterCardCommand {
   id: string;
   viewerUserId: string;
-  version?: SillyTavernExportVersion;
+  version?: CharacterCardExportVersion;
 }
 
 export class ExportCharacterCardUseCase {
-  constructor(private readonly store: CharacterCardStore) {}
+  constructor(
+    private readonly store: CharacterCardStore,
+    private readonly codec: CharacterCardCodec,
+  ) {}
 
-  async execute(command: ExportCharacterCardCommand): Promise<SillyTavernCharacterCardOutput> {
+  async execute(command: ExportCharacterCardCommand): Promise<object> {
     const card = await this.store.findVisibleById(command.id, command.viewerUserId);
 
     if (card === null) {
       throw new CharacterApplicationError('not-found');
     }
 
-    return toSillyTavernCharacterCard(card, command.version ?? 'v3');
+    return this.codec.exportCard(card, { version: command.version ?? 'v3' });
   }
 }

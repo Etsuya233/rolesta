@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import {
   fromSillyTavernCharacterCard,
   toSillyTavernCharacterCard,
-} from './silly-tavern-character-card.mapper.js';
+} from './silly-tavern-character-card-codec.js';
 
 describe('SillyTavern character card mapper', () => {
   it('imports V1 top-level fields', () => {

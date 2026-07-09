@@ -2,10 +2,10 @@ import {
   applyCharacterCardEditableFields,
   type CharacterCardEditableFields,
 } from './character-card-editable-fields.js';
-import type { CharacterCardStore } from './character-card-store.js';
 import type { CharacterClock, CharacterIdGenerator } from './character-application-services.js';
 import { createEmptyCharacterCardDraft, type CharacterCard } from '../domain/character-card.js';
 import { ensureEpochMillis } from '../domain/epoch-millis.js';
+import type { CharacterCardStore } from '../ports/character-card-store.js';
 
 export interface CreateCharacterCommand extends CharacterCardEditableFields {
   ownerUserId: string;

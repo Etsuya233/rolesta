@@ -4,7 +4,7 @@ import type {
   CharacterListScope,
   CharacterSortKey,
   SortDirection,
-} from './character-card-store.js';
+} from '../ports/character-card-store.js';
 import type { CharacterCard } from '../domain/character-card.js';
 
 export interface ListCharactersCommand {

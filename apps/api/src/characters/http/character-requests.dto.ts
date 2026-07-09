@@ -18,7 +18,7 @@ import {
   type CharacterListScope,
   type CharacterSortKey,
   type SortDirection,
-} from '../application/character-card-store.js';
+} from '../ports/character-card-store.js';
 import {
   CHARACTER_VISIBILITIES,
   type CharacterVisibility,

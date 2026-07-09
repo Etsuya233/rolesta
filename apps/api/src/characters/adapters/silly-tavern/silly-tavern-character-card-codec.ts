@@ -1,17 +1,29 @@
-import { CharacterApplicationError } from '../application/character-application-error.js';
-import type { CharacterCard, CharacterCardSourceFormat } from '../domain/character-card.js';
-
-export type SillyTavernExportVersion = 'v2' | 'v3';
-
-export type ImportedCharacterCard = Omit<
-  CharacterCard,
-  'id' | 'ownerUserId' | 'visibility' | 'createdAtMs' | 'updatedAtMs' | 'lastUsedAtMs' | 'usageCount'
->;
+import { Injectable } from '@nestjs/common';
+import { CharacterApplicationError } from '../../application/character-application-error.js';
+import type { CharacterCard, CharacterCardSourceFormat } from '../../domain/character-card.js';
+import type {
+  CharacterCardCodec,
+  CharacterCardExportVersion,
+  ImportedCharacterCard,
+  ImportCharacterCardFile,
+} from '../../ports/character-card-codec.js';
+import { readSillyTavernPngMetadata } from './silly-tavern-png-metadata-reader.js';
 
 export interface SillyTavernCharacterCardOutput {
   spec: 'chara_card_v2' | 'chara_card_v3';
   spec_version: '2.0' | '3.0';
   data: Record<string, unknown>;
+}
+
+@Injectable()
+export class SillyTavernCharacterCardCodec implements CharacterCardCodec {
+  importFile(file: ImportCharacterCardFile): ImportedCharacterCard {
+    return fromSillyTavernCharacterCard(importFileContent(file.fileName, file.content));
+  }
+
+  exportCard(card: CharacterCard, options: { version: CharacterCardExportVersion }): object {
+    return toSillyTavernCharacterCard(card, options.version);
+  }
 }
 
 export function fromSillyTavernCharacterCard(input: unknown): ImportedCharacterCard {
@@ -48,7 +60,7 @@ export function fromSillyTavernCharacterCard(input: unknown): ImportedCharacterC
 
 export function toSillyTavernCharacterCard(
   card: CharacterCard,
-  version: SillyTavernExportVersion,
+  version: CharacterCardExportVersion,
 ): SillyTavernCharacterCardOutput {
   const data: Record<string, unknown> = {
     name: card.name,
@@ -257,6 +269,24 @@ function assignNonEmptyArray(data: Record<string, unknown>, key: string, value: 
 function assignDefinedValue(data: Record<string, unknown>, key: string, value: unknown): void {
   if (value !== null && value !== undefined) {
     data[key] = value;
+  }
+}
+
+function importFileContent(fileName: string, content: Buffer): unknown {
+  const normalizedFileName = fileName.toLowerCase();
+
+  if (normalizedFileName.endsWith('.png')) {
+    return readSillyTavernPngMetadata(content);
+  }
+
+  if (!normalizedFileName.endsWith('.json')) {
+    throw new CharacterApplicationError('invalid-import-file');
+  }
+
+  try {
+    return JSON.parse(content.toString('utf8')) as unknown;
+  } catch {
+    throw new CharacterApplicationError('invalid-import-file');
   }
 }
 

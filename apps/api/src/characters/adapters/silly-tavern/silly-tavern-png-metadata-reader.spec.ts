@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { readSillyTavernPngMetadata } from './silly-tavern-png-metadata.reader.js';
+import { readSillyTavernPngMetadata } from './silly-tavern-png-metadata-reader.js';
 
 describe('readSillyTavernPngMetadata', () => {
   it('reads base64 character metadata from a PNG tEXt chunk', () => {
