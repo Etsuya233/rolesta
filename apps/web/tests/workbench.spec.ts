@@ -35,6 +35,35 @@ test('generates toolbar buttons from the workspace panel registry', async ({
   await expect(toolbarButton(page, 'modelProviders')).toBeVisible();
 });
 
+test('toolbar buttons do not create vertical overflow while pressed', async ({
+  page,
+}) => {
+  await openWorkbench(page);
+
+  const toggleLeftButton = page.getByRole('button', {
+    name: 'Toggle left sidebar',
+  });
+  const buttonBox = await toggleLeftButton.boundingBox();
+  expect(buttonBox).not.toBeNull();
+
+  await page.mouse.move(
+    buttonBox!.x + buttonBox!.width / 2,
+    buttonBox!.y + buttonBox!.height / 2,
+  );
+  await page.mouse.down();
+
+  const toolbarOverflow = await page
+    .getByTestId('workspace-toolbar')
+    .evaluate((element) => ({
+      clientHeight: element.clientHeight,
+      scrollHeight: element.scrollHeight,
+    }));
+
+  await page.mouse.up();
+
+  expect(toolbarOverflow.scrollHeight).toBe(toolbarOverflow.clientHeight);
+});
+
 test('clicking Worldbooks activates the right panel', async ({ page }) => {
   await openWorkbench(page);
 
@@ -151,6 +180,11 @@ test('desktop left and right toggles collapse and expand columns', async ({
 
   await page.getByRole('button', { name: 'Toggle left sidebar' }).click();
   await expect(page.getByTestId('workspace-left-column')).toBeHidden();
+  await expect(page.getByTestId('workspace-center-column')).toBeVisible();
+  const centerBox = await page.getByTestId('workspace-center-column').boundingBox();
+  expect(centerBox).not.toBeNull();
+  expect(centerBox?.width).toBeGreaterThan(700);
+
   await page.getByRole('button', { name: 'Toggle left sidebar' }).click();
   await expect(page.getByTestId('workspace-left-column')).toBeVisible();
 

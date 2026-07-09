@@ -58,7 +58,7 @@ export function WorkspaceShell({ activeChatId }: WorkspaceShellProps) {
           desktopLayout={desktopLayout}
           side="left"
           onClose={layout.closeMobileArea}
-          className="border-r bg-sidebar lg:w-72"
+          className="border-r bg-sidebar lg:col-start-1 lg:w-72"
         >
           <WorkspacePanelHost
             area="left"
@@ -68,7 +68,10 @@ export function WorkspaceShell({ activeChatId }: WorkspaceShellProps) {
           />
         </WorkspaceSideArea>
 
-        <section className="grid min-h-0 grid-rows-[minmax(0,1fr)_auto] bg-background">
+        <section
+          data-testid="workspace-center-column"
+          className="grid min-h-0 grid-rows-[minmax(0,1fr)_auto] bg-background lg:col-start-2"
+        >
           <WorkspacePanelHost
             area="center"
             openedKeys={layout.openedByArea.center}
@@ -89,7 +92,7 @@ export function WorkspaceShell({ activeChatId }: WorkspaceShellProps) {
           desktopLayout={desktopLayout}
           side="right"
           onClose={layout.closeMobileArea}
-          className="border-l bg-background lg:w-[28rem] xl:w-[32rem]"
+          className="border-l bg-background lg:col-start-3 lg:w-[28rem] xl:w-[32rem]"
         >
           <WorkspacePanelHost
             area="right"

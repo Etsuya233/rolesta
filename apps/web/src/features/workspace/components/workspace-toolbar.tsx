@@ -36,10 +36,15 @@ export function WorkspaceToolbar({
   const toolbarPanels = [...workspacePanelDefinitions].sort(
     (left, right) => left.toolbarOrder - right.toolbarOrder,
   );
+  const toolbarButtonClassName =
+    "active:not-aria-[haspopup]:translate-y-0";
 
   return (
     <TooltipProvider>
-      <header className="flex h-12 shrink-0 items-center border-b bg-background px-2">
+      <header
+        data-testid="workspace-toolbar"
+        className="flex h-12 shrink-0 items-center overflow-hidden border-b bg-background px-2"
+      >
       <div className="flex shrink-0 items-center gap-1">
         <ToolbarTooltip label={t("chats.workbench.toolbar.toggleLeft")}>
           <Button
@@ -49,6 +54,7 @@ export function WorkspaceToolbar({
             aria-pressed={leftVisible}
             aria-label={t("chats.workbench.toolbar.toggleLeft")}
             onClick={onToggleLeft}
+            className={toolbarButtonClassName}
           >
             <PanelLeftIcon />
           </Button>
@@ -58,7 +64,7 @@ export function WorkspaceToolbar({
       <nav
         aria-label={t("chats.workbench.toolbar.panelNavigation")}
         data-testid="workspace-toolbar-panels"
-        className="flex min-w-0 flex-1 justify-center gap-1 overflow-x-auto px-2"
+        className="flex min-w-0 flex-1 justify-center gap-1 overflow-x-auto overflow-y-hidden px-2"
       >
         {toolbarPanels.map((panel) => {
           const Icon = panel.icon;
@@ -75,7 +81,11 @@ export function WorkspaceToolbar({
                 aria-label={label}
                 data-testid={`workspace-toolbar-panel-${panel.key}`}
                 onClick={() => onOpenPanel(panel.key)}
-                className={cn("shrink-0", active && "border-border")}
+                className={cn(
+                  "shrink-0",
+                  toolbarButtonClassName,
+                  active && "border-border",
+                )}
               >
                 <Icon data-icon="inline-start" />
                 <span className="hidden sm:inline">{label}</span>
@@ -94,6 +104,7 @@ export function WorkspaceToolbar({
             aria-pressed={rightVisible}
             aria-label={t("chats.workbench.toolbar.toggleRight")}
             onClick={onToggleRight}
+            className={toolbarButtonClassName}
           >
             <PanelRightIcon />
           </Button>
