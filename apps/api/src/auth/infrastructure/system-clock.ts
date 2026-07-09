@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import type { Clock } from '../application/auth-ports.js';
+import type { Clock } from '../ports/auth-ports.js';
 
 @Injectable()
 export class SystemClock implements Clock {

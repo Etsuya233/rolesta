@@ -2,7 +2,7 @@ import { Inject, Injectable } from '@nestjs/common';
 import type { Database, SessionsTable } from '@rolesta/db';
 import type { Kysely, Selectable } from 'kysely';
 import { KYSELY_DB } from '../../database/database.provider.js';
-import type { SessionStore } from '../application/auth-ports.js';
+import type { SessionStore } from '../ports/auth-ports.js';
 import { Session } from '../domain/session.js';
 
 @Injectable()

@@ -1,5 +1,5 @@
 import { Session } from '../domain/session.js';
-import type { Clock, IssuedSessionToken } from './auth-ports.js';
+import type { Clock, IssuedSessionToken } from '../ports/auth-ports.js';
 
 const SESSION_DURATION_MS = 30 * 24 * 60 * 60 * 1000;
 

@@ -1,7 +1,7 @@
 import { randomBytes, scrypt, timingSafeEqual } from 'node:crypto';
 import { promisify } from 'node:util';
 import { Injectable } from '@nestjs/common';
-import type { PasswordHashing } from '../application/auth-ports.js';
+import type { PasswordHashing } from '../ports/auth-ports.js';
 
 const scryptAsync = promisify(scrypt);
 const KEY_LENGTH = 64;

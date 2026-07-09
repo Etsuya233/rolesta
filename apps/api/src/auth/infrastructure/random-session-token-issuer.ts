@@ -1,6 +1,6 @@
 import { createHash, randomBytes } from 'node:crypto';
 import { Injectable } from '@nestjs/common';
-import type { IssuedSessionToken, SessionTokenIssuer } from '../application/auth-ports.js';
+import type { IssuedSessionToken, SessionTokenIssuer } from '../ports/auth-ports.js';
 
 @Injectable()
 export class RandomSessionTokenIssuer implements SessionTokenIssuer {

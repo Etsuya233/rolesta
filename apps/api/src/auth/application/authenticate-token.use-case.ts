@@ -1,4 +1,4 @@
-import type { Clock, SessionStore, SessionTokenIssuer, UserAccountStore } from './auth-ports.js';
+import type { Clock, SessionStore, SessionTokenIssuer, UserAccountStore } from '../ports/auth-ports.js';
 import type { CurrentUserResult } from './auth-results.js';
 
 export class AuthenticateTokenUseCase {

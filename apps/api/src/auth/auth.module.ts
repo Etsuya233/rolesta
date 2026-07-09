@@ -13,7 +13,7 @@ import {
   type SessionStore,
   type SessionTokenIssuer,
   type UserAccountStore,
-} from './application/auth-ports.js';
+} from './ports/auth-ports.js';
 import { AuthenticateTokenUseCase } from './application/authenticate-token.use-case.js';
 import { GetCurrentUserUseCase } from './application/get-current-user.use-case.js';
 import { GetSetupStatusUseCase } from './application/get-setup-status.use-case.js';
@@ -23,11 +23,11 @@ import { SetupAdminUseCase } from './application/setup-admin.use-case.js';
 import { AuthController } from './auth.controller.js';
 import { AuthGuard } from './http/auth.guard.js';
 import { CryptoIdGenerator } from './infrastructure/crypto-id-generator.js';
-import { KyselySessionStore } from './infrastructure/kysely-session-store.js';
-import { KyselyUserAccountStore } from './infrastructure/kysely-user-account-store.js';
 import { RandomSessionTokenIssuer } from './infrastructure/random-session-token-issuer.js';
 import { ScryptPasswordHashing } from './infrastructure/scrypt-password-hashing.js';
 import { SystemClock } from './infrastructure/system-clock.js';
+import { KyselySessionStore } from './persistence/kysely-session-store.js';
+import { KyselyUserAccountStore } from './persistence/kysely-user-account-store.js';
 
 @Module({
   imports: [DatabaseModule],

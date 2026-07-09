@@ -1,4 +1,4 @@
-import type { UserAccountStore } from './auth-ports.js';
+import type { UserAccountStore } from '../ports/auth-ports.js';
 import type { SetupStatusResult } from './auth-results.js';
 
 export class GetSetupStatusUseCase {

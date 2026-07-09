@@ -7,7 +7,7 @@ import type {
   SessionStore,
   SessionTokenIssuer,
   UserAccountStore,
-} from './auth-ports.js';
+} from '../ports/auth-ports.js';
 import type { AuthenticatedUserResult } from './auth-results.js';
 import { createSessionForUser } from './session-factory.js';
 

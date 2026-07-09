@@ -1,6 +1,6 @@
 import { randomUUID } from 'node:crypto';
 import { Injectable } from '@nestjs/common';
-import type { IdGenerator } from '../application/auth-ports.js';
+import type { IdGenerator } from '../ports/auth-ports.js';
 
 @Injectable()
 export class CryptoIdGenerator implements IdGenerator {

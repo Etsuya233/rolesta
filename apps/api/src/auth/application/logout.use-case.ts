@@ -1,4 +1,4 @@
-import type { SessionStore, SessionTokenIssuer } from './auth-ports.js';
+import type { SessionStore, SessionTokenIssuer } from '../ports/auth-ports.js';
 
 export class LogoutUseCase {
   constructor(
