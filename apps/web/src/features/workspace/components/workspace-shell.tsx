@@ -161,7 +161,7 @@ function WorkspaceSideArea({
       aria-hidden={desktopLayout ? !visible : !mobileOpen}
       inert={desktopLayout ? !visible : !mobileOpen}
       className={cn(
-        "fixed bottom-0 top-12 z-40 flex w-screen min-h-0 flex-col overflow-hidden shadow-lg transition-transform duration-200 ease-in-out lg:visible lg:static lg:top-auto lg:bottom-auto lg:z-auto lg:w-auto lg:translate-x-0 lg:shadow-none lg:transition-none lg:pointer-events-auto",
+        "fixed bottom-0 top-12 z-40 flex w-screen min-h-0 flex-col overflow-hidden shadow-lg transition-transform lg:visible lg:static lg:top-auto lg:bottom-auto lg:z-auto lg:w-auto lg:translate-x-0 lg:shadow-none lg:transition-none lg:pointer-events-auto",
         side === "left" &&
           (mobileOpen
             ? "left-0 visible translate-x-0"
