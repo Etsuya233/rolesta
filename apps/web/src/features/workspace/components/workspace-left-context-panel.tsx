@@ -23,7 +23,7 @@ export function WorkspaceLeftContextPanel({ openPanel }: WorkspacePanelRuntime) 
   const { t } = useTranslation();
 
   return (
-    <aside className="flex h-full min-h-0 flex-col bg-sidebar text-sidebar-foreground">
+    <aside className="flex h-full min-h-0 flex-col bg-background text-foreground lg:bg-sidebar lg:text-sidebar-foreground">
       <div className="flex shrink-0 items-center justify-between gap-3 px-3 py-3">
         <div className="min-w-0">
           <h2 className="truncate text-sm font-semibold">

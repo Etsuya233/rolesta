@@ -178,7 +178,7 @@ export function WorkspaceShell({ activeChatId }: WorkspaceShellProps) {
           mobileOpen={layout.mobileArea === "left"}
           desktopLayout={desktopLayout}
           side="left"
-          className="border-r bg-sidebar lg:col-start-1"
+          className="border-r bg-background lg:col-start-1 lg:bg-sidebar"
           panelWidth={layout.panelSizes.leftWidth}
           panelMinWidth={workspacePanelSizeLimits.left.min}
           panelMaxWidth={panelBounds("left").max}
