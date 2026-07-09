@@ -12,6 +12,7 @@ import {
 import {
   readWorkspaceLayout,
   workspaceAreaKeys,
+  type WorkspacePanelSizes,
   writeWorkspaceLayout,
 } from "./workspace-layout-storage";
 
@@ -29,12 +30,20 @@ const emptyActivePanels: WorkspaceActivePanels = {
   bottom: null,
 };
 
+const defaultPanelSizes: WorkspacePanelSizes = {
+  leftWidth: 288,
+  rightWidth: 448,
+};
+
+export type WorkspaceResizableSide = "left" | "right";
+
 export interface WorkspaceLayoutState {
   openedByArea: WorkspaceOpenedPanels;
   activeByArea: WorkspaceActivePanels;
   leftVisible: boolean;
   rightVisible: boolean;
   mobileArea: WorkspaceArea | null;
+  panelSizes: WorkspacePanelSizes;
   openPanel: (
     panelKey: WorkspacePanelKey,
     options?: OpenWorkspacePanelOptions,
@@ -43,6 +52,7 @@ export interface WorkspaceLayoutState {
   toggleLeft: () => void;
   toggleRight: () => void;
   closeMobileArea: () => void;
+  setPanelWidth: (side: WorkspaceResizableSide, width: number) => void;
 }
 
 export function useWorkspaceLayout(): WorkspaceLayoutState {
@@ -51,6 +61,7 @@ export function useWorkspaceLayout(): WorkspaceLayoutState {
   const [activeByArea, setActiveByArea] = useState(initialLayout.activeByArea);
   const [leftVisible, setLeftVisible] = useState(initialLayout.leftVisible);
   const [rightVisible, setRightVisible] = useState(initialLayout.rightVisible);
+  const [panelSizes, setPanelSizes] = useState(initialLayout.panelSizes);
   const [mobileArea, setMobileArea] = useState<WorkspaceArea | null>(null);
 
   const openPanel = useCallback(
@@ -126,13 +137,24 @@ export function useWorkspaceLayout(): WorkspaceLayoutState {
     setMobileArea(null);
   }, []);
 
+  const setPanelWidth = useCallback(
+    (side: WorkspaceResizableSide, width: number) => {
+      setPanelSizes((current) => ({
+        ...current,
+        [side === "left" ? "leftWidth" : "rightWidth"]: width,
+      }));
+    },
+    [],
+  );
+
   useEffect(() => {
     writeWorkspaceLayout({
       activeByArea,
       leftVisible,
       rightVisible,
+      panelSizes,
     });
-  }, [activeByArea, leftVisible, rightVisible]);
+  }, [activeByArea, leftVisible, panelSizes, rightVisible]);
 
   return {
     openedByArea,
@@ -140,11 +162,13 @@ export function useWorkspaceLayout(): WorkspaceLayoutState {
     leftVisible,
     rightVisible,
     mobileArea,
+    panelSizes,
     openPanel,
     closeArea,
     toggleLeft,
     toggleRight,
     closeMobileArea,
+    setPanelWidth,
   };
 }
 
@@ -158,6 +182,7 @@ function initialWorkspaceLayout() {
     activeByArea,
     leftVisible: persistedLayout?.leftVisible ?? true,
     rightVisible: persistedLayout?.rightVisible ?? true,
+    panelSizes: persistedLayout?.panelSizes ?? defaultPanelSizes,
   };
 }
 

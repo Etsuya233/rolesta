@@ -287,6 +287,81 @@ test('desktop left and right toggles collapse and expand columns', async ({
   await expect(page.getByTestId('workspace-right-column')).toBeVisible();
 });
 
+test('desktop side panels resize horizontally and persist widths', async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 1600, height: 900 });
+  await openWorkbench(page);
+
+  const leftColumn = page.getByTestId('workspace-left-column');
+  const rightColumn = page.getByTestId('workspace-right-column');
+  const leftHandle = page.getByTestId('workspace-left-resize-handle');
+  const rightHandle = page.getByTestId('workspace-right-resize-handle');
+
+  const leftStartBox = await leftColumn.boundingBox();
+  const leftHandleBox = await leftHandle.boundingBox();
+  expect(leftStartBox).not.toBeNull();
+  expect(leftHandleBox).not.toBeNull();
+
+  await page.mouse.move(
+    leftHandleBox!.x + leftHandleBox!.width / 2,
+    leftHandleBox!.y + leftHandleBox!.height / 2,
+  );
+  await page.mouse.down();
+  await page.mouse.move(leftHandleBox!.x + 96, leftHandleBox!.y + 20);
+  await page.mouse.up();
+
+  const leftResizedBox = await leftColumn.boundingBox();
+  expect(leftResizedBox).not.toBeNull();
+  expect(leftResizedBox!.width).toBeGreaterThan(leftStartBox!.width);
+
+  const rightHandleBox = await rightHandle.boundingBox();
+  expect(rightHandleBox).not.toBeNull();
+
+  await page.mouse.move(
+    rightHandleBox!.x + rightHandleBox!.width / 2,
+    rightHandleBox!.y + rightHandleBox!.height / 2,
+  );
+  await page.mouse.down();
+  await page.mouse.move(rightHandleBox!.x - 600, rightHandleBox!.y + 20);
+  await page.mouse.up();
+
+  const rightMaxBox = await rightColumn.boundingBox();
+  expect(rightMaxBox).not.toBeNull();
+  expect(rightMaxBox!.width).toBeCloseTo(640, 0);
+
+  const rightMaxHandleBox = await rightHandle.boundingBox();
+  expect(rightMaxHandleBox).not.toBeNull();
+  await page.mouse.move(
+    rightMaxHandleBox!.x + rightMaxHandleBox!.width / 2,
+    rightMaxHandleBox!.y + rightMaxHandleBox!.height / 2,
+  );
+  await page.mouse.down();
+  await page.mouse.move(rightMaxHandleBox!.x + 600, rightMaxHandleBox!.y + 20);
+  await page.mouse.up();
+
+  const rightMinBox = await rightColumn.boundingBox();
+  expect(rightMinBox).not.toBeNull();
+  expect(rightMinBox!.width).toBeCloseTo(320, 0);
+
+  await page.reload();
+
+  const leftReloadedBox = await leftColumn.boundingBox();
+  const rightReloadedBox = await rightColumn.boundingBox();
+  expect(leftReloadedBox).not.toBeNull();
+  expect(rightReloadedBox).not.toBeNull();
+  expect(leftReloadedBox!.width).toBeCloseTo(leftResizedBox!.width, 0);
+  expect(rightReloadedBox!.width).toBeCloseTo(320, 0);
+});
+
+test('mobile side panels do not show resize handles', async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await openWorkbench(page);
+
+  await expect(page.getByTestId('workspace-left-resize-handle')).toBeHidden();
+  await expect(page.getByTestId('workspace-right-resize-handle')).toBeHidden();
+});
+
 test('mobile left and right toggles open sheets', async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 });
   await openWorkbench(page);

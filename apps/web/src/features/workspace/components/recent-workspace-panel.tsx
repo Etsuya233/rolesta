@@ -1,9 +1,8 @@
 import {MessageSquarePlusIcon} from "lucide-react";
 import {useTranslation} from "react-i18next";
 import {Button} from "../../../components/ui/button";
-import type {WorkspacePanelRuntime} from "../model/workspace-panels";
 
-export function RecentWorkspacePanel({ openPanel }: WorkspacePanelRuntime) {
+export function RecentWorkspacePanel() {
   const { t } = useTranslation();
 
   return (

@@ -7,6 +7,12 @@ export interface PersistedWorkspaceLayout {
   activeByArea: WorkspaceActivePanels;
   leftVisible: boolean;
   rightVisible: boolean;
+  panelSizes?: WorkspacePanelSizes;
+}
+
+export interface WorkspacePanelSizes {
+  leftWidth: number;
+  rightWidth: number;
 }
 
 const STORAGE_KEY = "rolesta.workspace.layout.v1";
