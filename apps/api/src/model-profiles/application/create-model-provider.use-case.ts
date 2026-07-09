@@ -1,3 +1,4 @@
+import { UseCase } from '../../common/errors/index.js';
 import type { ModelProviderConfig } from '../domain/model-provider-config.js';
 import type { ModelProviderKind } from '../domain/model-provider-catalog.js';
 import type {
@@ -5,11 +6,12 @@ import type {
   ModelProviderIdGenerator,
 } from './model-provider-application-services.js';
 import { ModelProviderApplicationError } from './model-provider-application-error.js';
-import type { ModelProviderStore } from './model-provider-store.js';
+import { translateModelProviderError } from './model-provider-error.mapper.js';
+import type { ModelProviderStore } from '../ports/model-provider-store.js';
 import {
   sourceForProviderKind,
   validateProviderConnection,
-} from './model-provider-validation.js';
+} from '../domain/model-provider-validation.js';
 
 export interface CreateModelProviderCommand {
   ownerUserId: string;
@@ -27,11 +29,12 @@ export class CreateModelProviderUseCase {
     private readonly clock: ModelProviderClock,
   ) {}
 
+  @UseCase(translateModelProviderError)
   async execute(command: CreateModelProviderCommand): Promise<ModelProviderConfig> {
     const connection = validateProviderConnection(command.providerKind, command.baseUrl);
 
     if (command.selectedApiKeyId) {
-      throw new ModelProviderApplicationError('api-key-not-owned');
+      throw new ModelProviderApplicationError('api-key-not-owned', {});
     }
 
     const now = this.clock.now().getTime();

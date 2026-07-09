@@ -1,10 +1,5 @@
-import {
-  findModelProviderCatalogItem,
-  getModelProviderSource,
-  normalizeBaseUrl,
-  type ModelProviderKind,
-} from '../domain/model-provider-catalog.js';
-import { ModelProviderApplicationError } from './model-provider-application-error.js';
+import { findModelProviderCatalogItem, getModelProviderSource, type ModelProviderKind } from './model-provider-catalog.js';
+import { ModelProviderDomainError } from './model-provider-domain-error.js';
 
 export function validateProviderConnection(
   providerKind: ModelProviderKind,
@@ -13,20 +8,20 @@ export function validateProviderConnection(
   const catalogItem = findModelProviderCatalogItem(providerKind);
 
   if (catalogItem === null) {
-    throw new ModelProviderApplicationError('invalid-provider');
+    throw new ModelProviderDomainError('invalid-provider', { providerKind });
   }
 
   const normalizedBaseUrl = normalizeBaseUrl(baseUrl);
 
   if (normalizedBaseUrl.length === 0) {
-    throw new ModelProviderApplicationError('invalid-base-url');
+    throw new ModelProviderDomainError('invalid-base-url', { providerKind, baseUrl });
   }
 
   if (
     !catalogItem.allowCustomBaseUrl &&
     !catalogItem.baseUrls.some((registeredUrl) => normalizeBaseUrl(registeredUrl) === normalizedBaseUrl)
   ) {
-    throw new ModelProviderApplicationError('invalid-base-url');
+    throw new ModelProviderDomainError('invalid-base-url', { providerKind, baseUrl });
   }
 
   return { providerKind, baseUrl: normalizedBaseUrl };
@@ -34,4 +29,8 @@ export function validateProviderConnection(
 
 export function sourceForProviderKind(providerKind: ModelProviderKind) {
   return getModelProviderSource(providerKind);
+}
+
+export function normalizeBaseUrl(baseUrl: string): string {
+  return baseUrl.trim().replace(/\/+$/u, '');
 }

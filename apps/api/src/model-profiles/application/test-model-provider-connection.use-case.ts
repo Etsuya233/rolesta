@@ -1,8 +1,10 @@
+import { UseCase } from '../../common/errors/index.js';
 import type { ModelProviderKind } from '../domain/model-provider-catalog.js';
-import type { ChatCompletionConnectionClient } from './chat-completion-connection-client.js';
+import type { ChatCompletionConnectionClient } from '../ports/chat-completion-connection-client.js';
 import { ModelProviderApplicationError } from './model-provider-application-error.js';
-import type { ModelProviderStore } from './model-provider-store.js';
-import { validateProviderConnection } from './model-provider-validation.js';
+import { translateModelProviderError } from './model-provider-error.mapper.js';
+import type { ModelProviderStore } from '../ports/model-provider-store.js';
+import { validateProviderConnection } from '../domain/model-provider-validation.js';
 
 export interface TestModelProviderConnectionResult {
   ok: true;
@@ -29,6 +31,7 @@ export class TestModelProviderConnectionUseCase {
     private readonly client: ChatCompletionConnectionClient,
   ) {}
 
+  @UseCase(translateModelProviderError)
   async preview(
     command: TestModelProviderConnectionPreviewCommand,
   ): Promise<TestModelProviderConnectionResult> {
@@ -36,7 +39,7 @@ export class TestModelProviderConnectionUseCase {
     const defaultModelName = command.defaultModelName.trim();
 
     if (defaultModelName.length === 0) {
-      throw new ModelProviderApplicationError('model-name-required');
+      throw new ModelProviderApplicationError('model-name-required', {});
     }
 
     const startedAt = Date.now();
@@ -55,11 +58,12 @@ export class TestModelProviderConnectionUseCase {
     };
   }
 
+  @UseCase(translateModelProviderError)
   async saved(command: TestModelProviderConnectionCommand): Promise<TestModelProviderConnectionResult> {
     const config = await this.store.findOwnedById(command.configId, command.viewerUserId);
 
     if (config === null) {
-      throw new ModelProviderApplicationError('not-found');
+      throw new ModelProviderApplicationError('not-found', {});
     }
 
     return this.preview({

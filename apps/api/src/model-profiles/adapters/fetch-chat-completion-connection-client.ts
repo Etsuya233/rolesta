@@ -5,11 +5,11 @@ import type {
   ListChatCompletionModelsRequest,
   TestChatCompletionRequest,
   TestChatCompletionResult,
-} from '../application/chat-completion-connection-client.js';
+} from '../ports/chat-completion-connection-client.js';
 import {
-  ModelProviderApplicationError,
-  type ModelProviderApplicationErrorReason,
-} from '../application/model-provider-application-error.js';
+  ModelProviderPortError,
+  type ModelProviderPortErrorReason,
+} from '../ports/model-provider-port-error.js';
 
 @Injectable()
 export class FetchChatCompletionConnectionClient implements ChatCompletionConnectionClient {
@@ -42,7 +42,10 @@ export class FetchChatCompletionConnectionClient implements ChatCompletionConnec
 
     if (!isModelListResponse(remoteBody.value)) {
       this.logInvalidResponse(remoteBody, 'model-list-schema');
-      throw new ModelProviderApplicationError('remote-response-invalid');
+      throw new ModelProviderPortError('remote-response-invalid', {
+        operation: 'listModels',
+        invalidReason: 'model-list-schema',
+      });
     }
 
     return remoteBody.value.data.map((model) => model.id);
@@ -81,7 +84,10 @@ export class FetchChatCompletionConnectionClient implements ChatCompletionConnec
 
     if (!isChatCompletionResponse(remoteBody.value)) {
       this.logInvalidResponse(remoteBody, 'chat-completion-schema');
-      throw new ModelProviderApplicationError('remote-response-invalid');
+      throw new ModelProviderPortError('remote-response-invalid', {
+        operation: 'testChatCompletion',
+        invalidReason: 'chat-completion-schema',
+      });
     }
 
     return {
@@ -94,11 +100,11 @@ export class FetchChatCompletionConnectionClient implements ChatCompletionConnec
     try {
       return await fetch(input, init);
     } catch (error) {
-      if (error instanceof ModelProviderApplicationError) {
+      if (error instanceof ModelProviderPortError) {
         throw error;
       }
 
-      throw new ModelProviderApplicationError('remote-unreachable');
+      throw new ModelProviderPortError('remote-unreachable', {});
     }
   }
 
@@ -120,7 +126,10 @@ export class FetchChatCompletionConnectionClient implements ChatCompletionConnec
       return { ...remoteBody, value: JSON.parse(text) };
     } catch {
       this.logInvalidResponse(remoteBody, 'json-parse');
-      throw new ModelProviderApplicationError('remote-response-invalid');
+      throw new ModelProviderPortError('remote-response-invalid', {
+        operation: context.operation,
+        invalidReason: 'json-parse',
+      });
     }
   }
 
@@ -241,11 +250,11 @@ function isChatCompletionResponse(body: unknown): body is ChatCompletionResponse
   );
 }
 
-function remoteStatusError(status: number): ModelProviderApplicationError {
-  return new ModelProviderApplicationError(remoteStatusReason(status));
+function remoteStatusError(status: number): ModelProviderPortError {
+  return new ModelProviderPortError(remoteStatusReason(status), { status });
 }
 
-function remoteStatusReason(status: number): ModelProviderApplicationErrorReason {
+function remoteStatusReason(status: number): ModelProviderPortErrorReason {
   if (status === 401 || status === 403) {
     return 'remote-auth-failed';
   }

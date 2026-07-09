@@ -5,7 +5,7 @@ import type {
   ListChatCompletionModelsRequest,
   TestChatCompletionRequest,
   TestChatCompletionResult,
-} from './chat-completion-connection-client.js';
+} from '../ports/chat-completion-connection-client.js';
 import { CreateModelProviderApiKeyUseCase } from './create-model-provider-api-key.use-case.js';
 import { CreateModelProviderUseCase } from './create-model-provider.use-case.js';
 import { DeleteModelProviderApiKeyUseCase } from './delete-model-provider-api-key.use-case.js';
@@ -14,7 +14,7 @@ import { ModelProviderApplicationError } from './model-provider-application-erro
 import type {
   ListModelProvidersRequest,
   ModelProviderStore,
-} from './model-provider-store.js';
+} from '../ports/model-provider-store.js';
 import { TestModelProviderConnectionUseCase } from './test-model-provider-connection.use-case.js';
 import { UpdateModelProviderUseCase } from './update-model-provider.use-case.js';
 import type {
@@ -62,7 +62,7 @@ describe('model provider use cases', () => {
         viewerUserId: 'owner',
         baseUrl: 'https://proxy.example/v1',
       }),
-    ).rejects.toMatchObject(new ModelProviderApplicationError('invalid-base-url'));
+    ).rejects.toMatchObject(new ModelProviderApplicationError('invalid-base-url', {}));
   });
 
   it('clears the selected key when deleting the selected API key', async () => {

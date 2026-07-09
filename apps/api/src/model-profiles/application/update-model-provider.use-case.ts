@@ -1,12 +1,14 @@
+import { UseCase } from '../../common/errors/index.js';
 import type { ModelProviderKind } from '../domain/model-provider-catalog.js';
 import type { ModelProviderConfig } from '../domain/model-provider-config.js';
 import type { ModelProviderClock } from './model-provider-application-services.js';
 import { ModelProviderApplicationError } from './model-provider-application-error.js';
-import type { ModelProviderStore } from './model-provider-store.js';
+import { translateModelProviderError } from './model-provider-error.mapper.js';
+import type { ModelProviderStore } from '../ports/model-provider-store.js';
 import {
   sourceForProviderKind,
   validateProviderConnection,
-} from './model-provider-validation.js';
+} from '../domain/model-provider-validation.js';
 
 export interface UpdateModelProviderCommand {
   id: string;
@@ -24,11 +26,12 @@ export class UpdateModelProviderUseCase {
     private readonly clock: ModelProviderClock,
   ) {}
 
+  @UseCase(translateModelProviderError)
   async execute(command: UpdateModelProviderCommand): Promise<ModelProviderConfig> {
     const current = await this.store.findOwnedById(command.id, command.viewerUserId);
 
     if (current === null) {
-      throw new ModelProviderApplicationError('not-found');
+      throw new ModelProviderApplicationError('not-found', {});
     }
 
     const providerKind = command.providerKind ?? current.providerKind;
@@ -41,7 +44,7 @@ export class UpdateModelProviderUseCase {
       selectedApiKeyId !== null &&
       !current.apiKeys.some((apiKey) => apiKey.id === selectedApiKeyId)
     ) {
-      throw new ModelProviderApplicationError('api-key-not-owned');
+      throw new ModelProviderApplicationError('api-key-not-owned', {});
     }
 
     const next: ModelProviderConfig = {

@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it, vi, type Mock } from 'vitest';
 import type { PinoLogger } from 'nestjs-pino';
-import { ModelProviderApplicationError } from '../application/model-provider-application-error.js';
+import { ModelProviderPortError } from '../ports/model-provider-port-error.js';
 import { FetchChatCompletionConnectionClient } from './fetch-chat-completion-connection-client.js';
 
 describe('FetchChatCompletionConnectionClient', () => {
@@ -35,7 +35,7 @@ describe('FetchChatCompletionConnectionClient', () => {
         defaultModelName: 'model-a',
         apiKeySecret: undefined,
       }),
-    ).rejects.toMatchObject(new ModelProviderApplicationError('remote-response-invalid'));
+    ).rejects.toMatchObject(new ModelProviderPortError('remote-response-invalid', {}));
 
     const [fields, message] = firstWarnCall(logger);
 
@@ -67,7 +67,7 @@ describe('FetchChatCompletionConnectionClient', () => {
         baseUrl: 'https://example.test/v1',
         apiKeySecret: undefined,
       }),
-    ).rejects.toMatchObject(new ModelProviderApplicationError('remote-model-not-found'));
+    ).rejects.toMatchObject(new ModelProviderPortError('remote-model-not-found', { status: 404 }));
 
     const [fields, message] = firstWarnCall(logger);
 

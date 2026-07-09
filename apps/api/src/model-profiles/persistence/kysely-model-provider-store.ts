@@ -12,7 +12,7 @@ import type {
   ListModelProvidersRequest,
   ModelProviderSortKey,
   ModelProviderStore,
-} from '../application/model-provider-store.js';
+} from '../ports/model-provider-store.js';
 import type {
   ModelProviderApiKey,
   ModelProviderConfig,

@@ -1,3 +1,5 @@
+import { ModelProviderDomainError } from './model-provider-domain-error.js';
+
 export const MODEL_PROVIDER_KINDS = [
   'openai-compatible',
   'openai',
@@ -66,12 +68,8 @@ export function getModelProviderSource(kind: ModelProviderKind): ModelProviderSo
   const catalogItem = findModelProviderCatalogItem(kind);
 
   if (catalogItem === null) {
-    throw new Error(`Unknown model provider kind: ${kind}`);
+    throw new ModelProviderDomainError('invalid-provider', { providerKind: kind });
   }
 
   return catalogItem.source;
-}
-
-export function normalizeBaseUrl(baseUrl: string): string {
-  return baseUrl.trim().replace(/\/+$/u, '');
 }

@@ -6,7 +6,7 @@ import {
   SORT_DIRECTIONS,
   type ModelProviderSortKey,
   type SortDirection,
-} from '../application/model-provider-store.js';
+} from '../ports/model-provider-store.js';
 import {
   MODEL_PROVIDER_KINDS,
   type ModelProviderKind,

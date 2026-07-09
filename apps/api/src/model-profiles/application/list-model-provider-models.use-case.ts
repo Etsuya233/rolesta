@@ -1,8 +1,10 @@
+import { UseCase } from '../../common/errors/index.js';
 import type { ModelProviderKind } from '../domain/model-provider-catalog.js';
-import type { ChatCompletionConnectionClient } from './chat-completion-connection-client.js';
+import type { ChatCompletionConnectionClient } from '../ports/chat-completion-connection-client.js';
 import { ModelProviderApplicationError } from './model-provider-application-error.js';
-import type { ModelProviderStore } from './model-provider-store.js';
-import { validateProviderConnection } from './model-provider-validation.js';
+import { translateModelProviderError } from './model-provider-error.mapper.js';
+import type { ModelProviderStore } from '../ports/model-provider-store.js';
+import { validateProviderConnection } from '../domain/model-provider-validation.js';
 
 export interface ModelProviderModelListResult {
   models: string[];
@@ -26,6 +28,7 @@ export class ListModelProviderModelsUseCase {
     private readonly client: ChatCompletionConnectionClient,
   ) {}
 
+  @UseCase(translateModelProviderError)
   async preview(
     command: ListModelProviderModelsPreviewCommand,
   ): Promise<ModelProviderModelListResult> {
@@ -40,11 +43,12 @@ export class ListModelProviderModelsUseCase {
     return { models, elapsedMs: Date.now() - startedAt };
   }
 
+  @UseCase(translateModelProviderError)
   async saved(command: ListModelProviderModelsCommand): Promise<ModelProviderModelListResult> {
     const config = await this.store.findOwnedById(command.configId, command.viewerUserId);
 
     if (config === null) {
-      throw new ModelProviderApplicationError('not-found');
+      throw new ModelProviderApplicationError('not-found', {});
     }
 
     return this.preview({

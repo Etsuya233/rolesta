@@ -4,10 +4,6 @@ import { CryptoIdGenerator } from '../auth/infrastructure/crypto-id-generator.js
 import { SystemClock } from '../auth/infrastructure/system-clock.js';
 import { DatabaseModule } from '../database/database.module.js';
 import { ApiLoggerModule } from '../logging/api-logger.module.js';
-import {
-  CHAT_COMPLETION_CONNECTION_CLIENT,
-  type ChatCompletionConnectionClient,
-} from './application/chat-completion-connection-client.js';
 import { CreateModelProviderApiKeyUseCase } from './application/create-model-provider-api-key.use-case.js';
 import { CreateModelProviderUseCase } from './application/create-model-provider.use-case.js';
 import { DeleteModelProviderApiKeyUseCase } from './application/delete-model-provider-api-key.use-case.js';
@@ -19,17 +15,21 @@ import type {
   ModelProviderClock,
   ModelProviderIdGenerator,
 } from './application/model-provider-application-services.js';
-import {
-  MODEL_PROVIDER_STORE,
-  type ModelProviderStore,
-} from './application/model-provider-store.js';
 import { SetSelectedModelProviderApiKeyUseCase } from './application/set-selected-model-provider-api-key.use-case.js';
 import { TestModelProviderConnectionUseCase } from './application/test-model-provider-connection.use-case.js';
 import { UpdateModelProviderApiKeyUseCase } from './application/update-model-provider-api-key.use-case.js';
 import { UpdateModelProviderUseCase } from './application/update-model-provider.use-case.js';
 import { ModelProvidersController } from './http/model-providers.controller.js';
-import { FetchChatCompletionConnectionClient } from './infrastructure/fetch-chat-completion-connection-client.js';
-import { KyselyModelProviderStore } from './infrastructure/kysely-model-provider-store.js';
+import { FetchChatCompletionConnectionClient } from './adapters/fetch-chat-completion-connection-client.js';
+import {
+  CHAT_COMPLETION_CONNECTION_CLIENT,
+  type ChatCompletionConnectionClient,
+} from './ports/chat-completion-connection-client.js';
+import {
+  MODEL_PROVIDER_STORE,
+  type ModelProviderStore,
+} from './ports/model-provider-store.js';
+import { KyselyModelProviderStore } from './persistence/kysely-model-provider-store.js';
 
 @Module({
   imports: [DatabaseModule, AuthModule, ApiLoggerModule],

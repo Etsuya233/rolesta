@@ -27,6 +27,7 @@ import { SetSelectedModelProviderApiKeyUseCase } from '../application/set-select
 import { TestModelProviderConnectionUseCase } from '../application/test-model-provider-connection.use-case.js';
 import { UpdateModelProviderApiKeyUseCase } from '../application/update-model-provider-api-key.use-case.js';
 import { UpdateModelProviderUseCase } from '../application/update-model-provider.use-case.js';
+import type { ModelProviderApplicationErrorReason } from '../application/model-provider-application-error.js';
 import { MODEL_PROVIDER_CATALOG } from '../domain/model-provider-catalog.js';
 import { toApiFailure } from './model-provider-application-error.mapper.js';
 import {
@@ -311,7 +312,7 @@ export class ModelProvidersController {
       return await handler();
     } catch (error) {
       if (error instanceof ModelProviderApplicationError) {
-        throw toApiFailure(error);
+        throw toApiFailure(error as ModelProviderApplicationError<ModelProviderApplicationErrorReason>);
       }
 
       throw error;
