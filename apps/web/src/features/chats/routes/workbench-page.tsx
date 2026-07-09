@@ -1,11 +1,8 @@
-import { useTranslation } from 'react-i18next';
+import { useParams } from "react-router-dom";
+import { WorkspaceShell } from "../../workspace/components/workspace-shell";
 
 export function WorkbenchPage() {
-  const { t } = useTranslation();
+  const { chatId } = useParams();
 
-  return (
-    <main className="min-h-screen bg-background p-6 text-foreground">
-      <h1 className="text-xl font-semibold">{t('chats.workbench.title')}</h1>
-    </main>
-  );
+  return <WorkspaceShell activeChatId={chatId} />;
 }
