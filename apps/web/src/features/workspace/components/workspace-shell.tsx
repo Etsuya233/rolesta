@@ -8,13 +8,6 @@ import {
   EmptyHeader,
   EmptyTitle,
 } from "../../../components/ui/empty";
-import {
-  Sheet,
-  SheetClose,
-  SheetContent,
-  SheetHeader,
-  SheetTitle,
-} from "../../../components/ui/sheet";
 import { cn } from "../../../lib/utils";
 import { useWorkspaceLayout } from "../model/use-workspace-layout";
 import type { WorkspaceArea, WorkspacePanelRuntime } from "../model/workspace-panels";
@@ -128,60 +121,40 @@ function WorkspaceSideArea({
   className?: string;
   children: ReactNode;
 }) {
-  if (!desktopLayout) {
-    return (
-      <Sheet
-        open={mobileOpen}
-        onOpenChange={(open) => {
-          if (!open) {
-            onClose();
-          }
-        }}
-      >
-        <SheetContent
-          side={side}
-          showCloseButton={false}
-          data-testid={`workspace-${area}-column`}
-          data-visible={visible}
-          data-mobile-open={mobileOpen}
-          className={cn(
-            "w-[min(24rem,calc(100vw-2rem))] gap-0 p-0 sm:max-w-none",
-            className,
-          )}
-        >
-          <SheetHeader className="flex h-12 shrink-0 flex-row items-center justify-between gap-3 border-b px-3 py-0">
-            <SheetTitle className="truncate text-sm font-semibold">
-              {title}
-            </SheetTitle>
-            <SheetClose asChild>
-              <Button
-                type="button"
-                variant="ghost"
-                size="icon-sm"
-                aria-label={title}
-              >
-                <XIcon />
-              </Button>
-            </SheetClose>
-          </SheetHeader>
-          <div className="min-h-0 flex-1 overflow-hidden">{children}</div>
-        </SheetContent>
-      </Sheet>
-    );
-  }
-
   return (
     <aside
       data-testid={`workspace-${area}-column`}
       data-visible={visible}
       data-mobile-open={mobileOpen}
+      aria-hidden={desktopLayout ? !visible : !mobileOpen}
+      inert={desktopLayout ? !visible : !mobileOpen}
       className={cn(
-        "hidden min-h-0 flex-col overflow-hidden lg:flex",
+        "fixed bottom-0 top-12 z-40 flex w-screen min-h-0 flex-col overflow-hidden shadow-lg transition-transform duration-200 ease-in-out lg:visible lg:static lg:top-auto lg:bottom-auto lg:z-auto lg:w-auto lg:translate-x-0 lg:shadow-none lg:transition-none lg:pointer-events-auto",
+        side === "left" &&
+          (mobileOpen
+            ? "left-0 visible translate-x-0"
+            : "left-0 invisible -translate-x-full pointer-events-none"),
+        side === "right" &&
+          (mobileOpen
+            ? "right-0 visible translate-x-0"
+            : "right-0 invisible translate-x-full pointer-events-none"),
         !visible && "lg:hidden",
         className,
       )}
     >
-      {children}
+      <div className="flex h-12 shrink-0 flex-row items-center justify-between gap-3 border-b px-3 lg:hidden">
+        <h2 className="truncate text-sm font-semibold">{title}</h2>
+        <Button
+          type="button"
+          variant="ghost"
+          size="icon-sm"
+          aria-label={title}
+          onClick={onClose}
+        >
+          <XIcon />
+        </Button>
+      </div>
+      <div className="min-h-0 flex-1 overflow-hidden">{children}</div>
     </aside>
   );
 }

@@ -158,6 +158,30 @@ test('switching right panels preserves list scroll position', async ({ page }) =
     .toBe(scrollTopBefore);
 });
 
+test('switching viewport keeps side panel content mounted', async ({ page }) => {
+  await page.setViewportSize({ width: 1280, height: 800 });
+  await openWorkbench(page);
+
+  const leftPanel = page.getByTestId('workspace-panel-left-chatContext');
+  await expect(leftPanel).toBeVisible();
+  await leftPanel.evaluate((element) => {
+    element.setAttribute('data-persist-marker', 'left');
+  });
+
+  await toolbarButton(page, 'worldbooks').click();
+  const rightPanel = page.getByTestId('workspace-panel-right-worldbooks');
+  await expect(rightPanel).toBeVisible();
+  await rightPanel.evaluate((element) => {
+    element.setAttribute('data-persist-marker', 'right');
+  });
+
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.getByRole('button', { name: 'Toggle left sidebar' }).click();
+
+  await expect(leftPanel).toHaveAttribute('data-persist-marker', 'left');
+  await expect(rightPanel).toHaveAttribute('data-persist-marker', 'right');
+});
+
 test('refresh restores active panels by area', async ({ page }) => {
   await openWorkbench(page);
 
@@ -235,6 +259,27 @@ test('mobile panel buttons open the target sheet', async ({ page }) => {
       name: 'Worldbooks',
     }),
   ).toBeVisible();
+});
+
+test('mobile right panel stays below the toolbar and uses viewport width', async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await openWorkbench(page);
+
+  await toolbarButton(page, 'worldbooks').click();
+
+  const toolbarBox = await page.getByTestId('workspace-toolbar').boundingBox();
+  const rightColumnBox = await page
+    .getByTestId('workspace-right-column')
+    .boundingBox();
+  expect(toolbarBox).not.toBeNull();
+  expect(rightColumnBox).not.toBeNull();
+  expect(rightColumnBox?.y).toBe(toolbarBox!.height);
+  expect(rightColumnBox?.width).toBe(390);
+
+  await page.getByRole('button', { name: 'Toggle right sidebar' }).click();
+  await expect(page.getByTestId('workspace-right-column')).toBeHidden();
 });
 
 async function mockWorkspaceAssetLists(page: Parameters<typeof mockAuthenticatedApp>[0]) {
