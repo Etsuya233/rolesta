@@ -12,6 +12,7 @@ describe('OpenAPI document', () => {
     }).compile();
     const app = configureApp(moduleRef.createNestApplication(), {
       corsAllowedOrigins: ['http://localhost:5173'],
+      requestBodyLimit: '1mb',
     });
     await app.init();
 

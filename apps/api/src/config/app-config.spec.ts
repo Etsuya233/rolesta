@@ -5,6 +5,7 @@ describe('loadAppConfig', () => {
   it('uses development logging defaults', () => {
     const config = loadAppConfig({});
 
+    expect(config.requestBodyLimit).toBe('1mb');
     expect(config.logging).toEqual({
       level: 'info',
       httpEnabled: true,
@@ -36,5 +37,11 @@ describe('loadAppConfig', () => {
       fileEnabled: true,
       filePath: 'logs/api.log',
     });
+  });
+
+  it('reads the request body limit from env', () => {
+    const config = loadAppConfig({ API_REQUEST_BODY_LIMIT: '2mb' });
+
+    expect(config.requestBodyLimit).toBe('2mb');
   });
 });

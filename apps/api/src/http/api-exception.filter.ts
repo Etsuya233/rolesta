@@ -1,5 +1,5 @@
 import { ArgumentsHost, Catch, HttpException, HttpStatus, type ExceptionFilter } from '@nestjs/common';
-import { I18N_MESSAGE_PREFIX, type ApiErrorEnvelope } from '@rolesta/shared';
+import { ERROR_CODES, I18N_MESSAGE_PREFIX, type ApiErrorEnvelope } from '@rolesta/shared';
 import type { Request, Response } from 'express';
 import { InjectPinoLogger, PinoLogger } from 'nestjs-pino';
 import { ApiFailure, createInternalApiFailure } from './api-failure.js';
@@ -12,8 +12,26 @@ export class ApiExceptionFilter implements ExceptionFilter {
   ) {}
 
   catch(exception: unknown, host: ArgumentsHost): void {
-    const apiFailure = exception instanceof ApiFailure ? exception : createInternalApiFailure();
-    const httpStatus = exception instanceof HttpException ? exception.getStatus() : HttpStatus.INTERNAL_SERVER_ERROR;
+    const rawStatusCode =
+      typeof exception === 'object' && exception !== null && 'statusCode' in exception
+        ? exception.statusCode
+        : undefined;
+    const payloadTooLarge = rawStatusCode === HttpStatus.PAYLOAD_TOO_LARGE;
+    const apiFailure =
+      exception instanceof ApiFailure
+        ? exception
+        : payloadTooLarge
+          ? new ApiFailure({
+              status: HttpStatus.PAYLOAD_TOO_LARGE,
+              code: ERROR_CODES.VALIDATION_FAILED,
+            })
+          : createInternalApiFailure();
+    const httpStatus =
+      exception instanceof HttpException
+        ? exception.getStatus()
+        : payloadTooLarge
+          ? HttpStatus.PAYLOAD_TOO_LARGE
+          : HttpStatus.INTERNAL_SERVER_ERROR;
     const request = host.switchToHttp().getRequest<Request>();
 
     const envelope: ApiErrorEnvelope = {

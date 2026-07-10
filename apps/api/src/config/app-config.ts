@@ -4,6 +4,7 @@ export interface AppConfig {
   nodeEnv: string;
   host: string;
   port: number;
+  requestBodyLimit: string;
   corsAllowedOrigins: string[];
   logging: AppLoggingConfig;
   database: DatabaseConfig;
@@ -27,6 +28,7 @@ export function loadAppConfig(env: NodeJS.ProcessEnv = process.env): AppConfig {
     nodeEnv,
     host: env.API_HOST ?? '127.0.0.1',
     port: Number.parseInt(env.API_PORT ?? '3000', 10),
+    requestBodyLimit: env.API_REQUEST_BODY_LIMIT ?? '1mb',
     corsAllowedOrigins: corsAllowedOriginsFrom(env.CORS_ALLOWED_ORIGINS),
     logging: {
       level: env.LOG_LEVEL ?? 'info',
