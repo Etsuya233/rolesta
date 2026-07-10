@@ -19,7 +19,6 @@ import { useTranslation } from "react-i18next";
 import { Button } from "../../../components/ui/button";
 import { Input } from "../../../components/ui/input";
 import { usePresetDraftSession } from "../hooks/use-preset-draft-sessions";
-import { FormError } from "./preset-form-fields";
 import { PresetPromptListRow } from "./preset-prompt-list-row";
 
 export function PresetPromptListEditor({
@@ -34,14 +33,8 @@ export function PresetPromptListEditor({
   onEditEntry: (entryId: string) => void;
 }) {
   const { t } = useTranslation();
-  const {
-    document,
-    setDocument,
-    isDirty,
-    isPending,
-    visibleError,
-    saveDocument,
-  } = usePresetDraftSession({ presetId, sessionKey });
+  const { document, setDocument, isPending, saveDocument } =
+    usePresetDraftSession({ presetId, sessionKey });
   const [unlinkedSearch, setUnlinkedSearch] = useState("");
   const debouncedUnlinkedSearch = useDebouncedValue(unlinkedSearch, 250);
   const entryById = useMemo(
@@ -262,22 +255,6 @@ export function PresetPromptListEditor({
             )}
           </div>
         ) : null}
-      </div>
-
-      <div className="shrink-0 border-t border-border p-3">
-        {visibleError ? (
-          <div className="mb-3">
-            <FormError>{visibleError}</FormError>
-          </div>
-        ) : null}
-        <Button
-          className="w-full"
-          disabled={isPending || !isDirty}
-          type="button"
-          onClick={() => saveDocument()}
-        >
-          {t("presets.promptList.save")}
-        </Button>
       </div>
     </div>
   );

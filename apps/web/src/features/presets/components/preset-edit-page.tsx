@@ -64,7 +64,6 @@ export function PresetEditPage({
       <PresetMainEditor
         presetId={page.presetId}
         sessionKey={page.sessionKey}
-        submitLabel={t("presets.editor.saveSubmit")}
         onOpenPromptList={() =>
           pushPage(presetPromptListPage(page.presetId, page.sessionKey))
         }

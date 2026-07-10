@@ -68,7 +68,10 @@ export interface PresetDraftSession {
   isPending: boolean;
   visibleError: string | null;
   preset: PresetDetailResponse | undefined;
-  saveDocument: (document?: PresetDocument) => void;
+  saveDocument: (
+    document?: PresetDocument,
+    onSaved?: (preset: PresetDetailResponse) => void,
+  ) => void;
   submit: (event: FormEvent<HTMLFormElement>) => void;
 }
 
@@ -244,12 +247,10 @@ export function usePresetDraftSession({
   sessionKey,
   presetId,
   onCreated,
-  onSaved,
 }: {
   sessionKey: string;
   presetId?: string;
   onCreated?: (preset: PresetDetailResponse) => void;
-  onSaved?: (preset: PresetDetailResponse) => void;
 }): PresetDraftSession {
   const { t } = useTranslation();
   const context = usePresetDraftSessionsContext();
@@ -329,7 +330,10 @@ export function usePresetDraftSession({
   );
   const isDirty = !presetDocumentEquals(draft.document, draft.baseline);
   const saveDocument = useCallback(
-    (document = draft.document) => {
+    (
+      document = draft.document,
+      onSaved?: (preset: PresetDetailResponse) => void,
+    ) => {
       setSessionError(sessionKey, null);
 
       if (!document.name.trim()) {
@@ -351,7 +355,6 @@ export function usePresetDraftSession({
     },
     [
       draft.document,
-      onSaved,
       presetId,
       saveMutation,
       saveSession,

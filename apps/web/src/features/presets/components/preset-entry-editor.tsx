@@ -1,8 +1,6 @@
 import { countPromptTokens } from "@rolesta/shared";
-import { Trash2 } from "lucide-react";
 import { useEffect, useId, useState, type FormEvent } from "react";
 import { useTranslation } from "react-i18next";
-import { Button } from "../../../components/ui/button";
 import type { PresetEntryPosition, PresetEntryRole } from "../api/presets-api";
 import { usePresetDraftSession } from "../hooks/use-preset-draft-sessions";
 import {
@@ -29,8 +27,8 @@ export function PresetEntryEditor({
   presetId: string;
   sessionKey: string;
   entryId?: string;
-  submitLabel: string;
-  onSaved: () => void;
+  submitLabel?: string;
+  onSaved?: () => void;
 }) {
   const { t } = useTranslation();
   const fieldPrefix = useId();
@@ -38,12 +36,17 @@ export function PresetEntryEditor({
     emptyPresetEntryEditorForm,
   );
   const [validationError, setValidationError] = useState<string | null>(null);
-  const { document, isDirty, isPending, visibleError, saveDocument } =
-    usePresetDraftSession({
-      presetId,
-      sessionKey,
-      onSaved,
-    });
+  const {
+    document,
+    setDocument,
+    isDirty,
+    isPending,
+    visibleError,
+    saveDocument,
+  } = usePresetDraftSession({
+    presetId,
+    sessionKey,
+  });
   const entry = document.entries.find((candidate) => candidate.id === entryId);
   const roleOptions: Array<{ value: PresetEntryRole; label: string }> = [
     { value: "system", label: t("presets.entries.roles.system") },
@@ -75,6 +78,25 @@ export function PresetEntryEditor({
     }
   }, [entry]);
 
+  function updateForm(nextForm: PresetEntryEditorFormState) {
+    setForm(nextForm);
+
+    if (!entryId || !entry) {
+      return;
+    }
+
+    const nextEntry = {
+      id: entryId,
+      ...presetEntryValuesFromForm(nextForm),
+    };
+    setDocument((current) => ({
+      ...current,
+      entries: current.entries.map((candidate) =>
+        candidate.id === entryId ? nextEntry : candidate,
+      ),
+    }));
+  }
+
   function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setValidationError(null);
@@ -95,17 +117,7 @@ export function PresetEntryEditor({
       ? document.promptItems
       : [...document.promptItems, { entryId: id, enabled: true }];
 
-    saveDocument({ ...document, entries, promptItems });
-  }
-
-  function deleteEntry() {
-    saveDocument({
-      ...document,
-      entries: document.entries.filter((candidate) => candidate.id !== entryId),
-      promptItems: document.promptItems.filter(
-        (item) => item.entryId !== entryId,
-      ),
-    });
+    saveDocument({ ...document, entries, promptItems }, onSaved);
   }
 
   return (
@@ -120,7 +132,9 @@ export function PresetEntryEditor({
             id={`${fieldPrefix}-name`}
             label={t("presets.entries.fields.name")}
             value={form.name}
-            onChange={(event) => setForm({ ...form, name: event.target.value })}
+            onChange={(event) =>
+              updateForm({ ...form, name: event.target.value })
+            }
           />
           <div className="grid grid-cols-2 gap-3">
             <PresetSelectField
@@ -129,7 +143,7 @@ export function PresetEntryEditor({
               label={t("presets.entries.fields.role")}
               options={roleOptions}
               value={form.role}
-              onChange={(role) => setForm({ ...form, role })}
+              onChange={(role) => updateForm({ ...form, role })}
             />
             <PresetSelectField
               disabled={isPending}
@@ -137,7 +151,7 @@ export function PresetEntryEditor({
               label={t("presets.entries.fields.position")}
               options={positionOptions}
               value={form.position}
-              onChange={(position) => setForm({ ...form, position })}
+              onChange={(position) => updateForm({ ...form, position })}
             />
           </div>
           <PresetTextAreaField
@@ -147,7 +161,7 @@ export function PresetEntryEditor({
             rows={14}
             value={form.content}
             onChange={(event) =>
-              setForm({ ...form, content: event.target.value })
+              updateForm({ ...form, content: event.target.value })
             }
           />
           <div className="rounded-md border border-border px-3 py-2 text-sm">
@@ -161,26 +175,14 @@ export function PresetEntryEditor({
         </div>
       </div>
 
-      <div className="flex shrink-0 flex-col gap-3 border-t border-border bg-background px-4 py-3">
-        {errorMessage ? <FormError>{errorMessage}</FormError> : null}
-        <div className="grid grid-cols-[1fr_auto] gap-2">
+      {submitLabel ? (
+        <div className="flex shrink-0 flex-col gap-3 border-t border-border bg-background px-4 py-3">
+          {errorMessage ? <FormError>{errorMessage}</FormError> : null}
           <FormSubmitButton disabled={isPending || (!isDirty && !entryChanged)}>
             {submitLabel}
           </FormSubmitButton>
-          {entryId ? (
-            <Button
-              aria-label={t("presets.entries.deleteAction")}
-              disabled={isPending}
-              size="icon-lg"
-              type="button"
-              variant="outline"
-              onClick={deleteEntry}
-            >
-              <Trash2 aria-hidden="true" />
-            </Button>
-          ) : null}
         </div>
-      </div>
+      ) : null}
     </form>
   );
 }

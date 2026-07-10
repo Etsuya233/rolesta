@@ -23,7 +23,7 @@ import {
 export interface PresetMainEditorProps {
   sessionKey: string;
   presetId?: string;
-  submitLabel: string;
+  submitLabel?: string;
   onCreated?: (preset: PresetDetailResponse) => void;
   onOpenPromptList?: () => void;
 }
@@ -210,12 +210,14 @@ export function PresetMainEditor({
         </Accordion>
       </div>
 
-      <div className="flex shrink-0 flex-col gap-3 border-t border-border bg-background px-4 py-3">
-        {visibleError ? <FormError>{visibleError}</FormError> : null}
-        <FormSubmitButton disabled={isPending || !isDirty}>
-          {submitLabel}
-        </FormSubmitButton>
-      </div>
+      {submitLabel ? (
+        <div className="flex shrink-0 flex-col gap-3 border-t border-border bg-background px-4 py-3">
+          {visibleError ? <FormError>{visibleError}</FormError> : null}
+          <FormSubmitButton disabled={isPending || !isDirty}>
+            {submitLabel}
+          </FormSubmitButton>
+        </div>
+      ) : null}
     </form>
   );
 }
