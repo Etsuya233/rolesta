@@ -1,3 +1,5 @@
+import { readFileSync } from 'node:fs';
+import { resolve } from 'node:path';
 import { describe, expect, it } from 'vitest';
 import {
   fromSillyTavernCharacterCard,
@@ -5,6 +7,32 @@ import {
 } from './silly-tavern-character-card-codec.js';
 
 describe('SillyTavern character card mapper', () => {
+  it('imports the default SillyTavern character card', () => {
+    const input = JSON.parse(
+      readFileSync(
+        resolve(
+          process.cwd(),
+          'test/fixtures/silly-tavern/st_default_character.json',
+        ),
+        'utf8',
+      ),
+    ) as unknown;
+    const card = fromSillyTavernCharacterCard(
+      input,
+      'st_default_character.json',
+    );
+
+    expect(card).toMatchObject({
+      sourceFormat: 'sillytavern_v3',
+      name: 'Seraphina',
+      creator: 'OtisAlejandro',
+      version: '1.0.0',
+      tags: [],
+    });
+    expect(card.firstMessage).toContain('You wake with a start');
+    expect(card.characterBook).not.toBeNull();
+  });
+
   it('imports V1 top-level fields', () => {
     const card = fromSillyTavernCharacterCard({
       name: 'Classic',

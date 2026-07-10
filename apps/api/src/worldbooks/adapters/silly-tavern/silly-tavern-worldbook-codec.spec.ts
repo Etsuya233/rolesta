@@ -9,31 +9,35 @@ import {
 } from "./silly-tavern-worldbook-codec.js";
 
 describe("SillyTavern world info mapper", () => {
-  it("imports object entries from the sample worldbook", () => {
+  it("imports object entries from the default SillyTavern worldbook", () => {
     const input = JSON.parse(
-      readFileSync(resolve(process.cwd(), "../../tmp/世界书.json"), "utf8"),
+      readFileSync(
+        resolve(
+          process.cwd(),
+          "test/fixtures/silly-tavern/st_default_worldbook.json",
+        ),
+        "utf8",
+      ),
     ) as unknown;
-    const worldbook = fromSillyTavernWorldInfo(input, "世界书.json");
+    const worldbook = fromSillyTavernWorldInfo(
+      input,
+      "st_default_worldbook.json",
+    );
 
-    expect(worldbook.name).toBe("世界书");
-    expect(worldbook.entries).toHaveLength(10);
+    expect(worldbook.name).toBe("st_default_worldbook");
+    expect(worldbook.entries).toHaveLength(4);
     expect(worldbook.sourceSnapshot).toBe(input);
     expect(worldbook.entries[0]).toMatchObject({
       enabled: true,
-      name: "山下長久",
+      name: "eldoria",
       primaryKeys: [
-        "長久",
-        "山下",
-        "友達",
-        "幼馴染",
-        "朋友",
-        "发小",
-        "长久",
-        "阿长",
-        "なちゃん",
+        "eldoria",
+        "wood",
+        "forest",
+        "magical forest",
       ],
       secondaryKeys: [],
-      constant: true,
+      constant: false,
       vectorized: false,
       selective: true,
       caseSensitive: false,
@@ -41,8 +45,8 @@ describe("SillyTavern world info mapper", () => {
       insertionPosition: "beforeCharacterDefinition",
       selectiveLogic: "andAny",
       insertionRole: "system",
-      scanDepth: 3,
-      excludeRecursion: true,
+      scanDepth: null,
+      excludeRecursion: false,
       preventRecursion: false,
       delayUntilRecursion: false,
       insertionOrder: 0,

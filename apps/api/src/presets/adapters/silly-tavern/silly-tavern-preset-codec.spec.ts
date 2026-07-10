@@ -1,3 +1,5 @@
+import { readFileSync } from 'node:fs';
+import { resolve } from 'node:path';
 import { describe, expect, it } from 'vitest';
 import type { Preset } from '../../domain/preset.js';
 import { PresetPortError } from '../../ports/preset-port-error.js';
@@ -63,6 +65,24 @@ describe('SillyTavern preset mapper', () => {
     expect(preset.modelSettings.maxResponseLength).toBe(65535);
     expect(preset.sourceSnapshot).toBe(input);
     expect(preset.entries[0]?.tokenCount).toBeGreaterThan(0);
+  });
+
+  it('imports the default SillyTavern preset export data', () => {
+    const input = JSON.parse(
+      readFileSync(
+        resolve(
+          process.cwd(),
+          'test/fixtures/silly-tavern/st_default_presets.json',
+        ),
+        'utf8',
+      ),
+    ) as { data: unknown };
+    const preset = fromSillyTavernPreset(input.data);
+
+    expect(preset.name).toBe('Untitled preset');
+    expect(preset.entries).toHaveLength(0);
+    expect(preset.promptItems).toHaveLength(0);
+    expect(preset.sourceSnapshot).toBe(input.data);
   });
 
   it('uses the first prompt order when the default character order is absent', () => {
