@@ -1,3 +1,5 @@
+import { readdirSync } from 'node:fs';
+import { fileURLToPath } from 'node:url';
 import { sql } from 'kysely';
 import { afterEach, describe, expect, it } from 'vitest';
 import { loadDatabaseConfig } from './config/database-config.js';
@@ -63,15 +65,13 @@ describe('database migrations', () => {
     );
   });
 
-  it('returns the common migration set for dialects without overrides', async () => {
+  it('returns every migration file for dialects without overrides', async () => {
     const migrations = await createMigrationProvider('mysql').getMigrations();
+    const expectedMigrationNames = readdirSync(fileURLToPath(new URL('./migrations/', import.meta.url)))
+      .filter((fileName) => /^\d{4}_.+\.ts$/.test(fileName))
+      .map((fileName) => fileName.replace(/\.ts$/, ''))
+      .sort();
 
-    expect(Object.keys(migrations)).toEqual([
-      '0001_initial',
-      '0002_username_accounts',
-      '0003_character_cards',
-      '0004_presets',
-      '0005_model_providers',
-    ]);
+    expect(Object.keys(migrations).sort()).toEqual(expectedMigrationNames);
   });
 });
