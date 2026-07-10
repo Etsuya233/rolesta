@@ -4,12 +4,14 @@ import {
   BoxesIcon,
   BrainCircuitIcon,
   Clock3Icon,
+  FlaskConicalIcon,
   LibraryIcon,
   MessagesSquareIcon,
 } from "lucide-react";
 import { CharacterCardManager } from "../../characters/components/character-card-manager";
 import { ModelProviderManager } from "../../model-providers/components/model-provider-manager";
 import { PresetManager } from "../../presets/components/preset-manager";
+import { FeatureTestPanel } from "../../testing/components/feature-test-panel";
 import { WorldbookManager } from "../../worldbooks/components/worldbook-manager";
 import { RecentWorkspacePanel } from "../components/recent-workspace-panel";
 import { WorkspaceLeftContextPanel } from "../components/workspace-left-context-panel";
@@ -22,7 +24,8 @@ export type WorkspacePanelKey =
   | "worldbooks"
   | "characters"
   | "presets"
-  | "modelProviders";
+  | "modelProviders"
+  | "testing";
 
 export type WorkspaceOpenedPanels = Record<WorkspaceArea, WorkspacePanelKey[]>;
 export type WorkspaceActivePanels = Record<WorkspaceArea, WorkspacePanelKey | null>;
@@ -119,6 +122,21 @@ export const workspacePanelDefinitions = [
     toolbarOrder: 60,
     Component: ModelProviderWorkspacePanel,
   },
+  ...(
+    import.meta.env.ENABLE_TEST_PANEL === "true" ||
+    (import.meta.env.ENABLE_TEST_PANEL === undefined && import.meta.env.DEV)
+      ? [
+          {
+            key: "testing" as const,
+            defaultArea: "center" as const,
+            labelKey: "chats.workbench.panels.testing",
+            icon: FlaskConicalIcon,
+            toolbarOrder: 70,
+            Component: FeatureTestPanel,
+          },
+        ]
+      : []
+  ),
 ] satisfies WorkspacePanelDefinition[];
 
 export function workspacePanelByKey(panelKey: WorkspacePanelKey) {
