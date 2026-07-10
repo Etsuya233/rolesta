@@ -11,6 +11,7 @@ import {
   Max,
   MaxLength,
   Min,
+  ValidateIf,
   ValidateNested,
 } from 'class-validator';
 import {
@@ -169,6 +170,141 @@ export class CreatePresetRequestDto {
 }
 
 export class UpdatePresetRequestDto extends PresetEditableFieldsDto {}
+
+export class PresetDocumentEntryDto {
+  @ApiProperty({ type: String })
+  @IsString()
+  id!: string;
+
+  @ApiProperty({ maxLength: 255, type: String })
+  @IsString()
+  @MaxLength(255)
+  name!: string;
+
+  @ApiProperty({ enum: PRESET_ENTRY_ROLES })
+  @IsIn(PRESET_ENTRY_ROLES)
+  role!: PresetEntryRole;
+
+  @ApiProperty({ enum: PRESET_ENTRY_POSITIONS })
+  @IsIn(PRESET_ENTRY_POSITIONS)
+  position!: PresetEntryPosition;
+
+  @ApiProperty({ type: String })
+  @IsString()
+  content!: string;
+}
+
+export class PresetDocumentPromptItemDto {
+  @ApiProperty({ type: String })
+  @IsString()
+  entryId!: string;
+
+  @ApiProperty({ type: Boolean })
+  @IsBoolean()
+  enabled!: boolean;
+}
+
+export class PresetDocumentModelSettingsDto {
+  @ApiProperty({ nullable: true, type: Number })
+  @ValidateIf((_object, value) => value !== null)
+  @IsNumber()
+  contextLength!: number | null;
+
+  @ApiProperty({ nullable: true, type: Number })
+  @ValidateIf((_object, value) => value !== null)
+  @IsNumber()
+  maxResponseLength!: number | null;
+
+  @ApiProperty({ type: Boolean })
+  @IsBoolean()
+  stream!: boolean;
+
+  @ApiProperty({ nullable: true, type: Number })
+  @ValidateIf((_object, value) => value !== null)
+  @IsNumber()
+  temperature!: number | null;
+
+  @ApiProperty({ nullable: true, type: Number })
+  @ValidateIf((_object, value) => value !== null)
+  @IsNumber()
+  presencePenalty!: number | null;
+
+  @ApiProperty({ nullable: true, type: Number })
+  @ValidateIf((_object, value) => value !== null)
+  @IsNumber()
+  frequencyPenalty!: number | null;
+
+  @ApiProperty({ nullable: true, type: Number })
+  @ValidateIf((_object, value) => value !== null)
+  @IsNumber()
+  repetitionPenalty!: number | null;
+
+  @ApiProperty({ nullable: true, type: Number })
+  @ValidateIf((_object, value) => value !== null)
+  @IsNumber()
+  topP!: number | null;
+
+  @ApiProperty({ nullable: true, type: Number })
+  @ValidateIf((_object, value) => value !== null)
+  @IsNumber()
+  topK!: number | null;
+
+  @ApiProperty({ nullable: true, type: Number })
+  @ValidateIf((_object, value) => value !== null)
+  @IsNumber()
+  minP!: number | null;
+
+  @ApiProperty({ nullable: true, type: Number })
+  @ValidateIf((_object, value) => value !== null)
+  @IsNumber()
+  topA!: number | null;
+
+  @ApiProperty({ nullable: true, type: Number })
+  @ValidateIf((_object, value) => value !== null)
+  @IsNumber()
+  seed!: number | null;
+
+  @ApiProperty({ nullable: true, type: Number })
+  @ValidateIf((_object, value) => value !== null)
+  @IsNumber()
+  n!: number | null;
+
+  @ApiProperty({ type: String })
+  @IsString()
+  reasoningEffort!: string;
+
+  @ApiProperty({ type: String })
+  @IsString()
+  verbosity!: string;
+
+  @ApiProperty({ type: Boolean })
+  @IsBoolean()
+  showThoughts!: boolean;
+}
+
+export class UpdatePresetDocumentRequestDto {
+  @ApiProperty({ maxLength: 255, type: String })
+  @IsString()
+  @MaxLength(255)
+  name!: string;
+
+  @ApiProperty({ type: PresetDocumentModelSettingsDto })
+  @ValidateNested()
+  @Type(() => PresetDocumentModelSettingsDto)
+  modelSettings!: PresetDocumentModelSettingsDto;
+
+  @ApiProperty({ type: () => [PresetDocumentEntryDto] })
+  @IsArray()
+  @ValidateNested({ each: true })
+  @Type(() => PresetDocumentEntryDto)
+  entries!: PresetDocumentEntryDto[];
+
+  @ApiProperty({ type: () => [PresetDocumentPromptItemDto] })
+  @IsArray()
+  @ValidateNested({ each: true })
+  @Type(() => PresetDocumentPromptItemDto)
+  promptItems!: PresetDocumentPromptItemDto[];
+}
 
 export class CreatePresetEntryRequestDto {
   @ApiProperty({ maxLength: 255, type: String })

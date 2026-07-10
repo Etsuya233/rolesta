@@ -16,7 +16,13 @@ import {
   UseInterceptors,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
-import { ApiBody, ApiConsumes, ApiOkResponse, ApiParam, ApiTags } from '@nestjs/swagger';
+import {
+  ApiBody,
+  ApiConsumes,
+  ApiOkResponse,
+  ApiParam,
+  ApiTags,
+} from '@nestjs/swagger';
 import type { Response } from 'express';
 import { AuthGuard } from '../../auth/http/auth.guard.js';
 import type { AuthenticatedRequest } from '../../auth/http/authenticated-request.js';
@@ -32,6 +38,7 @@ import { GetPresetUseCase } from '../application/get-preset.use-case.js';
 import { ImportPresetUseCase } from '../application/import-preset.use-case.js';
 import { ListPresetsUseCase } from '../application/list-presets.use-case.js';
 import { UpdatePresetEntryUseCase } from '../application/update-preset-entry.use-case.js';
+import { UpdatePresetDocumentUseCase } from '../application/update-preset-document.use-case.js';
 import { UpdatePresetPromptItemsUseCase } from '../application/update-preset-prompt-items.use-case.js';
 import { UpdatePresetUseCase } from '../application/update-preset.use-case.js';
 import { toApiFailure } from './preset-application-error.mapper.js';
@@ -40,6 +47,7 @@ import {
   CreatePresetRequestDto,
   ListPresetsQueryDto,
   UpdatePresetEntryRequestDto,
+  UpdatePresetDocumentRequestDto,
   UpdatePresetPromptItemsRequestDto,
   UpdatePresetRequestDto,
 } from './preset-requests.dto.js';
@@ -59,6 +67,7 @@ export class PresetsController {
     private readonly getPresetUseCase: GetPresetUseCase,
     private readonly createPresetUseCase: CreatePresetUseCase,
     private readonly updatePresetUseCase: UpdatePresetUseCase,
+    private readonly updatePresetDocumentUseCase: UpdatePresetDocumentUseCase,
     private readonly deletePresetUseCase: DeletePresetUseCase,
     private readonly importPresetUseCase: ImportPresetUseCase,
     private readonly exportPresetUseCase: ExportPresetUseCase,
@@ -91,7 +100,10 @@ export class PresetsController {
   ): Promise<PresetDetailResponseDto> {
     return this.withApplicationErrors(async () =>
       toPresetDetailResponse(
-        await this.getPresetUseCase.execute({ id, viewerUserId: request.authUser.id }),
+        await this.getPresetUseCase.execute({
+          id,
+          viewerUserId: request.authUser.id,
+        }),
       ),
     );
   }
@@ -131,12 +143,40 @@ export class PresetsController {
     );
   }
 
+  @Put(':id')
+  @ApiParam({ name: 'id', type: String })
+  @ApiBody({ type: UpdatePresetDocumentRequestDto })
+  @ApiEnvelopeOkResponse({ type: PresetDetailResponseDto })
+  async updateDocument(
+    @Req() request: AuthenticatedRequest,
+    @Param('id') id: string,
+    @Body() body: UpdatePresetDocumentRequestDto,
+  ): Promise<PresetDetailResponseDto> {
+    return this.withApplicationErrors(async () =>
+      toPresetDetailResponse(
+        await this.updatePresetDocumentUseCase.execute({
+          presetId: id,
+          viewerUserId: request.authUser.id,
+          ...body,
+        }),
+      ),
+    );
+  }
+
   @Delete(':id')
   @ApiParam({ name: 'id', type: String })
-  @ApiEnvelopeOkResponse({ schema: { type: 'object', properties: { ok: { type: 'boolean' } } } })
-  async delete(@Req() request: AuthenticatedRequest, @Param('id') id: string): Promise<{ ok: true }> {
+  @ApiEnvelopeOkResponse({
+    schema: { type: 'object', properties: { ok: { type: 'boolean' } } },
+  })
+  async delete(
+    @Req() request: AuthenticatedRequest,
+    @Param('id') id: string,
+  ): Promise<{ ok: true }> {
     return this.withApplicationErrors(async () => {
-      await this.deletePresetUseCase.execute({ id, viewerUserId: request.authUser.id });
+      await this.deletePresetUseCase.execute({
+        id,
+        viewerUserId: request.authUser.id,
+      });
       return { ok: true };
     });
   }
@@ -282,12 +322,16 @@ export class PresetsController {
     );
   }
 
-  private async withApplicationErrors<TResult>(handler: () => Promise<TResult>): Promise<TResult> {
+  private async withApplicationErrors<TResult>(
+    handler: () => Promise<TResult>,
+  ): Promise<TResult> {
     try {
       return await handler();
     } catch (error) {
       if (error instanceof PresetApplicationError) {
-        throw toApiFailure(error as PresetApplicationError<PresetApplicationErrorReason>);
+        throw toApiFailure(
+          error as PresetApplicationError<PresetApplicationErrorReason>,
+        );
       }
 
       throw error;

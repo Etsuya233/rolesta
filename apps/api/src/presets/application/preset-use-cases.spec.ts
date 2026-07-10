@@ -3,7 +3,11 @@ import type { PageResponse } from '@rolesta/shared';
 import { PresetApplicationError } from './preset-application-error.js';
 import { ImportPresetUseCase } from './import-preset.use-case.js';
 import { UpdatePresetPromptItemsUseCase } from './update-preset-prompt-items.use-case.js';
-import type { PresetClock, PresetIdGenerator } from './preset-application-services.js';
+import { UpdatePresetDocumentUseCase } from './update-preset-document.use-case.js';
+import type {
+  PresetClock,
+  PresetIdGenerator,
+} from './preset-application-services.js';
 import type { Preset, PresetSummary } from '../domain/preset.js';
 import type { PresetCodec, ImportedPreset } from '../ports/preset-codec.js';
 import { PresetPortError } from '../ports/preset-port-error.js';
@@ -80,6 +84,110 @@ describe('preset use cases', () => {
       }),
     );
   });
+
+  it('replaces the editable preset document as one aggregate', async () => {
+    const store = new InMemoryPresetStore([
+      preset({
+        id: 'preset_1',
+        ownerUserId: 'owner',
+        entries: [
+          {
+            id: 'entry_1',
+            presetId: 'preset_1',
+            identifier: 'preserved-identifier',
+            name: 'Old entry',
+            role: 'system',
+            position: 'system',
+            content: 'old content',
+            tokenCount: 2,
+            metadata: { extension: true },
+            createdAtMs: 10,
+            updatedAtMs: 10,
+          },
+        ],
+        promptItems: [{ entryId: 'entry_1', enabled: false, orderIndex: 0 }],
+      }),
+    ]);
+    const useCase = new UpdatePresetDocumentUseCase(
+      store,
+      new FixedClock(1783090000000),
+    );
+
+    const updated = await useCase.execute({
+      presetId: 'preset_1',
+      viewerUserId: 'owner',
+      name: 'Updated preset',
+      modelSettings: {
+        ...preset({}).modelSettings,
+        stream: false,
+      },
+      entries: [
+        {
+          id: 'entry_1',
+          name: 'Updated entry',
+          role: 'user',
+          position: 'chat',
+          content: 'updated content',
+        },
+        {
+          id: 'entry_2',
+          name: 'New entry',
+          role: 'assistant',
+          position: 'postHistory',
+          content: 'new content',
+        },
+      ],
+      promptItems: [
+        { entryId: 'entry_2', enabled: true },
+        { entryId: 'entry_1', enabled: true },
+      ],
+    });
+
+    expect(updated.name).toBe('Updated preset');
+    expect(updated.modelSettings.stream).toBe(false);
+    expect(updated.entries).toHaveLength(2);
+    expect(updated.entries[0]).toMatchObject({
+      id: 'entry_1',
+      identifier: 'preserved-identifier',
+      metadata: { extension: true },
+      createdAtMs: 10,
+      updatedAtMs: 1783090000000,
+    });
+    expect(updated.entries[1]).toMatchObject({
+      id: 'entry_2',
+      identifier: 'entry_2',
+      metadata: {},
+      createdAtMs: 1783090000000,
+    });
+    expect(updated.promptItems).toEqual([
+      { entryId: 'entry_2', enabled: true, orderIndex: 0 },
+      { entryId: 'entry_1', enabled: true, orderIndex: 1 },
+    ]);
+    expect(store.updatedPreset).toEqual(updated);
+  });
+
+  it('rejects prompt items that reference entries outside the document', async () => {
+    const useCase = new UpdatePresetDocumentUseCase(
+      new InMemoryPresetStore([preset({ id: 'preset_1' })]),
+      new FixedClock(1783090000000),
+    );
+
+    await expect(
+      useCase.execute({
+        presetId: 'preset_1',
+        viewerUserId: 'owner',
+        name: 'Preset',
+        modelSettings: preset({}).modelSettings,
+        entries: [],
+        promptItems: [{ entryId: 'missing', enabled: true }],
+      }),
+    ).rejects.toMatchObject(
+      new PresetApplicationError({
+        reason: 'unknown-entry',
+        params: { presetId: 'preset_1', entryId: 'missing' },
+      }),
+    );
+  });
 });
 
 class ThrowingPresetCodec implements PresetCodec {
@@ -120,6 +228,8 @@ class NoopPresetStore implements PresetStore {
 }
 
 class InMemoryPresetStore implements PresetStore {
+  updatedPreset: Preset | null = null;
+
   constructor(private readonly presets: Preset[] = []) {}
 
   list(): Promise<PageResponse<PresetSummary>> {
@@ -127,7 +237,10 @@ class InMemoryPresetStore implements PresetStore {
   }
 
   findOwnedById(id: string, ownerUserId: string): Promise<Preset | null> {
-    const preset = this.presets.find((candidate) => candidate.id === id && candidate.ownerUserId === ownerUserId);
+    const preset = this.presets.find(
+      (candidate) =>
+        candidate.id === id && candidate.ownerUserId === ownerUserId,
+    );
     return Promise.resolve(preset ?? null);
   }
 
@@ -135,7 +248,8 @@ class InMemoryPresetStore implements PresetStore {
     return Promise.resolve();
   }
 
-  update(): Promise<void> {
+  update(preset: Preset): Promise<void> {
+    this.updatedPreset = preset;
     return Promise.resolve();
   }
 

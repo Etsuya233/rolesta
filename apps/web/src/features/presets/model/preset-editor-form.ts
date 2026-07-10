@@ -1,7 +1,7 @@
 import type {
   PresetDetailResponse,
+  PresetDocument,
   PresetEntryPosition,
-  PresetEntryResponse,
   PresetEntryRole,
   PresetModelSettings,
 } from "../api/presets-api";
@@ -49,30 +49,17 @@ export const emptyPresetEntryEditorForm: PresetEntryEditorFormState = {
   content: "",
 };
 
-export function presetEditorFormFromDetail(
-  preset: PresetDetailResponse,
-): PresetEditorFormState {
-  return {
-    name: preset.name,
-    modelSettings: preset.modelSettings,
-  };
-}
-
 export function presetEntryEditorFormFromEntry(
-  entry: PresetEntryResponse,
+  entry: Pick<
+    PresetDocument["entries"][number],
+    "name" | "role" | "position" | "content"
+  >,
 ): PresetEntryEditorFormState {
   return {
     name: entry.name,
     role: entry.role,
     position: entry.position,
     content: entry.content,
-  };
-}
-
-export function presetValuesFromForm(form: PresetEditorFormState) {
-  return {
-    name: form.name.trim(),
-    modelSettings: form.modelSettings,
   };
 }
 
@@ -83,4 +70,33 @@ export function presetEntryValuesFromForm(form: PresetEntryEditorFormState) {
     position: form.position,
     content: form.content,
   };
+}
+
+export function presetDocumentFromDetail(
+  preset: PresetDetailResponse,
+): PresetDocument {
+  return {
+    name: preset.name,
+    modelSettings: preset.modelSettings,
+    entries: preset.entries.map((entry) => ({
+      id: entry.id,
+      name: entry.name,
+      role: entry.role,
+      position: entry.position,
+      content: entry.content,
+    })),
+    promptItems: [...preset.promptItems]
+      .sort((left, right) => left.orderIndex - right.orderIndex)
+      .map((item) => ({
+        entryId: item.entryId,
+        enabled: item.enabled,
+      })),
+  };
+}
+
+export function presetDocumentEquals(
+  left: PresetDocument,
+  right: PresetDocument,
+): boolean {
+  return JSON.stringify(left) === JSON.stringify(right);
 }

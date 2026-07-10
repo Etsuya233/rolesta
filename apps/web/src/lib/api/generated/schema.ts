@@ -300,7 +300,7 @@ export interface paths {
       cookie?: never;
     };
     get: operations["PresetsController_get"];
-    put?: never;
+    put: operations["PresetsController_updateDocument"];
     post?: never;
     delete: operations["PresetsController_delete"];
     options?: never;
@@ -993,6 +993,43 @@ export interface components {
     UpdatePresetRequestDto: {
       name?: string;
       modelSettings?: components["schemas"]["PresetModelSettingsDto"];
+    };
+    PresetDocumentModelSettingsDto: {
+      contextLength: number | null;
+      maxResponseLength: number | null;
+      stream: boolean;
+      temperature: number | null;
+      presencePenalty: number | null;
+      frequencyPenalty: number | null;
+      repetitionPenalty: number | null;
+      topP: number | null;
+      topK: number | null;
+      minP: number | null;
+      topA: number | null;
+      seed: number | null;
+      n: number | null;
+      reasoningEffort: string;
+      verbosity: string;
+      showThoughts: boolean;
+    };
+    PresetDocumentEntryDto: {
+      id: string;
+      name: string;
+      /** @enum {string} */
+      role: "system" | "user" | "assistant";
+      /** @enum {string} */
+      position: "system" | "chat" | "preHistory" | "postHistory" | "unknown";
+      content: string;
+    };
+    PresetDocumentPromptItemDto: {
+      entryId: string;
+      enabled: boolean;
+    };
+    UpdatePresetDocumentRequestDto: {
+      name: string;
+      modelSettings: components["schemas"]["PresetDocumentModelSettingsDto"];
+      entries: components["schemas"]["PresetDocumentEntryDto"][];
+      promptItems: components["schemas"]["PresetDocumentPromptItemDto"][];
     };
     CreatePresetEntryRequestDto: {
       name: string;
@@ -1978,6 +2015,40 @@ export interface operations {
       cookie?: never;
     };
     requestBody?: never;
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": {
+            /**
+             * @example SUCCESS
+             * @enum {string}
+             */
+            code: "SUCCESS";
+            /** @example ok */
+            msg: string;
+            data: components["schemas"]["PresetDetailResponseDto"];
+          };
+        };
+      };
+    };
+  };
+  PresetsController_updateDocument: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        id: string;
+      };
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["UpdatePresetDocumentRequestDto"];
+      };
+    };
     responses: {
       200: {
         headers: {

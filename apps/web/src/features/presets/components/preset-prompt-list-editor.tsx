@@ -1,3 +1,4 @@
+import { countPromptTokens } from "@rolesta/shared";
 import {
   DndContext,
   MouseSensor,
@@ -12,69 +13,47 @@ import {
   arrayMove,
   verticalListSortingStrategy,
 } from "@dnd-kit/sortable";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Pencil, Plus, Search, Trash2 } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Button } from "../../../components/ui/button";
 import { Input } from "../../../components/ui/input";
-import {
-  deletePresetEntry,
-  getPreset,
-  updatePresetPromptItems,
-} from "../api/presets-api";
+import { usePresetDraftSession } from "../hooks/use-preset-draft-sessions";
+import { FormError } from "./preset-form-fields";
 import { PresetPromptListRow } from "./preset-prompt-list-row";
 
 export function PresetPromptListEditor({
   presetId,
+  sessionKey,
   onCreateEntry,
   onEditEntry,
 }: {
   presetId: string;
+  sessionKey: string;
   onCreateEntry: () => void;
   onEditEntry: (entryId: string) => void;
 }) {
   const { t } = useTranslation();
-  const queryClient = useQueryClient();
-  const query = useQuery({
-    queryKey: ["preset", presetId],
-    queryFn: () => getPreset(presetId),
-  });
-  const [items, setItems] = useState<Array<{ entryId: string; enabled: boolean }>>([]);
+  const {
+    document,
+    setDocument,
+    isDirty,
+    isPending,
+    visibleError,
+    saveDocument,
+  } = usePresetDraftSession({ presetId, sessionKey });
   const [unlinkedSearch, setUnlinkedSearch] = useState("");
   const debouncedUnlinkedSearch = useDebouncedValue(unlinkedSearch, 250);
-
-  useEffect(() => {
-    if (query.data) {
-      setItems(
-        [...query.data.promptItems]
-          .sort((left, right) => left.orderIndex - right.orderIndex)
-          .map((item) => ({ entryId: item.entryId, enabled: item.enabled })),
-      );
-    }
-  }, [query.data]);
-
-  const saveMutation = useMutation({
-    mutationFn: () => updatePresetPromptItems(presetId, items),
-    async onSuccess(preset) {
-      await queryClient.invalidateQueries({ queryKey: ["presets"] });
-      queryClient.setQueryData(["preset", preset.id], preset);
-    },
-  });
-  const deleteEntryMutation = useMutation({
-    mutationFn: (entryId: string) => deletePresetEntry(presetId, entryId),
-    async onSuccess(preset) {
-      await queryClient.invalidateQueries({ queryKey: ["presets"] });
-      queryClient.setQueryData(["preset", preset.id], preset);
-    },
-  });
   const entryById = useMemo(
-    () => new Map(query.data?.entries.map((entry) => [entry.id, entry]) ?? []),
-    [query.data?.entries],
+    () => new Map(document.entries.map((entry) => [entry.id, entry])),
+    [document.entries],
   );
-  const linkedEntryIds = new Set(items.map((item) => item.entryId));
-  const unlinkedEntries =
-    query.data?.entries.filter((entry) => !linkedEntryIds.has(entry.id)) ?? [];
+  const linkedEntryIds = new Set(
+    document.promptItems.map((item) => item.entryId),
+  );
+  const unlinkedEntries = document.entries.filter(
+    (entry) => !linkedEntryIds.has(entry.id),
+  );
   const visibleUnlinkedEntries = useMemo(() => {
     const keyword = debouncedUnlinkedSearch.trim().toLocaleLowerCase();
 
@@ -86,20 +65,12 @@ export function PresetPromptListEditor({
       entry.name.toLocaleLowerCase().includes(keyword),
     );
   }, [debouncedUnlinkedSearch, unlinkedEntries]);
-  const totalTokens = items.reduce((total, item) => {
+  const totalTokens = document.promptItems.reduce((total, item) => {
     const entry = entryById.get(item.entryId);
-    return total + (item.enabled ? entry?.tokenCount ?? 0 : 0);
+    return (
+      total + (item.enabled && entry ? countPromptTokens(entry.content) : 0)
+    );
   }, 0);
-  function linkEntry(entryId: string) {
-    setItems((current) => {
-      if (current.some((item) => item.entryId === entryId)) {
-        return current;
-      }
-
-      return [...current, { entryId, enabled: true }];
-    });
-  }
-
   const sensors = useSensors(
     useSensor(MouseSensor, { activationConstraint: { distance: 4 } }),
     useSensor(TouchSensor, {
@@ -107,20 +78,33 @@ export function PresetPromptListEditor({
     }),
   );
 
-  if (query.isLoading) {
-    return (
-      <p className="p-4 text-sm text-muted-foreground">
-        {t("presets.promptList.loading")}
-      </p>
+  function setPromptItems(
+    update: (items: typeof document.promptItems) => typeof document.promptItems,
+  ) {
+    setDocument((current) => ({
+      ...current,
+      promptItems: update(current.promptItems),
+    }));
+  }
+
+  function linkEntry(entryId: string) {
+    setPromptItems((items) =>
+      items.some((item) => item.entryId === entryId)
+        ? items
+        : [...items, { entryId, enabled: true }],
     );
   }
 
-  if (!query.data) {
-    return (
-      <p className="p-4 text-sm text-destructive">
-        {t("presets.promptList.loadFailed")}
-      </p>
-    );
+  function deleteEntry(entryId: string) {
+    const nextDocument = {
+      ...document,
+      entries: document.entries.filter((entry) => entry.id !== entryId),
+      promptItems: document.promptItems.filter(
+        (item) => item.entryId !== entryId,
+      ),
+    };
+
+    saveDocument(nextDocument);
   }
 
   return (
@@ -134,7 +118,7 @@ export function PresetPromptListEditor({
             {totalTokens.toLocaleString()}
           </div>
         </div>
-        <Button type="button" onClick={onCreateEntry}>
+        <Button disabled={isPending} type="button" onClick={onCreateEntry}>
           <Plus aria-hidden="true" />
           {t("presets.promptList.addEntry")}
         </Button>
@@ -145,13 +129,15 @@ export function PresetPromptListEditor({
           autoScroll
           collisionDetection={closestCenter}
           sensors={sensors}
-          onDragEnd={(event) => setItemsAfterDrag(event, items, setItems)}
+          onDragEnd={(event) =>
+            setItemsAfterDrag(event, document.promptItems, setPromptItems)
+          }
         >
           <SortableContext
-            items={items.map((item) => item.entryId)}
+            items={document.promptItems.map((item) => item.entryId)}
             strategy={verticalListSortingStrategy}
           >
-            {items.map((item) => {
+            {document.promptItems.map((item) => {
               const entry = entryById.get(item.entryId);
 
               if (!entry) {
@@ -161,14 +147,15 @@ export function PresetPromptListEditor({
               return (
                 <PresetPromptListRow
                   key={item.entryId}
+                  disabled={isPending}
                   enabled={item.enabled}
                   entry={entry}
                   id={item.entryId}
-                  tokenCount={entry.tokenCount}
+                  tokenCount={countPromptTokens(entry.content)}
                   onEdit={() => onEditEntry(entry.id)}
                   onToggle={(enabled) =>
-                    setItems((current) =>
-                      current.map((candidate) =>
+                    setPromptItems((items) =>
+                      items.map((candidate) =>
                         candidate.entryId === item.entryId
                           ? { ...candidate, enabled }
                           : candidate,
@@ -176,8 +163,10 @@ export function PresetPromptListEditor({
                     )
                   }
                   onUnlink={() =>
-                    setItems((current) =>
-                      current.filter((candidate) => candidate.entryId !== item.entryId),
+                    setPromptItems((items) =>
+                      items.filter(
+                        (candidate) => candidate.entryId !== item.entryId,
+                      ),
                     )
                   }
                 />
@@ -200,7 +189,10 @@ export function PresetPromptListEditor({
                 <Input
                   aria-label={t("presets.promptList.searchUnlinkedLabel")}
                   className="pl-9"
-                  placeholder={t("presets.promptList.searchUnlinkedPlaceholder")}
+                  disabled={isPending}
+                  placeholder={t(
+                    "presets.promptList.searchUnlinkedPlaceholder",
+                  )}
                   value={unlinkedSearch}
                   onChange={(event) => setUnlinkedSearch(event.target.value)}
                 />
@@ -215,13 +207,14 @@ export function PresetPromptListEditor({
                   >
                     <Button
                       className="min-w-0 justify-between px-2"
+                      disabled={isPending}
                       type="button"
                       variant="ghost"
                       onClick={() => linkEntry(entry.id)}
                     >
                       <span className="truncate">{entry.name}</span>
                       <span className="ml-2 shrink-0 text-xs text-muted-foreground">
-                        {entry.tokenCount.toLocaleString()}
+                        {countPromptTokens(entry.content).toLocaleString()}
                       </span>
                     </Button>
                     <Button
@@ -229,6 +222,7 @@ export function PresetPromptListEditor({
                         name: entry.name,
                       })}
                       className="size-9"
+                      disabled={isPending}
                       size="icon"
                       type="button"
                       variant="ghost"
@@ -239,6 +233,7 @@ export function PresetPromptListEditor({
                     <Button
                       aria-label={t("presets.entries.editAction")}
                       className="size-9"
+                      disabled={isPending}
                       size="icon"
                       type="button"
                       variant="ghost"
@@ -249,11 +244,11 @@ export function PresetPromptListEditor({
                     <Button
                       aria-label={t("presets.entries.deleteAction")}
                       className="size-9"
-                      disabled={deleteEntryMutation.isPending}
+                      disabled={isPending}
                       size="icon"
                       type="button"
                       variant="destructive"
-                      onClick={() => deleteEntryMutation.mutate(entry.id)}
+                      onClick={() => deleteEntry(entry.id)}
                     >
                       <Trash2 aria-hidden="true" />
                     </Button>
@@ -270,11 +265,16 @@ export function PresetPromptListEditor({
       </div>
 
       <div className="shrink-0 border-t border-border p-3">
+        {visibleError ? (
+          <div className="mb-3">
+            <FormError>{visibleError}</FormError>
+          </div>
+        ) : null}
         <Button
           className="w-full"
-          disabled={saveMutation.isPending}
+          disabled={isPending || !isDirty}
           type="button"
-          onClick={() => saveMutation.mutate()}
+          onClick={() => saveDocument()}
         >
           {t("presets.promptList.save")}
         </Button>
@@ -286,7 +286,11 @@ export function PresetPromptListEditor({
 function setItemsAfterDrag(
   event: DragEndEvent,
   items: Array<{ entryId: string; enabled: boolean }>,
-  setItems: (items: Array<{ entryId: string; enabled: boolean }>) => void,
+  setItems: (
+    update: (
+      items: Array<{ entryId: string; enabled: boolean }>,
+    ) => Array<{ entryId: string; enabled: boolean }>,
+  ) => void,
 ) {
   const { active, over } = event;
 
@@ -298,7 +302,7 @@ function setItemsAfterDrag(
   const newIndex = items.findIndex((item) => item.entryId === over.id);
 
   if (oldIndex >= 0 && newIndex >= 0) {
-    setItems(arrayMove(items, oldIndex, newIndex));
+    setItems((current) => arrayMove(current, oldIndex, newIndex));
   }
 }
 
@@ -306,7 +310,10 @@ function useDebouncedValue(value: string, delayMs: number): string {
   const [debouncedValue, setDebouncedValue] = useState(value);
 
   useEffect(() => {
-    const timeoutId = window.setTimeout(() => setDebouncedValue(value), delayMs);
+    const timeoutId = window.setTimeout(
+      () => setDebouncedValue(value),
+      delayMs,
+    );
     return () => window.clearTimeout(timeoutId);
   }, [delayMs, value]);
 

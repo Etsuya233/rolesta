@@ -5,7 +5,7 @@ import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Button } from "../../../components/ui/button";
 import { cn } from "../../../lib/utils";
-import type { PresetEntryResponse } from "../api/presets-api";
+import type { PresetDocument } from "../api/presets-api";
 
 export function PresetPromptListRow({
   id,
@@ -15,26 +15,37 @@ export function PresetPromptListRow({
   onEdit,
   onToggle,
   onUnlink,
+  disabled,
 }: {
   id: string;
-  entry: PresetEntryResponse;
+  entry: PresetDocument["entries"][number];
   enabled: boolean;
   tokenCount: number;
   onEdit: () => void;
   onToggle: (enabled: boolean) => void;
   onUnlink: () => void;
+  disabled: boolean;
 }) {
   const { t } = useTranslation();
   const [isConfirmingUnlink, setIsConfirmingUnlink] = useState(false);
-  const { attributes, listeners, setNodeRef, transform, transition, isDragging } =
-    useSortable({ id });
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({ id, disabled });
 
   useEffect(() => {
     if (!isConfirmingUnlink) {
       return;
     }
 
-    const timeoutId = window.setTimeout(() => setIsConfirmingUnlink(false), 2500);
+    const timeoutId = window.setTimeout(
+      () => setIsConfirmingUnlink(false),
+      2500,
+    );
     return () => window.clearTimeout(timeoutId);
   }, [isConfirmingUnlink]);
 
@@ -64,6 +75,7 @@ export function PresetPromptListRow({
         aria-label={t("presets.promptList.dragLabel")}
         className="size-9 touch-none cursor-grab select-none"
         size="icon"
+        disabled={disabled}
         type="button"
         variant="ghost"
         {...attributes}
@@ -80,6 +92,7 @@ export function PresetPromptListRow({
         )}
         className="size-9"
         size="icon"
+        disabled={disabled}
         type="button"
         variant={isConfirmingUnlink ? "destructive" : "ghost"}
         onClick={unlinkAfterConfirmation}
@@ -102,6 +115,7 @@ export function PresetPromptListRow({
           checked={enabled}
           className="size-4 accent-primary"
           type="checkbox"
+          disabled={disabled}
           onChange={(event) => onToggle(event.target.checked)}
         />
       </label>

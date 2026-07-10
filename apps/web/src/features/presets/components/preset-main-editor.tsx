@@ -1,4 +1,5 @@
 import type { TFunction } from "i18next";
+import { countPromptTokens } from "@rolesta/shared";
 import { BadgeInfo, SlidersHorizontal } from "lucide-react";
 import { useId, useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -40,13 +41,20 @@ export function PresetMainEditor({
     "basic",
     "model",
   ]);
-  const { form, setForm, isPending, visibleError, preset, submit } =
+  const { document, form, setForm, isDirty, isPending, visibleError, submit } =
     usePresetDraftSession({
       sessionKey,
       ...(presetId ? { presetId } : {}),
       ...(onCreated ? { onCreated } : {}),
     });
   const settings = form.modelSettings;
+  const entryById = new Map(document.entries.map((entry) => [entry.id, entry]));
+  const tokenCount = document.promptItems.reduce((total, item) => {
+    const entry = entryById.get(item.entryId);
+    return (
+      total + (item.enabled && entry ? countPromptTokens(entry.content) : 0)
+    );
+  }, 0);
 
   return (
     <form
@@ -64,8 +72,8 @@ export function PresetMainEditor({
             icon={BadgeInfo}
             summary={presetBasicSummary({
               name: form.name,
-              tokenCount: preset?.tokenCount ?? 0,
-              entryCount: preset?.entryCount ?? 0,
+              tokenCount,
+              entryCount: document.entries.length,
               t,
             })}
             title={t("presets.editor.sections.basic.title")}
@@ -76,22 +84,24 @@ export function PresetMainEditor({
               id={`${fieldPrefix}-name`}
               label={t("presets.editor.fields.name")}
               value={form.name}
-              onChange={(event) => setForm({ ...form, name: event.target.value })}
+              onChange={(event) =>
+                setForm({ ...form, name: event.target.value })
+              }
             />
             <div className="flex items-center justify-between rounded-md border border-border px-3 py-2 text-sm">
-              <span className="text-muted-foreground">
-                Model Provider
-              </span>
-              <Badge variant="outline">{t("presets.editor.unlinkedProvider")}</Badge>
+              <span className="text-muted-foreground">Model Provider</span>
+              <Badge variant="outline">
+                {t("presets.editor.unlinkedProvider")}
+              </Badge>
             </div>
             <div className="grid grid-cols-2 gap-2 text-sm">
               <Metric
                 label={t("presets.metrics.totalTokens")}
-                value={String(preset?.tokenCount ?? 0)}
+                value={String(tokenCount)}
               />
               <Metric
                 label={t("presets.metrics.entryCount")}
-                value={String(preset?.entryCount ?? 0)}
+                value={String(document.entries.length)}
               />
             </div>
             {onOpenPromptList ? (
@@ -202,7 +212,9 @@ export function PresetMainEditor({
 
       <div className="flex shrink-0 flex-col gap-3 border-t border-border bg-background px-4 py-3">
         {visibleError ? <FormError>{visibleError}</FormError> : null}
-        <FormSubmitButton disabled={isPending}>{submitLabel}</FormSubmitButton>
+        <FormSubmitButton disabled={isPending || !isDirty}>
+          {submitLabel}
+        </FormSubmitButton>
       </div>
     </form>
   );
@@ -256,7 +268,9 @@ function Metric({ label, value }: { label: string; value: string }) {
   return (
     <div className="rounded-md border border-border px-3 py-2">
       <div className="text-xs text-muted-foreground">{label}</div>
-      <div className="truncate text-base font-semibold tabular-nums">{value}</div>
+      <div className="truncate text-base font-semibold tabular-nums">
+        {value}
+      </div>
     </div>
   );
 }
@@ -264,8 +278,14 @@ function Metric({ label, value }: { label: string; value: string }) {
 const modelNumberFields = [
   { key: "temperature", labelKey: "presets.editor.fields.temperature" },
   { key: "presencePenalty", labelKey: "presets.editor.fields.presencePenalty" },
-  { key: "frequencyPenalty", labelKey: "presets.editor.fields.frequencyPenalty" },
-  { key: "repetitionPenalty", labelKey: "presets.editor.fields.repetitionPenalty" },
+  {
+    key: "frequencyPenalty",
+    labelKey: "presets.editor.fields.frequencyPenalty",
+  },
+  {
+    key: "repetitionPenalty",
+    labelKey: "presets.editor.fields.repetitionPenalty",
+  },
   { key: "topP", labelKey: "presets.editor.fields.topP" },
   { key: "topK", labelKey: "presets.editor.fields.topK" },
   { key: "minP", labelKey: "presets.editor.fields.minP" },

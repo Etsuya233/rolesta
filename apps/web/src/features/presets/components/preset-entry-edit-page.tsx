@@ -19,6 +19,7 @@ export function PresetEntryEditPage({
       <PresetEntryEditor
         entryId={page.entryId}
         presetId={page.presetId}
+        sessionKey={page.sessionKey}
         submitLabel={t("presets.entries.saveSubmit")}
         onSaved={onBack}
       />

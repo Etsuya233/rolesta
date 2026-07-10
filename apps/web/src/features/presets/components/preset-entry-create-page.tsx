@@ -18,6 +18,7 @@ export function PresetEntryCreatePage({
       <MobileTopBar title={t("presets.entries.createTitle")} onBack={onBack} />
       <PresetEntryEditor
         presetId={page.presetId}
+        sessionKey={page.sessionKey}
         submitLabel={t("presets.entries.createSubmit")}
         onSaved={onBack}
       />

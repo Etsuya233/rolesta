@@ -24,6 +24,7 @@ export function PresetPromptListPage({
       <MobileTopBar title={t("presets.promptList.title")} onBack={onBack} />
       <PresetPromptListEditor
         presetId={page.presetId}
+        sessionKey={page.sessionKey}
         onCreateEntry={() =>
           pushPage(presetEntryCreatePage(page.presetId, page.sessionKey))
         }

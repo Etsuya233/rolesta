@@ -19,12 +19,10 @@ export type PresetPromptItemResponse =
 export type PresetDetailResponse =
   components["schemas"]["PresetDetailResponseDto"];
 export type PresetPageResponse = components["schemas"]["PresetPageResponseDto"];
-export type PresetSaveValues = components["schemas"]["UpdatePresetRequestDto"];
-export type PresetCreateValues = components["schemas"]["CreatePresetRequestDto"];
-export type PresetEntryCreateValues =
-  components["schemas"]["CreatePresetEntryRequestDto"];
-export type PresetEntryUpdateValues =
-  components["schemas"]["UpdatePresetEntryRequestDto"];
+export type PresetDocument =
+  components["schemas"]["UpdatePresetDocumentRequestDto"];
+export type PresetCreateValues =
+  components["schemas"]["CreatePresetRequestDto"];
 
 export type PresetEntryRole = PresetEntryResponse["role"];
 export type PresetEntryPosition = PresetEntryResponse["position"];
@@ -54,17 +52,19 @@ export async function getPreset(id: string): Promise<PresetDetailResponse> {
 export async function createPreset(
   values: PresetCreateValues,
 ): Promise<PresetDetailResponse> {
-  const result = await requestApi(openApiClient.POST("/presets", { body: values }));
+  const result = await requestApi(
+    openApiClient.POST("/presets", { body: values }),
+  );
   return result.data;
 }
 
-export async function updatePreset(
+export async function updatePresetDocument(
   id: string,
-  values: PresetSaveValues,
+  document: PresetDocument,
 ): Promise<PresetDetailResponse> {
   const result = await requestApi(
-    openApiClient.PATCH("/presets/{id}", {
-      body: values,
+    openApiClient.PUT("/presets/{id}", {
+      body: document,
       params: { path: { id } },
     }),
   );
@@ -74,58 +74,6 @@ export async function updatePreset(
 export async function deletePreset(id: string): Promise<{ ok?: boolean }> {
   const result = await requestApi(
     openApiClient.DELETE("/presets/{id}", { params: { path: { id } } }),
-  );
-  return result.data;
-}
-
-export async function createPresetEntry(
-  presetId: string,
-  values: PresetEntryCreateValues,
-): Promise<PresetDetailResponse> {
-  const result = await requestApi(
-    openApiClient.POST("/presets/{id}/entries", {
-      body: values,
-      params: { path: { id: presetId } },
-    }),
-  );
-  return result.data;
-}
-
-export async function updatePresetEntry(
-  presetId: string,
-  entryId: string,
-  values: PresetEntryUpdateValues,
-): Promise<PresetDetailResponse> {
-  const result = await requestApi(
-    openApiClient.PATCH("/presets/{id}/entries/{entryId}", {
-      body: values,
-      params: { path: { id: presetId, entryId } },
-    }),
-  );
-  return result.data;
-}
-
-export async function deletePresetEntry(
-  presetId: string,
-  entryId: string,
-): Promise<PresetDetailResponse> {
-  const result = await requestApi(
-    openApiClient.DELETE("/presets/{id}/entries/{entryId}", {
-      params: { path: { id: presetId, entryId } },
-    }),
-  );
-  return result.data;
-}
-
-export async function updatePresetPromptItems(
-  presetId: string,
-  items: Array<{ entryId: string; enabled: boolean }>,
-): Promise<PresetDetailResponse> {
-  const result = await requestApi(
-    openApiClient.PUT("/presets/{id}/prompt-items", {
-      body: { items },
-      params: { path: { id: presetId } },
-    }),
   );
   return result.data;
 }
@@ -141,7 +89,9 @@ export async function importPreset(file: File): Promise<PresetDetailResponse> {
 }
 
 export async function exportPreset(id: string): Promise<Blob> {
-  const response = await fetchAuthed(`${API_BASE_URL}/presets/${id}/export/sillytavern`);
+  const response = await fetchAuthed(
+    `${API_BASE_URL}/presets/${id}/export/sillytavern`,
+  );
 
   if (!response.ok) {
     throw new ApiError("Preset export failed", {

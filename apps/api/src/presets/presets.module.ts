@@ -17,12 +17,10 @@ import type {
   PresetIdGenerator,
 } from './application/preset-application-services.js';
 import { UpdatePresetEntryUseCase } from './application/update-preset-entry.use-case.js';
+import { UpdatePresetDocumentUseCase } from './application/update-preset-document.use-case.js';
 import { UpdatePresetPromptItemsUseCase } from './application/update-preset-prompt-items.use-case.js';
 import { UpdatePresetUseCase } from './application/update-preset.use-case.js';
-import {
-  PRESET_CODEC,
-  type PresetCodec,
-} from './ports/preset-codec.js';
+import { PRESET_CODEC, type PresetCodec } from './ports/preset-codec.js';
 import { PRESET_STORE, type PresetStore } from './ports/preset-store.js';
 import { KyselyPresetStore } from './persistence/kysely-preset-store.js';
 import { PresetsController } from './http/presets.controller.js';
@@ -60,6 +58,12 @@ import { PresetsController } from './http/presets.controller.js';
       provide: UpdatePresetUseCase,
       useFactory: (store: PresetStore, clock: PresetClock) =>
         new UpdatePresetUseCase(store, clock),
+      inject: [PRESET_STORE, SystemClock],
+    },
+    {
+      provide: UpdatePresetDocumentUseCase,
+      useFactory: (store: PresetStore, clock: PresetClock) =>
+        new UpdatePresetDocumentUseCase(store, clock),
       inject: [PRESET_STORE, SystemClock],
     },
     {
