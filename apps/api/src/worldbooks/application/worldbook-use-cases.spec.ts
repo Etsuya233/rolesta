@@ -22,6 +22,7 @@ import { GetWorldbookUseCase } from "./get-worldbook.use-case.js";
 import { ImportWorldbookUseCase } from "./import-worldbook.use-case.js";
 import { UpdateWorldbookEntryOrderUseCase } from "./update-worldbook-entry-order.use-case.js";
 import { UpdateWorldbookEntryUseCase } from "./update-worldbook-entry.use-case.js";
+import { UpdateWorldbookDocumentUseCase } from "./update-worldbook-document.use-case.js";
 import { UpdateWorldbookUseCase } from "./update-worldbook.use-case.js";
 
 describe("worldbook use cases", () => {
@@ -252,6 +253,108 @@ describe("worldbook use cases", () => {
       (await store.findOwnedById("book-1", "owner"))?.entries,
     ).toHaveLength(2);
   });
+
+  it("replaces the complete worldbook document in one update", async () => {
+    const store = new InMemoryWorldbookStore([
+      worldbook({
+        id: "book-1",
+        name: "Before",
+        entries: [
+          worldbookEntry({
+            id: "entry-1",
+            worldbookId: "book-1",
+            content: "before",
+            createdAtMs: 100,
+          }),
+        ],
+      }),
+    ]);
+    const useCase = new UpdateWorldbookDocumentUseCase(
+      store,
+      new SequenceIdGenerator(["entry-2"]),
+      new FixedClock(1783090000500),
+    );
+
+    const updated = await useCase.execute({
+      worldbookId: "book-1",
+      viewerUserId: "owner",
+      visibility: "public",
+      name: "After",
+      description: "Complete document",
+      tags: ["updated"],
+      scanDepth: 7,
+      tokenBudget: 2048,
+      recursiveScan: true,
+      entries: [
+        documentEntry({
+          id: "entry-1",
+          name: "Existing",
+          content: "existing updated",
+        }),
+        documentEntry({
+          id: "client-entry",
+          name: "Created",
+          content: "new entry",
+          enabled: false,
+        }),
+      ],
+    });
+
+    expect(updated).toMatchObject({
+      name: "After",
+      visibility: "public",
+      description: "Complete document",
+      tags: ["updated"],
+      scanDepth: 7,
+      tokenBudget: 2048,
+      recursiveScan: true,
+      updatedAtMs: 1783090000500,
+    });
+    expect(updated.entries.map((entry) => entry.id)).toEqual([
+      "entry-1",
+      "entry-2",
+    ]);
+    expect(updated.entries[0]).toMatchObject({
+      content: "existing updated",
+      insertionOrder: 0,
+      createdAtMs: 100,
+      updatedAtMs: 1783090000500,
+    });
+    expect(updated.entries[1]).toMatchObject({
+      enabled: false,
+      insertionOrder: 1,
+      createdAtMs: 1783090000500,
+    });
+    expect(updated.entries[0]?.tokenCount).toBeGreaterThan(0);
+  });
+
+  it("rejects duplicate ids in a complete worldbook document", async () => {
+    const store = new InMemoryWorldbookStore([worldbook({ id: "book-1" })]);
+    const useCase = new UpdateWorldbookDocumentUseCase(
+      store,
+      new SequenceIdGenerator([]),
+      new FixedClock(1783090000500),
+    );
+    const entry = documentEntry({ id: "duplicate" });
+
+    await expect(
+      useCase.execute({
+        worldbookId: "book-1",
+        viewerUserId: "owner",
+        visibility: "private",
+        name: "Book",
+        description: "",
+        tags: [],
+        scanDepth: 3,
+        tokenBudget: 1024,
+        recursiveScan: false,
+        entries: [entry, entry],
+      }),
+    ).rejects.toMatchObject({
+      reason: "duplicate-entry",
+      params: { worldbookId: "book-1", entryId: "duplicate" },
+    });
+  });
 });
 
 class InMemoryWorldbookStore implements WorldbookStore {
@@ -406,5 +509,37 @@ function worldbookEntry(
     tokenCount: overrides.tokenCount ?? 1,
     createdAtMs: overrides.createdAtMs ?? 1,
     updatedAtMs: overrides.updatedAtMs ?? 1,
+  };
+}
+
+function documentEntry(
+  overrides: Partial<
+    Parameters<UpdateWorldbookDocumentUseCase["execute"]>[0]["entries"][number]
+  >,
+): Parameters<UpdateWorldbookDocumentUseCase["execute"]>[0]["entries"][number] {
+  return {
+    id: overrides.id ?? "entry",
+    enabled: overrides.enabled ?? true,
+    name: overrides.name ?? "Entry",
+    comment: overrides.comment ?? "",
+    content: overrides.content ?? "content",
+    primaryKeys: overrides.primaryKeys ?? [],
+    secondaryKeys: overrides.secondaryKeys ?? [],
+    selective: overrides.selective ?? false,
+    selectiveLogic: overrides.selectiveLogic ?? "andAny",
+    constant: overrides.constant ?? false,
+    vectorized: overrides.vectorized ?? false,
+    caseSensitive: overrides.caseSensitive ?? false,
+    matchWholeWords: overrides.matchWholeWords ?? false,
+    insertionPosition:
+      overrides.insertionPosition ?? "beforeCharacterDefinition",
+    depth: overrides.depth ?? 3,
+    insertionRole: overrides.insertionRole ?? "system",
+    anchorName: overrides.anchorName ?? "",
+    scanDepth: overrides.scanDepth ?? null,
+    excludeRecursion: overrides.excludeRecursion ?? false,
+    preventRecursion: overrides.preventRecursion ?? false,
+    delayUntilRecursion: overrides.delayUntilRecursion ?? false,
+    probability: overrides.probability ?? 100,
   };
 }

@@ -13,6 +13,7 @@ import { ImportWorldbookUseCase } from "./application/import-worldbook.use-case.
 import { ListWorldbooksUseCase } from "./application/list-worldbooks.use-case.js";
 import { UpdateWorldbookEntryOrderUseCase } from "./application/update-worldbook-entry-order.use-case.js";
 import { UpdateWorldbookEntryUseCase } from "./application/update-worldbook-entry.use-case.js";
+import { UpdateWorldbookDocumentUseCase } from "./application/update-worldbook-document.use-case.js";
 import { UpdateWorldbookUseCase } from "./application/update-worldbook.use-case.js";
 import type {
   WorldbookClock,
@@ -57,6 +58,15 @@ import { KyselyWorldbookStore } from "./persistence/kysely-worldbook-store.js";
         idGenerator: WorldbookIdGenerator,
         clock: WorldbookClock,
       ) => new CreateWorldbookUseCase(store, idGenerator, clock),
+      inject: [WORLDBOOK_STORE, CryptoIdGenerator, SystemClock],
+    },
+    {
+      provide: UpdateWorldbookDocumentUseCase,
+      useFactory: (
+        store: WorldbookStore,
+        idGenerator: WorldbookIdGenerator,
+        clock: WorldbookClock,
+      ) => new UpdateWorldbookDocumentUseCase(store, idGenerator, clock),
       inject: [WORLDBOOK_STORE, CryptoIdGenerator, SystemClock],
     },
     {

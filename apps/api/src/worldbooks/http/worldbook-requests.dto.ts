@@ -114,6 +114,150 @@ export class CreateWorldbookRequestDto extends WorldbookEditableFieldsDto {
 
 export class UpdateWorldbookRequestDto extends WorldbookEditableFieldsDto {}
 
+export class WorldbookDocumentEntryDto {
+  @ApiProperty({ type: String })
+  @IsString()
+  id!: string;
+
+  @ApiProperty({ type: Boolean })
+  @IsBoolean()
+  enabled!: boolean;
+
+  @ApiProperty({ maxLength: 255, type: String })
+  @IsString()
+  @MaxLength(255)
+  name!: string;
+
+  @ApiProperty({ type: String })
+  @IsString()
+  comment!: string;
+
+  @ApiProperty({ type: String })
+  @IsString()
+  content!: string;
+
+  @ApiProperty({ type: [String] })
+  @IsArray()
+  @IsString({ each: true })
+  primaryKeys!: string[];
+
+  @ApiProperty({ type: [String] })
+  @IsArray()
+  @IsString({ each: true })
+  secondaryKeys!: string[];
+
+  @ApiProperty({ type: Boolean })
+  @IsBoolean()
+  selective!: boolean;
+
+  @ApiProperty({ enum: WORLDBOOK_SELECTIVE_LOGICS })
+  @IsIn(WORLDBOOK_SELECTIVE_LOGICS)
+  selectiveLogic!: WorldbookSelectiveLogic;
+
+  @ApiProperty({ type: Boolean })
+  @IsBoolean()
+  constant!: boolean;
+
+  @ApiProperty({ type: Boolean })
+  @IsBoolean()
+  vectorized!: boolean;
+
+  @ApiProperty({ type: Boolean })
+  @IsBoolean()
+  caseSensitive!: boolean;
+
+  @ApiProperty({ type: Boolean })
+  @IsBoolean()
+  matchWholeWords!: boolean;
+
+  @ApiProperty({ enum: WORLDBOOK_INSERTION_POSITIONS })
+  @IsIn(WORLDBOOK_INSERTION_POSITIONS)
+  insertionPosition!: WorldbookInsertionPosition;
+
+  @ApiProperty({ minimum: 0, type: Number })
+  @Type(() => Number)
+  @IsInt()
+  @Min(0)
+  depth!: number;
+
+  @ApiProperty({ enum: WORLDBOOK_ENTRY_ROLES })
+  @IsIn(WORLDBOOK_ENTRY_ROLES)
+  insertionRole!: WorldbookEntryRole;
+
+  @ApiProperty({ maxLength: 255, type: String })
+  @IsString()
+  @MaxLength(255)
+  anchorName!: string;
+
+  @ApiProperty({ minimum: 0, nullable: true, type: Number })
+  @IsOptional()
+  @Type(() => Number)
+  @IsInt()
+  @Min(0)
+  scanDepth!: number | null;
+
+  @ApiProperty({ type: Boolean })
+  @IsBoolean()
+  excludeRecursion!: boolean;
+
+  @ApiProperty({ type: Boolean })
+  @IsBoolean()
+  preventRecursion!: boolean;
+
+  @ApiProperty({ type: Boolean })
+  @IsBoolean()
+  delayUntilRecursion!: boolean;
+
+  @ApiProperty({ maximum: 100, minimum: 0, type: Number })
+  @Type(() => Number)
+  @IsInt()
+  @Min(0)
+  @Max(100)
+  probability!: number;
+}
+
+export class UpdateWorldbookDocumentRequestDto {
+  @ApiProperty({ enum: WORLDBOOK_VISIBILITIES })
+  @IsIn(WORLDBOOK_VISIBILITIES)
+  visibility!: WorldbookVisibility;
+
+  @ApiProperty({ maxLength: 255, type: String })
+  @IsString()
+  @MaxLength(255)
+  name!: string;
+
+  @ApiProperty({ type: String })
+  @IsString()
+  description!: string;
+
+  @ApiProperty({ type: [String] })
+  @IsArray()
+  @IsString({ each: true })
+  tags!: string[];
+
+  @ApiProperty({ minimum: 0, type: Number })
+  @Type(() => Number)
+  @IsInt()
+  @Min(0)
+  scanDepth!: number;
+
+  @ApiProperty({ minimum: 0, type: Number })
+  @Type(() => Number)
+  @IsInt()
+  @Min(0)
+  tokenBudget!: number;
+
+  @ApiProperty({ type: Boolean })
+  @IsBoolean()
+  recursiveScan!: boolean;
+
+  @ApiProperty({ type: () => [WorldbookDocumentEntryDto] })
+  @IsArray()
+  @ValidateNested({ each: true })
+  @Type(() => WorldbookDocumentEntryDto)
+  entries!: WorldbookDocumentEntryDto[];
+}
+
 export class WorldbookEntryEditableFieldsDto {
   @ApiPropertyOptional({ type: Boolean })
   @IsOptional()

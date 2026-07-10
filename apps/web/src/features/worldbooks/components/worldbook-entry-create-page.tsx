@@ -20,6 +20,7 @@ export function WorldbookEntryCreatePage({
         onBack={onBack}
       />
       <WorldbookEntryEditor
+        sessionKey={page.sessionKey}
         worldbookId={page.worldbookId}
         submitLabel={t("worldbooks.entries.createSubmit")}
         onSaved={onBack}

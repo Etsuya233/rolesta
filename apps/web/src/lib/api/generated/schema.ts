@@ -188,7 +188,7 @@ export interface paths {
       cookie?: never;
     };
     get: operations["WorldbooksController_get"];
-    put?: never;
+    put: operations["WorldbooksController_updateDocument"];
     post?: never;
     delete: operations["WorldbooksController_delete"];
     options?: never;
@@ -809,6 +809,53 @@ export interface components {
       scanDepth?: number;
       tokenBudget?: number;
       recursiveScan?: boolean;
+    };
+    WorldbookDocumentEntryDto: {
+      id: string;
+      enabled: boolean;
+      name: string;
+      comment: string;
+      content: string;
+      primaryKeys: string[];
+      secondaryKeys: string[];
+      selective: boolean;
+      /** @enum {string} */
+      selectiveLogic: "andAny" | "notAll" | "notAny" | "andAll";
+      constant: boolean;
+      vectorized: boolean;
+      caseSensitive: boolean;
+      matchWholeWords: boolean;
+      /** @enum {string} */
+      insertionPosition:
+        | "beforeCharacterDefinition"
+        | "afterCharacterDefinition"
+        | "beforeAuthorsNote"
+        | "afterAuthorsNote"
+        | "atDepth"
+        | "beforeExampleMessages"
+        | "afterExampleMessages"
+        | "atAnchor"
+        | "unknown";
+      depth: number;
+      /** @enum {string} */
+      insertionRole: "system" | "user" | "assistant";
+      anchorName: string;
+      scanDepth: number | null;
+      excludeRecursion: boolean;
+      preventRecursion: boolean;
+      delayUntilRecursion: boolean;
+      probability: number;
+    };
+    UpdateWorldbookDocumentRequestDto: {
+      /** @enum {string} */
+      visibility: "private" | "public";
+      name: string;
+      description: string;
+      tags: string[];
+      scanDepth: number;
+      tokenBudget: number;
+      recursiveScan: boolean;
+      entries: components["schemas"]["WorldbookDocumentEntryDto"][];
     };
     CreateWorldbookEntryRequestDto: {
       enabled?: boolean;
@@ -1662,6 +1709,40 @@ export interface operations {
       cookie?: never;
     };
     requestBody?: never;
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": {
+            /**
+             * @example SUCCESS
+             * @enum {string}
+             */
+            code: "SUCCESS";
+            /** @example ok */
+            msg: string;
+            data: components["schemas"]["WorldbookDetailResponseDto"];
+          };
+        };
+      };
+    };
+  };
+  WorldbooksController_updateDocument: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        id: string;
+      };
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["UpdateWorldbookDocumentRequestDto"];
+      };
+    };
     responses: {
       200: {
         headers: {

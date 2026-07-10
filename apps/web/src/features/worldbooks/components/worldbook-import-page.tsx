@@ -3,6 +3,8 @@ import { Upload } from "lucide-react";
 import { useState, type ChangeEvent } from "react";
 import { useTranslation } from "react-i18next";
 import { Button } from "../../../components/ui/button";
+import { getFormErrorMessage } from "../../../lib/forms/form-error";
+import { notify } from "../../../lib/notifications/notify";
 import { MobileTopBar } from "../../assets/components/mobile-top-bar";
 import {
   importWorldbook,
@@ -15,7 +17,6 @@ import {
   worldbookSessionKey,
 } from "./worldbook-pages";
 import { WorldbookStackPage } from "./worldbook-stack-page";
-import { FormError } from "./worldbook-form-fields";
 
 export function WorldbookImportPage({
   replacePage,
@@ -28,13 +29,15 @@ export function WorldbookImportPage({
   const queryClient = useQueryClient();
   const { moveSessionToWorldbook } = useWorldbookDraftSessionActions();
   const [file, setFile] = useState<File | null>(null);
-  const [visibleError, setVisibleError] = useState<string | null>(null);
   const importMutation = useMutation({
     mutationFn: (selectedFile: File) => importWorldbook(selectedFile),
     async onSuccess(worldbook) {
       await queryClient.invalidateQueries({ queryKey: ["worldbooks"] });
       queryClient.setQueryData(["worldbook", worldbook.id], worldbook);
       moveImportedSession(worldbook);
+    },
+    onError(error) {
+      notify.error({ title: getFormErrorMessage(error) });
     },
   });
 
@@ -48,10 +51,8 @@ export function WorldbookImportPage({
   }
 
   function submit() {
-    setVisibleError(null);
-
     if (!file) {
-      setVisibleError(t("worldbooks.import.fileRequired"));
+      notify.error({ title: t("worldbooks.import.fileRequired") });
       return;
     }
 
@@ -82,11 +83,6 @@ export function WorldbookImportPage({
                 onChange={selectFile}
               />
             </label>
-            {importMutation.isError || visibleError ? (
-              <FormError>
-                {visibleError ?? t("worldbooks.import.failed")}
-              </FormError>
-            ) : null}
           </div>
         </div>
         <div className="shrink-0 border-t border-border p-3">

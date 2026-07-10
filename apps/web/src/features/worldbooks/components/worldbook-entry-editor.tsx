@@ -1,5 +1,4 @@
 import { countPromptTokens } from "@rolesta/shared";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Trash2 } from "lucide-react";
 import {
   useEffect,
@@ -10,16 +9,13 @@ import {
 } from "react";
 import { useTranslation } from "react-i18next";
 import { Button } from "../../../components/ui/button";
-import { getFormErrorMessage } from "../../../lib/forms/form-error";
+import { notify } from "../../../lib/notifications/notify";
 import {
-  createWorldbookEntry,
-  deleteWorldbookEntry,
-  getWorldbook,
-  updateWorldbookEntry,
   type WorldbookEntryRole,
   type WorldbookInsertionPosition,
   type WorldbookSelectiveLogic,
 } from "../api/worldbooks-api";
+import { useWorldbookDraftSession } from "../hooks/use-worldbook-draft-sessions";
 import {
   emptyWorldbookEntryEditorForm,
   worldbookEntryEditorFormFromEntry,
@@ -27,7 +23,6 @@ import {
   type WorldbookEntryEditorFormState,
 } from "../model/worldbook-editor-form";
 import {
-  FormError,
   FormSubmitButton,
   WorldbookCheckboxField,
   WorldbookNumberField,
@@ -38,30 +33,28 @@ import {
 
 export function WorldbookEntryEditor({
   worldbookId,
+  sessionKey,
   entryId,
   submitLabel,
   onSaved,
 }: {
   worldbookId: string;
+  sessionKey: string;
   entryId?: string;
   submitLabel: string;
   onSaved: () => void;
 }) {
   const { t } = useTranslation();
   const fieldPrefix = useId();
-  const queryClient = useQueryClient();
   const [form, setForm] = useState<WorldbookEntryEditorFormState>(
     emptyWorldbookEntryEditorForm,
   );
-  const [visibleError, setVisibleError] = useState<string | null>(null);
-  const worldbookQuery = useQuery({
-    enabled: Boolean(entryId),
-    queryKey: ["worldbook", worldbookId],
-    queryFn: () => getWorldbook(worldbookId),
+  const { document, isPending, saveDocument } = useWorldbookDraftSession({
+    worldbookId,
+    sessionKey,
+    onSaved,
   });
-  const entry = worldbookQuery.data?.entries.find(
-    (candidate) => candidate.id === entryId,
-  );
+  const entry = document.entries.find((candidate) => candidate.id === entryId);
   const positionOptions: Array<{
     value: WorldbookInsertionPosition;
     label: string;
@@ -111,51 +104,52 @@ export function WorldbookEntryEditor({
 
   useEffect(() => {
     if (entry) {
-      setForm(worldbookEntryEditorFormFromEntry(entry));
+      setForm(
+        worldbookEntryEditorFormFromEntry(
+          entry,
+          document.entries.findIndex((candidate) => candidate.id === entry.id),
+        ),
+      );
     }
-  }, [entry]);
-
-  const saveMutation = useMutation({
-    mutationFn: () =>
-      entryId
-        ? updateWorldbookEntry(
-            worldbookId,
-            entryId,
-            worldbookEntryValuesFromForm(form, "update"),
-          )
-        : createWorldbookEntry(
-            worldbookId,
-            worldbookEntryValuesFromForm(form, "create"),
-          ),
-    async onSuccess(worldbook) {
-      await queryClient.invalidateQueries({ queryKey: ["worldbooks"] });
-      queryClient.setQueryData(["worldbook", worldbook.id], worldbook);
-      onSaved();
-    },
-  });
-  const saveErrorMessage = saveMutation.isError
-    ? getFormErrorMessage(saveMutation.error)
-    : null;
-  const formErrorMessage = visibleError ?? saveErrorMessage;
-  const deleteMutation = useMutation({
-    mutationFn: () => deleteWorldbookEntry(worldbookId, entryId!),
-    async onSuccess(worldbook) {
-      await queryClient.invalidateQueries({ queryKey: ["worldbooks"] });
-      queryClient.setQueryData(["worldbook", worldbook.id], worldbook);
-      onSaved();
-    },
-  });
+  }, [document.entries, entry]);
 
   function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    setVisibleError(null);
 
     if (!form.name.trim()) {
-      setVisibleError(t("worldbooks.entries.errors.nameRequired"));
+      notify.error({ title: t("worldbooks.entries.errors.nameRequired") });
       return;
     }
 
-    saveMutation.mutate();
+    const values = worldbookEntryValuesFromForm(form);
+    const id = entryId ?? crypto.randomUUID();
+    let entries = entryId
+      ? document.entries.filter((candidate) => candidate.id !== entryId)
+      : [...document.entries];
+    const nextEntry = { id, ...values };
+
+    if (entryId) {
+      const insertionOrder = Math.max(
+        0,
+        Math.min(form.insertionOrder, entries.length),
+      );
+      entries = [
+        ...entries.slice(0, insertionOrder),
+        nextEntry,
+        ...entries.slice(insertionOrder),
+      ];
+    } else {
+      entries.push(nextEntry);
+    }
+
+    saveDocument({ ...document, entries });
+  }
+
+  function deleteEntry() {
+    saveDocument({
+      ...document,
+      entries: document.entries.filter((candidate) => candidate.id !== entryId),
+    });
   }
 
   return (
@@ -168,7 +162,7 @@ export function WorldbookEntryEditor({
           <WorldbookEntrySection title={t("worldbooks.entries.sections.basic")}>
             <div className="grid gap-3 sm:grid-cols-2">
               <WorldbookTextField
-                disabled={saveMutation.isPending}
+                disabled={isPending}
                 id={`${fieldPrefix}-name`}
                 label={t("worldbooks.entries.fields.name")}
                 value={form.name}
@@ -177,7 +171,7 @@ export function WorldbookEntryEditor({
                 }
               />
               <WorldbookNumberField
-                disabled={saveMutation.isPending}
+                disabled={isPending}
                 id={`${fieldPrefix}-probability`}
                 label={t("worldbooks.entries.fields.probability")}
                 value={form.probability}
@@ -188,7 +182,7 @@ export function WorldbookEntryEditor({
             </div>
             <WorldbookTextAreaField
               className="min-h-24"
-              disabled={saveMutation.isPending}
+              disabled={isPending}
               id={`${fieldPrefix}-comment`}
               label={t("worldbooks.entries.fields.comment")}
               rows={3}
@@ -203,7 +197,7 @@ export function WorldbookEntryEditor({
             title={t("worldbooks.entries.sections.content")}
           >
             <WorldbookTextAreaField
-              disabled={saveMutation.isPending}
+              disabled={isPending}
               id={`${fieldPrefix}-content`}
               label={t("worldbooks.entries.fields.content")}
               rows={10}
@@ -228,7 +222,7 @@ export function WorldbookEntryEditor({
             <div className="grid gap-3 sm:grid-cols-2">
               <WorldbookTextAreaField
                 className="min-h-20"
-                disabled={saveMutation.isPending}
+                disabled={isPending}
                 id={`${fieldPrefix}-primary-keys`}
                 label={t("worldbooks.entries.fields.primaryKeys")}
                 rows={2}
@@ -239,7 +233,7 @@ export function WorldbookEntryEditor({
               />
               <WorldbookTextAreaField
                 className="min-h-20"
-                disabled={saveMutation.isPending}
+                disabled={isPending}
                 id={`${fieldPrefix}-secondary-keys`}
                 label={t("worldbooks.entries.fields.secondaryKeys")}
                 rows={2}
@@ -250,7 +244,7 @@ export function WorldbookEntryEditor({
               />
             </div>
             <WorldbookSelectField
-              disabled={saveMutation.isPending}
+              disabled={isPending}
               id={`${fieldPrefix}-selective-logic`}
               label={t("worldbooks.entries.fields.selectiveLogic")}
               options={selectiveLogicOptions}
@@ -262,28 +256,28 @@ export function WorldbookEntryEditor({
             <div className="grid gap-3 sm:grid-cols-2">
               <WorldbookCheckboxField
                 checked={form.constant}
-                disabled={saveMutation.isPending}
+                disabled={isPending}
                 id={`${fieldPrefix}-constant`}
                 label={t("worldbooks.entries.fields.constant")}
                 onChange={(constant) => setForm({ ...form, constant })}
               />
               <WorldbookCheckboxField
                 checked={form.vectorized}
-                disabled={saveMutation.isPending}
+                disabled={isPending}
                 id={`${fieldPrefix}-vectorized`}
                 label={t("worldbooks.entries.fields.vectorized")}
                 onChange={(vectorized) => setForm({ ...form, vectorized })}
               />
               <WorldbookCheckboxField
                 checked={form.selective}
-                disabled={saveMutation.isPending}
+                disabled={isPending}
                 id={`${fieldPrefix}-selective`}
                 label={t("worldbooks.entries.fields.selective")}
                 onChange={(selective) => setForm({ ...form, selective })}
               />
               <WorldbookCheckboxField
                 checked={form.caseSensitive}
-                disabled={saveMutation.isPending}
+                disabled={isPending}
                 id={`${fieldPrefix}-case-sensitive`}
                 label={t("worldbooks.entries.fields.caseSensitive")}
                 onChange={(caseSensitive) =>
@@ -292,7 +286,7 @@ export function WorldbookEntryEditor({
               />
               <WorldbookCheckboxField
                 checked={form.matchWholeWords}
-                disabled={saveMutation.isPending}
+                disabled={isPending}
                 id={`${fieldPrefix}-whole-words`}
                 label={t("worldbooks.entries.fields.matchWholeWords")}
                 onChange={(matchWholeWords) =>
@@ -307,7 +301,7 @@ export function WorldbookEntryEditor({
           >
             <div className="grid gap-3 sm:grid-cols-2">
               <WorldbookSelectField
-                disabled={saveMutation.isPending}
+                disabled={isPending}
                 id={`${fieldPrefix}-position`}
                 label={t("worldbooks.entries.fields.insertionPosition")}
                 options={positionOptions}
@@ -317,7 +311,7 @@ export function WorldbookEntryEditor({
                 }
               />
               <WorldbookNumberField
-                disabled={saveMutation.isPending}
+                disabled={isPending}
                 id={`${fieldPrefix}-order`}
                 label={t("worldbooks.entries.fields.insertionOrder")}
                 value={form.insertionOrder}
@@ -329,14 +323,14 @@ export function WorldbookEntryEditor({
             {form.insertionPosition === "atDepth" ? (
               <div className="grid gap-3 sm:grid-cols-2">
                 <WorldbookNumberField
-                  disabled={saveMutation.isPending}
+                  disabled={isPending}
                   id={`${fieldPrefix}-depth`}
                   label={t("worldbooks.entries.fields.depth")}
                   value={form.depth}
                   onChange={(depth) => setForm({ ...form, depth: depth ?? 0 })}
                 />
                 <WorldbookSelectField
-                  disabled={saveMutation.isPending}
+                  disabled={isPending}
                   id={`${fieldPrefix}-role`}
                   label={t("worldbooks.entries.fields.insertionRole")}
                   options={roleOptions}
@@ -349,7 +343,7 @@ export function WorldbookEntryEditor({
             ) : null}
             {form.insertionPosition === "atAnchor" ? (
               <WorldbookTextField
-                disabled={saveMutation.isPending}
+                disabled={isPending}
                 id={`${fieldPrefix}-anchor-name`}
                 label={t("worldbooks.entries.fields.anchorName")}
                 value={form.anchorName}
@@ -364,7 +358,7 @@ export function WorldbookEntryEditor({
             title={t("worldbooks.entries.sections.scanAndRecursion")}
           >
             <WorldbookNumberField
-              disabled={saveMutation.isPending}
+              disabled={isPending}
               id={`${fieldPrefix}-entry-scan-depth`}
               label={t("worldbooks.entries.fields.entryScanDepth")}
               value={form.scanDepth}
@@ -373,7 +367,7 @@ export function WorldbookEntryEditor({
             <div className="grid gap-3 sm:grid-cols-2">
               <WorldbookCheckboxField
                 checked={form.excludeRecursion}
-                disabled={saveMutation.isPending}
+                disabled={isPending}
                 id={`${fieldPrefix}-exclude-recursion`}
                 label={t("worldbooks.entries.fields.excludeRecursion")}
                 onChange={(excludeRecursion) =>
@@ -382,7 +376,7 @@ export function WorldbookEntryEditor({
               />
               <WorldbookCheckboxField
                 checked={form.preventRecursion}
-                disabled={saveMutation.isPending}
+                disabled={isPending}
                 id={`${fieldPrefix}-prevent-recursion`}
                 label={t("worldbooks.entries.fields.preventRecursion")}
                 onChange={(preventRecursion) =>
@@ -391,7 +385,7 @@ export function WorldbookEntryEditor({
               />
               <WorldbookCheckboxField
                 checked={form.delayUntilRecursion}
-                disabled={saveMutation.isPending}
+                disabled={isPending}
                 id={`${fieldPrefix}-delay-until-recursion`}
                 label={t("worldbooks.entries.fields.delayUntilRecursion")}
                 onChange={(delayUntilRecursion) =>
@@ -404,19 +398,18 @@ export function WorldbookEntryEditor({
       </div>
 
       <div className="flex shrink-0 flex-col gap-3 border-t border-border bg-background px-4 py-3">
-        {formErrorMessage ? <FormError>{formErrorMessage}</FormError> : null}
         <div className="grid grid-cols-[1fr_auto] gap-2">
-          <FormSubmitButton disabled={saveMutation.isPending}>
+          <FormSubmitButton disabled={isPending}>
             {submitLabel}
           </FormSubmitButton>
           {entryId ? (
             <Button
               aria-label={t("worldbooks.entries.deleteAction")}
-              disabled={deleteMutation.isPending}
+              disabled={isPending}
               size="icon-lg"
               type="button"
               variant="outline"
-              onClick={() => deleteMutation.mutate()}
+              onClick={deleteEntry}
             >
               <Trash2 aria-hidden="true" />
             </Button>

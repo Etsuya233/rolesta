@@ -1,7 +1,9 @@
 import { useQuery } from "@tanstack/react-query";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Input } from "../../../components/ui/input";
+import { getFormErrorMessage } from "../../../lib/forms/form-error";
+import { notify } from "../../../lib/notifications/notify";
 import { AssetSortMenu } from "../../assets/components/asset-sort-menu";
 import { PageControls } from "../../assets/components/page-controls";
 import {
@@ -26,6 +28,11 @@ export function WorldbookListPanel({
     queryKey: ["worldbooks", { q, sort, direction, pageIndex, pageSize }],
     queryFn: () => listWorldbooks({ q, sort, direction, pageIndex, pageSize }),
   });
+  useEffect(() => {
+    if (query.isError) {
+      notify.error({ title: getFormErrorMessage(query.error) });
+    }
+  }, [query.error, query.isError]);
   const sortOptions: Array<{ value: WorldbookSortKey; label: string }> = [
     { value: "createdAt", label: t("worldbooks.list.sort.createdAt") },
     { value: "updatedAt", label: t("worldbooks.list.sort.updatedAt") },
@@ -65,11 +72,6 @@ export function WorldbookListPanel({
         {query.isLoading ? (
           <p className="p-4 text-sm text-muted-foreground">
             {t("worldbooks.list.loading")}
-          </p>
-        ) : null}
-        {query.isError ? (
-          <p className="p-4 text-sm text-destructive">
-            {t("worldbooks.list.loadFailed")}
           </p>
         ) : null}
         {query.data?.items.length === 0 ? (

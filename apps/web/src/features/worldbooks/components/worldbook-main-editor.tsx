@@ -1,4 +1,5 @@
 import type { TFunction } from "i18next";
+import { countPromptTokens } from "@rolesta/shared";
 import { BadgeInfo, BookOpenText, SlidersHorizontal } from "lucide-react";
 import { useId, useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -10,7 +11,6 @@ import type {
 } from "../api/worldbooks-api";
 import {
   FormActionButton,
-  FormError,
   FormSubmitButton,
   WorldbookCheckboxField,
   WorldbookFormSection,
@@ -39,12 +39,19 @@ export function WorldbookMainEditor({
     "basic",
     "matching",
   ]);
-  const { form, setForm, isPending, visibleError, worldbook, submit } =
-    useWorldbookDraftSession({
-      sessionKey,
-      ...(worldbookId ? { worldbookId } : {}),
-      ...(onCreated ? { onCreated } : {}),
-    });
+  const {
+    document,
+    form,
+    setForm,
+    isDirty,
+    isPending,
+    worldbook,
+    submit,
+  } = useWorldbookDraftSession({
+    sessionKey,
+    ...(worldbookId ? { worldbookId } : {}),
+    ...(onCreated ? { onCreated } : {}),
+  });
   const visibilityOptions: Array<{
     value: WorldbookVisibility;
     label: string;
@@ -67,7 +74,11 @@ export function WorldbookMainEditor({
         >
           <WorldbookFormSection
             icon={BadgeInfo}
-            summary={basicSummary({ form, worldbook, t })}
+            summary={basicSummary({
+              form,
+              entryCount: document.entries.length,
+              t,
+            })}
             title={t("worldbooks.editor.sections.basic.title")}
             value="basic"
           >
@@ -113,15 +124,22 @@ export function WorldbookMainEditor({
             <div className="grid grid-cols-3 gap-2 text-sm">
               <Metric
                 label={t("worldbooks.metrics.entryCount")}
-                value={String(worldbook?.entryCount ?? 0)}
+                value={String(document.entries.length)}
               />
               <Metric
                 label={t("worldbooks.metrics.enabledEntryCount")}
-                value={String(worldbook?.enabledEntryCount ?? 0)}
+                value={String(
+                  document.entries.filter((entry) => entry.enabled).length,
+                )}
               />
               <Metric
                 label={t("worldbooks.metrics.tokenCount")}
-                value={String(worldbook?.tokenCount ?? 0)}
+                value={String(
+                  document.entries.reduce(
+                    (total, entry) => total + countPromptTokens(entry.content),
+                    0,
+                  ),
+                )}
               />
             </div>
             {onOpenEntries ? (
@@ -185,8 +203,9 @@ export function WorldbookMainEditor({
       </div>
 
       <div className="flex shrink-0 flex-col gap-3 border-t border-border bg-background px-4 py-3">
-        {visibleError ? <FormError>{visibleError}</FormError> : null}
-        <FormSubmitButton disabled={isPending}>{submitLabel}</FormSubmitButton>
+        <FormSubmitButton disabled={isPending || !isDirty}>
+          {submitLabel}
+        </FormSubmitButton>
       </div>
     </form>
   );
@@ -205,18 +224,18 @@ function Metric({ label, value }: { label: string; value: string }) {
 
 function basicSummary({
   form,
-  worldbook,
+  entryCount,
   t,
 }: {
   form: { name: string; tagsText: string; visibility: WorldbookVisibility };
-  worldbook: WorldbookDetailResponse | undefined;
+  entryCount: number;
   t: TFunction;
 }): string {
   const title = form.name.trim() || t("worldbooks.editor.summaries.unnamed");
 
   return `${title} · ${t(`worldbooks.list.${form.visibility}Visibility`)} · ${t(
     "worldbooks.editor.summaries.entries",
-    { value: worldbook?.entryCount ?? 0 },
+    { value: entryCount },
   )}`;
 }
 

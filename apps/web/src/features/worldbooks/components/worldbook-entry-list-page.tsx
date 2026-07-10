@@ -14,6 +14,7 @@ import {
   verticalListSortingStrategy,
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
+import { countPromptTokens } from "@rolesta/shared";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   Copy,
@@ -42,21 +43,19 @@ import {
   SelectValue,
 } from "../../../components/ui/select";
 import { getFormErrorMessage } from "../../../lib/forms/form-error";
+import { notify } from "../../../lib/notifications/notify";
 import { cn } from "../../../lib/utils";
 import { MobileTopBar } from "../../assets/components/mobile-top-bar";
 import {
-  createWorldbookEntry,
-  deleteWorldbookEntry,
   getWorldbook,
   listWorldbooks,
-  updateWorldbookEntry,
-  updateWorldbookEntryOrder,
-  type WorldbookEntryCreateValues,
-  type WorldbookEntryResponse,
+  updateWorldbookDocument,
+  type WorldbookDocument,
   type WorldbookInsertionPosition,
   type WorldbookSummaryResponse,
 } from "../api/worldbooks-api";
-import { FormError } from "./worldbook-form-fields";
+import { useWorldbookDraftSession } from "../hooks/use-worldbook-draft-sessions";
+import { worldbookDocumentFromDetail } from "../model/worldbook-editor-form";
 import {
   type WorldbookPage,
   worldbookEntryCreatePage,
@@ -81,6 +80,7 @@ export function WorldbookEntryListPage({
     <WorldbookStackPage>
       <MobileTopBar title={t("worldbooks.entries.title")} onBack={onBack} />
       <WorldbookEntryListEditor
+        sessionKey={page.sessionKey}
         worldbookId={page.worldbookId}
         onCreateEntry={() =>
           pushPage(worldbookEntryCreatePage(page.worldbookId, page.sessionKey))
@@ -97,19 +97,26 @@ export function WorldbookEntryListPage({
 
 function WorldbookEntryListEditor({
   worldbookId,
+  sessionKey,
   onCreateEntry,
   onEditEntry,
 }: {
   worldbookId: string;
+  sessionKey: string;
   onCreateEntry: () => void;
   onEditEntry: (entryId: string) => void;
 }) {
   const { t } = useTranslation();
   const queryClient = useQueryClient();
-  const query = useQuery({
-    queryKey: ["worldbook", worldbookId],
-    queryFn: () => getWorldbook(worldbookId),
-  });
+  const {
+    document,
+    setDocument,
+    isDirty,
+    isPending,
+    worldbook,
+    acceptSavedWorldbook,
+    saveDocument,
+  } = useWorldbookDraftSession({ worldbookId, sessionKey });
   const worldbooksQuery = useQuery({
     queryKey: ["worldbooks", "entry-move-targets"],
     queryFn: () =>
@@ -121,68 +128,35 @@ function WorldbookEntryListEditor({
         sort: "name",
       }),
   });
-  const [items, setItems] = useState<
-    Array<{ entryId: string; enabled: boolean }>
-  >([]);
   const [q, setQ] = useState("");
   const debouncedQ = useDebouncedValue(q, 200);
-
-  useEffect(() => {
-    if (query.data) {
-      setItems(
-        [...query.data.entries]
-          .sort((left, right) => left.insertionOrder - right.insertionOrder)
-          .map((entry) => ({ entryId: entry.id, enabled: entry.enabled })),
-      );
-    }
-  }, [query.data]);
-
-  const saveMutation = useMutation({
-    mutationFn: () => updateWorldbookEntryOrder(worldbookId, items),
-    async onSuccess(worldbook) {
-      await queryClient.invalidateQueries({ queryKey: ["worldbooks"] });
-      queryClient.setQueryData(["worldbook", worldbook.id], worldbook);
-    },
-  });
-  const deleteMutation = useMutation({
-    mutationFn: (entryId: string) => deleteWorldbookEntry(worldbookId, entryId),
-    async onSuccess(worldbook) {
-      await queryClient.invalidateQueries({ queryKey: ["worldbooks"] });
-      queryClient.setQueryData(["worldbook", worldbook.id], worldbook);
-    },
-  });
-  const statusMutation = useMutation({
-    mutationFn: (entry: WorldbookEntryResponse) =>
-      updateWorldbookEntry(worldbookId, entry.id, {
-        constant: !entry.constant,
-        vectorized: false,
-      }),
-    async onSuccess(worldbook) {
-      await queryClient.invalidateQueries({ queryKey: ["worldbooks"] });
-      queryClient.setQueryData(["worldbook", worldbook.id], worldbook);
-    },
-  });
-  const copyMutation = useMutation({
-    mutationFn: (entry: WorldbookEntryResponse) =>
-      createWorldbookEntry(worldbookId, worldbookEntryCreateValues(entry)),
-    async onSuccess(worldbook) {
-      await queryClient.invalidateQueries({ queryKey: ["worldbooks"] });
-      queryClient.setQueryData(["worldbook", worldbook.id], worldbook);
-    },
-  });
+  const items = document.entries.map((entry) => ({
+    entryId: entry.id,
+    enabled: entry.enabled,
+  }));
   const moveMutation = useMutation({
     async mutationFn({
       entry,
       targetWorldbookId,
     }: {
-      entry: WorldbookEntryResponse;
+      entry: WorldbookDocument["entries"][number];
       targetWorldbookId: string;
     }) {
-      const targetWorldbook = await createWorldbookEntry(
-        targetWorldbookId,
-        worldbookEntryCreateValues(entry),
-      );
-      const sourceWorldbook = await deleteWorldbookEntry(worldbookId, entry.id);
+      const targetCurrent = await getWorldbook(targetWorldbookId);
+      const targetDocument = worldbookDocumentFromDetail(targetCurrent);
+      const targetWorldbook = await updateWorldbookDocument(targetWorldbookId, {
+        ...targetDocument,
+        entries: [
+          ...targetDocument.entries,
+          { ...entry, id: crypto.randomUUID() },
+        ],
+      });
+      const sourceWorldbook = await updateWorldbookDocument(worldbookId, {
+        ...document,
+        entries: document.entries.filter(
+          (candidate) => candidate.id !== entry.id,
+        ),
+      });
 
       return { sourceWorldbook, targetWorldbook };
     },
@@ -196,29 +170,27 @@ function WorldbookEntryListEditor({
         ["worldbook", targetWorldbook.id],
         targetWorldbook,
       );
+      acceptSavedWorldbook(sourceWorldbook);
+    },
+    onError(error) {
+      notify.error({ title: getFormErrorMessage(error) });
     },
   });
+  useEffect(() => {
+    if (worldbooksQuery.isError) {
+      notify.error({ title: getFormErrorMessage(worldbooksQuery.error) });
+    }
+  }, [worldbooksQuery.error, worldbooksQuery.isError]);
   const entryById = useMemo(
-    () => new Map(query.data?.entries.map((entry) => [entry.id, entry]) ?? []),
-    [query.data?.entries],
+    () => new Map(document.entries.map((entry) => [entry.id, entry])),
+    [document.entries],
   );
+  const ownerUserId = worldbook?.ownerUserId;
   const moveTargetWorldbooks =
     worldbooksQuery.data?.items.filter(
-      (worldbook) =>
-        worldbook.id !== worldbookId &&
-        worldbook.ownerUserId === query.data?.ownerUserId,
+      (candidate) =>
+        candidate.id !== worldbookId && candidate.ownerUserId === ownerUserId,
     ) ?? [];
-  const visibleError = saveMutation.isError
-    ? getFormErrorMessage(saveMutation.error)
-    : deleteMutation.isError
-      ? getFormErrorMessage(deleteMutation.error)
-      : statusMutation.isError
-        ? getFormErrorMessage(statusMutation.error)
-        : copyMutation.isError
-          ? getFormErrorMessage(copyMutation.error)
-          : moveMutation.isError
-            ? getFormErrorMessage(moveMutation.error)
-            : null;
   const keyword = debouncedQ.trim().toLocaleLowerCase();
   const visibleItems = items.filter((item) => {
     const entry = entryById.get(item.entryId);
@@ -244,7 +216,7 @@ function WorldbookEntryListEditor({
     }),
   );
 
-  if (query.isLoading) {
+  if (isPending && !worldbook) {
     return (
       <p className="p-4 text-sm text-muted-foreground">
         {t("worldbooks.entries.loading")}
@@ -252,12 +224,8 @@ function WorldbookEntryListEditor({
     );
   }
 
-  if (!query.data) {
-    return (
-      <p className="p-4 text-sm text-destructive">
-        {t("worldbooks.entries.loadFailed")}
-      </p>
-    );
+  if (!worldbook) {
+    return <div className="flex min-h-0 flex-1" />;
   }
 
   return (
@@ -294,7 +262,11 @@ function WorldbookEntryListEditor({
           autoScroll
           collisionDetection={closestCenter}
           sensors={sensors}
-          onDragEnd={(event) => setItemsAfterDrag(event, items, setItems)}
+          onDragEnd={(event) =>
+            setEntriesAfterDrag(event, document.entries, (entries) =>
+              setDocument((current) => ({ ...current, entries })),
+            )
+          }
         >
           <SortableContext
             items={visibleItems.map((item) => item.entryId)}
@@ -313,28 +285,52 @@ function WorldbookEntryListEditor({
                   enabled={item.enabled}
                   entry={entry}
                   id={item.entryId}
-                  onDelete={() => deleteMutation.mutate(entry.id)}
+                  onDelete={() =>
+                    saveDocument({
+                      ...document,
+                      entries: document.entries.filter(
+                        (candidate) => candidate.id !== entry.id,
+                      ),
+                    })
+                  }
                   onEdit={() => onEditEntry(entry.id)}
-                  onCopy={() => copyMutation.mutate(entry)}
+                  onCopy={() =>
+                    saveDocument({
+                      ...document,
+                      entries: [
+                        ...document.entries,
+                        { ...entry, id: crypto.randomUUID() },
+                      ],
+                    })
+                  }
                   onMove={(targetWorldbookId) =>
                     moveMutation.mutate({ entry, targetWorldbookId })
                   }
-                  onToggleTriggerMode={() => statusMutation.mutate(entry)}
+                  onToggleTriggerMode={() =>
+                    saveDocument({
+                      ...document,
+                      entries: document.entries.map((candidate) =>
+                        candidate.id === entry.id
+                          ? {
+                              ...candidate,
+                              constant: !candidate.constant,
+                              vectorized: false,
+                            }
+                          : candidate,
+                      ),
+                    })
+                  }
                   onToggle={(enabled) =>
-                    setItems((current) =>
-                      current.map((candidate) =>
-                        candidate.entryId === item.entryId
+                    setDocument((current) => ({
+                      ...current,
+                      entries: current.entries.map((candidate) =>
+                        candidate.id === item.entryId
                           ? { ...candidate, enabled }
                           : candidate,
                       ),
-                    )
+                    }))
                   }
-                  pending={
-                    deleteMutation.isPending ||
-                    statusMutation.isPending ||
-                    copyMutation.isPending ||
-                    moveMutation.isPending
-                  }
+                  pending={isPending || moveMutation.isPending}
                   moveTargetWorldbooks={moveTargetWorldbooks}
                 />
               );
@@ -344,16 +340,11 @@ function WorldbookEntryListEditor({
       </div>
 
       <div className="shrink-0 border-t border-border p-3">
-        {visibleError ? (
-          <div className="mb-3">
-            <FormError>{visibleError}</FormError>
-          </div>
-        ) : null}
         <Button
           className="w-full"
-          disabled={saveMutation.isPending}
+          disabled={isPending || !isDirty}
           type="button"
-          onClick={() => saveMutation.mutate()}
+          onClick={() => saveDocument()}
         >
           {t("worldbooks.entries.saveOrder")}
         </Button>
@@ -376,7 +367,7 @@ function WorldbookEntryRow({
   moveTargetWorldbooks,
 }: {
   id: string;
-  entry: WorldbookEntryResponse;
+  entry: WorldbookDocument["entries"][number];
   enabled: boolean;
   onToggle: (enabled: boolean) => void;
   onEdit: () => void;
@@ -477,7 +468,7 @@ function WorldbookEntryRow({
         <div className="min-w-0">
           <div className="truncate text-sm font-medium">{entry.name}</div>
           <div className="mt-1 flex flex-wrap gap-x-3 gap-y-1 text-xs text-muted-foreground">
-            <span>{entry.tokenCount.toLocaleString()}</span>
+            <span>{countPromptTokens(entry.content).toLocaleString()}</span>
             <span>{insertionSummary}</span>
             <span>{entry.primaryKeys.slice(0, 3).join(", ")}</span>
           </div>
@@ -595,7 +586,7 @@ function WorldbookEntryRow({
 }
 
 function worldbookEntryInsertionSummary(
-  entry: WorldbookEntryResponse,
+  entry: WorldbookDocument["entries"][number],
   t: TranslationFunction,
 ): string {
   const position: WorldbookInsertionPosition = entry.insertionPosition;
@@ -619,10 +610,10 @@ function worldbookEntryInsertionSummary(
   return positionLabel;
 }
 
-function setItemsAfterDrag(
+function setEntriesAfterDrag(
   event: DragEndEvent,
-  items: Array<{ entryId: string; enabled: boolean }>,
-  setItems: (items: Array<{ entryId: string; enabled: boolean }>) => void,
+  entries: WorldbookDocument["entries"],
+  setEntries: (entries: WorldbookDocument["entries"]) => void,
 ) {
   const { active, over } = event;
 
@@ -630,40 +621,12 @@ function setItemsAfterDrag(
     return;
   }
 
-  const oldIndex = items.findIndex((item) => item.entryId === active.id);
-  const newIndex = items.findIndex((item) => item.entryId === over.id);
+  const oldIndex = entries.findIndex((entry) => entry.id === active.id);
+  const newIndex = entries.findIndex((entry) => entry.id === over.id);
 
   if (oldIndex >= 0 && newIndex >= 0) {
-    setItems(arrayMove(items, oldIndex, newIndex));
+    setEntries(arrayMove(entries, oldIndex, newIndex));
   }
-}
-
-function worldbookEntryCreateValues(
-  entry: WorldbookEntryResponse,
-): WorldbookEntryCreateValues {
-  return {
-    enabled: entry.enabled,
-    name: entry.name,
-    comment: entry.comment,
-    content: entry.content,
-    primaryKeys: entry.primaryKeys,
-    secondaryKeys: entry.secondaryKeys,
-    selective: entry.selective,
-    selectiveLogic: entry.selectiveLogic,
-    constant: entry.constant,
-    vectorized: entry.vectorized,
-    caseSensitive: entry.caseSensitive,
-    matchWholeWords: entry.matchWholeWords,
-    insertionPosition: entry.insertionPosition,
-    depth: entry.depth,
-    insertionRole: entry.insertionRole,
-    anchorName: entry.anchorName,
-    scanDepth: entry.scanDepth,
-    excludeRecursion: entry.excludeRecursion,
-    preventRecursion: entry.preventRecursion,
-    delayUntilRecursion: entry.delayUntilRecursion,
-    probability: entry.probability,
-  };
 }
 
 function useDebouncedValue(value: string, delayMs: number): string {

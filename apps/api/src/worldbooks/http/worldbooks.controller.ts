@@ -37,8 +37,12 @@ import { ImportWorldbookUseCase } from "../application/import-worldbook.use-case
 import { ListWorldbooksUseCase } from "../application/list-worldbooks.use-case.js";
 import { UpdateWorldbookEntryOrderUseCase } from "../application/update-worldbook-entry-order.use-case.js";
 import { UpdateWorldbookEntryUseCase } from "../application/update-worldbook-entry.use-case.js";
+import { UpdateWorldbookDocumentUseCase } from "../application/update-worldbook-document.use-case.js";
 import { UpdateWorldbookUseCase } from "../application/update-worldbook.use-case.js";
-import { WorldbookApplicationError } from "../application/worldbook-application-error.js";
+import {
+  WorldbookApplicationError,
+  type WorldbookApplicationErrorReason,
+} from "../application/worldbook-application-error.js";
 import { toApiFailure } from "./worldbook-application-error.mapper.js";
 import {
   CreateWorldbookEntryRequestDto,
@@ -46,6 +50,7 @@ import {
   ListWorldbooksQueryDto,
   UpdateWorldbookEntryOrderRequestDto,
   UpdateWorldbookEntryRequestDto,
+  UpdateWorldbookDocumentRequestDto,
   UpdateWorldbookRequestDto,
 } from "./worldbook-requests.dto.js";
 import {
@@ -64,6 +69,7 @@ export class WorldbooksController {
     private readonly getWorldbookUseCase: GetWorldbookUseCase,
     private readonly createWorldbookUseCase: CreateWorldbookUseCase,
     private readonly updateWorldbookUseCase: UpdateWorldbookUseCase,
+    private readonly updateWorldbookDocumentUseCase: UpdateWorldbookDocumentUseCase,
     private readonly deleteWorldbookUseCase: DeleteWorldbookUseCase,
     private readonly importWorldbookUseCase: ImportWorldbookUseCase,
     private readonly exportWorldbookUseCase: ExportWorldbookUseCase,
@@ -132,6 +138,26 @@ export class WorldbooksController {
       toWorldbookDetailResponse(
         await this.updateWorldbookUseCase.execute({
           id,
+          viewerUserId: request.authUser.id,
+          ...body,
+        }),
+      ),
+    );
+  }
+
+  @Put(":id")
+  @ApiParam({ name: "id", type: String })
+  @ApiBody({ type: UpdateWorldbookDocumentRequestDto })
+  @ApiEnvelopeOkResponse({ type: WorldbookDetailResponseDto })
+  async updateDocument(
+    @Req() request: AuthenticatedRequest,
+    @Param("id") id: string,
+    @Body() body: UpdateWorldbookDocumentRequestDto,
+  ): Promise<WorldbookDetailResponseDto> {
+    return this.withApplicationErrors(async () =>
+      toWorldbookDetailResponse(
+        await this.updateWorldbookDocumentUseCase.execute({
+          worldbookId: id,
           viewerUserId: request.authUser.id,
           ...body,
         }),
@@ -304,7 +330,9 @@ export class WorldbooksController {
       return await handler();
     } catch (error) {
       if (error instanceof WorldbookApplicationError) {
-        throw toApiFailure(error);
+        throw toApiFailure(
+          error as WorldbookApplicationError<WorldbookApplicationErrorReason>,
+        );
       }
 
       throw error;

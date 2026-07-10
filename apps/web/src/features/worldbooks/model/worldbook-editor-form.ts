@@ -1,7 +1,7 @@
 import type {
   WorldbookDetailResponse,
+  WorldbookDocument,
   WorldbookEntryRole,
-  WorldbookEntryResponse,
   WorldbookInsertionPosition,
   WorldbookSelectiveLogic,
   WorldbookVisibility,
@@ -92,7 +92,8 @@ export function worldbookEditorFormFromDetail(
 }
 
 export function worldbookEntryEditorFormFromEntry(
-  entry: WorldbookEntryResponse,
+  entry: WorldbookDocument["entries"][number],
+  insertionOrder: number,
 ): WorldbookEntryEditorFormState {
   return {
     enabled: entry.enabled,
@@ -108,7 +109,7 @@ export function worldbookEntryEditorFormFromEntry(
     caseSensitive: entry.caseSensitive,
     matchWholeWords: entry.matchWholeWords,
     insertionPosition: entry.insertionPosition,
-    insertionOrder: entry.insertionOrder,
+    insertionOrder,
     depth: entry.depth,
     insertionRole: entry.insertionRole,
     anchorName: entry.anchorName,
@@ -134,10 +135,9 @@ export function worldbookValuesFromForm(form: WorldbookEditorFormState) {
 
 export function worldbookEntryValuesFromForm(
   form: WorldbookEntryEditorFormState,
-  mode: "create" | "update",
 ) {
   return {
-    ...(mode === "create" ? { enabled: form.enabled } : {}),
+    enabled: form.enabled,
     name: form.name.trim(),
     comment: form.comment,
     content: form.content,
@@ -150,7 +150,6 @@ export function worldbookEntryValuesFromForm(
     caseSensitive: form.caseSensitive,
     matchWholeWords: form.matchWholeWords,
     insertionPosition: form.insertionPosition,
-    ...(mode === "update" ? { insertionOrder: form.insertionOrder } : {}),
     depth: form.depth,
     insertionRole: form.insertionRole,
     anchorName: form.anchorName.trim(),
@@ -160,6 +159,53 @@ export function worldbookEntryValuesFromForm(
     delayUntilRecursion: form.delayUntilRecursion,
     probability: form.probability,
   };
+}
+
+export function worldbookDocumentFromDetail(
+  worldbook: WorldbookDetailResponse,
+): WorldbookDocument {
+  return {
+    visibility: worldbook.visibility,
+    name: worldbook.name,
+    description: worldbook.description,
+    tags: worldbook.tags,
+    scanDepth: worldbook.scanDepth,
+    tokenBudget: worldbook.tokenBudget,
+    recursiveScan: worldbook.recursiveScan,
+    entries: [...worldbook.entries]
+      .sort((left, right) => left.insertionOrder - right.insertionOrder)
+      .map((entry) => ({
+        id: entry.id,
+        enabled: entry.enabled,
+        name: entry.name,
+        comment: entry.comment,
+        content: entry.content,
+        primaryKeys: entry.primaryKeys,
+        secondaryKeys: entry.secondaryKeys,
+        selective: entry.selective,
+        selectiveLogic: entry.selectiveLogic,
+        constant: entry.constant,
+        vectorized: entry.vectorized,
+        caseSensitive: entry.caseSensitive,
+        matchWholeWords: entry.matchWholeWords,
+        insertionPosition: entry.insertionPosition,
+        depth: entry.depth,
+        insertionRole: entry.insertionRole,
+        anchorName: entry.anchorName,
+        scanDepth: entry.scanDepth,
+        excludeRecursion: entry.excludeRecursion,
+        preventRecursion: entry.preventRecursion,
+        delayUntilRecursion: entry.delayUntilRecursion,
+        probability: entry.probability,
+      })),
+  };
+}
+
+export function worldbookDocumentEquals(
+  left: WorldbookDocument,
+  right: WorldbookDocument,
+): boolean {
+  return JSON.stringify(left) === JSON.stringify(right);
 }
 
 function textListFromInput(value: string): string[] {

@@ -18,12 +18,8 @@ export type WorldbookPageResponse =
   components["schemas"]["WorldbookPageResponseDto"];
 export type WorldbookCreateValues =
   components["schemas"]["CreateWorldbookRequestDto"];
-export type WorldbookSaveValues =
-  components["schemas"]["UpdateWorldbookRequestDto"];
-export type WorldbookEntryCreateValues =
-  components["schemas"]["CreateWorldbookEntryRequestDto"];
-export type WorldbookEntryUpdateValues =
-  components["schemas"]["UpdateWorldbookEntryRequestDto"];
+export type WorldbookDocument =
+  components["schemas"]["UpdateWorldbookDocumentRequestDto"];
 
 export type WorldbookVisibility = WorldbookSummaryResponse["visibility"];
 export type WorldbookInsertionPosition =
@@ -64,13 +60,13 @@ export async function createWorldbook(
   return result.data;
 }
 
-export async function updateWorldbook(
+export async function updateWorldbookDocument(
   id: string,
-  values: WorldbookSaveValues,
+  document: WorldbookDocument,
 ): Promise<WorldbookDetailResponse> {
   const result = await requestApi(
-    openApiClient.PATCH("/worldbooks/{id}", {
-      body: values,
+    openApiClient.PUT("/worldbooks/{id}", {
+      body: document,
       params: { path: { id } },
     }),
   );
@@ -109,58 +105,6 @@ export async function exportWorldbook(id: string): Promise<Blob> {
   }
 
   return response.blob();
-}
-
-export async function createWorldbookEntry(
-  worldbookId: string,
-  values: WorldbookEntryCreateValues,
-): Promise<WorldbookDetailResponse> {
-  const result = await requestApi(
-    openApiClient.POST("/worldbooks/{id}/entries", {
-      body: values,
-      params: { path: { id: worldbookId } },
-    }),
-  );
-  return result.data;
-}
-
-export async function updateWorldbookEntry(
-  worldbookId: string,
-  entryId: string,
-  values: WorldbookEntryUpdateValues,
-): Promise<WorldbookDetailResponse> {
-  const result = await requestApi(
-    openApiClient.PATCH("/worldbooks/{id}/entries/{entryId}", {
-      body: values,
-      params: { path: { id: worldbookId, entryId } },
-    }),
-  );
-  return result.data;
-}
-
-export async function deleteWorldbookEntry(
-  worldbookId: string,
-  entryId: string,
-): Promise<WorldbookDetailResponse> {
-  const result = await requestApi(
-    openApiClient.DELETE("/worldbooks/{id}/entries/{entryId}", {
-      params: { path: { id: worldbookId, entryId } },
-    }),
-  );
-  return result.data;
-}
-
-export async function updateWorldbookEntryOrder(
-  worldbookId: string,
-  entries: Array<{ entryId: string; enabled: boolean }>,
-): Promise<WorldbookDetailResponse> {
-  const result = await requestApi(
-    openApiClient.PUT("/worldbooks/{id}/entries/order", {
-      body: { entries },
-      params: { path: { id: worldbookId } },
-    }),
-  );
-  return result.data;
 }
 
 function fetchAuthed(input: string, init: RequestInit = {}): Promise<Response> {

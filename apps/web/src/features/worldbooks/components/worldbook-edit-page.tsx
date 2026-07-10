@@ -2,6 +2,8 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Download, Trash2 } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { Button } from "../../../components/ui/button";
+import { getFormErrorMessage } from "../../../lib/forms/form-error";
+import { notify } from "../../../lib/notifications/notify";
 import { MobileTopBar } from "../../assets/components/mobile-top-bar";
 import { deleteWorldbook, exportWorldbook } from "../api/worldbooks-api";
 import { WorldbookMainEditor } from "./worldbook-main-editor";
@@ -25,7 +27,18 @@ export function WorldbookEditPage({
       await queryClient.invalidateQueries({ queryKey: ["worldbooks"] });
       onBack();
     },
+    onError(error) {
+      notify.error({ title: getFormErrorMessage(error) });
+    },
   });
+
+  async function handleExport() {
+    try {
+      await downloadWorldbook(page.worldbookId);
+    } catch (error) {
+      notify.error({ title: getFormErrorMessage(error) });
+    }
+  }
 
   return (
     <WorldbookStackPage>
@@ -38,7 +51,7 @@ export function WorldbookEditPage({
               size="icon-lg"
               type="button"
               variant="ghost"
-              onClick={() => void downloadWorldbook(page.worldbookId)}
+              onClick={() => void handleExport()}
             >
               <Download aria-hidden="true" />
             </Button>

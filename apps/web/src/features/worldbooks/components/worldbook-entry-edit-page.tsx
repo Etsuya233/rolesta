@@ -18,6 +18,7 @@ export function WorldbookEntryEditPage({
       <MobileTopBar title={t("worldbooks.entries.editTitle")} onBack={onBack} />
       <WorldbookEntryEditor
         entryId={page.entryId}
+        sessionKey={page.sessionKey}
         worldbookId={page.worldbookId}
         submitLabel={t("worldbooks.entries.saveSubmit")}
         onSaved={onBack}
