@@ -7,6 +7,28 @@ import {
 } from "@playwright/test";
 import { mockAuthenticatedApp } from "./api-mocks";
 
+test("keeps public visibility selected after reopening the worldbook editor", async ({
+  page,
+}) => {
+  await mockAuthenticatedApp(page);
+  await mockWorldbookList(page);
+  await page.route(/\/api\/worldbooks\/worldbook_e2e$/, async (route) => {
+    await fulfillWorldbookDetail(route, { visibility: "public" });
+  });
+
+  await page.goto("/app/worldbooks");
+  await page.getByRole("button", { name: /Complete worldbook/ }).click();
+
+  const visibilitySelect = page.getByRole("combobox", { name: "Visibility" });
+  await expect(visibilitySelect).toHaveText("Public");
+
+  await page.getByRole("button", { name: "Back" }).click();
+  await expect(page.getByRole("heading", { name: "Worldbooks" })).toBeVisible();
+  await page.getByRole("button", { name: /Complete worldbook/ }).click();
+
+  await expect(visibilitySelect).toHaveText("Public");
+});
+
 test("keeps worldbook entry changes in one draft until save", async ({
   page,
 }) => {

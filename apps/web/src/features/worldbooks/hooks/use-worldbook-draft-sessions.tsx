@@ -5,6 +5,7 @@ import {
   useContext,
   useEffect,
   useMemo,
+  useRef,
   useState,
   type Dispatch,
   type FormEvent,
@@ -32,7 +33,6 @@ import {
 interface WorldbookDraftRecord {
   baseline: WorldbookDocument;
   document: WorldbookDocument;
-  loadedWorldbookId: string | null;
 }
 
 interface WorldbookDraftSessionsContextValue {
@@ -83,7 +83,6 @@ const emptyWorldbookDocument: WorldbookDocument = {
 const emptyWorldbookDraftRecord: WorldbookDraftRecord = {
   baseline: emptyWorldbookDocument,
   document: emptyWorldbookDocument,
-  loadedWorldbookId: null,
 };
 
 const WorldbookDraftSessionsContext =
@@ -120,7 +119,6 @@ export function WorldbookDraftSessionsProvider({
         [sessionKey]: {
           baseline: document,
           document,
-          loadedWorldbookId: worldbook.id,
         },
       }));
     },
@@ -143,7 +141,6 @@ export function WorldbookDraftSessionsProvider({
           [toSessionKey]: {
             baseline: document,
             document,
-            loadedWorldbookId: worldbook.id,
           },
         };
       });
@@ -222,10 +219,12 @@ export function WorldbookDraftSessionsProvider({
 export function useWorldbookDraftSession({
   sessionKey,
   worldbookId,
+  hydrateFromQueryOnMount = false,
   onCreated,
 }: {
   sessionKey: string;
   worldbookId?: string;
+  hydrateFromQueryOnMount?: boolean;
   onCreated?: (worldbook: WorldbookDetailResponse) => void;
 }): WorldbookDraftSession {
   const { t } = useTranslation();
@@ -239,23 +238,34 @@ export function useWorldbookDraftSession({
   } = context;
   const queryClient = useQueryClient();
   const draft = sessions[sessionKey] ?? emptyWorldbookDraftRecord;
+  const hydratedWorldbookId = useRef<string | null>(null);
   const worldbookQuery = useQuery({
     enabled: Boolean(worldbookId),
     queryKey: ["worldbook", worldbookId],
     queryFn: () => getWorldbook(worldbookId!),
   });
+  const queriedDocument =
+    hydrateFromQueryOnMount &&
+    worldbookQuery.data &&
+    hydratedWorldbookId.current !== worldbookQuery.data.id
+      ? worldbookDocumentFromDetail(worldbookQuery.data)
+      : null;
+  const document = queriedDocument ?? draft.document;
+  const baseline = queriedDocument ?? draft.baseline;
 
   useEffect(() => {
     if (
+      hydrateFromQueryOnMount &&
       worldbookQuery.data &&
-      draft.loadedWorldbookId !== worldbookQuery.data.id
+      hydratedWorldbookId.current !== worldbookQuery.data.id
     ) {
       setSessionFromWorldbook(sessionKey, worldbookQuery.data);
+      hydratedWorldbookId.current = worldbookQuery.data.id;
     }
   }, [
-    draft.loadedWorldbookId,
     sessionKey,
     setSessionFromWorldbook,
+    hydrateFromQueryOnMount,
     worldbookQuery.data,
   ]);
 
@@ -294,15 +304,15 @@ export function useWorldbookDraftSession({
   );
   const form = useMemo<WorldbookEditorFormState>(
     () => ({
-      name: draft.document.name,
-      description: draft.document.description,
-      tagsText: draft.document.tags.join(", "),
-      visibility: draft.document.visibility,
-      scanDepth: draft.document.scanDepth,
-      tokenBudget: draft.document.tokenBudget,
-      recursiveScan: draft.document.recursiveScan,
+      name: document.name,
+      description: document.description,
+      tagsText: document.tags.join(", "),
+      visibility: document.visibility,
+      scanDepth: document.scanDepth,
+      tokenBudget: document.tokenBudget,
+      recursiveScan: document.recursiveScan,
     }),
-    [draft.document],
+    [document],
   );
   const setForm = useCallback(
     (update: SetStateAction<WorldbookEditorFormState>) => {
@@ -324,20 +334,23 @@ export function useWorldbookDraftSession({
     },
     [sessionKey, setSessionDocument],
   );
-  const isDirty = !worldbookDocumentEquals(draft.document, draft.baseline);
+  const isDirty = !worldbookDocumentEquals(document, baseline);
   const saveDocument = useCallback(
     (
-      document = draft.document,
+      documentToSave = document,
       onSaved?: (worldbook: WorldbookDetailResponse) => void,
     ) => {
-      if (!document.name.trim()) {
+      if (!documentToSave.name.trim()) {
         notify.error({
           title: t("worldbooks.editor.errors.nameRequired"),
         });
         return;
       }
 
-      const normalizedDocument = { ...document, name: document.name.trim() };
+      const normalizedDocument = {
+        ...documentToSave,
+        name: documentToSave.name.trim(),
+      };
       setSessionDocument(sessionKey, normalizedDocument);
 
       if (worldbookId) {
@@ -351,7 +364,7 @@ export function useWorldbookDraftSession({
     },
     [
       createMutation,
-      draft.document,
+      document,
       saveSession,
       sessionKey,
       setSessionDocument,
@@ -369,7 +382,7 @@ export function useWorldbookDraftSession({
 
   return useMemo(
     () => ({
-      document: draft.document,
+      document,
       setDocument,
       form,
       setForm,
@@ -386,7 +399,7 @@ export function useWorldbookDraftSession({
     }),
     [
       createMutation.isPending,
-      draft.document,
+      document,
       form,
       isDirty,
       saveDocument,

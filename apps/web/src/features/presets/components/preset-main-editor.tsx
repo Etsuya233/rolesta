@@ -44,6 +44,7 @@ export function PresetMainEditor({
     usePresetDraftSession({
       sessionKey,
       ...(presetId ? { presetId } : {}),
+      hydrateFromQueryOnMount: true,
       ...(onCreated ? { onCreated } : {}),
     });
   const settings = form.modelSettings;

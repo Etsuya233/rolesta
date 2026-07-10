@@ -1,6 +1,54 @@
 import { expect, test, type Page, type Route } from "@playwright/test";
 import { mockAuthenticatedApp } from "./api-mocks";
 
+test("reloads preset details after reopening the preset editor", async ({
+  page,
+}) => {
+  await mockAuthenticatedApp(page);
+  await mockPresetList(page);
+  await page.route(/\/api\/presets\/preset_e2e$/, async (route) => {
+    await fulfillPresetDetail(route);
+  });
+
+  await page.goto("/app/presets");
+  await page.getByRole("button", { name: /Complete preset/ }).click();
+
+  const nameInput = page.getByRole("textbox", { name: "Name" });
+  await expect(nameInput).toHaveValue("Complete preset");
+
+  await page.getByRole("button", { name: "Back" }).click();
+  await expect(page.getByRole("heading", { name: "Presets" })).toBeVisible();
+  await page.getByRole("button", { name: /Complete preset/ }).click();
+
+  await expect(nameInput).toHaveValue("Complete preset");
+});
+
+test("keeps prompt role and position selected after reopening an entry", async ({
+  page,
+}) => {
+  await mockAuthenticatedApp(page);
+  await mockPresetList(page);
+  await page.route(/\/api\/presets\/preset_e2e$/, async (route) => {
+    await fulfillPresetDetail(route);
+  });
+
+  await page.goto("/app/presets");
+  await page.getByRole("button", { name: /Complete preset/ }).click();
+  await page.getByRole("button", { name: "Prompt list" }).click();
+  await page.getByRole("button", { name: "Edit entry" }).nth(1).click();
+
+  const roleSelect = page.getByRole("combobox", { name: "Role" });
+  const positionSelect = page.getByRole("combobox", { name: "Position" });
+  await expect(roleSelect).toHaveText("User");
+  await expect(positionSelect).toHaveText("Chat");
+
+  await page.getByRole("button", { name: "Back" }).click();
+  await page.getByRole("button", { name: "Edit entry" }).nth(1).click();
+
+  await expect(roleSelect).toHaveText("User");
+  await expect(positionSelect).toHaveText("Chat");
+});
+
 test("saves one complete preset document across editor pages", async ({
   page,
 }) => {
@@ -22,7 +70,7 @@ test("saves one complete preset document across editor pages", async ({
   await page.getByRole("button", { name: /Complete preset/ }).click();
   await page.getByRole("button", { name: "Prompt list" }).click();
 
-  const savePromptList = page.getByRole("button", { name: "Save prompt list" });
+  const savePromptList = page.getByRole("button", { name: "Save" });
   await expect(savePromptList).toBeDisabled();
 
   const enabledToggles = page.getByRole("checkbox", { name: "Enable entry" });
@@ -33,11 +81,13 @@ test("saves one complete preset document across editor pages", async ({
   await page.getByRole("textbox", { name: "Name" }).fill("Second updated");
   await page.getByRole("button", { name: "Save" }).click();
 
+  await expect(page.getByRole("heading", { name: "Edit Entry" })).toBeVisible();
+  await expect(savePromptList).toBeDisabled();
+  await page.getByRole("button", { name: "Back" }).click();
   await expect(
     page.getByRole("heading", { name: "Prompt list" }),
   ).toBeVisible();
   await expect(enabledToggles.first()).not.toBeChecked();
-  await expect(savePromptList).toBeDisabled();
   await expect
     .poll(() => savedDocument)
     .toMatchObject({

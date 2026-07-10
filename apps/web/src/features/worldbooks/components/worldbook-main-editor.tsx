@@ -44,6 +44,7 @@ export function WorldbookMainEditor({
     useWorldbookDraftSession({
       sessionKey,
       ...(worldbookId ? { worldbookId } : {}),
+      hydrateFromQueryOnMount: true,
       ...(onCreated ? { onCreated } : {}),
     });
   const visibilityOptions: Array<{

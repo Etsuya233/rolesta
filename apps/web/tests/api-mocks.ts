@@ -67,6 +67,7 @@ export async function mockCharacterList(page: Page) {
 type CharacterDetailOverrides = Partial<{
   alternateGreetings: string[];
   description: string;
+  visibility: "private" | "public";
 }>;
 
 export async function mockCharacterDetail(

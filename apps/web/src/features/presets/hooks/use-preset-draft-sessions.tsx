@@ -5,6 +5,7 @@ import {
   useContext,
   useEffect,
   useMemo,
+  useRef,
   useState,
   type Dispatch,
   type FormEvent,
@@ -31,7 +32,6 @@ import {
 interface PresetDraftRecord {
   baseline: PresetDocument;
   document: PresetDocument;
-  loadedPresetId: string | null;
 }
 
 interface PresetDraftSessionsContextValue {
@@ -65,7 +65,7 @@ export interface PresetDraftSession {
   setForm: Dispatch<SetStateAction<PresetEditorFormState>>;
   isDirty: boolean;
   isPending: boolean;
-  loadError: unknown | null;
+  loadError: unknown;
   preset: PresetDetailResponse | undefined;
   saveDocument: (
     document?: PresetDocument,
@@ -84,7 +84,6 @@ const emptyPresetDocument: PresetDocument = {
 const emptyPresetDraftRecord: PresetDraftRecord = {
   baseline: emptyPresetDocument,
   document: emptyPresetDocument,
-  loadedPresetId: null,
 };
 
 const PresetDraftSessionsContext =
@@ -121,7 +120,6 @@ export function PresetDraftSessionsProvider({
         [sessionKey]: {
           baseline: document,
           document,
-          loadedPresetId: preset.id,
         },
       }));
     },
@@ -144,7 +142,6 @@ export function PresetDraftSessionsProvider({
           [toSessionKey]: {
             baseline: document,
             document,
-            loadedPresetId: preset.id,
           },
         };
       });
@@ -225,10 +222,12 @@ export function PresetDraftSessionsProvider({
 export function usePresetDraftSession({
   sessionKey,
   presetId,
+  hydrateFromQueryOnMount = false,
   onCreated,
 }: {
   sessionKey: string;
   presetId?: string;
+  hydrateFromQueryOnMount?: boolean;
   onCreated?: (preset: PresetDetailResponse) => void;
 }): PresetDraftSession {
   const { t } = useTranslation();
@@ -242,19 +241,33 @@ export function usePresetDraftSession({
   } = context;
   const queryClient = useQueryClient();
   const draft = sessions[sessionKey] ?? emptyPresetDraftRecord;
+  const hydratedPresetId = useRef<string | null>(null);
   const presetQuery = useQuery({
     enabled: Boolean(presetId),
     queryKey: ["preset", presetId],
     queryFn: () => getPreset(presetId!),
   });
+  const queriedDocument =
+    hydrateFromQueryOnMount &&
+    presetQuery.data &&
+    hydratedPresetId.current !== presetQuery.data.id
+      ? presetDocumentFromDetail(presetQuery.data)
+      : null;
+  const document = queriedDocument ?? draft.document;
+  const baseline = queriedDocument ?? draft.baseline;
 
   useEffect(() => {
-    if (presetQuery.data && draft.loadedPresetId !== presetQuery.data.id) {
+    if (
+      hydrateFromQueryOnMount &&
+      presetQuery.data &&
+      hydratedPresetId.current !== presetQuery.data.id
+    ) {
       setSessionFromPreset(sessionKey, presetQuery.data);
+      hydratedPresetId.current = presetQuery.data.id;
     }
   }, [
-    draft.loadedPresetId,
     presetQuery.data,
+    hydrateFromQueryOnMount,
     sessionKey,
     setSessionFromPreset,
   ]);
@@ -284,10 +297,10 @@ export function usePresetDraftSession({
   );
   const form = useMemo<PresetEditorFormState>(
     () => ({
-      name: draft.document.name,
-      modelSettings: draft.document.modelSettings,
+      name: document.name,
+      modelSettings: document.modelSettings,
     }),
-    [draft.document.modelSettings, draft.document.name],
+    [document.modelSettings, document.name],
   );
   const setForm = useCallback(
     (update: SetStateAction<PresetEditorFormState>) => {
@@ -308,19 +321,22 @@ export function usePresetDraftSession({
     },
     [sessionKey, setSessionDocument],
   );
-  const isDirty = !presetDocumentEquals(draft.document, draft.baseline);
+  const isDirty = !presetDocumentEquals(document, baseline);
   const saveDocument = useCallback(
     (
-      document = draft.document,
+      documentToSave = document,
       onSaved?: (preset: PresetDetailResponse) => void,
     ) => {
-      if (!document.name.trim()) {
+      if (!documentToSave.name.trim()) {
         notify.error({ title: t("presets.editor.errors.nameRequired") });
         return;
       }
 
-      setSessionDocument(sessionKey, document);
-      const normalizedDocument = { ...document, name: document.name.trim() };
+      setSessionDocument(sessionKey, documentToSave);
+      const normalizedDocument = {
+        ...documentToSave,
+        name: documentToSave.name.trim(),
+      };
 
       if (presetId) {
         void saveSession(sessionKey, presetId, normalizedDocument)
@@ -332,7 +348,7 @@ export function usePresetDraftSession({
       saveMutation.mutate(normalizedDocument);
     },
     [
-      draft.document,
+      document,
       presetId,
       saveMutation,
       saveSession,
@@ -351,7 +367,7 @@ export function usePresetDraftSession({
 
   return useMemo(
     () => ({
-      document: draft.document,
+      document,
       setDocument,
       form,
       setForm,
@@ -366,7 +382,7 @@ export function usePresetDraftSession({
       submit,
     }),
     [
-      draft.document,
+      document,
       form,
       isDirty,
       presetQuery.data,

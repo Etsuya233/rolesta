@@ -57,6 +57,7 @@ function PresetSharedSaveBar({ page }: { page: PresetSavePage }) {
     usePresetDraftSession({
       sessionKey: page.sessionKey,
       presetId: page.presetId,
+      hydrateFromQueryOnMount: page.name === "editMain",
     });
 
   useEffect(() => {

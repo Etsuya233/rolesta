@@ -57,6 +57,7 @@ function WorldbookFloatingSave({ page }: { page: WorldbookSavePage }) {
     useWorldbookDraftSession({
       sessionKey: page.sessionKey,
       worldbookId: page.worldbookId,
+      hydrateFromQueryOnMount: page.name === "editMain",
     });
 
   function saveActiveDraft() {

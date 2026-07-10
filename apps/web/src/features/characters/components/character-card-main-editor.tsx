@@ -41,6 +41,7 @@ export function CharacterCardMainEditor({
     useCharacterDraftSession({
       sessionKey,
       ...(characterId ? { characterId } : {}),
+      hydrateFromQueryOnMount: true,
       ...(onCreated ? { onCreated } : {}),
     });
   const visibilityOptions: Array<{

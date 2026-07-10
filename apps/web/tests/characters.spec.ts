@@ -39,21 +39,21 @@ test("renders character editor sections without advanced page entry", async ({
   await expect(page.getByRole("heading", { name: "编辑角色卡" })).toBeVisible();
   await expect(
     page.getByRole("button", {
-      name: "基础信息 角色卡在列表和聊天选择中的基本识别信息",
+      name: /^基础信息/,
     }),
   ).toBeVisible();
   await expect(
     page.getByRole("button", {
-      name: "角色内容 控制角色人设、对话开场和示例语气",
+      name: /^角色内容/,
     }),
   ).toBeVisible();
   await expect(
     page.getByRole("button", {
-      name: "提示词覆盖 覆盖上下文组装时使用的提示词片段",
+      name: /^提示词覆盖/,
     }),
   ).toBeVisible();
   await expect(
-    page.getByRole("button", { name: "元数据 可直接维护的创作者信息" }),
+    page.getByRole("button", { name: /^元数据/ }),
   ).toBeVisible();
   await expect(page.getByRole("button", { name: "其他开场" })).toBeVisible();
   const saveButton = page.getByRole("button", { name: "保存" });
@@ -73,6 +73,26 @@ test("renders character editor sections without advanced page entry", async ({
   await expect(page.getByLabel("素材 JSON")).toHaveCount(0);
   await expect(page.getByLabel("多语言备注 JSON")).toHaveCount(0);
   await expect(page.getByRole("button", { name: "高级定义" })).toHaveCount(0);
+});
+
+test("keeps public visibility selected after reopening the character editor", async ({
+  page,
+}) => {
+  await mockAuthenticatedApp(page);
+  await mockCharacterList(page);
+  await mockCharacterDetail(page, { visibility: "public" });
+
+  await page.goto("/app/characters");
+  await page.getByRole("button", { name: "Seraphina" }).click();
+
+  const visibilitySelect = page.getByRole("combobox", { name: "权限" });
+  await expect(visibilitySelect).toHaveText("公开");
+
+  await page.getByRole("button", { name: "返回" }).last().click();
+  await expect(page.getByRole("heading", { name: "角色卡" })).toBeVisible();
+  await page.getByRole("button", { name: "Seraphina" }).click();
+
+  await expect(visibilitySelect).toHaveText("公开");
 });
 
 test("keeps long character textareas partially visible by default", async ({
@@ -136,7 +156,7 @@ test("keeps character views alive while editing alternate greetings", async ({
 
   const mainEditorScreen = page.getByLabel("角色卡主编辑");
   const contentTrigger = page.getByRole("button", {
-    name: "角色内容 控制角色人设、对话开场和示例语气",
+    name: /^角色内容/,
   });
   await expect(contentTrigger).toHaveAttribute("aria-expanded", "true");
 

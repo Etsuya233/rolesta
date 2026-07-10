@@ -5,6 +5,7 @@ import {
   useContext,
   useEffect,
   useMemo,
+  useRef,
   useState,
   type Dispatch,
   type FormEvent,
@@ -28,7 +29,6 @@ import {
 
 interface CharacterDraftRecord {
   form: CharacterEditorFormState;
-  loadedCharacterId: string | null;
   errorMessage: string | null;
 }
 
@@ -61,7 +61,6 @@ export interface CharacterDraftSession {
 
 const emptyCharacterDraftRecord: CharacterDraftRecord = {
   form: emptyCharacterEditorForm,
-  loadedCharacterId: null,
   errorMessage: null,
 };
 
@@ -119,7 +118,6 @@ export function CharacterDraftSessionsProvider({
         ...items,
         [sessionKey]: {
           form: characterEditorFormFromDetail(character),
-          loadedCharacterId: character.id,
           errorMessage: null,
         },
       }));
@@ -141,7 +139,6 @@ export function CharacterDraftSessionsProvider({
           ...remainingItems,
           [toSessionKey]: {
             form: characterEditorFormFromDetail(character),
-            loadedCharacterId: character.id,
             errorMessage: null,
           },
         };
@@ -194,10 +191,12 @@ export function CharacterDraftSessionsProvider({
 export function useCharacterDraftSession({
   sessionKey,
   characterId,
+  hydrateFromQueryOnMount = false,
   onCreated,
 }: {
   sessionKey: string;
   characterId?: string;
+  hydrateFromQueryOnMount?: boolean;
   onCreated?: (character: CharacterDetailResponse) => void;
 }): CharacterDraftSession {
   const { t } = useTranslation();
@@ -214,23 +213,32 @@ export function useCharacterDraftSession({
   const queryClient = useQueryClient();
   const draft = sessions[sessionKey] ?? emptyCharacterDraftRecord;
   const isEditing = Boolean(characterId);
+  const hydratedCharacterId = useRef<string | null>(null);
 
   const characterQuery = useQuery({
     enabled: isEditing,
     queryKey: ["character", characterId],
     queryFn: () => getCharacter(characterId!),
   });
+  const form =
+    hydrateFromQueryOnMount &&
+    characterQuery.data &&
+    hydratedCharacterId.current !== characterQuery.data.id
+      ? characterEditorFormFromDetail(characterQuery.data)
+      : draft.form;
 
   useEffect(() => {
     if (
+      hydrateFromQueryOnMount &&
       characterQuery.data &&
-      draft.loadedCharacterId !== characterQuery.data.id
+      hydratedCharacterId.current !== characterQuery.data.id
     ) {
       setSessionFromCharacter(sessionKey, characterQuery.data);
+      hydratedCharacterId.current = characterQuery.data.id;
     }
   }, [
     characterQuery.data,
-    draft.loadedCharacterId,
+    hydrateFromQueryOnMount,
     sessionKey,
     setSessionFromCharacter,
   ]);
@@ -262,14 +270,14 @@ export function useCharacterDraftSession({
       event.preventDefault();
       setSessionError(sessionKey, null);
 
-      if (!draft.form.name.trim()) {
+      if (!form.name.trim()) {
         setSessionError(sessionKey, "characters.editor.errors.nameRequired");
         return;
       }
 
-      saveMutation.mutate(characterEditorValuesFromForm(draft.form));
+      saveMutation.mutate(characterEditorValuesFromForm(form));
     },
-    [draft.form, saveMutation, sessionKey, setSessionError],
+    [form, saveMutation, sessionKey, setSessionError],
   );
 
   let visibleError: string | null = null;
@@ -283,13 +291,13 @@ export function useCharacterDraftSession({
 
   return useMemo(
     () => ({
-      form: draft.form,
+      form,
       setForm,
       isPending,
       visibleError,
       submit,
     }),
-    [draft.form, isPending, setForm, submit, visibleError],
+    [form, isPending, setForm, submit, visibleError],
   );
 }
 

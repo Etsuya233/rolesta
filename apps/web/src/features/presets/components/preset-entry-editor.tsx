@@ -32,9 +32,6 @@ export function PresetEntryEditor({
 }) {
   const { t } = useTranslation();
   const fieldPrefix = useId();
-  const [form, setForm] = useState<PresetEntryEditorFormState>(
-    emptyPresetEntryEditorForm,
-  );
   const {
     document,
     setDocument,
@@ -46,6 +43,9 @@ export function PresetEntryEditor({
     sessionKey,
   });
   const entry = document.entries.find((candidate) => candidate.id === entryId);
+  const [form, setForm] = useState<PresetEntryEditorFormState>(() =>
+    entry ? presetEntryEditorFormFromEntry(entry) : emptyPresetEntryEditorForm,
+  );
   const roleOptions: Array<{ value: PresetEntryRole; label: string }> = [
     { value: "system", label: t("presets.entries.roles.system") },
     { value: "user", label: t("presets.entries.roles.user") },
