@@ -1,5 +1,4 @@
 import { countPromptTokens } from "@rolesta/shared";
-import { Trash2 } from "lucide-react";
 import {
   useEffect,
   useId,
@@ -8,8 +7,8 @@ import {
   type ReactNode,
 } from "react";
 import { useTranslation } from "react-i18next";
-import { Button } from "../../../components/ui/button";
 import { notify } from "../../../lib/notifications/notify";
+import { cn } from "../../../lib/utils";
 import {
   type WorldbookEntryRole,
   type WorldbookInsertionPosition,
@@ -37,14 +36,12 @@ export function WorldbookEntryEditor({
   entryId,
   submitLabel,
   onSaved,
-  onDeleted,
 }: {
   worldbookId: string;
   sessionKey: string;
   entryId?: string;
-  submitLabel: string;
+  submitLabel?: string;
   onSaved?: () => void;
-  onDeleted?: () => void;
 }) {
   const { t } = useTranslation();
   const fieldPrefix = useId();
@@ -172,24 +169,17 @@ export function WorldbookEntryEditor({
     saveDocument({ ...document, entries }, onSaved);
   }
 
-  function deleteEntry() {
-    saveDocument(
-      {
-        ...document,
-        entries: document.entries.filter(
-          (candidate) => candidate.id !== entryId,
-        ),
-      },
-      onDeleted,
-    );
-  }
-
   return (
     <form
       className="mx-auto flex h-full min-h-0 w-full max-w-2xl flex-1 flex-col overflow-hidden"
       onSubmit={submit}
     >
-      <div className="min-h-0 flex-1 overflow-y-auto p-4">
+      <div
+        className={cn(
+          "min-h-0 flex-1 overflow-y-auto p-4",
+          !submitLabel && "pb-24",
+        )}
+      >
         <div className="flex flex-col gap-5">
           <WorldbookEntrySection title={t("worldbooks.entries.sections.basic")}>
             <div className="grid gap-3 sm:grid-cols-2">
@@ -434,27 +424,15 @@ export function WorldbookEntryEditor({
         </div>
       </div>
 
-      <div className="flex shrink-0 flex-col gap-3 border-t border-border bg-background px-4 py-3">
-        <div className="grid grid-cols-[1fr_auto] gap-2">
+      {submitLabel ? (
+        <div className="flex shrink-0 flex-col gap-3 border-t border-border bg-background px-4 py-3">
           <FormSubmitButton
             disabled={isPending || Boolean(entryId && !isDirty)}
           >
             {submitLabel}
           </FormSubmitButton>
-          {entryId ? (
-            <Button
-              aria-label={t("worldbooks.entries.deleteAction")}
-              disabled={isPending}
-              size="icon-lg"
-              type="button"
-              variant="outline"
-              onClick={deleteEntry}
-            >
-              <Trash2 aria-hidden="true" />
-            </Button>
-          ) : null}
         </div>
-      </div>
+      ) : null}
     </form>
   );
 }

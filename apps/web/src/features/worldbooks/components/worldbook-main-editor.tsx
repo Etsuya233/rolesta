@@ -4,6 +4,7 @@ import { BadgeInfo, BookOpenText, SlidersHorizontal } from "lucide-react";
 import { useId, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Accordion } from "../../../components/ui/accordion";
+import { cn } from "../../../lib/utils";
 import { useWorldbookDraftSession } from "../hooks/use-worldbook-draft-sessions";
 import type {
   WorldbookDetailResponse,
@@ -29,7 +30,7 @@ export function WorldbookMainEditor({
 }: {
   sessionKey: string;
   worldbookId?: string;
-  submitLabel: string;
+  submitLabel?: string;
   onCreated?: (worldbook: WorldbookDetailResponse) => void;
   onOpenEntries?: () => void;
 }) {
@@ -39,19 +40,12 @@ export function WorldbookMainEditor({
     "basic",
     "matching",
   ]);
-  const {
-    document,
-    form,
-    setForm,
-    isDirty,
-    isPending,
-    worldbook,
-    submit,
-  } = useWorldbookDraftSession({
-    sessionKey,
-    ...(worldbookId ? { worldbookId } : {}),
-    ...(onCreated ? { onCreated } : {}),
-  });
+  const { document, form, setForm, isDirty, isPending, worldbook, submit } =
+    useWorldbookDraftSession({
+      sessionKey,
+      ...(worldbookId ? { worldbookId } : {}),
+      ...(onCreated ? { onCreated } : {}),
+    });
   const visibilityOptions: Array<{
     value: WorldbookVisibility;
     label: string;
@@ -65,7 +59,12 @@ export function WorldbookMainEditor({
       className="mx-auto flex h-full min-h-0 w-full max-w-2xl flex-1 flex-col overflow-hidden"
       onSubmit={submit}
     >
-      <div className="min-h-0 flex-1 overflow-y-auto">
+      <div
+        className={cn(
+          "min-h-0 flex-1 overflow-y-auto",
+          !submitLabel && "pb-24",
+        )}
+      >
         <Accordion
           className="border-b border-border"
           type="multiple"
@@ -202,11 +201,13 @@ export function WorldbookMainEditor({
         </Accordion>
       </div>
 
-      <div className="flex shrink-0 flex-col gap-3 border-t border-border bg-background px-4 py-3">
-        <FormSubmitButton disabled={isPending || !isDirty}>
-          {submitLabel}
-        </FormSubmitButton>
-      </div>
+      {submitLabel ? (
+        <div className="flex shrink-0 flex-col gap-3 border-t border-border bg-background px-4 py-3">
+          <FormSubmitButton disabled={isPending || !isDirty}>
+            {submitLabel}
+          </FormSubmitButton>
+        </div>
+      ) : null}
     </form>
   );
 }

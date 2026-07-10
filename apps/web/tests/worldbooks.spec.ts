@@ -1,4 +1,10 @@
-import { expect, test, type Page, type Route } from "@playwright/test";
+import {
+  expect,
+  test,
+  type Locator,
+  type Page,
+  type Route,
+} from "@playwright/test";
 import { mockAuthenticatedApp } from "./api-mocks";
 
 test("keeps worldbook entry changes in one draft until save", async ({
@@ -22,13 +28,19 @@ test("keeps worldbook entry changes in one draft until save", async ({
 
   await page.goto("/app/worldbooks");
   await page.getByRole("button", { name: /Complete worldbook/ }).click();
+  const floatingSave = page.getByTestId("worldbook-floating-save");
+  await expect(floatingSave).toHaveCount(1);
+  await expect(floatingSave).toHaveText("Save preset");
   await page.getByRole("button", { name: "Entries", exact: true }).click();
 
-  const saveEntries = page.getByRole("button", { name: "Save preset" });
+  const saveEntries = floatingSave;
   await expect(saveEntries).toBeDisabled();
 
   await page.getByText("Second", { exact: true }).click();
-  const saveEntry = page.getByRole("button", { name: "Save preset" });
+  const saveEntry = floatingSave;
+  await expect(
+    page.getByRole("button", { name: "Delete entry" }),
+  ).toBeVisible();
   await expect(saveEntry).toBeDisabled();
   await page.getByRole("textbox", { name: "Name" }).fill("Second updated");
   await expect(saveEntry).toBeEnabled();
@@ -70,7 +82,32 @@ test("keeps worldbook entry changes in one draft until save", async ({
       ],
     });
   await expect.poll(() => updateRequestCount).toBe(1);
+
+  await page.setViewportSize({ width: 390, height: 844 });
+  const lastEntryControl = page.getByRole("checkbox", {
+    name: "Delay until recursion",
+  });
+  await lastEntryControl.scrollIntoViewIfNeeded();
+  await expectElementAbove(lastEntryControl, floatingSave);
+
+  const floatingSaveBox = await floatingSave.boundingBox();
+  expect(floatingSaveBox).not.toBeNull();
+  expect(floatingSaveBox!.x + floatingSaveBox!.width).toBeLessThanOrEqual(374);
+  expect(floatingSaveBox!.y + floatingSaveBox!.height).toBeLessThanOrEqual(828);
 });
+
+async function expectElementAbove(element: Locator, floatingAction: Locator) {
+  const [elementBox, floatingActionBox] = await Promise.all([
+    element.boundingBox(),
+    floatingAction.boundingBox(),
+  ]);
+
+  expect(elementBox).not.toBeNull();
+  expect(floatingActionBox).not.toBeNull();
+  expect(elementBox!.y + elementBox!.height).toBeLessThanOrEqual(
+    floatingActionBox!.y,
+  );
+}
 
 async function mockWorldbookList(page: Page) {
   await page.route(/\/api\/worldbooks(?:\?.*)?$/, async (route) => {

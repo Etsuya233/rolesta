@@ -111,7 +111,6 @@ function WorldbookEntryListEditor({
   const {
     document,
     setDocument,
-    isDirty,
     isPending,
     worldbook,
     acceptSavedWorldbook,
@@ -252,7 +251,7 @@ function WorldbookEntryListEditor({
         </div>
       </div>
 
-      <div className="min-h-0 flex-1 overflow-y-auto">
+      <div className="min-h-0 flex-1 overflow-y-auto pb-24">
         {items.length === 0 ? (
           <p className="p-4 text-sm text-muted-foreground">
             {t("worldbooks.entries.empty")}
@@ -337,17 +336,6 @@ function WorldbookEntryListEditor({
             })}
           </SortableContext>
         </DndContext>
-      </div>
-
-      <div className="shrink-0 border-t border-border p-3">
-        <Button
-          className="w-full"
-          disabled={isPending || !isDirty}
-          type="button"
-          onClick={() => saveDocument()}
-        >
-          {t("worldbooks.savePreset")}
-        </Button>
       </div>
     </div>
   );
