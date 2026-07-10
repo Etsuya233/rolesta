@@ -1,6 +1,7 @@
 import { countPromptTokens } from "@rolesta/shared";
 import { useEffect, useId, useState, type FormEvent } from "react";
 import { useTranslation } from "react-i18next";
+import { notify } from "../../../lib/notifications/notify";
 import type { PresetEntryPosition, PresetEntryRole } from "../api/presets-api";
 import { usePresetDraftSession } from "../hooks/use-preset-draft-sessions";
 import {
@@ -10,7 +11,6 @@ import {
   type PresetEntryEditorFormState,
 } from "../model/preset-editor-form";
 import {
-  FormError,
   FormSubmitButton,
   PresetSelectField,
   PresetTextAreaField,
@@ -35,13 +35,11 @@ export function PresetEntryEditor({
   const [form, setForm] = useState<PresetEntryEditorFormState>(
     emptyPresetEntryEditorForm,
   );
-  const [validationError, setValidationError] = useState<string | null>(null);
   const {
     document,
     setDocument,
     isDirty,
     isPending,
-    visibleError,
     saveDocument,
   } = usePresetDraftSession({
     presetId,
@@ -63,7 +61,6 @@ export function PresetEntryEditor({
     { value: "postHistory", label: t("presets.entries.positions.postHistory") },
     { value: "unknown", label: t("presets.entries.positions.unknown") },
   ];
-  const errorMessage = validationError ?? visibleError;
   const entryValues = presetEntryValuesFromForm(form);
   const entryChanged = entry
     ? entry.name !== entryValues.name ||
@@ -99,10 +96,9 @@ export function PresetEntryEditor({
 
   function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    setValidationError(null);
 
     if (!form.name.trim()) {
-      setValidationError(t("presets.entries.errors.nameRequired"));
+      notify.error({ title: t("presets.entries.errors.nameRequired") });
       return;
     }
 
@@ -177,7 +173,6 @@ export function PresetEntryEditor({
 
       {submitLabel ? (
         <div className="flex shrink-0 flex-col gap-3 border-t border-border bg-background px-4 py-3">
-          {errorMessage ? <FormError>{errorMessage}</FormError> : null}
           <FormSubmitButton disabled={isPending || (!isDirty && !entryChanged)}>
             {submitLabel}
           </FormSubmitButton>

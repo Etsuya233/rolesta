@@ -1,14 +1,15 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import { Button } from "../../../components/ui/button";
 import { KeepAliveStackViewport } from "../../../components/keep-alive-stack/keep-alive-stack-viewport";
 import { useKeepAliveStack } from "../../../components/keep-alive-stack/use-keep-alive-stack";
+import { getFormErrorMessage } from "../../../lib/forms/form-error";
+import { notify } from "../../../lib/notifications/notify";
 import {
   PresetDraftSessionsProvider,
   usePresetDraftSession,
   useRetainPresetDraftSessions,
 } from "../hooks/use-preset-draft-sessions";
-import { FormError } from "./preset-form-fields";
 import { PresetPageRenderer } from "./preset-page-renderer";
 import { presetListPage, type PresetPage } from "./preset-pages";
 
@@ -52,29 +53,26 @@ type PresetSavePage = Extract<
 
 function PresetSharedSaveBar({ page }: { page: PresetSavePage }) {
   const { t } = useTranslation();
-  const [validationError, setValidationError] = useState<{
-    pageKey: string;
-    message: string;
-  } | null>(null);
-  const { document, isDirty, isPending, visibleError, saveDocument } =
+  const { document, isDirty, isPending, loadError, saveDocument } =
     usePresetDraftSession({
       sessionKey: page.sessionKey,
       presetId: page.presetId,
     });
 
-  function saveActiveDraft() {
-    setValidationError(null);
+  useEffect(() => {
+    if (loadError) {
+      notify.error({ title: getFormErrorMessage(loadError) });
+    }
+  }, [loadError]);
 
+  function saveActiveDraft() {
     if (page.name === "entryEdit") {
       const entry = document.entries.find(
         (candidate) => candidate.id === page.entryId,
       );
 
       if (!entry?.name.trim()) {
-        setValidationError({
-          pageKey: page.key,
-          message: t("presets.entries.errors.nameRequired"),
-        });
+        notify.error({ title: t("presets.entries.errors.nameRequired") });
         return;
       }
     }
@@ -82,15 +80,9 @@ function PresetSharedSaveBar({ page }: { page: PresetSavePage }) {
     saveDocument();
   }
 
-  const errorMessage =
-    validationError?.pageKey === page.key
-      ? validationError.message
-      : visibleError;
-
   return (
     <div className="shrink-0 border-t border-border bg-background px-4 py-3">
-      <div className="mx-auto flex w-full max-w-2xl flex-col gap-3">
-        {errorMessage ? <FormError>{errorMessage}</FormError> : null}
+      <div className="mx-auto w-full max-w-2xl">
         <Button
           className="w-full"
           disabled={isPending || !isDirty}

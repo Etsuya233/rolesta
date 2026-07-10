@@ -2,6 +2,8 @@ import { Download, Trash2 } from "lucide-react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
 import { Button } from "../../../components/ui/button";
+import { getFormErrorMessage } from "../../../lib/forms/form-error";
+import { notify } from "../../../lib/notifications/notify";
 import { deletePreset, exportPreset } from "../api/presets-api";
 import { MobileTopBar } from "../../assets/components/mobile-top-bar";
 import { PresetMainEditor } from "./preset-main-editor";
@@ -28,7 +30,18 @@ export function PresetEditPage({
       await queryClient.invalidateQueries({ queryKey: ["presets"] });
       onBack();
     },
+    onError(error) {
+      notify.error({ title: getFormErrorMessage(error) });
+    },
   });
+
+  async function handleExport() {
+    try {
+      await downloadPreset(page.presetId);
+    } catch (error) {
+      notify.error({ title: getFormErrorMessage(error) });
+    }
+  }
 
   return (
     <PresetStackPage>
@@ -41,7 +54,7 @@ export function PresetEditPage({
               size="icon-lg"
               type="button"
               variant="ghost"
-              onClick={() => void downloadPreset(page.presetId)}
+              onClick={() => void handleExport()}
             >
               <Download aria-hidden="true" />
             </Button>

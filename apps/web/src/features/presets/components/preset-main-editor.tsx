@@ -12,7 +12,6 @@ import type {
 } from "../api/presets-api";
 import {
   FormActionButton,
-  FormError,
   FormSubmitButton,
   PresetCheckboxField,
   PresetFormSection,
@@ -41,7 +40,7 @@ export function PresetMainEditor({
     "basic",
     "model",
   ]);
-  const { document, form, setForm, isDirty, isPending, visibleError, submit } =
+  const { document, form, setForm, isDirty, isPending, submit } =
     usePresetDraftSession({
       sessionKey,
       ...(presetId ? { presetId } : {}),
@@ -212,7 +211,6 @@ export function PresetMainEditor({
 
       {submitLabel ? (
         <div className="flex shrink-0 flex-col gap-3 border-t border-border bg-background px-4 py-3">
-          {visibleError ? <FormError>{visibleError}</FormError> : null}
           <FormSubmitButton disabled={isPending || !isDirty}>
             {submitLabel}
           </FormSubmitButton>

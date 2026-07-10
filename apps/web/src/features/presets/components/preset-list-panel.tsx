@@ -1,7 +1,9 @@
 import { useQuery } from "@tanstack/react-query";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Input } from "../../../components/ui/input";
+import { getFormErrorMessage } from "../../../lib/forms/form-error";
+import { notify } from "../../../lib/notifications/notify";
 import { AssetSortMenu } from "../../assets/components/asset-sort-menu";
 import { PageControls } from "../../assets/components/page-controls";
 import {
@@ -34,6 +36,12 @@ export function PresetListPanel({
     { value: "usageCount", label: t("presets.list.sort.usageCount") },
   ];
 
+  useEffect(() => {
+    if (query.isError) {
+      notify.error({ title: getFormErrorMessage(query.error) });
+    }
+  }, [query.error, query.isError]);
+
   return (
     <div className="mx-auto flex min-h-0 w-full max-w-2xl flex-1 flex-col overflow-hidden">
       <div className="flex shrink-0 flex-col gap-3 border-b border-border p-4">
@@ -65,11 +73,6 @@ export function PresetListPanel({
         {query.isLoading ? (
           <p className="p-4 text-sm text-muted-foreground">
             {t("presets.list.loading")}
-          </p>
-        ) : null}
-        {query.isError ? (
-          <p className="p-4 text-sm text-destructive">
-            {t("presets.list.loadFailed")}
           </p>
         ) : null}
         {query.data?.items.length === 0 ? (

@@ -4,8 +4,9 @@ import { Upload } from "lucide-react";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Button } from "../../../components/ui/button";
+import { getFormErrorMessage } from "../../../lib/forms/form-error";
+import { notify } from "../../../lib/notifications/notify";
 import { importPreset, type PresetDetailResponse } from "../api/presets-api";
-import { FormError } from "./preset-form-fields";
 
 export function PresetImportPanel({
   onImported,
@@ -16,13 +17,15 @@ export function PresetImportPanel({
   const queryClient = useQueryClient();
   const [file, setFile] = useState<File | null>(null);
   const [preview, setPreview] = useState<PresetImportPreview | null>(null);
-  const [visibleError, setVisibleError] = useState<string | null>(null);
   const importMutation = useMutation({
     mutationFn: (selectedFile: File) => importPreset(selectedFile),
     async onSuccess(preset) {
       await queryClient.invalidateQueries({ queryKey: ["presets"] });
       queryClient.setQueryData(["preset", preset.id], preset);
       onImported(preset);
+    },
+    onError(error) {
+      notify.error({ title: getFormErrorMessage(error) });
     },
   });
 
@@ -31,14 +34,13 @@ export function PresetImportPanel({
       return;
     }
 
-    setVisibleError(null);
     setFile(selectedFile);
 
     try {
       setPreview(await previewPreset(selectedFile));
     } catch {
       setPreview(null);
-      setVisibleError(t("presets.import.invalidJson"));
+      notify.error({ title: t("presets.import.invalidJson") });
     }
   }
 
@@ -87,9 +89,6 @@ export function PresetImportPanel({
       </div>
 
       <div className="flex shrink-0 flex-col gap-3 border-t border-border bg-background px-4 py-3">
-        {visibleError || importMutation.isError ? (
-          <FormError>{visibleError ?? t("presets.import.failed")}</FormError>
-        ) : null}
         <Button
           className="w-full"
           disabled={!file || importMutation.isPending}

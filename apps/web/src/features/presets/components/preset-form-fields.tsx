@@ -1,6 +1,5 @@
 import type { ChangeEventHandler } from "react";
 import { EditorFormSection } from "../../../components/editor-form-section";
-import { Alert, AlertDescription } from "../../../components/ui/alert";
 import { Button } from "../../../components/ui/button";
 import {
   Field,
@@ -193,14 +192,6 @@ export function PresetCheckboxField({
         onChange={(event) => onChange(event.target.checked)}
       />
     </label>
-  );
-}
-
-export function FormError({ children }: { children: string }) {
-  return (
-    <Alert variant="destructive">
-      <AlertDescription>{children}</AlertDescription>
-    </Alert>
   );
 }
 
