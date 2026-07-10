@@ -8,6 +8,8 @@ import { getFormErrorMessage } from "../../../lib/forms/form-error";
 import { notify } from "../../../lib/notifications/notify";
 import { importPreset, type PresetDetailResponse } from "../api/presets-api";
 
+const SILLY_TAVERN_CHAT_COMPLETION_PROMPT_ORDER_ID = 100001;
+
 export function PresetImportPanel({
   onImported,
 }: {
@@ -125,7 +127,7 @@ async function previewPreset(file: File): Promise<PresetImportPreview> {
   const prompts = Array.isArray(input.prompts)
     ? input.prompts.filter(isRecord)
     : [];
-  const order = defaultOrder(input);
+  const order = chatCompletionPromptOrder(input);
   const enabledIdentifiers = new Set(
     order
       .filter((item) => item.enabled === true && typeof item.identifier === "string")
@@ -153,7 +155,7 @@ async function previewPreset(file: File): Promise<PresetImportPreview> {
   };
 }
 
-function defaultOrder(input: Record<string, unknown>): Array<Record<string, unknown>> {
+function chatCompletionPromptOrder(input: Record<string, unknown>): Array<Record<string, unknown>> {
   const promptOrder = input.prompt_order;
 
   if (!Array.isArray(promptOrder)) {
@@ -161,7 +163,9 @@ function defaultOrder(input: Record<string, unknown>): Array<Record<string, unkn
   }
 
   const groups = promptOrder.filter(isRecord);
-  const group = groups.find((item) => item.character_id === 100000) ?? groups[0];
+  const group = groups.find(
+    (item) => item.character_id === SILLY_TAVERN_CHAT_COMPLETION_PROMPT_ORDER_ID,
+  );
 
   if (!group || !Array.isArray(group.order)) {
     return [];

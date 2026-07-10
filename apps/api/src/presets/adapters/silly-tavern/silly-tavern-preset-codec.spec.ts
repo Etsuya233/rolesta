@@ -16,7 +16,7 @@ describe('SillyTavern preset mapper', () => {
     expect(() => codec.importFile(Buffer.from('{'))).toThrowError(PresetPortError);
   });
 
-  it('imports the sample preset with the default character order', () => {
+  it('imports the sample preset with the Chat Completion prompt order', () => {
     const input = {
       name: 'Ako1.86-VintageNovel (1)',
       prompts: [
@@ -37,7 +37,7 @@ describe('SillyTavern preset mapper', () => {
       ],
       prompt_order: [
         {
-          character_id: 100000,
+          character_id: 100001,
           order: [
             { identifier: 'main', enabled: true },
             { identifier: 'post', enabled: false },
@@ -85,16 +85,20 @@ describe('SillyTavern preset mapper', () => {
     expect(preset.sourceSnapshot).toBe(input.data);
   });
 
-  it('uses the first prompt order when the default character order is absent', () => {
+  it('uses the Chat Completion prompt order when legacy and current orders coexist', () => {
     const preset = fromSillyTavernPreset({
-      name: 'fallback order',
+      name: 'current order',
       prompts: [
         { identifier: 'a', name: 'A', role: 'system', content: 'alpha' },
         { identifier: 'b', name: 'B', role: 'user', content: 'beta' },
       ],
       prompt_order: [
         {
-          character_id: 42,
+          character_id: 100000,
+          order: [{ identifier: 'a', enabled: true }],
+        },
+        {
+          character_id: 100001,
           order: [{ identifier: 'b', enabled: true }],
         },
       ],
@@ -111,7 +115,7 @@ describe('SillyTavern preset mapper', () => {
       prompts: [{ identifier: 'main', name: 'Main', role: 'system', content: 'alpha' }],
       prompt_order: [
         {
-          character_id: 100000,
+          character_id: 100001,
           order: [{ identifier: 'main', enabled: true }],
         },
       ],
@@ -180,7 +184,7 @@ describe('SillyTavern preset mapper', () => {
     });
     expect(output.prompt_order).toEqual([
       {
-        character_id: 100000,
+        character_id: 100001,
         order: [{ identifier: 'main', enabled: true }],
       },
     ]);

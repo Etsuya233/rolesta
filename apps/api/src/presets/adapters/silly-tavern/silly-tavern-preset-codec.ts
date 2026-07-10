@@ -8,11 +8,13 @@ import type {
   PresetCodec,
 } from '../../ports/preset-codec.js';
 
+const SILLY_TAVERN_CHAT_COMPLETION_PROMPT_ORDER_ID = 100001;
+
 export interface SillyTavernPresetOutput {
   name: string;
   prompts: SillyTavernPromptOutput[];
   prompt_order: Array<{
-    character_id: 100000;
+    character_id: typeof SILLY_TAVERN_CHAT_COMPLETION_PROMPT_ORDER_ID;
     order: Array<{ identifier: string; enabled: boolean }>;
   }>;
   openai_max_context: number | null;
@@ -64,7 +66,7 @@ export function fromSillyTavernPreset(input: unknown): ImportedPreset {
 
   const prompts = promptArray(input);
   const entries = prompts.map(toImportedEntry);
-  const promptItems = defaultPromptOrder(input)
+  const promptItems = chatCompletionPromptOrder(input)
     .map((item, index) => toImportedPromptItem(item, index))
     .filter((item) => entries.some((entry) => entry.identifier === item.identifier));
 
@@ -86,7 +88,7 @@ export function toSillyTavernPreset(preset: Preset): SillyTavernPresetOutput {
     prompts: preset.entries.map(toSillyTavernPrompt),
     prompt_order: [
       {
-        character_id: 100000,
+        character_id: SILLY_TAVERN_CHAT_COMPLETION_PROMPT_ORDER_ID,
         order: orderedItems
           .map((item) => {
             const entry = preset.entries.find((candidate) => candidate.id === item.entryId);
@@ -199,17 +201,25 @@ function promptArray(input: Record<string, unknown>): Array<Record<string, unkno
   });
 }
 
-function defaultPromptOrder(input: Record<string, unknown>): Array<Record<string, unknown>> {
+function chatCompletionPromptOrder(
+  input: Record<string, unknown>,
+): Array<Record<string, unknown>> {
   const promptOrder = input.prompt_order;
 
   if (!Array.isArray(promptOrder) || !promptOrder.every(isRecord)) {
     return [];
   }
 
-  const selected =
-    promptOrder.find((item) => item.character_id === 100000) ?? promptOrder[0];
+  const selected = promptOrder.find(
+    (item) =>
+      item.character_id === SILLY_TAVERN_CHAT_COMPLETION_PROMPT_ORDER_ID,
+  );
 
-  if (!isRecord(selected) || !Array.isArray(selected.order) || !selected.order.every(isRecord)) {
+  if (
+    !isRecord(selected) ||
+    !Array.isArray(selected.order) ||
+    !selected.order.every(isRecord)
+  ) {
     return [];
   }
 
