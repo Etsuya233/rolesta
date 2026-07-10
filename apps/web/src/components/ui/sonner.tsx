@@ -6,6 +6,7 @@ export function Toaster() {
       closeButton
       duration={5_000}
       position="top-right"
+      style={{ fontFamily: "var(--font-sans)" }}
       theme="system"
       toastOptions={{
         classNames: {
