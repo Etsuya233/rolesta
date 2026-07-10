@@ -1,15 +1,17 @@
 import { expect, test, type Page, type Route } from "@playwright/test";
 import { mockAuthenticatedApp } from "./api-mocks";
 
-test("saves one complete worldbook document across editor pages", async ({
+test("keeps worldbook entry changes in one draft until save", async ({
   page,
 }) => {
   let savedDocument: Record<string, unknown> | null = null;
+  let updateRequestCount = 0;
 
   await mockAuthenticatedApp(page);
   await mockWorldbookList(page);
   await page.route(/\/api\/worldbooks\/worldbook_e2e$/, async (route) => {
     if (route.request().method() === "PUT") {
+      updateRequestCount += 1;
       savedDocument = route.request().postDataJSON() as Record<string, unknown>;
       await fulfillWorldbookDetail(route, savedDocument);
       return;
@@ -22,30 +24,52 @@ test("saves one complete worldbook document across editor pages", async ({
   await page.getByRole("button", { name: /Complete worldbook/ }).click();
   await page.getByRole("button", { name: "Entries", exact: true }).click();
 
-  const saveEntries = page.getByRole("button", { name: "Save order" });
+  const saveEntries = page.getByRole("button", { name: "Save preset" });
   await expect(saveEntries).toBeDisabled();
+
+  await page.getByText("Second", { exact: true }).click();
+  const saveEntry = page.getByRole("button", { name: "Save preset" });
+  await expect(saveEntry).toBeDisabled();
+  await page.getByRole("textbox", { name: "Name" }).fill("Second updated");
+  await expect(saveEntry).toBeEnabled();
+  await page.getByRole("button", { name: "Back" }).click();
+
+  await expect(page.getByRole("heading", { name: "Entries" })).toBeVisible();
+  await expect(page.getByText("Second updated", { exact: true })).toBeVisible();
+  await expect(saveEntries).toBeEnabled();
 
   const enabledToggles = page.getByRole("checkbox", { name: "Enable entry" });
   await enabledToggles.first().uncheck();
+  await page
+    .getByRole("button", { name: "Blue trigger", exact: true })
+    .first()
+    .click();
+  await expect.poll(() => updateRequestCount).toBe(0);
+
+  await expect(enabledToggles.first()).not.toBeChecked();
   await expect(saveEntries).toBeEnabled();
 
-  await page.getByText("Second", { exact: true }).click();
-  await page.getByRole("textbox", { name: "Name" }).fill("Second updated");
-  await page.getByRole("button", { name: "Save" }).click();
+  await page.getByText("Second updated", { exact: true }).click();
+  await saveEntry.click();
 
-  await expect(page.getByRole("heading", { name: "Entries" })).toBeVisible();
-  await expect(enabledToggles.first()).not.toBeChecked();
-  await expect(saveEntries).toBeDisabled();
+  await expect(page.getByRole("heading", { name: "Edit entry" })).toBeVisible();
+  await expect(saveEntry).toBeDisabled();
   await expect
     .poll(() => savedDocument)
     .toMatchObject({
       name: "Complete worldbook",
       visibility: "private",
       entries: [
-        { id: "entry_1", name: "First", enabled: false },
+        {
+          id: "entry_1",
+          name: "First",
+          enabled: false,
+          constant: true,
+        },
         { id: "entry_2", name: "Second updated", enabled: true },
       ],
     });
+  await expect.poll(() => updateRequestCount).toBe(1);
 });
 
 async function mockWorldbookList(page: Page) {

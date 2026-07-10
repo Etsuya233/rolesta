@@ -68,7 +68,10 @@ export interface WorldbookDraftSession {
   isPending: boolean;
   worldbook: WorldbookDetailResponse | undefined;
   acceptSavedWorldbook: (worldbook: WorldbookDetailResponse) => void;
-  saveDocument: (document?: WorldbookDocument) => void;
+  saveDocument: (
+    document?: WorldbookDocument,
+    onSaved?: (worldbook: WorldbookDetailResponse) => void,
+  ) => void;
   submit: (event: FormEvent<HTMLFormElement>) => void;
 }
 
@@ -220,12 +223,10 @@ export function useWorldbookDraftSession({
   sessionKey,
   worldbookId,
   onCreated,
-  onSaved,
 }: {
   sessionKey: string;
   worldbookId?: string;
   onCreated?: (worldbook: WorldbookDetailResponse) => void;
-  onSaved?: (worldbook: WorldbookDetailResponse) => void;
 }): WorldbookDraftSession {
   const { t } = useTranslation();
   const context = useWorldbookDraftSessionsContext();
@@ -325,7 +326,10 @@ export function useWorldbookDraftSession({
   );
   const isDirty = !worldbookDocumentEquals(draft.document, draft.baseline);
   const saveDocument = useCallback(
-    (document = draft.document) => {
+    (
+      document = draft.document,
+      onSaved?: (worldbook: WorldbookDetailResponse) => void,
+    ) => {
       if (!document.name.trim()) {
         notify.error({
           title: t("worldbooks.editor.errors.nameRequired"),
@@ -348,7 +352,6 @@ export function useWorldbookDraftSession({
     [
       createMutation,
       draft.document,
-      onSaved,
       saveSession,
       sessionKey,
       setSessionDocument,

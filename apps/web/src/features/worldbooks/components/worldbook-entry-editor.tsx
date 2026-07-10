@@ -37,23 +37,25 @@ export function WorldbookEntryEditor({
   entryId,
   submitLabel,
   onSaved,
+  onDeleted,
 }: {
   worldbookId: string;
   sessionKey: string;
   entryId?: string;
   submitLabel: string;
-  onSaved: () => void;
+  onSaved?: () => void;
+  onDeleted?: () => void;
 }) {
   const { t } = useTranslation();
   const fieldPrefix = useId();
   const [form, setForm] = useState<WorldbookEntryEditorFormState>(
     emptyWorldbookEntryEditorForm,
   );
-  const { document, isPending, saveDocument } = useWorldbookDraftSession({
-    worldbookId,
-    sessionKey,
-    onSaved,
-  });
+  const { document, setDocument, isDirty, isPending, saveDocument } =
+    useWorldbookDraftSession({
+      worldbookId,
+      sessionKey,
+    });
   const entry = document.entries.find((candidate) => candidate.id === entryId);
   const positionOptions: Array<{
     value: WorldbookInsertionPosition;
@@ -113,6 +115,31 @@ export function WorldbookEntryEditor({
     }
   }, [document.entries, entry]);
 
+  function updateForm(nextForm: WorldbookEntryEditorFormState) {
+    setForm(nextForm);
+
+    if (!entryId || !entry) {
+      return;
+    }
+
+    const nextEntry = {
+      id: entryId,
+      ...worldbookEntryValuesFromForm(nextForm),
+    };
+    setDocument((current) => {
+      const entries = current.entries.filter(
+        (candidate) => candidate.id !== entryId,
+      );
+      const insertionOrder = Math.max(
+        0,
+        Math.min(nextForm.insertionOrder, entries.length),
+      );
+      entries.splice(insertionOrder, 0, nextEntry);
+
+      return { ...current, entries };
+    });
+  }
+
   function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
 
@@ -142,14 +169,19 @@ export function WorldbookEntryEditor({
       entries.push(nextEntry);
     }
 
-    saveDocument({ ...document, entries });
+    saveDocument({ ...document, entries }, onSaved);
   }
 
   function deleteEntry() {
-    saveDocument({
-      ...document,
-      entries: document.entries.filter((candidate) => candidate.id !== entryId),
-    });
+    saveDocument(
+      {
+        ...document,
+        entries: document.entries.filter(
+          (candidate) => candidate.id !== entryId,
+        ),
+      },
+      onDeleted,
+    );
   }
 
   return (
@@ -167,7 +199,7 @@ export function WorldbookEntryEditor({
                 label={t("worldbooks.entries.fields.name")}
                 value={form.name}
                 onChange={(event) =>
-                  setForm({ ...form, name: event.target.value })
+                  updateForm({ ...form, name: event.target.value })
                 }
               />
               <WorldbookNumberField
@@ -176,7 +208,7 @@ export function WorldbookEntryEditor({
                 label={t("worldbooks.entries.fields.probability")}
                 value={form.probability}
                 onChange={(probability) =>
-                  setForm({ ...form, probability: probability ?? 0 })
+                  updateForm({ ...form, probability: probability ?? 0 })
                 }
               />
             </div>
@@ -188,7 +220,7 @@ export function WorldbookEntryEditor({
               rows={3}
               value={form.comment}
               onChange={(event) =>
-                setForm({ ...form, comment: event.target.value })
+                updateForm({ ...form, comment: event.target.value })
               }
             />
           </WorldbookEntrySection>
@@ -203,7 +235,7 @@ export function WorldbookEntryEditor({
               rows={10}
               value={form.content}
               onChange={(event) =>
-                setForm({ ...form, content: event.target.value })
+                updateForm({ ...form, content: event.target.value })
               }
             />
             <div className="rounded-md border border-border px-3 py-2 text-sm">
@@ -228,7 +260,7 @@ export function WorldbookEntryEditor({
                 rows={2}
                 value={form.primaryKeysText}
                 onChange={(event) =>
-                  setForm({ ...form, primaryKeysText: event.target.value })
+                  updateForm({ ...form, primaryKeysText: event.target.value })
                 }
               />
               <WorldbookTextAreaField
@@ -239,7 +271,7 @@ export function WorldbookEntryEditor({
                 rows={2}
                 value={form.secondaryKeysText}
                 onChange={(event) =>
-                  setForm({ ...form, secondaryKeysText: event.target.value })
+                  updateForm({ ...form, secondaryKeysText: event.target.value })
                 }
               />
             </div>
@@ -250,7 +282,7 @@ export function WorldbookEntryEditor({
               options={selectiveLogicOptions}
               value={form.selectiveLogic}
               onChange={(selectiveLogic) =>
-                setForm({ ...form, selectiveLogic })
+                updateForm({ ...form, selectiveLogic })
               }
             />
             <div className="grid gap-3 sm:grid-cols-2">
@@ -259,21 +291,21 @@ export function WorldbookEntryEditor({
                 disabled={isPending}
                 id={`${fieldPrefix}-constant`}
                 label={t("worldbooks.entries.fields.constant")}
-                onChange={(constant) => setForm({ ...form, constant })}
+                onChange={(constant) => updateForm({ ...form, constant })}
               />
               <WorldbookCheckboxField
                 checked={form.vectorized}
                 disabled={isPending}
                 id={`${fieldPrefix}-vectorized`}
                 label={t("worldbooks.entries.fields.vectorized")}
-                onChange={(vectorized) => setForm({ ...form, vectorized })}
+                onChange={(vectorized) => updateForm({ ...form, vectorized })}
               />
               <WorldbookCheckboxField
                 checked={form.selective}
                 disabled={isPending}
                 id={`${fieldPrefix}-selective`}
                 label={t("worldbooks.entries.fields.selective")}
-                onChange={(selective) => setForm({ ...form, selective })}
+                onChange={(selective) => updateForm({ ...form, selective })}
               />
               <WorldbookCheckboxField
                 checked={form.caseSensitive}
@@ -281,7 +313,7 @@ export function WorldbookEntryEditor({
                 id={`${fieldPrefix}-case-sensitive`}
                 label={t("worldbooks.entries.fields.caseSensitive")}
                 onChange={(caseSensitive) =>
-                  setForm({ ...form, caseSensitive })
+                  updateForm({ ...form, caseSensitive })
                 }
               />
               <WorldbookCheckboxField
@@ -290,7 +322,7 @@ export function WorldbookEntryEditor({
                 id={`${fieldPrefix}-whole-words`}
                 label={t("worldbooks.entries.fields.matchWholeWords")}
                 onChange={(matchWholeWords) =>
-                  setForm({ ...form, matchWholeWords })
+                  updateForm({ ...form, matchWholeWords })
                 }
               />
             </div>
@@ -307,7 +339,7 @@ export function WorldbookEntryEditor({
                 options={positionOptions}
                 value={form.insertionPosition}
                 onChange={(insertionPosition) =>
-                  setForm({ ...form, insertionPosition })
+                  updateForm({ ...form, insertionPosition })
                 }
               />
               <WorldbookNumberField
@@ -316,7 +348,10 @@ export function WorldbookEntryEditor({
                 label={t("worldbooks.entries.fields.insertionOrder")}
                 value={form.insertionOrder}
                 onChange={(insertionOrder) =>
-                  setForm({ ...form, insertionOrder: insertionOrder ?? 0 })
+                  updateForm({
+                    ...form,
+                    insertionOrder: insertionOrder ?? 0,
+                  })
                 }
               />
             </div>
@@ -327,7 +362,9 @@ export function WorldbookEntryEditor({
                   id={`${fieldPrefix}-depth`}
                   label={t("worldbooks.entries.fields.depth")}
                   value={form.depth}
-                  onChange={(depth) => setForm({ ...form, depth: depth ?? 0 })}
+                  onChange={(depth) =>
+                    updateForm({ ...form, depth: depth ?? 0 })
+                  }
                 />
                 <WorldbookSelectField
                   disabled={isPending}
@@ -336,7 +373,7 @@ export function WorldbookEntryEditor({
                   options={roleOptions}
                   value={form.insertionRole}
                   onChange={(insertionRole) =>
-                    setForm({ ...form, insertionRole })
+                    updateForm({ ...form, insertionRole })
                   }
                 />
               </div>
@@ -348,7 +385,7 @@ export function WorldbookEntryEditor({
                 label={t("worldbooks.entries.fields.anchorName")}
                 value={form.anchorName}
                 onChange={(event) =>
-                  setForm({ ...form, anchorName: event.target.value })
+                  updateForm({ ...form, anchorName: event.target.value })
                 }
               />
             ) : null}
@@ -362,7 +399,7 @@ export function WorldbookEntryEditor({
               id={`${fieldPrefix}-entry-scan-depth`}
               label={t("worldbooks.entries.fields.entryScanDepth")}
               value={form.scanDepth}
-              onChange={(scanDepth) => setForm({ ...form, scanDepth })}
+              onChange={(scanDepth) => updateForm({ ...form, scanDepth })}
             />
             <div className="grid gap-3 sm:grid-cols-2">
               <WorldbookCheckboxField
@@ -371,7 +408,7 @@ export function WorldbookEntryEditor({
                 id={`${fieldPrefix}-exclude-recursion`}
                 label={t("worldbooks.entries.fields.excludeRecursion")}
                 onChange={(excludeRecursion) =>
-                  setForm({ ...form, excludeRecursion })
+                  updateForm({ ...form, excludeRecursion })
                 }
               />
               <WorldbookCheckboxField
@@ -380,7 +417,7 @@ export function WorldbookEntryEditor({
                 id={`${fieldPrefix}-prevent-recursion`}
                 label={t("worldbooks.entries.fields.preventRecursion")}
                 onChange={(preventRecursion) =>
-                  setForm({ ...form, preventRecursion })
+                  updateForm({ ...form, preventRecursion })
                 }
               />
               <WorldbookCheckboxField
@@ -389,7 +426,7 @@ export function WorldbookEntryEditor({
                 id={`${fieldPrefix}-delay-until-recursion`}
                 label={t("worldbooks.entries.fields.delayUntilRecursion")}
                 onChange={(delayUntilRecursion) =>
-                  setForm({ ...form, delayUntilRecursion })
+                  updateForm({ ...form, delayUntilRecursion })
                 }
               />
             </div>
@@ -399,7 +436,9 @@ export function WorldbookEntryEditor({
 
       <div className="flex shrink-0 flex-col gap-3 border-t border-border bg-background px-4 py-3">
         <div className="grid grid-cols-[1fr_auto] gap-2">
-          <FormSubmitButton disabled={isPending}>
+          <FormSubmitButton
+            disabled={isPending || Boolean(entryId && !isDirty)}
+          >
             {submitLabel}
           </FormSubmitButton>
           {entryId ? (

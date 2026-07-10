@@ -74,7 +74,7 @@ export function WorldbookEditPage({
       <WorldbookMainEditor
         worldbookId={page.worldbookId}
         sessionKey={page.sessionKey}
-        submitLabel={t("worldbooks.editor.saveSubmit")}
+        submitLabel={t("worldbooks.savePreset")}
         onOpenEntries={() =>
           pushPage(worldbookEntryListPage(page.worldbookId, page.sessionKey))
         }

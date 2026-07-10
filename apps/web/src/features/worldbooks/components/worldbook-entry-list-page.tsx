@@ -307,9 +307,9 @@ function WorldbookEntryListEditor({
                     moveMutation.mutate({ entry, targetWorldbookId })
                   }
                   onToggleTriggerMode={() =>
-                    saveDocument({
-                      ...document,
-                      entries: document.entries.map((candidate) =>
+                    setDocument((current) => ({
+                      ...current,
+                      entries: current.entries.map((candidate) =>
                         candidate.id === entry.id
                           ? {
                               ...candidate,
@@ -318,7 +318,7 @@ function WorldbookEntryListEditor({
                             }
                           : candidate,
                       ),
-                    })
+                    }))
                   }
                   onToggle={(enabled) =>
                     setDocument((current) => ({
@@ -346,7 +346,7 @@ function WorldbookEntryListEditor({
           type="button"
           onClick={() => saveDocument()}
         >
-          {t("worldbooks.entries.saveOrder")}
+          {t("worldbooks.savePreset")}
         </Button>
       </div>
     </div>
@@ -485,13 +485,9 @@ function WorldbookEntryRow({
             onToggleTriggerMode();
           }}
         >
-          <span
-            aria-hidden="true"
-            className={cn(
-              "size-3 rounded-full shadow-sm",
-              triggerMode === "green" ? "bg-emerald-500" : "bg-sky-500",
-            )}
-          />
+          <span aria-hidden="true" className="text-base leading-none">
+            {triggerMode === "green" ? "🟢" : "🔵"}
+          </span>
         </Button>
         <label
           className="flex size-10 items-center justify-center"

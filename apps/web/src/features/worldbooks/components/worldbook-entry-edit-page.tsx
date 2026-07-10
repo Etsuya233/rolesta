@@ -20,8 +20,8 @@ export function WorldbookEntryEditPage({
         entryId={page.entryId}
         sessionKey={page.sessionKey}
         worldbookId={page.worldbookId}
-        submitLabel={t("worldbooks.entries.saveSubmit")}
-        onSaved={onBack}
+        submitLabel={t("worldbooks.savePreset")}
+        onDeleted={onBack}
       />
     </WorldbookStackPage>
   );

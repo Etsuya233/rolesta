@@ -1,5 +1,6 @@
 const worldbookTranslations = {
   "en-US": {
+    savePreset: "Save preset",
     list: {
       title: "Worldbooks",
       importAction: "Import worldbook",
@@ -165,6 +166,7 @@ const worldbookTranslations = {
     },
   },
   "zh-CN": {
+    savePreset: "保存预设",
     list: {
       title: "世界书",
       importAction: "导入世界书",
@@ -330,6 +332,7 @@ const worldbookTranslations = {
     },
   },
   "zh-TW": {
+    savePreset: "儲存預設",
     list: {
       title: "世界書",
       importAction: "匯入世界書",
@@ -495,6 +498,7 @@ const worldbookTranslations = {
     },
   },
   "ja-JP": {
+    savePreset: "プリセットを保存",
     list: {
       title: "ワールドブック",
       importAction: "ワールドブックをインポート",
