@@ -8,6 +8,7 @@ import * as modelProvidersMigration from "./0005_model_providers.js";
 import * as worldbooksMigration from "./0006_worldbooks.js";
 import * as worldbookEntryCompatibilityMigration from "./0007_worldbook_entry_compatibility.js";
 import * as worldbookEntryVectorizedMigration from "./0008_worldbook_entry_vectorized.js";
+import * as presetVisibilityMigration from "./0009_preset_visibility.js";
 
 type DialectMigration = {
   common: Migration;
@@ -40,6 +41,9 @@ const migrations: Record<string, DialectMigration> = {
   },
   "0008_worldbook_entry_vectorized": {
     common: worldbookEntryVectorizedMigration,
+  },
+  "0009_preset_visibility": {
+    common: presetVisibilityMigration,
   },
 };
 

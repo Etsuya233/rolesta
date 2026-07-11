@@ -26,11 +26,13 @@ export type PresetCreateValues =
 
 export type PresetEntryRole = PresetEntryResponse["role"];
 export type PresetEntryPosition = PresetEntryResponse["position"];
+export type PresetVisibility = PresetSummaryResponse["visibility"];
 
 export type ListPresetsQuery = NonNullable<
   operations["PresetsController_list"]["parameters"]["query"]
 >;
 export type PresetSortKey = NonNullable<ListPresetsQuery["sort"]>;
+export type PresetListScope = NonNullable<ListPresetsQuery["scope"]>;
 export type SortDirection = NonNullable<ListPresetsQuery["direction"]>;
 
 export async function listPresets(

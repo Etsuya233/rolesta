@@ -76,6 +76,7 @@ export interface PresetDraftSession {
 
 const emptyPresetDocument: PresetDocument = {
   name: emptyPresetEditorForm.name,
+  visibility: emptyPresetEditorForm.visibility,
   modelSettings: emptyPresetEditorForm.modelSettings,
   entries: [],
   promptItems: [],
@@ -276,6 +277,7 @@ export function usePresetDraftSession({
     mutationFn: (document: PresetDocument) =>
       createPreset({
         name: document.name,
+        visibility: document.visibility,
         modelSettings: document.modelSettings,
       }),
     async onSuccess(preset) {
@@ -298,15 +300,17 @@ export function usePresetDraftSession({
   const form = useMemo<PresetEditorFormState>(
     () => ({
       name: document.name,
+      visibility: document.visibility,
       modelSettings: document.modelSettings,
     }),
-    [document.modelSettings, document.name],
+    [document.modelSettings, document.name, document.visibility],
   );
   const setForm = useCallback(
     (update: SetStateAction<PresetEditorFormState>) => {
       setSessionDocument(sessionKey, (current) => {
         const currentForm = {
           name: current.name,
+          visibility: current.visibility,
           modelSettings: current.modelSettings,
         };
         const nextForm =
@@ -315,6 +319,7 @@ export function usePresetDraftSession({
         return {
           ...current,
           name: nextForm.name,
+          visibility: nextForm.visibility,
           modelSettings: nextForm.modelSettings,
         };
       });

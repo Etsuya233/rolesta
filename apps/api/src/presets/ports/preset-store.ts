@@ -15,8 +15,12 @@ export type PresetSortKey = (typeof PRESET_SORT_KEYS)[number];
 export const SORT_DIRECTIONS = ['asc', 'desc'] as const;
 export type SortDirection = (typeof SORT_DIRECTIONS)[number];
 
+export const PRESET_LIST_SCOPES = ['all', 'mine', 'public'] as const;
+export type PresetListScope = (typeof PRESET_LIST_SCOPES)[number];
+
 export interface ListPresetsRequest {
   viewerUserId: string;
+  scope: PresetListScope;
   sort: PresetSortKey;
   direction: SortDirection;
   pageIndex: number;
@@ -26,6 +30,7 @@ export interface ListPresetsRequest {
 
 export interface PresetStore {
   list(request: ListPresetsRequest): Promise<PageResponse<PresetSummary>>;
+  findVisibleById(id: string, viewerUserId: string): Promise<Preset | null>;
   findOwnedById(id: string, ownerUserId: string): Promise<Preset | null>;
   save(preset: Preset): Promise<void>;
   update(preset: Preset): Promise<void>;

@@ -26,6 +26,34 @@ test("renders character manager controls", async ({ page }) => {
   await expect(page.getByLabel("最后一页")).toBeVisible();
 });
 
+test("filters character cards by permission from the search toolbar", async ({
+  page,
+}) => {
+  await mockAuthenticatedApp(page);
+  await mockCharacterList(page);
+
+  await page.goto("/app/characters");
+
+  const filterButton = page.getByRole("button", { name: "筛选角色卡" });
+  await filterButton.click();
+
+  await expect(page.getByText("权限", { exact: true })).toBeVisible();
+
+  const publicRequest = page.waitForRequest((request) => {
+    const url = new URL(request.url());
+    return (
+      url.pathname.endsWith("/api/characters") &&
+      url.searchParams.get("scope") === "public"
+    );
+  });
+
+  await page.getByRole("radio", { name: "公开", exact: true }).click();
+  await publicRequest;
+
+  await expect(filterButton).toHaveAttribute("aria-pressed", "true");
+  await expect(filterButton).toHaveAttribute("data-variant", "secondary");
+});
+
 test("renders character editor sections without advanced page entry", async ({
   page,
 }) => {

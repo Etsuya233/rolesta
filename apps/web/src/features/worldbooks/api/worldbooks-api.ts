@@ -31,6 +31,7 @@ export type ListWorldbooksQuery = NonNullable<
   operations["WorldbooksController_list"]["parameters"]["query"]
 >;
 export type WorldbookSortKey = NonNullable<ListWorldbooksQuery["sort"]>;
+export type WorldbookListScope = NonNullable<ListWorldbooksQuery["scope"]>;
 export type SortDirection = NonNullable<ListWorldbooksQuery["direction"]>;
 
 export async function listWorldbooks(

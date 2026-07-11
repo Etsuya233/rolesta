@@ -15,8 +15,12 @@ export type WorldbookSortKey = (typeof WORLDBOOK_SORT_KEYS)[number];
 export const SORT_DIRECTIONS = ["asc", "desc"] as const;
 export type SortDirection = (typeof SORT_DIRECTIONS)[number];
 
+export const WORLDBOOK_LIST_SCOPES = ["all", "mine", "public"] as const;
+export type WorldbookListScope = (typeof WORLDBOOK_LIST_SCOPES)[number];
+
 export interface ListWorldbooksRequest {
   viewerUserId: string;
+  scope: WorldbookListScope;
   sort: WorldbookSortKey;
   direction: SortDirection;
   pageIndex: number;

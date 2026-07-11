@@ -54,6 +54,23 @@ describe('OpenAPI document', () => {
         },
       },
     });
+    for (const path of ['/worldbooks', '/presets'] as const) {
+      expect(document.paths[path]?.get?.parameters).toEqual(
+        expect.arrayContaining([
+          expect.objectContaining({ in: 'query', name: 'scope' }),
+        ]),
+      );
+    }
+    const presetSummarySchema = document.components?.schemas
+      ?.PresetSummaryResponseDto as {
+      required?: string[];
+      properties?: Record<string, unknown>;
+    };
+    expect(presetSummarySchema.required).toContain('visibility');
+    expect(presetSummarySchema.properties?.visibility).toMatchObject({
+      type: 'string',
+      enum: ['private', 'public'],
+    });
     expect(document.paths['/characters/{id}']?.patch?.parameters).toEqual(
       expect.arrayContaining([expect.objectContaining({ in: 'path', name: 'id' })]),
     );

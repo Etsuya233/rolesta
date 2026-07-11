@@ -4,11 +4,13 @@ import { useTranslation } from "react-i18next";
 import { Input } from "../../../components/ui/input";
 import { getFormErrorMessage } from "../../../lib/forms/form-error";
 import { notify } from "../../../lib/notifications/notify";
+import { AssetPermissionFilterMenu } from "../../assets/components/asset-permission-filter-menu";
 import { AssetSortMenu } from "../../assets/components/asset-sort-menu";
 import { PageControls } from "../../assets/components/page-controls";
 import {
   listWorldbooks,
   type SortDirection,
+  type WorldbookListScope,
   type WorldbookSortKey,
 } from "../api/worldbooks-api";
 import { WorldbookListItem } from "./worldbook-list-item";
@@ -20,13 +22,18 @@ export function WorldbookListPanel({
 }) {
   const { t } = useTranslation();
   const [q, setQ] = useState("");
+  const [scope, setScope] = useState<WorldbookListScope>("all");
   const [sort, setSort] = useState<WorldbookSortKey>("updatedAt");
   const [direction, setDirection] = useState<SortDirection>("desc");
   const [pageIndex, setPageIndex] = useState(0);
   const [pageSize, setPageSize] = useState(20);
   const query = useQuery({
-    queryKey: ["worldbooks", { q, sort, direction, pageIndex, pageSize }],
-    queryFn: () => listWorldbooks({ q, sort, direction, pageIndex, pageSize }),
+    queryKey: [
+      "worldbooks",
+      { q, scope, sort, direction, pageIndex, pageSize },
+    ],
+    queryFn: () =>
+      listWorldbooks({ q, scope, sort, direction, pageIndex, pageSize }),
   });
   useEffect(() => {
     if (query.isError) {
@@ -44,15 +51,26 @@ export function WorldbookListPanel({
   return (
     <div className="mx-auto flex min-h-0 w-full max-w-2xl flex-1 flex-col overflow-hidden">
       <div className="flex shrink-0 flex-col gap-3 border-b border-border p-4">
-        <Input
-          aria-label={t("worldbooks.list.searchLabel")}
-          placeholder={t("worldbooks.list.searchPlaceholder")}
-          value={q}
-          onChange={(event) => {
-            setPageIndex(0);
-            setQ(event.target.value);
-          }}
-        />
+        <div className="flex items-center gap-2">
+          <Input
+            aria-label={t("worldbooks.list.searchLabel")}
+            className="min-w-0 flex-1"
+            placeholder={t("worldbooks.list.searchPlaceholder")}
+            value={q}
+            onChange={(event) => {
+              setPageIndex(0);
+              setQ(event.target.value);
+            }}
+          />
+          <AssetPermissionFilterMenu
+            buttonLabel={t("worldbooks.list.filterButton")}
+            scope={scope}
+            onScopeChange={(value) => {
+              setPageIndex(0);
+              setScope(value);
+            }}
+          />
+        </div>
         <AssetSortMenu
           direction={direction}
           options={sortOptions}

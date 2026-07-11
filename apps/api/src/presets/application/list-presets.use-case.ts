@@ -2,6 +2,7 @@ import { clampPageIndex, clampPageSize, type PageResponse } from '@rolesta/share
 import { UseCase } from '../../common/errors/index.js';
 import type {
   PresetSortKey,
+  PresetListScope,
   PresetStore,
   SortDirection,
 } from '../ports/preset-store.js';
@@ -10,6 +11,7 @@ import { translatePresetError } from './preset-error.mapper.js';
 
 export interface ListPresetsCommand {
   viewerUserId: string;
+  scope?: PresetListScope;
   sort?: PresetSortKey;
   direction?: SortDirection;
   pageIndex?: number;
@@ -24,6 +26,7 @@ export class ListPresetsUseCase {
   execute(command: ListPresetsCommand): Promise<PageResponse<PresetSummary>> {
     return this.store.list({
       viewerUserId: command.viewerUserId,
+      scope: command.scope ?? 'all',
       sort: command.sort ?? 'createdAt',
       direction: command.direction ?? 'desc',
       pageIndex: clampPageIndex(command.pageIndex ?? 0),

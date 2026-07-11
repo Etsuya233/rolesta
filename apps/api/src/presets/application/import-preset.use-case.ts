@@ -54,6 +54,7 @@ export class ImportPresetUseCase {
     const preset = withPresetTokenCount({
       id: presetId,
       ownerUserId: command.ownerUserId,
+      visibility: 'private',
       name: imported.name,
       modelProviderId: null,
       modelSettings: imported.modelSettings,

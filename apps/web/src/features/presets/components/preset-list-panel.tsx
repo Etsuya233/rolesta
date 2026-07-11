@@ -4,10 +4,12 @@ import { useTranslation } from "react-i18next";
 import { Input } from "../../../components/ui/input";
 import { getFormErrorMessage } from "../../../lib/forms/form-error";
 import { notify } from "../../../lib/notifications/notify";
+import { AssetPermissionFilterMenu } from "../../assets/components/asset-permission-filter-menu";
 import { AssetSortMenu } from "../../assets/components/asset-sort-menu";
 import { PageControls } from "../../assets/components/page-controls";
 import {
   listPresets,
+  type PresetListScope,
   type PresetSortKey,
   type SortDirection,
 } from "../api/presets-api";
@@ -20,13 +22,18 @@ export function PresetListPanel({
 }) {
   const { t } = useTranslation();
   const [q, setQ] = useState("");
+  const [scope, setScope] = useState<PresetListScope>("all");
   const [sort, setSort] = useState<PresetSortKey>("createdAt");
   const [direction, setDirection] = useState<SortDirection>("desc");
   const [pageIndex, setPageIndex] = useState(0);
   const [pageSize, setPageSize] = useState(20);
   const query = useQuery({
-    queryKey: ["presets", { q, sort, direction, pageIndex, pageSize }],
-    queryFn: () => listPresets({ q, sort, direction, pageIndex, pageSize }),
+    queryKey: [
+      "presets",
+      { q, scope, sort, direction, pageIndex, pageSize },
+    ],
+    queryFn: () =>
+      listPresets({ q, scope, sort, direction, pageIndex, pageSize }),
   });
   const sortOptions: Array<{ value: PresetSortKey; label: string }> = [
     { value: "createdAt", label: t("presets.list.sort.createdAt") },
@@ -45,15 +52,26 @@ export function PresetListPanel({
   return (
     <div className="mx-auto flex min-h-0 w-full max-w-2xl flex-1 flex-col overflow-hidden">
       <div className="flex shrink-0 flex-col gap-3 border-b border-border p-4">
-        <Input
-          aria-label={t("presets.list.searchLabel")}
-          placeholder={t("presets.list.searchPlaceholder")}
-          value={q}
-          onChange={(event) => {
-            setPageIndex(0);
-            setQ(event.target.value);
-          }}
-        />
+        <div className="flex items-center gap-2">
+          <Input
+            aria-label={t("presets.list.searchLabel")}
+            className="min-w-0 flex-1"
+            placeholder={t("presets.list.searchPlaceholder")}
+            value={q}
+            onChange={(event) => {
+              setPageIndex(0);
+              setQ(event.target.value);
+            }}
+          />
+          <AssetPermissionFilterMenu
+            buttonLabel={t("presets.list.filterButton")}
+            scope={scope}
+            onScopeChange={(value) => {
+              setPageIndex(0);
+              setScope(value);
+            }}
+          />
+        </div>
         <AssetSortMenu
           direction={direction}
           options={sortOptions}

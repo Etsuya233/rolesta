@@ -262,12 +262,24 @@ function withListFilters(
   query: WorldbookSelectQuery,
   request: ListWorldbooksRequest,
 ): WorldbookSelectQuery {
-  let nextQuery = query.where((builder) =>
-    builder.or([
-      builder("owner_user_id", "=", request.viewerUserId),
-      builder("visibility", "=", "public"),
-    ]),
-  );
+  let nextQuery = query;
+
+  if (request.scope === "mine") {
+    nextQuery = nextQuery.where("owner_user_id", "=", request.viewerUserId);
+  }
+
+  if (request.scope === "public") {
+    nextQuery = nextQuery.where("visibility", "=", "public");
+  }
+
+  if (request.scope === "all") {
+    nextQuery = nextQuery.where((builder) =>
+      builder.or([
+        builder("owner_user_id", "=", request.viewerUserId),
+        builder("visibility", "=", "public"),
+      ]),
+    );
+  }
 
   if (request.q.trim().length > 0) {
     nextQuery = nextQuery.where("name", "like", `%${request.q.trim()}%`);

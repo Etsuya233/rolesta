@@ -1,6 +1,29 @@
 import { expect, test, type Page, type Route } from "@playwright/test";
 import { mockAuthenticatedApp } from "./api-mocks";
 
+test("filters presets by permission from the search toolbar", async ({
+  page,
+}) => {
+  await mockAuthenticatedApp(page);
+  await mockPresetList(page);
+  await page.goto("/app/presets");
+
+  const filterButton = page.getByRole("button", { name: "Filter presets" });
+  await filterButton.click();
+
+  const publicRequest = page.waitForRequest((request) => {
+    const url = new URL(request.url());
+    return (
+      url.pathname.endsWith("/api/presets") &&
+      url.searchParams.get("scope") === "public"
+    );
+  });
+
+  await page.getByRole("radio", { name: "Public", exact: true }).click();
+  await publicRequest;
+  await expect(filterButton).toHaveAttribute("aria-pressed", "true");
+});
+
 test("reloads preset details after reopening the preset editor", async ({
   page,
 }) => {
@@ -115,6 +138,7 @@ async function mockPresetList(page: Page) {
             {
               id: "preset_e2e",
               ownerUserId: "user_e2e",
+              visibility: "private",
               name: "Complete preset",
               entryCount: 2,
               promptItemCount: 2,
@@ -170,6 +194,7 @@ async function fulfillPresetDetail(
       data: {
         id: "preset_e2e",
         ownerUserId: "user_e2e",
+        visibility: document.visibility ?? "private",
         name: document.name ?? "Complete preset",
         entryCount: entries.length,
         promptItemCount: promptItems.length,

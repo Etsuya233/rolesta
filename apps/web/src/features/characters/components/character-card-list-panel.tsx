@@ -2,7 +2,7 @@ import { useQuery } from "@tanstack/react-query";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Input } from "../../../components/ui/input";
-import { AssetScopeTabs } from "../../assets/components/asset-scope-tabs";
+import { AssetPermissionFilterMenu } from "../../assets/components/asset-permission-filter-menu";
 import { AssetSortMenu } from "../../assets/components/asset-sort-menu";
 import { PageControls } from "../../assets/components/page-controls";
 import type {
@@ -58,22 +58,26 @@ export function CharacterCardListPanel({
     <section className="min-h-0 flex-1 overflow-y-auto">
       <div className="mx-auto flex min-h-full w-full max-w-2xl flex-col">
         <div className="flex flex-col gap-3 border-b border-border px-4 py-3">
-          <Input
-            aria-label={t("characters.list.searchLabel")}
-            placeholder={t("characters.list.searchPlaceholder")}
-            value={q}
-            onChange={(event) => {
-              setQ(event.target.value);
-              resetPageIndex();
-            }}
-          />
-          <AssetScopeTabs
-            value={scope}
-            onChange={(value) => {
-              setScope(value);
-              resetPageIndex();
-            }}
-          />
+          <div className="flex items-center gap-2">
+            <Input
+              aria-label={t("characters.list.searchLabel")}
+              className="min-w-0 flex-1"
+              placeholder={t("characters.list.searchPlaceholder")}
+              value={q}
+              onChange={(event) => {
+                setQ(event.target.value);
+                resetPageIndex();
+              }}
+            />
+            <AssetPermissionFilterMenu
+              buttonLabel={t("characters.list.filterButton")}
+              scope={scope}
+              onScopeChange={(value) => {
+                setScope(value);
+                resetPageIndex();
+              }}
+            />
+          </div>
           <AssetSortMenu
             direction={direction}
             options={characterSortOptions}

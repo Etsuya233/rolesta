@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import type { PageResponse } from '@rolesta/shared';
 import { PresetApplicationError } from './preset-application-error.js';
 import { ImportPresetUseCase } from './import-preset.use-case.js';
+import { GetPresetUseCase } from './get-preset.use-case.js';
 import { UpdatePresetPromptItemsUseCase } from './update-preset-prompt-items.use-case.js';
 import { UpdatePresetDocumentUseCase } from './update-preset-document.use-case.js';
 import type {
@@ -14,6 +15,21 @@ import { PresetPortError } from '../ports/preset-port-error.js';
 import type { PresetStore } from '../ports/preset-store.js';
 
 describe('preset use cases', () => {
+  it('allows public reads and keeps private presets owner-only', async () => {
+    const store = new InMemoryPresetStore([
+      preset({ id: 'public', ownerUserId: 'owner', visibility: 'public' }),
+      preset({ id: 'private', ownerUserId: 'owner', visibility: 'private' }),
+    ]);
+    const useCase = new GetPresetUseCase(store);
+
+    await expect(
+      useCase.execute({ id: 'public', viewerUserId: 'reader' }),
+    ).resolves.toMatchObject({ id: 'public' });
+    await expect(
+      useCase.execute({ id: 'private', viewerUserId: 'reader' }),
+    ).rejects.toMatchObject({ reason: 'not-found' });
+  });
+
   it('maps codec port errors to application errors for import use cases', async () => {
     const useCase = new ImportPresetUseCase(
       new NoopPresetStore(),
@@ -116,6 +132,7 @@ describe('preset use cases', () => {
     const updated = await useCase.execute({
       presetId: 'preset_1',
       viewerUserId: 'owner',
+      visibility: 'public',
       name: 'Updated preset',
       modelSettings: {
         ...preset({}).modelSettings,
@@ -144,6 +161,7 @@ describe('preset use cases', () => {
     });
 
     expect(updated.name).toBe('Updated preset');
+    expect(updated.visibility).toBe('public');
     expect(updated.modelSettings.stream).toBe(false);
     expect(updated.entries).toHaveLength(2);
     expect(updated.entries[0]).toMatchObject({
@@ -176,6 +194,7 @@ describe('preset use cases', () => {
       useCase.execute({
         presetId: 'preset_1',
         viewerUserId: 'owner',
+        visibility: 'private',
         name: 'Preset',
         modelSettings: preset({}).modelSettings,
         entries: [],
@@ -214,6 +233,10 @@ class NoopPresetStore implements PresetStore {
     return Promise.resolve(null);
   }
 
+  findVisibleById(): Promise<Preset | null> {
+    return Promise.resolve(null);
+  }
+
   save(): Promise<void> {
     return Promise.resolve();
   }
@@ -240,6 +263,16 @@ class InMemoryPresetStore implements PresetStore {
     const preset = this.presets.find(
       (candidate) =>
         candidate.id === id && candidate.ownerUserId === ownerUserId,
+    );
+    return Promise.resolve(preset ?? null);
+  }
+
+  findVisibleById(id: string, viewerUserId: string): Promise<Preset | null> {
+    const preset = this.presets.find(
+      (candidate) =>
+        candidate.id === id &&
+        (candidate.ownerUserId === viewerUserId ||
+          candidate.visibility === 'public'),
     );
     return Promise.resolve(preset ?? null);
   }
@@ -288,6 +321,7 @@ function preset(overrides: Partial<Preset>): Preset {
   return {
     id: overrides.id ?? 'preset',
     ownerUserId: overrides.ownerUserId ?? 'owner',
+    visibility: overrides.visibility ?? 'private',
     name: overrides.name ?? 'Preset',
     modelProviderId: null,
     modelSettings: {

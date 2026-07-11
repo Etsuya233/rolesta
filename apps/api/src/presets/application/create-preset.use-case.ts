@@ -28,6 +28,7 @@ export class CreatePresetUseCase {
     const draft = withPresetTokenCount({
       id: this.idGenerator.createId(),
       ownerUserId: command.ownerUserId,
+      visibility: 'private',
       name: command.name ?? 'Untitled preset',
       modelProviderId: null,
       modelSettings: createDefaultPresetModelSettings(),

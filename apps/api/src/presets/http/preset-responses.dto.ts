@@ -1,13 +1,15 @@
 import { ApiProperty } from '@nestjs/swagger';
 import type { PageResponse } from '@rolesta/shared';
-import type {
-  Preset,
-  PresetEntry,
-  PresetEntryPosition,
-  PresetEntryRole,
-  PresetPromptItem,
-  PresetSummary,
-  PresetSourceFormat,
+import {
+  PRESET_VISIBILITIES,
+  type Preset,
+  type PresetEntry,
+  type PresetEntryPosition,
+  type PresetEntryRole,
+  type PresetPromptItem,
+  type PresetSummary,
+  type PresetSourceFormat,
+  type PresetVisibility,
 } from '../domain/preset.js';
 import type { PresetModelSettings } from '../domain/preset-model-settings.js';
 
@@ -17,6 +19,9 @@ export class PresetSummaryResponseDto {
 
   @ApiProperty({ type: String })
   ownerUserId!: string;
+
+  @ApiProperty({ enum: PRESET_VISIBILITIES })
+  visibility!: PresetVisibility;
 
   @ApiProperty({ type: String })
   name!: string;
@@ -180,6 +185,7 @@ export function toPresetSummaryResponse(preset: PresetSummary): PresetSummaryRes
   return {
     id: preset.id,
     ownerUserId: preset.ownerUserId,
+    visibility: preset.visibility,
     name: preset.name,
     entryCount: preset.entryCount,
     promptItemCount: preset.promptItemCount,
@@ -207,6 +213,7 @@ function toPresetAggregateSummaryResponse(preset: Preset): PresetSummaryResponse
   return {
     id: preset.id,
     ownerUserId: preset.ownerUserId,
+    visibility: preset.visibility,
     name: preset.name,
     entryCount: preset.entries.length,
     promptItemCount: preset.promptItems.length,

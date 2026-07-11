@@ -14,7 +14,7 @@ export class GetPresetUseCase {
 
   @UseCase(translatePresetError)
   async execute(command: GetPresetCommand): Promise<Preset> {
-    const preset = await this.store.findOwnedById(command.id, command.viewerUserId);
+    const preset = await this.store.findVisibleById(command.id, command.viewerUserId);
 
     if (preset === null) {
       throw new PresetApplicationError({

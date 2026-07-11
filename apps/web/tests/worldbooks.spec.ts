@@ -7,6 +7,31 @@ import {
 } from "@playwright/test";
 import { mockAuthenticatedApp } from "./api-mocks";
 
+test("filters worldbooks by permission from the search toolbar", async ({
+  page,
+}) => {
+  await mockAuthenticatedApp(page);
+  await mockWorldbookList(page);
+  await page.goto("/app/worldbooks");
+
+  const filterButton = page.getByRole("button", {
+    name: "Filter worldbooks",
+  });
+  await filterButton.click();
+
+  const publicRequest = page.waitForRequest((request) => {
+    const url = new URL(request.url());
+    return (
+      url.pathname.endsWith("/api/worldbooks") &&
+      url.searchParams.get("scope") === "public"
+    );
+  });
+
+  await page.getByRole("radio", { name: "Public", exact: true }).click();
+  await publicRequest;
+  await expect(filterButton).toHaveAttribute("aria-pressed", "true");
+});
+
 test("keeps public visibility selected after reopening the worldbook editor", async ({
   page,
 }) => {

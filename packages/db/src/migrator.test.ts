@@ -40,6 +40,18 @@ describe('database migrations', () => {
     expect(columns).toEqual(expect.arrayContaining(['created_at_ms', 'updated_at_ms', 'visibility', 'source_format']));
   });
 
+  it('adds private-by-default visibility to presets', async () => {
+    const database = await createTestDatabase();
+    databases.push(database);
+
+    const columns = await sql<{ dflt_value: string | null; name: string }>`pragma table_info(presets)`
+      .execute(database.db)
+      .then((result) => result.rows);
+    const visibility = columns.find((column) => column.name === 'visibility');
+
+    expect(visibility).toMatchObject({ dflt_value: "'private'" });
+  });
+
   it('loads sqlite configuration by default', () => {
     expect(loadDatabaseConfig({})).toEqual({
       dialect: 'sqlite',

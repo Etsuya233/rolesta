@@ -4,10 +4,12 @@ import type {
   PresetEntryPosition,
   PresetEntryRole,
   PresetModelSettings,
+  PresetVisibility,
 } from "../api/presets-api";
 
 export interface PresetEditorFormState {
   name: string;
+  visibility: PresetVisibility;
   modelSettings: PresetModelSettings;
 }
 
@@ -39,6 +41,7 @@ export const emptyPresetModelSettings: PresetModelSettings = {
 
 export const emptyPresetEditorForm: PresetEditorFormState = {
   name: "",
+  visibility: "private",
   modelSettings: emptyPresetModelSettings,
 };
 
@@ -77,6 +80,7 @@ export function presetDocumentFromDetail(
 ): PresetDocument {
   return {
     name: preset.name,
+    visibility: preset.visibility,
     modelSettings: preset.modelSettings,
     entries: preset.entries.map((entry) => ({
       id: entry.id,

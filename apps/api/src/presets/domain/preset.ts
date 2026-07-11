@@ -4,6 +4,9 @@ import type { PresetModelSettings } from './preset-model-settings.js';
 export const PRESET_SOURCE_FORMATS = ['sillytavern_preset', 'rolesta'] as const;
 export type PresetSourceFormat = (typeof PRESET_SOURCE_FORMATS)[number];
 
+export const PRESET_VISIBILITIES = ['private', 'public'] as const;
+export type PresetVisibility = (typeof PRESET_VISIBILITIES)[number];
+
 export const PRESET_ENTRY_ROLES = ['system', 'user', 'assistant'] as const;
 export type PresetEntryRole = (typeof PRESET_ENTRY_ROLES)[number];
 
@@ -19,6 +22,7 @@ export type PresetEntryPosition = (typeof PRESET_ENTRY_POSITIONS)[number];
 export interface Preset {
   id: string;
   ownerUserId: string;
+  visibility: PresetVisibility;
   name: string;
   modelProviderId: string | null;
   modelSettings: PresetModelSettings;
@@ -37,6 +41,7 @@ export interface Preset {
 export interface PresetSummary {
   id: string;
   ownerUserId: string;
+  visibility: PresetVisibility;
   name: string;
   entryCount: number;
   promptItemCount: number;

@@ -939,6 +939,8 @@ export interface components {
     PresetSummaryResponseDto: {
       id: string;
       ownerUserId: string;
+      /** @enum {string} */
+      visibility: "private" | "public";
       name: string;
       entryCount: number;
       promptItemCount: number;
@@ -998,6 +1000,8 @@ export interface components {
     PresetDetailResponseDto: {
       id: string;
       ownerUserId: string;
+      /** @enum {string} */
+      visibility: "private" | "public";
       name: string;
       entryCount: number;
       promptItemCount: number;
@@ -1034,10 +1038,14 @@ export interface components {
       showThoughts?: boolean;
     };
     CreatePresetRequestDto: {
+      /** @enum {string} */
+      visibility?: "private" | "public";
       name: string;
       modelSettings?: components["schemas"]["PresetModelSettingsDto"];
     };
     UpdatePresetRequestDto: {
+      /** @enum {string} */
+      visibility?: "private" | "public";
       name?: string;
       modelSettings?: components["schemas"]["PresetModelSettingsDto"];
     };
@@ -1073,6 +1081,8 @@ export interface components {
       enabled: boolean;
     };
     UpdatePresetDocumentRequestDto: {
+      /** @enum {string} */
+      visibility: "private" | "public";
       name: string;
       modelSettings: components["schemas"]["PresetDocumentModelSettingsDto"];
       entries: components["schemas"]["PresetDocumentEntryDto"][];
@@ -1636,6 +1646,7 @@ export interface operations {
   WorldbooksController_list: {
     parameters: {
       query?: {
+        scope?: "all" | "mine" | "public";
         sort?: "createdAt" | "updatedAt" | "name" | "lastUsedAt" | "usageCount";
         direction?: "asc" | "desc";
         pageIndex?: number;
@@ -2023,6 +2034,7 @@ export interface operations {
   PresetsController_list: {
     parameters: {
       query?: {
+        scope?: "all" | "mine" | "public";
         sort?: "createdAt" | "updatedAt" | "name" | "lastUsedAt" | "usageCount";
         direction?: "asc" | "desc";
         pageIndex?: number;

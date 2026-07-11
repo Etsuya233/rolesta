@@ -35,6 +35,7 @@ export class KyselyPresetStore implements PresetStore {
       .select([
         'id',
         'owner_user_id',
+        'visibility',
         'name',
         'created_at_ms',
         'updated_at_ms',
@@ -65,6 +66,22 @@ export class KyselyPresetStore implements PresetStore {
       .selectAll()
       .where('id', '=', id)
       .where('owner_user_id', '=', ownerUserId)
+      .executeTakeFirst();
+
+    return row ? this.aggregate(row) : null;
+  }
+
+  async findVisibleById(id: string, viewerUserId: string): Promise<Preset | null> {
+    const row = await this.db
+      .selectFrom('presets')
+      .selectAll()
+      .where('id', '=', id)
+      .where((builder) =>
+        builder.or([
+          builder('owner_user_id', '=', viewerUserId),
+          builder('visibility', '=', 'public'),
+        ]),
+      )
       .executeTakeFirst();
 
     return row ? this.aggregate(row) : null;
@@ -139,6 +156,7 @@ export class KyselyPresetStore implements PresetStore {
     return withPresetTokenCount({
       id: row.id,
       ownerUserId: row.owner_user_id,
+      visibility: row.visibility,
       name: row.name,
       modelProviderId: row.model_provider_id,
       modelSettings: jsonColumn<PresetModelSettings>(row.model_settings_json),
@@ -206,6 +224,7 @@ type PresetListRow = Pick<
   PresetRow,
   | 'id'
   | 'owner_user_id'
+  | 'visibility'
   | 'name'
   | 'created_at_ms'
   | 'updated_at_ms'
@@ -229,7 +248,24 @@ const sortColumns = {
 } satisfies Record<PresetSortKey, keyof PresetsTable>;
 
 function withListFilters(query: PresetSelectQuery, request: ListPresetsRequest): PresetSelectQuery {
-  let nextQuery = query.where('owner_user_id', '=', request.viewerUserId);
+  let nextQuery = query;
+
+  if (request.scope === 'mine') {
+    nextQuery = nextQuery.where('owner_user_id', '=', request.viewerUserId);
+  }
+
+  if (request.scope === 'public') {
+    nextQuery = nextQuery.where('visibility', '=', 'public');
+  }
+
+  if (request.scope === 'all') {
+    nextQuery = nextQuery.where((builder) =>
+      builder.or([
+        builder('owner_user_id', '=', request.viewerUserId),
+        builder('visibility', '=', 'public'),
+      ]),
+    );
+  }
 
   if (request.q.trim().length > 0) {
     nextQuery = nextQuery.where('name', 'like', `%${request.q.trim()}%`);
@@ -242,6 +278,7 @@ function toPresetRow(preset: Preset): PresetInsert {
   return {
     id: preset.id,
     owner_user_id: preset.ownerUserId,
+    visibility: preset.visibility,
     name: preset.name,
     model_provider_id: preset.modelProviderId,
     model_settings_json: JSON.stringify(preset.modelSettings),
@@ -262,6 +299,7 @@ function toPresetSummary(
   return {
     id: row.id,
     ownerUserId: row.owner_user_id,
+    visibility: row.visibility,
     name: row.name,
     entryCount: stats?.entryCount ?? 0,
     promptItemCount: stats?.promptItemCount ?? 0,

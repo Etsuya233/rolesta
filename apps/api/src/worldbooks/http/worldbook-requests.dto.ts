@@ -14,8 +14,10 @@ import {
 } from "class-validator";
 import {
   SORT_DIRECTIONS,
+  WORLDBOOK_LIST_SCOPES,
   WORLDBOOK_SORT_KEYS,
   type SortDirection,
+  type WorldbookListScope,
   type WorldbookSortKey,
 } from "../ports/worldbook-store.js";
 import {
@@ -30,6 +32,11 @@ import {
 } from "../domain/worldbook.js";
 
 export class ListWorldbooksQueryDto {
+  @ApiPropertyOptional({ enum: WORLDBOOK_LIST_SCOPES })
+  @IsOptional()
+  @IsIn(WORLDBOOK_LIST_SCOPES)
+  scope?: WorldbookListScope;
+
   @ApiPropertyOptional({ enum: WORLDBOOK_SORT_KEYS })
   @IsOptional()
   @IsIn(WORLDBOOK_SORT_KEYS)

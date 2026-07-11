@@ -1,6 +1,7 @@
 import { ChevronRight } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { Button } from "../../../components/ui/button";
+import { Badge } from "../../../components/ui/badge";
 import type { PresetSummaryResponse } from "../api/presets-api";
 
 export function PresetListItem({
@@ -20,7 +21,14 @@ export function PresetListItem({
       onClick={() => onSelect(preset.id)}
     >
       <span className="flex min-w-0 flex-1 flex-col gap-1">
-        <span className="truncate text-sm font-medium">{preset.name}</span>
+        <span className="flex min-w-0 items-center gap-2">
+          <span className="truncate text-sm font-medium">{preset.name}</span>
+          <Badge className="shrink-0" variant="outline">
+            {preset.visibility === "public"
+              ? t("presets.list.publicVisibility")
+              : t("presets.list.privateVisibility")}
+          </Badge>
+        </span>
         <span className="flex flex-wrap gap-x-3 gap-y-1 text-xs text-muted-foreground">
           <span>
             {t("presets.list.tokenCount", {

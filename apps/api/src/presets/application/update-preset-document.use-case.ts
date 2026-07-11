@@ -6,6 +6,7 @@ import {
   type Preset,
   type PresetEntryPosition,
   type PresetEntryRole,
+  type PresetVisibility,
 } from '../domain/preset.js';
 import type { PresetModelSettings } from '../domain/preset-model-settings.js';
 import type { PresetStore } from '../ports/preset-store.js';
@@ -29,6 +30,7 @@ export interface PresetDocumentPromptItem {
 export interface UpdatePresetDocumentCommand {
   presetId: string;
   viewerUserId: string;
+  visibility: PresetVisibility;
   name: string;
   modelSettings: PresetModelSettings;
   entries: PresetDocumentEntry[];
@@ -85,6 +87,7 @@ export class UpdatePresetDocumentUseCase {
     });
     const updated = withPresetTokenCount({
       ...current,
+      visibility: command.visibility,
       name: command.name,
       modelSettings: command.modelSettings,
       entries,

@@ -8,12 +8,14 @@ import type { WorldbookSummary } from "../domain/worldbook.js";
 import { translateWorldbookError } from "./worldbook-error.mapper.js";
 import type {
   SortDirection,
+  WorldbookListScope,
   WorldbookSortKey,
   WorldbookStore,
 } from "../ports/worldbook-store.js";
 
 export interface ListWorldbooksCommand {
   viewerUserId: string;
+  scope?: WorldbookListScope;
   sort?: WorldbookSortKey;
   direction?: SortDirection;
   pageIndex?: number;
@@ -30,6 +32,7 @@ export class ListWorldbooksUseCase {
   ): Promise<PageResponse<WorldbookSummary>> {
     return this.store.list({
       viewerUserId: command.viewerUserId,
+      scope: command.scope ?? "all",
       sort: command.sort ?? "updatedAt",
       direction: command.direction ?? "desc",
       pageIndex: clampPageIndex(command.pageIndex ?? 0),

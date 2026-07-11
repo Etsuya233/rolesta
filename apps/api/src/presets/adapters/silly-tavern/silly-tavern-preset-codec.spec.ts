@@ -128,6 +128,7 @@ describe('SillyTavern preset mapper', () => {
     const preset: Preset = {
       id: 'preset-1',
       ownerUserId: 'user-1',
+      visibility: 'private',
       name: 'Exported',
       modelProviderId: null,
       modelSettings: {

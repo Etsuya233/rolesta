@@ -16,18 +16,27 @@ import {
 } from 'class-validator';
 import {
   PRESET_SORT_KEYS,
+  PRESET_LIST_SCOPES,
   SORT_DIRECTIONS,
   type PresetSortKey,
+  type PresetListScope,
   type SortDirection,
 } from '../ports/preset-store.js';
 import {
   PRESET_ENTRY_POSITIONS,
   PRESET_ENTRY_ROLES,
+  PRESET_VISIBILITIES,
   type PresetEntryPosition,
   type PresetEntryRole,
+  type PresetVisibility,
 } from '../domain/preset.js';
 
 export class ListPresetsQueryDto {
+  @ApiPropertyOptional({ enum: PRESET_LIST_SCOPES })
+  @IsOptional()
+  @IsIn(PRESET_LIST_SCOPES)
+  scope?: PresetListScope;
+
   @ApiPropertyOptional({ enum: PRESET_SORT_KEYS })
   @IsOptional()
   @IsIn(PRESET_SORT_KEYS)
@@ -143,6 +152,11 @@ export class PresetModelSettingsDto {
 }
 
 export class PresetEditableFieldsDto {
+  @ApiPropertyOptional({ enum: PRESET_VISIBILITIES })
+  @IsOptional()
+  @IsIn(PRESET_VISIBILITIES)
+  visibility?: PresetVisibility;
+
   @ApiPropertyOptional({ maxLength: 255, type: String })
   @IsOptional()
   @IsString()
@@ -157,6 +171,11 @@ export class PresetEditableFieldsDto {
 }
 
 export class CreatePresetRequestDto {
+  @ApiPropertyOptional({ enum: PRESET_VISIBILITIES })
+  @IsOptional()
+  @IsIn(PRESET_VISIBILITIES)
+  visibility?: PresetVisibility;
+
   @ApiProperty({ maxLength: 255, type: String })
   @IsString()
   @MaxLength(255)
@@ -283,6 +302,10 @@ export class PresetDocumentModelSettingsDto {
 }
 
 export class UpdatePresetDocumentRequestDto {
+  @ApiProperty({ enum: PRESET_VISIBILITIES })
+  @IsIn(PRESET_VISIBILITIES)
+  visibility!: PresetVisibility;
+
   @ApiProperty({ maxLength: 255, type: String })
   @IsString()
   @MaxLength(255)

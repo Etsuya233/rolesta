@@ -16,6 +16,7 @@ import {
   PresetCheckboxField,
   PresetFormSection,
   PresetNumberField,
+  PresetSelectField,
   PresetTextField,
 } from "./preset-form-fields";
 
@@ -87,6 +88,23 @@ export function PresetMainEditor({
               onChange={(event) =>
                 setForm({ ...form, name: event.target.value })
               }
+            />
+            <PresetSelectField
+              disabled={isPending}
+              id={`${fieldPrefix}-visibility`}
+              label={t("presets.editor.fields.visibility")}
+              options={[
+                {
+                  value: "private",
+                  label: t("presets.list.privateVisibility"),
+                },
+                {
+                  value: "public",
+                  label: t("presets.list.publicVisibility"),
+                },
+              ]}
+              value={form.visibility}
+              onChange={(visibility) => setForm({ ...form, visibility })}
             />
             <div className="flex items-center justify-between rounded-md border border-border px-3 py-2 text-sm">
               <span className="text-muted-foreground">Model Provider</span>

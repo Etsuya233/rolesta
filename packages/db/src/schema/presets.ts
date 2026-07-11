@@ -1,6 +1,7 @@
 export interface PresetsTable {
   id: string;
   owner_user_id: string;
+  visibility: 'private' | 'public';
   name: string;
   model_provider_id: string | null;
   model_settings_json: string;
