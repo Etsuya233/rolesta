@@ -133,9 +133,17 @@ function withListFilters(
   query: ProviderQuery,
   request: ListModelProvidersRequest,
 ): ProviderQuery {
-  let next = query.where("owner_user_id", "=", request.viewerUserId);
+  let next = query.where(
+    "model_provider_configs.owner_user_id",
+    "=",
+    request.viewerUserId,
+  );
   if (request.q.trim())
-    next = next.where("name", "like", `%${request.q.trim()}%`);
+    next = next.where(
+      "model_provider_configs.name",
+      "like",
+      `%${request.q.trim()}%`,
+    );
   return next;
 }
 

@@ -8,6 +8,34 @@ import { KyselyApiKeyStore } from "./kysely-api-key-store.js";
 import { KyselyModelProviderStore } from "./kysely-model-provider-store.js";
 
 describe("KyselyApiKeyStore", () => {
+  it("lists providers joined to global API keys without ambiguous filters", async () => {
+    const database = await createTestDatabase();
+    const apiKeys = new KyselyApiKeyStore(database.db);
+    const providers = new KyselyModelProviderStore(database.db);
+
+    try {
+      await seedUser(database.db);
+      await apiKeys.save(apiKey());
+      await providers.save(provider("provider-1"));
+
+      await expect(
+        providers.list({
+          viewerUserId: "owner",
+          sort: "createdAt",
+          direction: "desc",
+          pageIndex: 0,
+          pageSize: 20,
+          q: "provider",
+        }),
+      ).resolves.toMatchObject({
+        items: [{ id: "provider-1", apiKeyId: "key", apiKeyName: "Shared" }],
+        totalItems: 1,
+      });
+    } finally {
+      await database.destroy();
+    }
+  });
+
   it("deletes a key and clears all provider references in one operation", async () => {
     const database = await createTestDatabase();
     const apiKeys = new KyselyApiKeyStore(database.db);
