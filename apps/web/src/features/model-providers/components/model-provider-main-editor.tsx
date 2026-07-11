@@ -1,19 +1,18 @@
 import { useMutation, useQuery } from "@tanstack/react-query";
 import type { TFunction } from "i18next";
-import { Activity, BadgeInfo, Bot, ChevronRight, Globe2, KeyRound } from "lucide-react";
+import { Activity, BadgeInfo, Bot, Boxes } from "lucide-react";
 import { useId, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Accordion } from "../../../components/ui/accordion";
+import { Button } from "../../../components/ui/button";
 import {
-  Select,
-  SelectContent,
-  SelectGroup,
-  SelectItem,
-  SelectLabel,
-  SelectSeparator,
-  SelectTrigger,
-  SelectValue,
-} from "../../../components/ui/select";
+  Empty,
+  EmptyDescription,
+  EmptyHeader,
+  EmptyMedia,
+  EmptyTitle,
+} from "../../../components/ui/empty";
+import { Skeleton } from "../../../components/ui/skeleton";
 import { ApiError } from "../../../lib/api/client";
 import { formatApiMessage } from "../../../lib/i18n/api-error-message";
 import {
@@ -38,13 +37,13 @@ import {
   ModelProviderSelectField,
   ModelProviderTextField,
 } from "./model-provider-form-fields";
+import { ModelProviderCredentialField } from "./model-provider-credential-field";
 
 export interface ModelProviderMainEditorProps {
   sessionKey: string;
   configId?: string;
   submitLabel: string;
   onCreated?: (config: ModelProviderDetailResponse) => void;
-  onOpenApiKeys?: (apiKeyId?: string) => void;
 }
 
 export function ModelProviderMainEditor({
@@ -52,18 +51,15 @@ export function ModelProviderMainEditor({
   configId,
   submitLabel,
   onCreated,
-  onOpenApiKeys,
 }: ModelProviderMainEditorProps) {
   const { t } = useTranslation();
   const fieldPrefix = useId();
   const [openSections, setOpenSections] = useState<string[]>([
     "basic",
-    "provider",
     "model",
     "test",
   ]);
-  const [modelOptions, setModelOptions] = useState<string[]>([]);
-  const { form, setForm, isPending, visibleError, config, submit } =
+  const { form, setForm, isPending, visibleError, submit } =
     useModelProviderDraftSession({
       sessionKey,
       ...(configId ? { configId } : {}),
@@ -80,24 +76,30 @@ export function ModelProviderMainEditor({
   const selectedCatalogItem = catalogItems.find(
     (item) => item.kind === form.providerKind,
   );
-  const selectedApiKeySecret = config?.apiKeys.find(
-    (apiKey) => apiKey.id === config.selectedApiKeyId,
-  )?.secret;
-  const selectedApiKeyName = config?.apiKeys.find(
-    (apiKey) => apiKey.id === config.selectedApiKeyId,
-  )?.name;
-  const listModelsMutation = useMutation({
-    mutationFn: () =>
+  const availableOpen = openSections.includes("available-models");
+  const connectionKey = [
+    form.providerKind,
+    form.baseUrl,
+    form.credentialMode,
+    form.secret,
+    form.apiKeyId,
+  ] as const;
+  const modelsQuery = useQuery({
+    enabled: availableOpen && Boolean(form.baseUrl.trim()),
+    queryKey: ["model-provider-models-preview", ...connectionKey],
+    queryFn: () =>
       previewModelProviderModels({
         providerKind: form.providerKind,
         baseUrl: form.baseUrl,
-        ...(configId && selectedApiKeySecret
-          ? { apiKeySecret: selectedApiKeySecret }
+        ...(form.credentialMode === "vault" && form.apiKeyId
+          ? { apiKeyId: form.apiKeyId }
+          : {}),
+        ...(form.credentialMode === "manual" && form.secret
+          ? { apiKeySecret: form.secret }
           : {}),
       }),
-    onSuccess(result) {
-      setModelOptions(result.models);
-    },
+    select: (result) =>
+      [...result.models].sort((left, right) => left.localeCompare(right)),
   });
   const testMutation = useMutation({
     mutationFn: () =>
@@ -105,11 +107,14 @@ export function ModelProviderMainEditor({
         providerKind: form.providerKind,
         baseUrl: form.baseUrl,
         defaultModelName: form.defaultModelName,
-        ...(selectedApiKeySecret ? { apiKeySecret: selectedApiKeySecret } : {}),
+        ...(form.credentialMode === "vault" && form.apiKeyId
+          ? { apiKeyId: form.apiKeyId }
+          : {}),
+        ...(form.credentialMode === "manual" && form.secret
+          ? { apiKeySecret: form.secret }
+          : {}),
       }),
   });
-  const connectionError = listModelsMutation.error ?? testMutation.error;
-  const baseUrlHost = hostFromBaseUrl(form.baseUrl);
 
   return (
     <form
@@ -125,11 +130,7 @@ export function ModelProviderMainEditor({
         >
           <ModelProviderFormSection
             icon={BadgeInfo}
-            summary={basicSectionSummary({
-              name: form.name,
-              selectedApiKeyName,
-              t,
-            })}
+            summary={basicSummary(form, selectedCatalogItem, t)}
             title={t("modelProviders.editor.sections.basic.title")}
             value="basic"
           >
@@ -138,31 +139,10 @@ export function ModelProviderMainEditor({
               id={`${fieldPrefix}-name`}
               label={t("modelProviders.editor.fields.name")}
               value={form.name}
-              onChange={(event) => setForm({ ...form, name: event.target.value })}
+              onChange={(event) =>
+                setForm({ ...form, name: event.target.value })
+              }
             />
-            {onOpenApiKeys ? (
-              <ApiKeySummaryButton
-                disabled={isPending}
-                label={t("modelProviders.apiKeys.title")}
-                value={
-                  selectedApiKeyName ??
-                  t("modelProviders.editor.summaries.noKey")
-                }
-                onClick={() => onOpenApiKeys(config?.selectedApiKeyId ?? undefined)}
-              />
-            ) : null}
-          </ModelProviderFormSection>
-
-          <ModelProviderFormSection
-            icon={Globe2}
-            summary={
-              baseUrlHost
-                ? `${selectedCatalogItem?.displayName ?? form.providerKind} · ${baseUrlHost}`
-                : t("modelProviders.editor.summaries.noBaseUrl")
-            }
-            title={t("modelProviders.editor.sections.provider.title")}
-            value="provider"
-          >
             <ProviderSelect
               disabled={isPending || catalogQuery.isLoading}
               id={`${fieldPrefix}-provider`}
@@ -170,12 +150,7 @@ export function ModelProviderMainEditor({
               label={t("modelProviders.editor.fields.provider")}
               value={form.providerKind}
               onChange={(providerKind) =>
-                handleProviderChange({
-                  form,
-                  providerKind,
-                  catalogItems,
-                  setForm,
-                })
+                setForm(providerChanged(form, providerKind, catalogItems))
               }
             />
             {selectedCatalogItem?.allowCustomBaseUrl ? (
@@ -191,17 +166,22 @@ export function ModelProviderMainEditor({
               />
             ) : (
               <ModelProviderSelectField
-                disabled={isPending || selectedCatalogItem === undefined}
+                disabled={isPending || !selectedCatalogItem}
                 id={`${fieldPrefix}-base-url`}
                 label={t("modelProviders.editor.fields.baseUrl")}
-                options={(selectedCatalogItem?.baseUrls ?? []).map((baseUrl) => ({
-                  value: baseUrl,
-                  label: baseUrl,
+                options={(selectedCatalogItem?.baseUrls ?? []).map((value) => ({
+                  value,
+                  label: value,
                 }))}
                 value={form.baseUrl}
                 onChange={(baseUrl) => setForm({ ...form, baseUrl })}
               />
             )}
+            <ModelProviderCredentialField
+              disabled={isPending}
+              form={form}
+              onChange={setForm}
+            />
           </ModelProviderFormSection>
 
           <ModelProviderFormSection
@@ -222,43 +202,39 @@ export function ModelProviderMainEditor({
                 setForm({ ...form, defaultModelName: event.target.value })
               }
             />
-            <FormActionButton
-              disabled={listModelsMutation.isPending || !form.baseUrl.trim()}
-              onClick={() => listModelsMutation.mutate()}
-            >
-              {listModelsMutation.isPending
-                ? t("modelProviders.editor.actions.fetchingModels")
-                : t("modelProviders.editor.actions.fetchModels")}
-            </FormActionButton>
-            {modelOptions.length > 0 ? (
-              <ModelProviderSelectField
-                id={`${fieldPrefix}-model-options`}
-                label={t("modelProviders.editor.fields.modelCandidates")}
-                options={modelOptions.map((modelName) => ({
-                  value: modelName,
-                  label: modelName,
-                }))}
-                value={
-                  modelOptions.includes(form.defaultModelName)
-                    ? form.defaultModelName
-                    : (modelOptions[0] ?? "")
-                }
-                onChange={(defaultModelName) =>
-                  setForm({ ...form, defaultModelName })
-                }
-              />
-            ) : null}
+          </ModelProviderFormSection>
+
+          <ModelProviderFormSection
+            icon={Boxes}
+            summary={availableModelsSummary(
+              modelsQuery.data?.length,
+              modelsQuery.isFetching,
+              t,
+            )}
+            title={t("modelProviders.editor.sections.availableModels.title")}
+            value="available-models"
+          >
+            <AvailableModels
+              models={modelsQuery.data}
+              loading={modelsQuery.isFetching}
+              error={modelsQuery.error}
+              ready={Boolean(form.baseUrl.trim())}
+              onRetry={() => void modelsQuery.refetch()}
+              onSelect={(defaultModelName) =>
+                setForm({ ...form, defaultModelName })
+              }
+            />
           </ModelProviderFormSection>
 
           <ModelProviderFormSection
             icon={Activity}
-            summary={testSectionSummary({
-              hasBaseUrl: Boolean(form.baseUrl.trim()),
-              hasModel: Boolean(form.defaultModelName.trim()),
-              hasError: Boolean(connectionError),
-              elapsedMs: testMutation.data?.elapsedMs,
+            summary={testSummary(
+              Boolean(form.baseUrl.trim()),
+              Boolean(form.defaultModelName.trim()),
+              Boolean(testMutation.error),
+              testMutation.data?.elapsedMs,
               t,
-            })}
+            )}
             title={t("modelProviders.editor.sections.test.title")}
             value="test"
           >
@@ -283,13 +259,14 @@ export function ModelProviderMainEditor({
                 })}
               </FormNotice>
             ) : null}
-            {connectionError ? (
-              <FormError>{connectionErrorMessage(connectionError, t)}</FormError>
+            {testMutation.error ? (
+              <FormError>
+                {connectionErrorMessage(testMutation.error, t)}
+              </FormError>
             ) : null}
           </ModelProviderFormSection>
         </Accordion>
       </div>
-
       <div className="flex shrink-0 flex-col gap-3 border-t border-border bg-background px-4 py-3">
         {visibleError ? <FormError>{visibleError}</FormError> : null}
         <FormSubmitButton disabled={isPending}>{submitLabel}</FormSubmitButton>
@@ -298,93 +275,81 @@ export function ModelProviderMainEditor({
   );
 }
 
-function ApiKeySummaryButton({
-  label,
-  value,
-  disabled,
-  onClick,
+function AvailableModels({
+  models,
+  loading,
+  error,
+  ready,
+  onRetry,
+  onSelect,
 }: {
-  label: string;
-  value: string;
-  disabled: boolean;
-  onClick: () => void;
+  models: string[] | undefined;
+  loading: boolean;
+  error: Error | null;
+  ready: boolean;
+  onRetry: () => void;
+  onSelect: (model: string) => void;
 }) {
+  const { t } = useTranslation();
+  if (loading)
+    return (
+      <div className="flex flex-col gap-2">
+        <Skeleton className="h-9" />
+        <Skeleton className="h-9" />
+        <Skeleton className="h-9" />
+      </div>
+    );
+  if (error)
+    return (
+      <Empty className="min-h-40">
+        <EmptyHeader>
+          <EmptyMedia variant="icon">
+            <Boxes />
+          </EmptyMedia>
+          <EmptyTitle>
+            {t("modelProviders.editor.availableModels.loadFailed")}
+          </EmptyTitle>
+          <EmptyDescription>
+            {connectionErrorMessage(error, t)}
+          </EmptyDescription>
+        </EmptyHeader>
+        <Button type="button" variant="outline" onClick={onRetry}>
+          {t("modelProviders.editor.actions.retryModels")}
+        </Button>
+      </Empty>
+    );
+  if (!ready || !models?.length)
+    return (
+      <Empty className="min-h-40">
+        <EmptyHeader>
+          <EmptyMedia variant="icon">
+            <Boxes />
+          </EmptyMedia>
+          <EmptyTitle>
+            {t(
+              ready
+                ? "modelProviders.editor.availableModels.empty"
+                : "modelProviders.editor.availableModels.notReady",
+            )}
+          </EmptyTitle>
+        </EmptyHeader>
+      </Empty>
+    );
   return (
-    <button
-      className="flex w-full items-center gap-3 rounded-md border border-border px-3 py-2.5 text-left transition-colors hover:bg-muted/50 focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-50"
-      disabled={disabled}
-      type="button"
-      onClick={onClick}
-    >
-      <KeyRound aria-hidden="true" className="size-4 shrink-0 text-muted-foreground" />
-      <span className="grid min-w-0 flex-1 gap-0.5">
-        <span className="text-xs font-medium text-muted-foreground">{label}</span>
-        <span className="truncate text-sm font-medium">{value}</span>
-      </span>
-      <ChevronRight aria-hidden="true" className="size-4 shrink-0 text-muted-foreground" />
-    </button>
+    <div className="flex max-h-72 flex-col overflow-y-auto border-y border-border">
+      {models.map((model) => (
+        <Button
+          key={model}
+          className="h-9 shrink-0 justify-start rounded-none border-b border-border px-3 font-normal last:border-b-0"
+          type="button"
+          variant="ghost"
+          onClick={() => onSelect(model)}
+        >
+          <span className="truncate">{model}</span>
+        </Button>
+      ))}
+    </div>
   );
-}
-
-function hostFromBaseUrl(baseUrl: string): string {
-  const trimmed = baseUrl.trim();
-
-  if (!trimmed) {
-    return "";
-  }
-
-  try {
-    return new URL(trimmed).host;
-  } catch {
-    return trimmed;
-  }
-}
-
-function basicSectionSummary({
-  name,
-  selectedApiKeyName,
-  t,
-}: {
-  name: string;
-  selectedApiKeyName: string | undefined;
-  t: TFunction;
-}): string {
-  const trimmedName = name.trim();
-  const keySummary = selectedApiKeyName
-    ? t("modelProviders.editor.summaries.selectedKey", {
-        name: selectedApiKeyName,
-      })
-    : t("modelProviders.editor.summaries.noKey");
-
-  return trimmedName ? `${trimmedName} · ${keySummary}` : keySummary;
-}
-
-function testSectionSummary({
-  hasBaseUrl,
-  hasModel,
-  hasError,
-  elapsedMs,
-  t,
-}: {
-  hasBaseUrl: boolean;
-  hasModel: boolean;
-  hasError: boolean;
-  elapsedMs: number | undefined;
-  t: TFunction;
-}): string {
-  if (elapsedMs !== undefined) {
-    return t("modelProviders.editor.summaries.testConnected", { elapsed: elapsedMs });
-  }
-
-  if (hasError) {
-    return t("modelProviders.editor.summaries.testFailed");
-  }
-
-  if (hasBaseUrl && hasModel) {
-    return t("modelProviders.editor.summaries.testReady");
-  }
-
-  return t("modelProviders.editor.summaries.testNotReady");
 }
 
 function ProviderSelect({
@@ -402,57 +367,32 @@ function ProviderSelect({
   disabled: boolean;
   onChange: (value: ModelProviderKind) => void;
 }) {
-  const { t } = useTranslation();
-  const customItems = items.filter((item) => item.source === "custom");
-  const officialItems = items.filter((item) => item.source === "official");
-
   return (
-    <div className="grid gap-2">
-      <label className="text-sm font-medium" htmlFor={id}>
-        {label}
-      </label>
-      <Select
-        disabled={disabled}
-        value={value}
-        onValueChange={(next) => onChange(asModelProviderKind(next))}
-      >
-        <SelectTrigger className="w-full" id={id}>
-          <SelectValue />
-        </SelectTrigger>
-        <SelectContent>
-          <SelectGroup>
-            <SelectLabel>
-              {t("modelProviders.providerGroups.custom")}
-            </SelectLabel>
-            {customItems.map((item) => (
-              <SelectItem key={item.kind} value={item.kind}>
-                {item.displayName}
-              </SelectItem>
-            ))}
-          </SelectGroup>
-          <SelectSeparator />
-          <SelectGroup>
-            <SelectLabel>
-              {t("modelProviders.providerGroups.official")}
-            </SelectLabel>
-            {officialItems.map((item) => (
-              <SelectItem key={item.kind} value={item.kind}>
-                {item.displayName}
-              </SelectItem>
-            ))}
-          </SelectGroup>
-        </SelectContent>
-      </Select>
-    </div>
+    <ModelProviderSelectField
+      disabled={disabled}
+      id={id}
+      label={label}
+      options={items.map((item) => ({
+        value: item.kind,
+        label: item.displayName,
+      }))}
+      value={value}
+      onChange={onChange}
+    />
   );
 }
 
-function connectionErrorMessage(error: Error, t: (key: string) => string): string {
-  if (error instanceof ApiError) {
-    return formatApiMessage(error.message, error.envelope?.data ?? {});
-  }
-
-  return t("modelProviders.editor.errors.connectionFailed");
+function providerChanged(
+  form: ModelProviderEditorFormState,
+  providerKind: ModelProviderKind,
+  items: ModelProviderCatalogItem[],
+): ModelProviderEditorFormState {
+  const item = items.find((candidate) => candidate.kind === providerKind);
+  return {
+    ...form,
+    providerKind,
+    baseUrl: item?.allowCustomBaseUrl ? "" : (item?.baseUrls[0] ?? ""),
+  };
 }
 
 function normalizeCatalogItem(
@@ -460,22 +400,61 @@ function normalizeCatalogItem(
 ): ModelProviderCatalogItem & { kind: ModelProviderKind } {
   return { ...item, kind: asModelProviderKind(item.kind) };
 }
-
-function handleProviderChange({
-  form,
-  providerKind,
-  catalogItems,
-  setForm,
-}: {
-  form: ModelProviderEditorFormState;
-  providerKind: ModelProviderKind;
-  catalogItems: ModelProviderCatalogItem[];
-  setForm: (form: ModelProviderEditorFormState) => void;
-}) {
-  const catalogItem = catalogItems.find((item) => item.kind === providerKind);
-  const baseUrl = catalogItem?.allowCustomBaseUrl
-    ? ""
-    : catalogItem?.baseUrls[0] ?? "";
-
-  setForm({ ...form, providerKind, baseUrl });
+function basicSummary(
+  form: ModelProviderEditorFormState,
+  item: ModelProviderCatalogItem | undefined,
+  t: TFunction,
+): string {
+  const host = hostFromBaseUrl(form.baseUrl);
+  const provider = item?.displayName ?? form.providerKind;
+  const credential =
+    form.credentialMode === "vault"
+      ? (form.apiKeyName ?? t("modelProviders.editor.summaries.noKey"))
+      : t("modelProviders.editor.credentials.manual");
+  return [
+    form.name.trim(),
+    host ? `${provider} · ${host}` : provider,
+    credential,
+  ]
+    .filter(Boolean)
+    .join(" · ");
+}
+function hostFromBaseUrl(value: string): string {
+  if (!value.trim()) return "";
+  try {
+    return new URL(value.trim()).host;
+  } catch {
+    return value.trim();
+  }
+}
+function availableModelsSummary(
+  count: number | undefined,
+  loading: boolean,
+  t: TFunction,
+): string {
+  if (loading) return t("modelProviders.editor.actions.fetchingModels");
+  return count === undefined
+    ? t("modelProviders.editor.availableModels.lazy")
+    : t("modelProviders.editor.availableModels.count", { count });
+}
+function testSummary(
+  hasBaseUrl: boolean,
+  hasModel: boolean,
+  hasError: boolean,
+  elapsedMs: number | undefined,
+  t: TFunction,
+): string {
+  if (elapsedMs !== undefined)
+    return t("modelProviders.editor.summaries.testConnected", {
+      elapsed: elapsedMs,
+    });
+  if (hasError) return t("modelProviders.editor.summaries.testFailed");
+  return hasBaseUrl && hasModel
+    ? t("modelProviders.editor.summaries.testReady")
+    : t("modelProviders.editor.summaries.testNotReady");
+}
+function connectionErrorMessage(error: Error, t: TFunction): string {
+  return error instanceof ApiError
+    ? formatApiMessage(error.message, error.envelope?.data ?? {})
+    : t("modelProviders.editor.errors.connectionFailed");
 }

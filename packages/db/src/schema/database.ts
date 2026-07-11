@@ -1,6 +1,6 @@
 import type { CharactersTable } from "./characters.js";
 import type {
-  ModelProviderApiKeysTable,
+  ApiKeysTable,
   ModelProviderConfigsTable,
 } from "./model-providers.js";
 import type {
@@ -16,7 +16,7 @@ export interface Database {
   sessions: SessionsTable;
   characters: CharactersTable;
   model_provider_configs: ModelProviderConfigsTable;
-  model_provider_api_keys: ModelProviderApiKeysTable;
+  api_keys: ApiKeysTable;
   presets: PresetsTable;
   preset_entries: PresetEntriesTable;
   preset_prompt_items: PresetPromptItemsTable;

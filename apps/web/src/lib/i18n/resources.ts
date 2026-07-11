@@ -685,7 +685,8 @@ const featureTestTranslations = {
     notifications: {
       quickTitle: "Notification scenarios",
       quickDescription: "Trigger common notification variants with one click.",
-      sampleDescription: "This notification was triggered from the feature test panel.",
+      sampleDescription:
+        "This notification was triggered from the feature test panel.",
       success: "Success",
       info: "Information",
       warning: "Warning",
@@ -697,7 +698,8 @@ const featureTestTranslations = {
     },
     form: {
       title: "Custom notification",
-      description: "Adjust notification content and behavior before triggering it.",
+      description:
+        "Adjust notification content and behavior before triggering it.",
       type: "Type",
       duration: "Duration (ms)",
       durationError: "Enter a positive integer or leave the field empty.",
@@ -706,7 +708,8 @@ const featureTestTranslations = {
       withAction: "Include an action",
       submit: "Show notification",
       defaultTitle: "Test notification",
-      defaultDescription: "Custom notification content from the feature test panel.",
+      defaultDescription:
+        "Custom notification content from the feature test panel.",
       titleError: "Enter a notification title.",
     },
   },
@@ -795,7 +798,8 @@ const featureTestTranslations = {
     description: "アプリケーションの操作機能をまとめて確認します。",
     language: {
       title: "言語",
-      description: "現在の言語を切り替えるか、LocalStorage の保存値を削除します。",
+      description:
+        "現在の言語を切り替えるか、LocalStorage の保存値を削除します。",
       selectLabel: "現在の言語",
       current: "現在",
       stored: "LocalStorage",
@@ -805,7 +809,8 @@ const featureTestTranslations = {
     notifications: {
       quickTitle: "Notification シナリオ",
       quickDescription: "一般的な Notification をワンクリックで表示します。",
-      sampleDescription: "この Notification は機能テストパネルから表示されました。",
+      sampleDescription:
+        "この Notification は機能テストパネルから表示されました。",
       success: "成功",
       info: "情報",
       warning: "警告",
@@ -836,6 +841,7 @@ export const resources = {
   "en-US": {
     translation: {
       common: {
+        cancel: "Cancel",
         errors: {
           requestFailed: "The request failed.",
         },
@@ -1225,6 +1231,7 @@ export const resources = {
             model: {
               title: "Default model",
             },
+            availableModels: { title: "Available Models" },
             test: {
               title: "Connection test",
             },
@@ -1244,6 +1251,7 @@ export const resources = {
             provider: "Provider",
             baseUrl: "Base URL",
             defaultModelName: "Default model",
+            apiKey: "API key",
             modelCandidates: "Fetched models",
           },
           actions: {
@@ -1251,6 +1259,20 @@ export const resources = {
             fetchingModels: "Fetching models",
             testConnection: "Test connection",
             testing: "Testing connection",
+            retryModels: "Retry",
+          },
+          credentials: {
+            selected: "Selected: {{name}}",
+            show: "Show secret",
+            hide: "Hide secret",
+            manual: "Manual key",
+          },
+          availableModels: {
+            loadFailed: "Could not load models",
+            empty: "No models available",
+            notReady: "Set a Base URL first",
+            lazy: "Loads when opened",
+            count: "{{count}} models",
           },
           errors: {
             nameRequired: "Name is required.",
@@ -1261,6 +1283,9 @@ export const resources = {
         },
         apiKeys: {
           title: "API keys",
+          description:
+            "Select or manage keys available to all of your model providers.",
+          openVault: "Open API key vault",
           createTitle: "Add key",
           createAction: "Add key",
           saveAction: "Save",
@@ -1272,6 +1297,12 @@ export const resources = {
           loading: "Loading API keys",
           loadFailed: "Failed to load API keys",
           empty: "No API keys yet",
+          emptyDescription: "Add a key above to use it with a model provider.",
+          editAction: "Edit key",
+          deleteConfirmTitle: "Delete API key?",
+          deleteConfirmDescription:
+            "Delete {{name}}? {{count}} model providers will be switched to an empty manual key.",
+          replaceSecret: "New secret (optional)",
           fields: {
             name: "Key name",
             secret: "Secret",
@@ -1312,6 +1343,7 @@ export const resources = {
   "zh-CN": {
     translation: {
       common: {
+        cancel: "取消",
         errors: {
           requestFailed: "请求失败。",
         },
@@ -1699,6 +1731,7 @@ export const resources = {
             model: {
               title: "默认模型",
             },
+            availableModels: { title: "可用模型" },
             test: {
               title: "连接测试",
             },
@@ -1718,6 +1751,7 @@ export const resources = {
             provider: "Provider",
             baseUrl: "Base URL",
             defaultModelName: "默认模型",
+            apiKey: "API 密钥",
             modelCandidates: "已获取模型",
           },
           actions: {
@@ -1725,6 +1759,20 @@ export const resources = {
             fetchingModels: "正在获取模型",
             testConnection: "测试连接",
             testing: "正在测试连接",
+            retryModels: "重试",
+          },
+          credentials: {
+            selected: "已选择: {{name}}",
+            show: "显示密钥",
+            hide: "隐藏密钥",
+            manual: "手写密钥",
+          },
+          availableModels: {
+            loadFailed: "无法加载模型",
+            empty: "没有可用模型",
+            notReady: "请先设置 Base URL",
+            lazy: "展开时加载",
+            count: "{{count}} 个模型",
           },
           errors: {
             nameRequired: "名称不能为空。",
@@ -1735,6 +1783,8 @@ export const resources = {
         },
         apiKeys: {
           title: "API 密钥",
+          description: "选择或管理所有模型连接均可使用的密钥。",
+          openVault: "打开密钥库",
           createTitle: "新增密钥",
           createAction: "新增密钥",
           saveAction: "保存",
@@ -1746,6 +1796,12 @@ export const resources = {
           loading: "正在加载 API 密钥",
           loadFailed: "API 密钥加载失败",
           empty: "暂无 API 密钥",
+          emptyDescription: "在上方添加密钥后即可用于模型连接。",
+          editAction: "编辑密钥",
+          deleteConfirmTitle: "删除 API 密钥？",
+          deleteConfirmDescription:
+            "确定删除 {{name}}？引用它的 {{count}} 个模型连接将切换为空的手写密钥。",
+          replaceSecret: "新密钥（可选）",
           fields: {
             name: "密钥名称",
             secret: "密钥",
@@ -1782,6 +1838,7 @@ export const resources = {
   "zh-TW": {
     translation: {
       common: {
+        cancel: "取消",
         errors: {
           requestFailed: "請求失敗。",
         },
@@ -2169,6 +2226,7 @@ export const resources = {
             model: {
               title: "預設模型",
             },
+            availableModels: { title: "可用模型" },
             test: {
               title: "連線測試",
             },
@@ -2188,6 +2246,7 @@ export const resources = {
             provider: "Provider",
             baseUrl: "Base URL",
             defaultModelName: "預設模型",
+            apiKey: "API 密鑰",
             modelCandidates: "已取得模型",
           },
           actions: {
@@ -2195,6 +2254,20 @@ export const resources = {
             fetchingModels: "正在取得模型",
             testConnection: "測試連線",
             testing: "正在測試連線",
+            retryModels: "重試",
+          },
+          credentials: {
+            selected: "已選擇: {{name}}",
+            show: "顯示密鑰",
+            hide: "隱藏密鑰",
+            manual: "手寫密鑰",
+          },
+          availableModels: {
+            loadFailed: "無法載入模型",
+            empty: "沒有可用模型",
+            notReady: "請先設定 Base URL",
+            lazy: "展開時載入",
+            count: "{{count}} 個模型",
           },
           errors: {
             nameRequired: "名稱不能為空。",
@@ -2205,6 +2278,8 @@ export const resources = {
         },
         apiKeys: {
           title: "API 密鑰",
+          description: "選擇或管理所有模型連線均可使用的密鑰。",
+          openVault: "開啟密鑰庫",
           createTitle: "新增密鑰",
           createAction: "新增密鑰",
           saveAction: "儲存",
@@ -2216,6 +2291,12 @@ export const resources = {
           loading: "正在載入 API 密鑰",
           loadFailed: "API 密鑰載入失敗",
           empty: "尚無 API 密鑰",
+          emptyDescription: "在上方新增密鑰後即可用於模型連線。",
+          editAction: "編輯密鑰",
+          deleteConfirmTitle: "刪除 API 密鑰？",
+          deleteConfirmDescription:
+            "確定刪除 {{name}}？引用它的 {{count}} 個模型連線將切換為空的手寫密鑰。",
+          replaceSecret: "新密鑰（可選）",
           fields: {
             name: "密鑰名稱",
             secret: "密鑰",
@@ -2252,6 +2333,7 @@ export const resources = {
   "ja-JP": {
     translation: {
       common: {
+        cancel: "キャンセル",
         errors: {
           requestFailed: "リクエストに失敗しました。",
         },
@@ -2354,7 +2436,8 @@ export const resources = {
             debugRecords: "最近のデバッグ記録",
             noEditedAssets: "編集記録はまだありません。",
             noDebugRecords: "デバッグ記録はまだありません。",
-            openCharacters: "インポートしたロールカードとペルソナを管理します。",
+            openCharacters:
+              "インポートしたロールカードとペルソナを管理します。",
             openWorldbooks: "設定、ルール、場所、トリガー Entry を編集します。",
             openPresets: "プロンプト順序と生成設定を調整します。",
             openModelProviders: "互換モデル接続を設定します。",
@@ -2641,6 +2724,7 @@ export const resources = {
             model: {
               title: "既定モデル",
             },
+            availableModels: { title: "利用可能なモデル" },
             test: {
               title: "接続テスト",
             },
@@ -2660,6 +2744,7 @@ export const resources = {
             provider: "Provider",
             baseUrl: "Base URL",
             defaultModelName: "既定モデル",
+            apiKey: "API キー",
             modelCandidates: "取得したモデル",
           },
           actions: {
@@ -2667,6 +2752,20 @@ export const resources = {
             fetchingModels: "モデルを取得中",
             testConnection: "接続をテスト",
             testing: "接続をテスト中",
+            retryModels: "再試行",
+          },
+          credentials: {
+            selected: "選択済み: {{name}}",
+            show: "キーを表示",
+            hide: "キーを隠す",
+            manual: "手動入力キー",
+          },
+          availableModels: {
+            loadFailed: "モデルを読み込めません",
+            empty: "利用可能なモデルがありません",
+            notReady: "先に Base URL を設定してください",
+            lazy: "開いたときに読み込み",
+            count: "{{count}} モデル",
           },
           errors: {
             nameRequired: "名前は必須です。",
@@ -2677,6 +2776,8 @@ export const resources = {
         },
         apiKeys: {
           title: "API キー",
+          description: "すべてのモデル接続で利用できるキーを選択・管理します。",
+          openVault: "キーボルトを開く",
           createTitle: "キーを追加",
           createAction: "キーを追加",
           saveAction: "保存",
@@ -2688,6 +2789,12 @@ export const resources = {
           loading: "API キーを読み込んでいます",
           loadFailed: "API キーの読み込みに失敗しました",
           empty: "API キーはまだありません",
+          emptyDescription: "上でキーを追加するとモデル接続で利用できます。",
+          editAction: "キーを編集",
+          deleteConfirmTitle: "API キーを削除しますか？",
+          deleteConfirmDescription:
+            "{{name}} を削除しますか？参照中の {{count}} 件のモデル接続は空の手動入力キーに切り替わります。",
+          replaceSecret: "新しいシークレット（任意）",
           fields: {
             name: "キー名",
             secret: "シークレット",

@@ -1,19 +1,19 @@
-import { ApiProperty } from '@nestjs/swagger';
-import type { PageResponse } from '@rolesta/shared';
+import { ApiProperty } from "@nestjs/swagger";
+import type { PageResponse } from "@rolesta/shared";
 import {
   MODEL_PROVIDER_KINDS,
   MODEL_PROVIDER_SOURCES,
   type ModelProviderCatalogItem,
   type ModelProviderKind,
   type ModelProviderSource,
-} from '../domain/model-provider-catalog.js';
+} from "../domain/model-provider-catalog.js";
 import type {
-  ModelProviderApiKey,
+  ApiKey,
   ModelProviderConfig,
   ModelProviderSummary,
-} from '../domain/model-provider-config.js';
-import type { ModelProviderModelListResult } from '../application/list-model-provider-models.use-case.js';
-import type { TestModelProviderConnectionResult } from '../application/test-model-provider-connection.use-case.js';
+} from "../domain/model-provider-config.js";
+import type { ModelProviderModelListResult } from "../application/list-model-provider-models.use-case.js";
+import type { TestModelProviderConnectionResult } from "../application/test-model-provider-connection.use-case.js";
 
 export class ModelProviderCatalogItemResponseDto {
   @ApiProperty({ enum: MODEL_PROVIDER_KINDS })
@@ -42,13 +42,7 @@ export class ModelProviderApiKeyResponseDto {
   id!: string;
 
   @ApiProperty({ type: String })
-  configId!: string;
-
-  @ApiProperty({ type: String })
   name!: string;
-
-  @ApiProperty({ type: String })
-  secret!: string;
 
   @ApiProperty({ type: Number })
   createdAtMs!: number;
@@ -79,11 +73,11 @@ export class ModelProviderSummaryResponseDto {
   @ApiProperty({ type: String })
   defaultModelName!: string;
 
-  @ApiProperty({ nullable: true, type: String })
-  selectedApiKeyId!: string | null;
+  @ApiProperty({ enum: ["manual", "vault"] })
+  credentialMode!: "manual" | "vault";
 
-  @ApiProperty({ type: Number })
-  apiKeyCount!: number;
+  @ApiProperty({ nullable: true, type: String }) apiKeyId!: string | null;
+  @ApiProperty({ nullable: true, type: String }) apiKeyName!: string | null;
 
   @ApiProperty({ type: Number })
   createdAtMs!: number;
@@ -99,8 +93,15 @@ export class ModelProviderSummaryResponseDto {
 }
 
 export class ModelProviderDetailResponseDto extends ModelProviderSummaryResponseDto {
+  @ApiProperty({ type: String }) secret!: string;
+}
+
+export class ApiKeyListResponseDto {
   @ApiProperty({ type: () => [ModelProviderApiKeyResponseDto] })
-  apiKeys!: ModelProviderApiKeyResponseDto[];
+  items!: ModelProviderApiKeyResponseDto[];
+}
+export class DeleteApiKeyResponseDto {
+  @ApiProperty({ type: Number }) affectedProviderCount!: number;
 }
 
 export class ModelProviderPageResponseDto {
@@ -167,8 +168,9 @@ export function toModelProviderSummaryResponse(
     providerSource: config.providerSource,
     baseUrl: config.baseUrl,
     defaultModelName: config.defaultModelName,
-    selectedApiKeyId: config.selectedApiKeyId,
-    apiKeyCount: config.apiKeyCount,
+    credentialMode: config.credentialMode,
+    apiKeyId: config.apiKeyId,
+    apiKeyName: config.apiKeyName,
     createdAtMs: config.createdAtMs,
     updatedAtMs: config.updatedAtMs,
     lastUsedAtMs: config.lastUsedAtMs,
@@ -180,11 +182,8 @@ export function toModelProviderDetailResponse(
   config: ModelProviderConfig,
 ): ModelProviderDetailResponseDto {
   return {
-    ...toModelProviderSummaryResponse({
-      ...config,
-      apiKeyCount: config.apiKeys.length,
-    }),
-    apiKeys: config.apiKeys.map(toModelProviderApiKeyResponse),
+    ...toModelProviderSummaryResponse(config),
+    secret: config.credentialMode === "manual" ? config.secret : "",
   };
 }
 
@@ -220,14 +219,12 @@ export function toTestModelProviderConnectionResponse(
   };
 }
 
-function toModelProviderApiKeyResponse(
-  apiKey: ModelProviderApiKey,
+export function toModelProviderApiKeyResponse(
+  apiKey: ApiKey,
 ): ModelProviderApiKeyResponseDto {
   return {
     id: apiKey.id,
-    configId: apiKey.configId,
     name: apiKey.name,
-    secret: apiKey.secret,
     createdAtMs: apiKey.createdAtMs,
     updatedAtMs: apiKey.updatedAtMs,
   };

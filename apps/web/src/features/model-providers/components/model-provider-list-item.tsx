@@ -25,14 +25,12 @@ export function ModelProviderListItem({
           <span>{providerLabel(config.providerKind)}</span>
           <span className="max-w-full truncate">{config.baseUrl}</span>
           <span>
-            {config.defaultModelName ||
-              t("modelProviders.list.noDefaultModel")}
+            {config.defaultModelName || t("modelProviders.list.noDefaultModel")}
           </span>
           <span>
-            {t("modelProviders.list.apiKeyCount", {
-              count: config.apiKeyCount,
-              value: config.apiKeyCount.toLocaleString(),
-            })}
+            {config.credentialMode === "vault"
+              ? config.apiKeyName
+              : t("modelProviders.editor.credentials.manual")}
           </span>
         </span>
       </span>

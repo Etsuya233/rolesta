@@ -1,4 +1,7 @@
-import type { ModelProviderKind, ModelProviderSource } from './model-provider-catalog.js';
+import type {
+  ModelProviderKind,
+  ModelProviderSource,
+} from "./model-provider-catalog.js";
 
 export interface ModelProviderConfig {
   id: string;
@@ -8,8 +11,10 @@ export interface ModelProviderConfig {
   providerSource: ModelProviderSource;
   baseUrl: string;
   defaultModelName: string;
-  selectedApiKeyId: string | null;
-  apiKeys: ModelProviderApiKey[];
+  credentialMode: ModelProviderCredentialMode;
+  secret: string;
+  apiKeyId: string | null;
+  apiKeyName: string | null;
   createdAtMs: number;
   updatedAtMs: number;
   lastUsedAtMs: number | null;
@@ -24,17 +29,20 @@ export interface ModelProviderSummary {
   providerSource: ModelProviderSource;
   baseUrl: string;
   defaultModelName: string;
-  selectedApiKeyId: string | null;
-  apiKeyCount: number;
+  credentialMode: ModelProviderCredentialMode;
+  apiKeyId: string | null;
+  apiKeyName: string | null;
   createdAtMs: number;
   updatedAtMs: number;
   lastUsedAtMs: number | null;
   usageCount: number;
 }
 
-export interface ModelProviderApiKey {
+export type ModelProviderCredentialMode = "manual" | "vault";
+
+export interface ApiKey {
   id: string;
-  configId: string;
+  ownerUserId: string;
   name: string;
   secret: string;
   createdAtMs: number;

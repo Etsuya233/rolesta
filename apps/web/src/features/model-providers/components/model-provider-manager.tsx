@@ -54,7 +54,7 @@ function modelProviderDraftSessionKeys(pages: ModelProviderPage[]): string[] {
   const sessionKeys = new Set<string>();
 
   for (const page of pages) {
-    if (page.name === "create" || page.name === "edit" || page.name === "apiKeys") {
+    if (page.name === "create" || page.name === "edit") {
       sessionKeys.add(page.sessionKey);
     }
   }

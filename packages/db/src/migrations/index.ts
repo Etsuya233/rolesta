@@ -9,6 +9,7 @@ import * as worldbooksMigration from "./0006_worldbooks.js";
 import * as worldbookEntryCompatibilityMigration from "./0007_worldbook_entry_compatibility.js";
 import * as worldbookEntryVectorizedMigration from "./0008_worldbook_entry_vectorized.js";
 import * as presetVisibilityMigration from "./0009_preset_visibility.js";
+import * as globalApiKeysMigration from "./0010_global_api_keys.js";
 
 type DialectMigration = {
   common: Migration;
@@ -44,6 +45,9 @@ const migrations: Record<string, DialectMigration> = {
   },
   "0009_preset_visibility": {
     common: presetVisibilityMigration,
+  },
+  "0010_global_api_keys": {
+    common: globalApiKeysMigration,
   },
 };
 
