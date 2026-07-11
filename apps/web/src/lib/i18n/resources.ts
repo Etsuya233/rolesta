@@ -1229,7 +1229,7 @@ export const resources = {
               title: "Provider and Base URL",
             },
             model: {
-              title: "Default model",
+              title: "Model",
             },
             availableModels: { title: "Available Models" },
             test: {
@@ -1250,9 +1250,10 @@ export const resources = {
             name: "Name",
             provider: "Provider",
             baseUrl: "Base URL",
-            defaultModelName: "Default model",
+            defaultModelName: "Model",
+            model: "Model",
             apiKey: "API key",
-            modelCandidates: "Fetched models",
+            modelCandidates: "Remote models",
           },
           actions: {
             fetchModels: "Fetch model list",
@@ -1266,6 +1267,7 @@ export const resources = {
             show: "Show secret",
             hide: "Hide secret",
             manual: "Manual key",
+            clear: "Remove selected key",
           },
           availableModels: {
             loadFailed: "Could not load models",
@@ -1283,10 +1285,14 @@ export const resources = {
         },
         apiKeys: {
           title: "API keys",
+          manageAction: "Manage API keys",
           description:
             "Select or manage keys available to all of your model providers.",
           openVault: "Open API key vault",
           createTitle: "Add key",
+          createDescription: "Name the key and enter its secret.",
+          editTitle: "Edit key",
+          editDescription: "Rename the key or enter a replacement secret.",
           createAction: "Add key",
           saveAction: "Save",
           copyAction: "Copy key",
@@ -1296,13 +1302,21 @@ export const resources = {
           currentBadge: "Current",
           loading: "Loading API keys",
           loadFailed: "Failed to load API keys",
+          retryAction: "Retry",
           empty: "No API keys yet",
           emptyDescription: "Add a key above to use it with a model provider.",
           editAction: "Edit key",
+          updatedAt: "Updated {{value}}",
+          referenceLoadFailed: "Failed to load API key references.",
           deleteConfirmTitle: "Delete API key?",
           deleteConfirmDescription:
             "Delete {{name}}? {{count}} model providers will be switched to an empty manual key.",
           replaceSecret: "New secret (optional)",
+          sort: {
+            updatedAt: "Updated time",
+            createdAt: "Created time",
+            name: "A-Z",
+          },
           fields: {
             name: "Key name",
             secret: "Secret",
@@ -1729,7 +1743,7 @@ export const resources = {
               title: "Provider 与 Base URL",
             },
             model: {
-              title: "默认模型",
+              title: "模型",
             },
             availableModels: { title: "可用模型" },
             test: {
@@ -1750,9 +1764,10 @@ export const resources = {
             name: "名称",
             provider: "Provider",
             baseUrl: "Base URL",
-            defaultModelName: "默认模型",
+            defaultModelName: "模型",
+            model: "模型",
             apiKey: "API 密钥",
-            modelCandidates: "已获取模型",
+            modelCandidates: "远程模型",
           },
           actions: {
             fetchModels: "获取模型列表",
@@ -1766,6 +1781,7 @@ export const resources = {
             show: "显示密钥",
             hide: "隐藏密钥",
             manual: "手写密钥",
+            clear: "解除密钥关联",
           },
           availableModels: {
             loadFailed: "无法加载模型",
@@ -1783,9 +1799,13 @@ export const resources = {
         },
         apiKeys: {
           title: "API 密钥",
+          manageAction: "密钥管理",
           description: "选择或管理所有模型连接均可使用的密钥。",
           openVault: "打开密钥库",
           createTitle: "新增密钥",
+          createDescription: "填写密钥名称和密钥内容。",
+          editTitle: "编辑密钥",
+          editDescription: "修改名称，或填写新的密钥内容。",
           createAction: "新增密钥",
           saveAction: "保存",
           copyAction: "复制密钥",
@@ -1795,13 +1815,21 @@ export const resources = {
           currentBadge: "当前",
           loading: "正在加载 API 密钥",
           loadFailed: "API 密钥加载失败",
+          retryAction: "重试",
           empty: "暂无 API 密钥",
           emptyDescription: "在上方添加密钥后即可用于模型连接。",
           editAction: "编辑密钥",
+          updatedAt: "更新于 {{value}}",
+          referenceLoadFailed: "密钥引用数量加载失败。",
           deleteConfirmTitle: "删除 API 密钥？",
           deleteConfirmDescription:
             "确定删除 {{name}}？引用它的 {{count}} 个模型连接将切换为空的手写密钥。",
           replaceSecret: "新密钥（可选）",
+          sort: {
+            updatedAt: "更新时间",
+            createdAt: "创建时间",
+            name: "名称",
+          },
           fields: {
             name: "密钥名称",
             secret: "密钥",
@@ -2224,7 +2252,7 @@ export const resources = {
               title: "Provider 與 Base URL",
             },
             model: {
-              title: "預設模型",
+              title: "模型",
             },
             availableModels: { title: "可用模型" },
             test: {
@@ -2245,9 +2273,10 @@ export const resources = {
             name: "名稱",
             provider: "Provider",
             baseUrl: "Base URL",
-            defaultModelName: "預設模型",
+            defaultModelName: "模型",
+            model: "模型",
             apiKey: "API 密鑰",
-            modelCandidates: "已取得模型",
+            modelCandidates: "遠端模型",
           },
           actions: {
             fetchModels: "取得模型列表",
@@ -2261,6 +2290,7 @@ export const resources = {
             show: "顯示密鑰",
             hide: "隱藏密鑰",
             manual: "手寫密鑰",
+            clear: "解除密鑰關聯",
           },
           availableModels: {
             loadFailed: "無法載入模型",
@@ -2278,9 +2308,13 @@ export const resources = {
         },
         apiKeys: {
           title: "API 密鑰",
+          manageAction: "密鑰管理",
           description: "選擇或管理所有模型連線均可使用的密鑰。",
           openVault: "開啟密鑰庫",
           createTitle: "新增密鑰",
+          createDescription: "填寫密鑰名稱和密鑰內容。",
+          editTitle: "編輯密鑰",
+          editDescription: "修改名稱，或填寫新的密鑰內容。",
           createAction: "新增密鑰",
           saveAction: "儲存",
           copyAction: "複製密鑰",
@@ -2290,13 +2324,21 @@ export const resources = {
           currentBadge: "目前",
           loading: "正在載入 API 密鑰",
           loadFailed: "API 密鑰載入失敗",
+          retryAction: "重試",
           empty: "尚無 API 密鑰",
           emptyDescription: "在上方新增密鑰後即可用於模型連線。",
           editAction: "編輯密鑰",
+          updatedAt: "更新於 {{value}}",
+          referenceLoadFailed: "密鑰引用數量載入失敗。",
           deleteConfirmTitle: "刪除 API 密鑰？",
           deleteConfirmDescription:
             "確定刪除 {{name}}？引用它的 {{count}} 個模型連線將切換為空的手寫密鑰。",
           replaceSecret: "新密鑰（可選）",
+          sort: {
+            updatedAt: "更新時間",
+            createdAt: "建立時間",
+            name: "名稱",
+          },
           fields: {
             name: "密鑰名稱",
             secret: "密鑰",
@@ -2722,7 +2764,7 @@ export const resources = {
               title: "Provider と Base URL",
             },
             model: {
-              title: "既定モデル",
+              title: "モデル",
             },
             availableModels: { title: "利用可能なモデル" },
             test: {
@@ -2743,9 +2785,10 @@ export const resources = {
             name: "名前",
             provider: "Provider",
             baseUrl: "Base URL",
-            defaultModelName: "既定モデル",
+            defaultModelName: "モデル",
+            model: "モデル",
             apiKey: "API キー",
-            modelCandidates: "取得したモデル",
+            modelCandidates: "リモートモデル",
           },
           actions: {
             fetchModels: "モデル一覧を取得",
@@ -2759,6 +2802,7 @@ export const resources = {
             show: "キーを表示",
             hide: "キーを隠す",
             manual: "手動入力キー",
+            clear: "キーの関連付けを解除",
           },
           availableModels: {
             loadFailed: "モデルを読み込めません",
@@ -2776,9 +2820,13 @@ export const resources = {
         },
         apiKeys: {
           title: "API キー",
+          manageAction: "キー管理",
           description: "すべてのモデル接続で利用できるキーを選択・管理します。",
           openVault: "キーボルトを開く",
           createTitle: "キーを追加",
+          createDescription: "キー名とシークレットを入力します。",
+          editTitle: "キーを編集",
+          editDescription: "名前を変更するか、新しいシークレットを入力します。",
           createAction: "キーを追加",
           saveAction: "保存",
           copyAction: "キーをコピー",
@@ -2788,13 +2836,21 @@ export const resources = {
           currentBadge: "現在",
           loading: "API キーを読み込んでいます",
           loadFailed: "API キーの読み込みに失敗しました",
+          retryAction: "再試行",
           empty: "API キーはまだありません",
           emptyDescription: "上でキーを追加するとモデル接続で利用できます。",
           editAction: "キーを編集",
+          updatedAt: "{{value}} に更新",
+          referenceLoadFailed: "キーの参照数を読み込めませんでした。",
           deleteConfirmTitle: "API キーを削除しますか？",
           deleteConfirmDescription:
             "{{name}} を削除しますか？参照中の {{count}} 件のモデル接続は空の手動入力キーに切り替わります。",
           replaceSecret: "新しいシークレット（任意）",
+          sort: {
+            updatedAt: "更新日時",
+            createdAt: "作成日時",
+            name: "名前",
+          },
           fields: {
             name: "キー名",
             secret: "シークレット",

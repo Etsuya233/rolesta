@@ -1,18 +1,10 @@
 import { useMutation, useQuery } from "@tanstack/react-query";
 import type { TFunction } from "i18next";
-import { Activity, BadgeInfo, Bot, Boxes } from "lucide-react";
+import { Activity, BadgeInfo, Bot } from "lucide-react";
 import { useId, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Accordion } from "../../../components/ui/accordion";
 import { Button } from "../../../components/ui/button";
-import {
-  Empty,
-  EmptyDescription,
-  EmptyHeader,
-  EmptyMedia,
-  EmptyTitle,
-} from "../../../components/ui/empty";
-import { Skeleton } from "../../../components/ui/skeleton";
 import { ApiError } from "../../../lib/api/client";
 import { formatApiMessage } from "../../../lib/i18n/api-error-message";
 import {
@@ -44,6 +36,7 @@ export interface ModelProviderMainEditorProps {
   configId?: string;
   submitLabel: string;
   onCreated?: (config: ModelProviderDetailResponse) => void;
+  onManageApiKeys: () => void;
 }
 
 export function ModelProviderMainEditor({
@@ -51,6 +44,7 @@ export function ModelProviderMainEditor({
   configId,
   submitLabel,
   onCreated,
+  onManageApiKeys,
 }: ModelProviderMainEditorProps) {
   const { t } = useTranslation();
   const fieldPrefix = useId();
@@ -76,7 +70,7 @@ export function ModelProviderMainEditor({
   const selectedCatalogItem = catalogItems.find(
     (item) => item.kind === form.providerKind,
   );
-  const availableOpen = openSections.includes("available-models");
+  const modelOpen = openSections.includes("model");
   const connectionKey = [
     form.providerKind,
     form.baseUrl,
@@ -85,7 +79,7 @@ export function ModelProviderMainEditor({
     form.apiKeyId,
   ] as const;
   const modelsQuery = useQuery({
-    enabled: availableOpen && Boolean(form.baseUrl.trim()),
+    enabled: modelOpen && Boolean(form.baseUrl.trim()),
     queryKey: ["model-provider-models-preview", ...connectionKey],
     queryFn: () =>
       previewModelProviderModels({
@@ -181,6 +175,7 @@ export function ModelProviderMainEditor({
               disabled={isPending}
               form={form}
               onChange={setForm}
+              onManageApiKeys={onManageApiKeys}
             />
           </ModelProviderFormSection>
 
@@ -196,33 +191,22 @@ export function ModelProviderMainEditor({
             <ModelProviderTextField
               disabled={isPending}
               id={`${fieldPrefix}-model-name`}
-              label={t("modelProviders.editor.fields.defaultModelName")}
+              label={t("modelProviders.editor.fields.model")}
               value={form.defaultModelName}
               onChange={(event) =>
                 setForm({ ...form, defaultModelName: event.target.value })
               }
             />
-          </ModelProviderFormSection>
-
-          <ModelProviderFormSection
-            icon={Boxes}
-            summary={availableModelsSummary(
-              modelsQuery.data?.length,
-              modelsQuery.isFetching,
-              t,
-            )}
-            title={t("modelProviders.editor.sections.availableModels.title")}
-            value="available-models"
-          >
-            <AvailableModels
-              models={modelsQuery.data}
-              loading={modelsQuery.isFetching}
+            <RemoteModelSelect
+              disabled={isPending}
               error={modelsQuery.error}
+              id={`${fieldPrefix}-remote-model`}
+              loading={modelsQuery.isFetching}
+              models={modelsQuery.data}
               ready={Boolean(form.baseUrl.trim())}
+              value={form.defaultModelName}
+              onChange={(defaultModelName) => setForm({ ...form, defaultModelName })}
               onRetry={() => void modelsQuery.refetch()}
-              onSelect={(defaultModelName) =>
-                setForm({ ...form, defaultModelName })
-              }
             />
           </ModelProviderFormSection>
 
@@ -275,80 +259,60 @@ export function ModelProviderMainEditor({
   );
 }
 
-function AvailableModels({
+function RemoteModelSelect({
+  id,
   models,
   loading,
   error,
   ready,
+  disabled,
+  value,
   onRetry,
-  onSelect,
+  onChange,
 }: {
+  id: string;
   models: string[] | undefined;
   loading: boolean;
   error: Error | null;
   ready: boolean;
+  disabled: boolean;
+  value: string;
   onRetry: () => void;
-  onSelect: (model: string) => void;
+  onChange: (model: string) => void;
 }) {
   const { t } = useTranslation();
-  if (loading)
-    return (
-      <div className="flex flex-col gap-2">
-        <Skeleton className="h-9" />
-        <Skeleton className="h-9" />
-        <Skeleton className="h-9" />
-      </div>
-    );
-  if (error)
-    return (
-      <Empty className="min-h-40">
-        <EmptyHeader>
-          <EmptyMedia variant="icon">
-            <Boxes />
-          </EmptyMedia>
-          <EmptyTitle>
-            {t("modelProviders.editor.availableModels.loadFailed")}
-          </EmptyTitle>
-          <EmptyDescription>
-            {connectionErrorMessage(error, t)}
-          </EmptyDescription>
-        </EmptyHeader>
+  const options = models ?? [];
+  const description = loading
+    ? t("modelProviders.editor.actions.fetchingModels")
+    : error
+      ? connectionErrorMessage(error, t)
+      : t(
+          ready
+            ? options.length
+              ? "modelProviders.editor.availableModels.count"
+              : "modelProviders.editor.availableModels.empty"
+            : "modelProviders.editor.availableModels.notReady",
+          { count: options.length },
+        );
+
+  return (
+    <>
+      <ModelProviderSelectField
+        description={description}
+        disabled={disabled || loading || Boolean(error) || !ready || !options.length}
+        id={id}
+        label={t("modelProviders.editor.fields.modelCandidates")}
+        options={options.map((model) => ({ value: model, label: model }))}
+        placeholder={t("modelProviders.editor.fields.modelCandidates")}
+        value={options.includes(value) ? value : ""}
+        onChange={onChange}
+      />
+      {error ? (
         <Button type="button" variant="outline" onClick={onRetry}>
           {t("modelProviders.editor.actions.retryModels")}
         </Button>
-      </Empty>
-    );
-  if (!ready || !models?.length)
-    return (
-      <Empty className="min-h-40">
-        <EmptyHeader>
-          <EmptyMedia variant="icon">
-            <Boxes />
-          </EmptyMedia>
-          <EmptyTitle>
-            {t(
-              ready
-                ? "modelProviders.editor.availableModels.empty"
-                : "modelProviders.editor.availableModels.notReady",
-            )}
-          </EmptyTitle>
-        </EmptyHeader>
-      </Empty>
-    );
-  return (
-    <div className="flex max-h-72 flex-col overflow-y-auto border-y border-border">
-      {models.map((model) => (
-        <Button
-          key={model}
-          className="h-9 shrink-0 justify-start rounded-none border-b border-border px-3 font-normal last:border-b-0"
-          type="button"
-          variant="ghost"
-          onClick={() => onSelect(model)}
-        >
-          <span className="truncate">{model}</span>
-        </Button>
-      ))}
-    </div>
+      ) : null}
+    </>
   );
 }
 
@@ -426,16 +390,6 @@ function hostFromBaseUrl(value: string): string {
   } catch {
     return value.trim();
   }
-}
-function availableModelsSummary(
-  count: number | undefined,
-  loading: boolean,
-  t: TFunction,
-): string {
-  if (loading) return t("modelProviders.editor.actions.fetchingModels");
-  return count === undefined
-    ? t("modelProviders.editor.availableModels.lazy")
-    : t("modelProviders.editor.availableModels.count", { count });
 }
 function testSummary(
   hasBaseUrl: boolean,

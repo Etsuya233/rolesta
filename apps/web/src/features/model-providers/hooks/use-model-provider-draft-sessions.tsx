@@ -49,6 +49,7 @@ interface ModelProviderDraftSessionsContextValue {
     config: ModelProviderDetailResponse,
   ) => void;
   retainSessionKeys: (sessionKeys: string[]) => void;
+  clearApiKeyReferences: (apiKeyId: string) => void;
 }
 
 export interface ModelProviderDraftSession {
@@ -150,6 +151,28 @@ export function ModelProviderDraftSessionsProvider({
     });
   }, []);
 
+  const clearApiKeyReferences = useCallback((apiKeyId: string) => {
+    setSessions((items) =>
+      Object.fromEntries(
+        Object.entries(items).map(([key, record]) => [
+          key,
+          record.form.apiKeyId === apiKeyId
+            ? {
+                ...record,
+                form: {
+                  ...record.form,
+                  credentialMode: "manual",
+                  secret: "",
+                  apiKeyId: null,
+                  apiKeyName: null,
+                },
+              }
+            : record,
+        ]),
+      ),
+    );
+  }, []);
+
   const value = useMemo(
     () => ({
       sessions,
@@ -158,9 +181,11 @@ export function ModelProviderDraftSessionsProvider({
       setSessionFromConfig,
       moveSessionToConfig,
       retainSessionKeys,
+      clearApiKeyReferences,
     }),
     [
       moveSessionToConfig,
+      clearApiKeyReferences,
       retainSessionKeys,
       sessions,
       setSessionError,
@@ -303,7 +328,10 @@ export function useModelProviderDraftSessionActions() {
   }
 
   return useMemo(
-    () => ({ moveSessionToConfig: context.moveSessionToConfig }),
-    [context.moveSessionToConfig],
+    () => ({
+      moveSessionToConfig: context.moveSessionToConfig,
+      clearApiKeyReferences: context.clearApiKeyReferences,
+    }),
+    [context.clearApiKeyReferences, context.moveSessionToConfig],
   );
 }

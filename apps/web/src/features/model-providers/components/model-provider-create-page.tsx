@@ -13,10 +13,12 @@ export function ModelProviderCreatePage({
   page,
   replacePage,
   onBack,
+  onManageApiKeys,
 }: {
   page: Extract<ModelProviderPage, { name: "create" }>;
   replacePage: (page: ModelProviderPage) => void;
   onBack: () => void;
+  onManageApiKeys: () => void;
 }) {
   const { t } = useTranslation();
   const { moveSessionToConfig } = useModelProviderDraftSessionActions();
@@ -30,6 +32,7 @@ export function ModelProviderCreatePage({
       <ModelProviderMainEditor
         sessionKey={page.sessionKey}
         submitLabel={t("modelProviders.editor.createSubmit")}
+        onManageApiKeys={onManageApiKeys}
         onCreated={(config) => {
           moveSessionToConfig(
             page.sessionKey,

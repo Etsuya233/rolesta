@@ -11,9 +11,11 @@ import { ModelProviderStackPage } from "./model-provider-stack-page";
 export function ModelProviderEditPage({
   page,
   onBack,
+  onManageApiKeys,
 }: {
   page: Extract<ModelProviderPage, { name: "edit" }>;
   onBack: () => void;
+  onManageApiKeys: () => void;
 }) {
   const { t } = useTranslation();
   const queryClient = useQueryClient();
@@ -50,6 +52,7 @@ export function ModelProviderEditPage({
         configId={page.configId}
         sessionKey={page.sessionKey}
         submitLabel={t("modelProviders.editor.saveSubmit")}
+        onManageApiKeys={onManageApiKeys}
       />
     </ModelProviderStackPage>
   );
