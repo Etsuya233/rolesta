@@ -1,52 +1,35 @@
-import { UseCase } from '../../common/errors/index.js';
-import type { ModelProviderConfig } from '../domain/model-provider-config.js';
-import type { ModelProviderClock } from './model-provider-application-services.js';
-import { ModelProviderApplicationError } from './model-provider-application-error.js';
-import { translateModelProviderError } from './model-provider-error.mapper.js';
-import type { ModelProviderStore } from '../ports/model-provider-store.js';
-
-export interface UpdateModelProviderApiKeyCommand {
-  configId: string;
-  apiKeyId: string;
-  viewerUserId: string;
-  name?: string;
-  secret?: string;
-}
+import { UseCase } from "../../common/errors/index.js";
+import type { ApiKey } from "../domain/model-provider-config.js";
+import type { ApiKeyStore } from "../ports/api-key-store.js";
+import { ModelProviderApplicationError } from "./model-provider-application-error.js";
+import type { ModelProviderClock } from "./model-provider-application-services.js";
+import { translateModelProviderError } from "./model-provider-error.mapper.js";
 
 export class UpdateModelProviderApiKeyUseCase {
   constructor(
-    private readonly store: ModelProviderStore,
+    private readonly store: ApiKeyStore,
     private readonly clock: ModelProviderClock,
   ) {}
 
   @UseCase(translateModelProviderError)
-  async execute(command: UpdateModelProviderApiKeyCommand): Promise<ModelProviderConfig> {
-    const config = await this.store.findOwnedById(command.configId, command.viewerUserId);
-
-    if (config === null) {
-      throw new ModelProviderApplicationError('not-found', {});
-    }
-
-    const apiKey = config.apiKeys.find((candidate) => candidate.id === command.apiKeyId);
-
-    if (apiKey === undefined) {
-      throw new ModelProviderApplicationError('not-found', {});
-    }
-
-    const nextApiKey = {
-      ...apiKey,
-      name: command.name === undefined ? apiKey.name : command.name.trim(),
-      secret: command.secret === undefined ? apiKey.secret : command.secret,
+  async execute(command: {
+    apiKeyId: string;
+    ownerUserId: string;
+    name?: string;
+    secret?: string;
+  }): Promise<ApiKey> {
+    const current = await this.store.findOwnedById(
+      command.apiKeyId,
+      command.ownerUserId,
+    );
+    if (!current) throw new ModelProviderApplicationError("not-found", {});
+    const next = {
+      ...current,
+      name: command.name === undefined ? current.name : command.name.trim(),
+      secret: command.secret === undefined ? current.secret : command.secret,
       updatedAtMs: this.clock.now().getTime(),
     };
-
-    await this.store.updateApiKey(nextApiKey);
-
-    return {
-      ...config,
-      apiKeys: config.apiKeys.map((candidate) =>
-        candidate.id === nextApiKey.id ? nextApiKey : candidate,
-      ),
-    };
+    await this.store.update(next);
+    return next;
   }
 }

@@ -6,40 +6,34 @@ import {
   Param,
   Patch,
   Post,
-  Put,
   Query,
   Req,
   UseGuards,
-} from '@nestjs/common';
-import { ApiBody, ApiParam, ApiTags } from '@nestjs/swagger';
-import { AuthGuard } from '../../auth/http/auth.guard.js';
-import type { AuthenticatedRequest } from '../../auth/http/authenticated-request.js';
-import { ApiEnvelopeOkResponse } from '../../openapi/api-envelope-response.decorator.js';
-import { CreateModelProviderApiKeyUseCase } from '../application/create-model-provider-api-key.use-case.js';
-import { CreateModelProviderUseCase } from '../application/create-model-provider.use-case.js';
-import { DeleteModelProviderApiKeyUseCase } from '../application/delete-model-provider-api-key.use-case.js';
-import { DeleteModelProviderUseCase } from '../application/delete-model-provider.use-case.js';
-import { GetModelProviderUseCase } from '../application/get-model-provider.use-case.js';
-import { ListModelProviderModelsUseCase } from '../application/list-model-provider-models.use-case.js';
-import { ListModelProvidersUseCase } from '../application/list-model-providers.use-case.js';
-import { ModelProviderApplicationError } from '../application/model-provider-application-error.js';
-import { SetSelectedModelProviderApiKeyUseCase } from '../application/set-selected-model-provider-api-key.use-case.js';
-import { TestModelProviderConnectionUseCase } from '../application/test-model-provider-connection.use-case.js';
-import { UpdateModelProviderApiKeyUseCase } from '../application/update-model-provider-api-key.use-case.js';
-import { UpdateModelProviderUseCase } from '../application/update-model-provider.use-case.js';
-import type { ModelProviderApplicationErrorReason } from '../application/model-provider-application-error.js';
-import { MODEL_PROVIDER_CATALOG } from '../domain/model-provider-catalog.js';
-import { toApiFailure } from './model-provider-application-error.mapper.js';
+} from "@nestjs/common";
+import { ApiBody, ApiParam, ApiTags } from "@nestjs/swagger";
+import { AuthGuard } from "../../auth/http/auth.guard.js";
+import type { AuthenticatedRequest } from "../../auth/http/authenticated-request.js";
+import { ApiEnvelopeOkResponse } from "../../openapi/api-envelope-response.decorator.js";
+import { CreateModelProviderUseCase } from "../application/create-model-provider.use-case.js";
+import { DeleteModelProviderUseCase } from "../application/delete-model-provider.use-case.js";
+import { GetModelProviderUseCase } from "../application/get-model-provider.use-case.js";
+import { ListModelProviderModelsUseCase } from "../application/list-model-provider-models.use-case.js";
+import { ListModelProvidersUseCase } from "../application/list-model-providers.use-case.js";
 import {
-  CreateModelProviderApiKeyRequestDto,
+  ModelProviderApplicationError,
+  type ModelProviderApplicationErrorReason,
+} from "../application/model-provider-application-error.js";
+import { TestModelProviderConnectionUseCase } from "../application/test-model-provider-connection.use-case.js";
+import { UpdateModelProviderUseCase } from "../application/update-model-provider.use-case.js";
+import { MODEL_PROVIDER_CATALOG } from "../domain/model-provider-catalog.js";
+import { toApiFailure } from "./model-provider-application-error.mapper.js";
+import {
   CreateModelProviderRequestDto,
   ListModelProvidersQueryDto,
   ModelProviderConnectionPreviewRequestDto,
-  SaveModelProviderApiKeyRequestDto,
-  SetSelectedModelProviderApiKeyRequestDto,
   TestModelProviderConnectionRequestDto,
   UpdateModelProviderRequestDto,
-} from './model-provider-requests.dto.js';
+} from "./model-provider-requests.dto.js";
 import {
   ModelProviderCatalogResponseDto,
   ModelProviderDetailResponseDto,
@@ -51,27 +45,23 @@ import {
   toModelProviderModelListResponse,
   toModelProviderPageResponse,
   toTestModelProviderConnectionResponse,
-} from './model-provider-responses.dto.js';
+} from "./model-provider-responses.dto.js";
 
-@ApiTags('model-providers')
+@ApiTags("model-providers")
 @UseGuards(AuthGuard)
-@Controller('model-providers')
+@Controller("model-providers")
 export class ModelProvidersController {
   constructor(
-    private readonly listModelProvidersUseCase: ListModelProvidersUseCase,
-    private readonly getModelProviderUseCase: GetModelProviderUseCase,
-    private readonly createModelProviderUseCase: CreateModelProviderUseCase,
-    private readonly updateModelProviderUseCase: UpdateModelProviderUseCase,
-    private readonly deleteModelProviderUseCase: DeleteModelProviderUseCase,
-    private readonly createModelProviderApiKeyUseCase: CreateModelProviderApiKeyUseCase,
-    private readonly updateModelProviderApiKeyUseCase: UpdateModelProviderApiKeyUseCase,
-    private readonly deleteModelProviderApiKeyUseCase: DeleteModelProviderApiKeyUseCase,
-    private readonly setSelectedModelProviderApiKeyUseCase: SetSelectedModelProviderApiKeyUseCase,
-    private readonly listModelProviderModelsUseCase: ListModelProviderModelsUseCase,
-    private readonly testModelProviderConnectionUseCase: TestModelProviderConnectionUseCase,
+    private readonly listUseCase: ListModelProvidersUseCase,
+    private readonly getUseCase: GetModelProviderUseCase,
+    private readonly createUseCase: CreateModelProviderUseCase,
+    private readonly updateUseCase: UpdateModelProviderUseCase,
+    private readonly deleteUseCase: DeleteModelProviderUseCase,
+    private readonly modelsUseCase: ListModelProviderModelsUseCase,
+    private readonly testUseCase: TestModelProviderConnectionUseCase,
   ) {}
 
-  @Get('catalog')
+  @Get("catalog")
   @ApiEnvelopeOkResponse({ type: ModelProviderCatalogResponseDto })
   catalog(): ModelProviderCatalogResponseDto {
     return toModelProviderCatalogResponse(MODEL_PROVIDER_CATALOG);
@@ -84,23 +74,23 @@ export class ModelProvidersController {
     @Query() query: ListModelProvidersQueryDto,
   ): Promise<ModelProviderPageResponseDto> {
     return toModelProviderPageResponse(
-      await this.listModelProvidersUseCase.execute({
+      await this.listUseCase.execute({
         viewerUserId: request.authUser.id,
         ...query,
       }),
     );
   }
 
-  @Get(':id')
-  @ApiParam({ name: 'id', type: String })
+  @Get(":id")
+  @ApiParam({ name: "id", type: String })
   @ApiEnvelopeOkResponse({ type: ModelProviderDetailResponseDto })
-  async get(
+  get(
     @Req() request: AuthenticatedRequest,
-    @Param('id') id: string,
+    @Param("id") id: string,
   ): Promise<ModelProviderDetailResponseDto> {
-    return this.withApplicationErrors(async () =>
+    return this.withErrors(async () =>
       toModelProviderDetailResponse(
-        await this.getModelProviderUseCase.execute({
+        await this.getUseCase.execute({
           id,
           viewerUserId: request.authUser.id,
         }),
@@ -111,13 +101,13 @@ export class ModelProvidersController {
   @Post()
   @ApiBody({ type: CreateModelProviderRequestDto })
   @ApiEnvelopeOkResponse({ type: ModelProviderDetailResponseDto })
-  async create(
+  create(
     @Req() request: AuthenticatedRequest,
     @Body() body: CreateModelProviderRequestDto,
   ): Promise<ModelProviderDetailResponseDto> {
-    return this.withApplicationErrors(async () =>
+    return this.withErrors(async () =>
       toModelProviderDetailResponse(
-        await this.createModelProviderUseCase.execute({
+        await this.createUseCase.execute({
           ownerUserId: request.authUser.id,
           ...body,
         }),
@@ -125,18 +115,18 @@ export class ModelProvidersController {
     );
   }
 
-  @Patch(':id')
-  @ApiParam({ name: 'id', type: String })
+  @Patch(":id")
+  @ApiParam({ name: "id", type: String })
   @ApiBody({ type: UpdateModelProviderRequestDto })
   @ApiEnvelopeOkResponse({ type: ModelProviderDetailResponseDto })
-  async update(
+  update(
     @Req() request: AuthenticatedRequest,
-    @Param('id') id: string,
+    @Param("id") id: string,
     @Body() body: UpdateModelProviderRequestDto,
   ): Promise<ModelProviderDetailResponseDto> {
-    return this.withApplicationErrors(async () =>
+    return this.withErrors(async () =>
       toModelProviderDetailResponse(
-        await this.updateModelProviderUseCase.execute({
+        await this.updateUseCase.execute({
           id,
           viewerUserId: request.authUser.id,
           ...body,
@@ -145,144 +135,77 @@ export class ModelProvidersController {
     );
   }
 
-  @Delete(':id')
-  @ApiParam({ name: 'id', type: String })
-  @ApiEnvelopeOkResponse({ schema: { type: 'object', properties: { ok: { type: 'boolean' } } } })
-  async delete(@Req() request: AuthenticatedRequest, @Param('id') id: string): Promise<{ ok: true }> {
-    return this.withApplicationErrors(async () => {
-      await this.deleteModelProviderUseCase.execute({ id, viewerUserId: request.authUser.id });
+  @Delete(":id")
+  @ApiParam({ name: "id", type: String })
+  @ApiEnvelopeOkResponse({
+    schema: { type: "object", properties: { ok: { type: "boolean" } } },
+  })
+  delete(
+    @Req() request: AuthenticatedRequest,
+    @Param("id") id: string,
+  ): Promise<{ ok: true }> {
+    return this.withErrors(async () => {
+      await this.deleteUseCase.execute({
+        id,
+        viewerUserId: request.authUser.id,
+      });
       return { ok: true };
     });
   }
 
-  @Post(':id/api-keys')
-  @ApiParam({ name: 'id', type: String })
-  @ApiBody({ type: CreateModelProviderApiKeyRequestDto })
-  @ApiEnvelopeOkResponse({ type: ModelProviderDetailResponseDto })
-  async createApiKey(
-    @Req() request: AuthenticatedRequest,
-    @Param('id') id: string,
-    @Body() body: CreateModelProviderApiKeyRequestDto,
-  ): Promise<ModelProviderDetailResponseDto> {
-    return this.withApplicationErrors(async () =>
-      toModelProviderDetailResponse(
-        await this.createModelProviderApiKeyUseCase.execute({
-          configId: id,
-          viewerUserId: request.authUser.id,
-          ...body,
-        }),
-      ),
-    );
-  }
-
-  @Patch(':id/api-keys/:apiKeyId')
-  @ApiParam({ name: 'id', type: String })
-  @ApiParam({ name: 'apiKeyId', type: String })
-  @ApiBody({ type: SaveModelProviderApiKeyRequestDto })
-  @ApiEnvelopeOkResponse({ type: ModelProviderDetailResponseDto })
-  async updateApiKey(
-    @Req() request: AuthenticatedRequest,
-    @Param('id') id: string,
-    @Param('apiKeyId') apiKeyId: string,
-    @Body() body: SaveModelProviderApiKeyRequestDto,
-  ): Promise<ModelProviderDetailResponseDto> {
-    return this.withApplicationErrors(async () =>
-      toModelProviderDetailResponse(
-        await this.updateModelProviderApiKeyUseCase.execute({
-          configId: id,
-          apiKeyId,
-          viewerUserId: request.authUser.id,
-          ...body,
-        }),
-      ),
-    );
-  }
-
-  @Delete(':id/api-keys/:apiKeyId')
-  @ApiParam({ name: 'id', type: String })
-  @ApiParam({ name: 'apiKeyId', type: String })
-  @ApiEnvelopeOkResponse({ type: ModelProviderDetailResponseDto })
-  async deleteApiKey(
-    @Req() request: AuthenticatedRequest,
-    @Param('id') id: string,
-    @Param('apiKeyId') apiKeyId: string,
-  ): Promise<ModelProviderDetailResponseDto> {
-    return this.withApplicationErrors(async () =>
-      toModelProviderDetailResponse(
-        await this.deleteModelProviderApiKeyUseCase.execute({
-          configId: id,
-          apiKeyId,
-          viewerUserId: request.authUser.id,
-        }),
-      ),
-    );
-  }
-
-  @Put(':id/selected-api-key')
-  @ApiParam({ name: 'id', type: String })
-  @ApiBody({ type: SetSelectedModelProviderApiKeyRequestDto })
-  @ApiEnvelopeOkResponse({ type: ModelProviderDetailResponseDto })
-  async setSelectedApiKey(
-    @Req() request: AuthenticatedRequest,
-    @Param('id') id: string,
-    @Body() body: SetSelectedModelProviderApiKeyRequestDto,
-  ): Promise<ModelProviderDetailResponseDto> {
-    return this.withApplicationErrors(async () =>
-      toModelProviderDetailResponse(
-        await this.setSelectedModelProviderApiKeyUseCase.execute({
-          configId: id,
-          viewerUserId: request.authUser.id,
-          selectedApiKeyId: body.selectedApiKeyId ?? null,
-        }),
-      ),
-    );
-  }
-
-  @Post('models/preview')
+  @Post("models/preview")
   @ApiBody({ type: ModelProviderConnectionPreviewRequestDto })
   @ApiEnvelopeOkResponse({ type: ModelProviderModelListResponseDto })
-  async previewModels(
+  previewModels(
+    @Req() request: AuthenticatedRequest,
     @Body() body: ModelProviderConnectionPreviewRequestDto,
   ): Promise<ModelProviderModelListResponseDto> {
-    return this.withApplicationErrors(async () =>
+    return this.withErrors(async () =>
       toModelProviderModelListResponse(
-        await this.listModelProviderModelsUseCase.preview({
+        await this.modelsUseCase.preview({
           providerKind: body.providerKind,
           baseUrl: body.baseUrl,
           apiKeySecret: body.apiKeySecret,
+          ...(body.apiKeyId
+            ? { apiKeyId: body.apiKeyId, viewerUserId: request.authUser.id }
+            : {}),
         }),
       ),
     );
   }
 
-  @Post('test-connection/preview')
+  @Post("test-connection/preview")
   @ApiBody({ type: TestModelProviderConnectionRequestDto })
   @ApiEnvelopeOkResponse({ type: TestModelProviderConnectionResponseDto })
-  async previewTestConnection(
+  previewTest(
+    @Req() request: AuthenticatedRequest,
     @Body() body: TestModelProviderConnectionRequestDto,
   ): Promise<TestModelProviderConnectionResponseDto> {
-    return this.withApplicationErrors(async () =>
+    return this.withErrors(async () =>
       toTestModelProviderConnectionResponse(
-        await this.testModelProviderConnectionUseCase.preview({
+        await this.testUseCase.preview({
           providerKind: body.providerKind,
           baseUrl: body.baseUrl,
           defaultModelName: body.defaultModelName,
           apiKeySecret: body.apiKeySecret,
+          ...(body.apiKeyId
+            ? { apiKeyId: body.apiKeyId, viewerUserId: request.authUser.id }
+            : {}),
         }),
       ),
     );
   }
 
-  @Post(':id/models')
-  @ApiParam({ name: 'id', type: String })
+  @Post(":id/models")
+  @ApiParam({ name: "id", type: String })
   @ApiEnvelopeOkResponse({ type: ModelProviderModelListResponseDto })
-  async savedModels(
+  savedModels(
     @Req() request: AuthenticatedRequest,
-    @Param('id') id: string,
+    @Param("id") id: string,
   ): Promise<ModelProviderModelListResponseDto> {
-    return this.withApplicationErrors(async () =>
+    return this.withErrors(async () =>
       toModelProviderModelListResponse(
-        await this.listModelProviderModelsUseCase.saved({
+        await this.modelsUseCase.saved({
           configId: id,
           viewerUserId: request.authUser.id,
         }),
@@ -290,16 +213,16 @@ export class ModelProvidersController {
     );
   }
 
-  @Post(':id/test-connection')
-  @ApiParam({ name: 'id', type: String })
+  @Post(":id/test-connection")
+  @ApiParam({ name: "id", type: String })
   @ApiEnvelopeOkResponse({ type: TestModelProviderConnectionResponseDto })
-  async savedTestConnection(
+  savedTest(
     @Req() request: AuthenticatedRequest,
-    @Param('id') id: string,
+    @Param("id") id: string,
   ): Promise<TestModelProviderConnectionResponseDto> {
-    return this.withApplicationErrors(async () =>
+    return this.withErrors(async () =>
       toTestModelProviderConnectionResponse(
-        await this.testModelProviderConnectionUseCase.saved({
+        await this.testUseCase.saved({
           configId: id,
           viewerUserId: request.authUser.id,
         }),
@@ -307,14 +230,14 @@ export class ModelProvidersController {
     );
   }
 
-  private async withApplicationErrors<TResult>(handler: () => Promise<TResult>): Promise<TResult> {
+  private async withErrors<T>(handler: () => Promise<T>): Promise<T> {
     try {
       return await handler();
     } catch (error) {
-      if (error instanceof ModelProviderApplicationError) {
-        throw toApiFailure(error as ModelProviderApplicationError<ModelProviderApplicationErrorReason>);
-      }
-
+      if (error instanceof ModelProviderApplicationError)
+        throw toApiFailure(
+          error as ModelProviderApplicationError<ModelProviderApplicationErrorReason>,
+        );
       throw error;
     }
   }

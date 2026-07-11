@@ -1,4 +1,3 @@
-import { ModelProviderApiKeysPage } from "./model-provider-api-keys-page";
 import { ModelProviderCreatePage } from "./model-provider-create-page";
 import { ModelProviderEditPage } from "./model-provider-edit-page";
 import { ModelProviderListPage } from "./model-provider-list-page";
@@ -42,10 +41,8 @@ export function ModelProviderPageRenderer({
   }
 
   if (page.name === "edit") {
-    return (
-      <ModelProviderEditPage page={page} pushPage={pushPage} onBack={popPage} />
-    );
+    return <ModelProviderEditPage page={page} onBack={popPage} />;
   }
 
-  return <ModelProviderApiKeysPage page={page} onBack={popPage} />;
+  return null;
 }

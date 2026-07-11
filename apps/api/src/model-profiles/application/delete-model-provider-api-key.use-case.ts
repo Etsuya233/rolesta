@@ -1,53 +1,43 @@
-import { UseCase } from '../../common/errors/index.js';
-import type { ModelProviderConfig } from '../domain/model-provider-config.js';
-import type { ModelProviderClock } from './model-provider-application-services.js';
-import { ModelProviderApplicationError } from './model-provider-application-error.js';
-import { translateModelProviderError } from './model-provider-error.mapper.js';
-import type { ModelProviderStore } from '../ports/model-provider-store.js';
-
-export interface DeleteModelProviderApiKeyCommand {
-  configId: string;
-  apiKeyId: string;
-  viewerUserId: string;
-}
+import { UseCase } from "../../common/errors/index.js";
+import type { ApiKeyStore } from "../ports/api-key-store.js";
+import { ModelProviderApplicationError } from "./model-provider-application-error.js";
+import type { ModelProviderClock } from "./model-provider-application-services.js";
+import { translateModelProviderError } from "./model-provider-error.mapper.js";
 
 export class DeleteModelProviderApiKeyUseCase {
   constructor(
-    private readonly store: ModelProviderStore,
+    private readonly store: ApiKeyStore,
     private readonly clock: ModelProviderClock,
   ) {}
 
   @UseCase(translateModelProviderError)
-  async execute(command: DeleteModelProviderApiKeyCommand): Promise<ModelProviderConfig> {
-    const config = await this.store.findOwnedById(command.configId, command.viewerUserId);
-
-    if (config === null) {
-      throw new ModelProviderApplicationError('not-found', {});
-    }
-
-    if (!config.apiKeys.some((apiKey) => apiKey.id === command.apiKeyId)) {
-      throw new ModelProviderApplicationError('not-found', {});
-    }
-
-    const updatedAtMs = this.clock.now().getTime();
-    const deleted = await this.store.deleteApiKeyAndTouchConfig(
-      config.id,
+  async referenceCount(command: {
+    apiKeyId: string;
+    ownerUserId: string;
+  }): Promise<number> {
+    const key = await this.store.findOwnedById(
       command.apiKeyId,
-      updatedAtMs,
+      command.ownerUserId,
     );
+    if (!key) throw new ModelProviderApplicationError("not-found", {});
+    return this.store.countProviderReferences(
+      command.apiKeyId,
+      command.ownerUserId,
+    );
+  }
 
-    if (!deleted) {
-      throw new ModelProviderApplicationError('not-found', {});
-    }
-
-    const nextConfig: ModelProviderConfig = {
-      ...config,
-      selectedApiKeyId:
-        config.selectedApiKeyId === command.apiKeyId ? null : config.selectedApiKeyId,
-      apiKeys: config.apiKeys.filter((apiKey) => apiKey.id !== command.apiKeyId),
-      updatedAtMs,
-    };
-
-    return nextConfig;
+  @UseCase(translateModelProviderError)
+  async execute(command: {
+    apiKeyId: string;
+    ownerUserId: string;
+  }): Promise<{ affectedProviderCount: number }> {
+    const count = await this.store.deleteOwnedAndClearProviderReferences(
+      command.apiKeyId,
+      command.ownerUserId,
+      this.clock.now().getTime(),
+    );
+    if (count === null)
+      throw new ModelProviderApplicationError("not-found", {});
+    return { affectedProviderCount: count };
   }
 }

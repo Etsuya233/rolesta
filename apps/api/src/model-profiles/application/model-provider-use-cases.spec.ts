@@ -1,162 +1,170 @@
-import type { PageResponse } from '@rolesta/shared';
-import { describe, expect, it } from 'vitest';
+import type { PageResponse } from "@rolesta/shared";
+import { describe, expect, it } from "vitest";
+import type {
+  ApiKey,
+  ModelProviderConfig,
+  ModelProviderSummary,
+} from "../domain/model-provider-config.js";
+import type { ApiKeyStore } from "../ports/api-key-store.js";
 import type {
   ChatCompletionConnectionClient,
   ListChatCompletionModelsRequest,
   TestChatCompletionRequest,
   TestChatCompletionResult,
-} from '../ports/chat-completion-connection-client.js';
-import { CreateModelProviderApiKeyUseCase } from './create-model-provider-api-key.use-case.js';
-import { CreateModelProviderUseCase } from './create-model-provider.use-case.js';
-import { DeleteModelProviderApiKeyUseCase } from './delete-model-provider-api-key.use-case.js';
-import { ListModelProviderModelsUseCase } from './list-model-provider-models.use-case.js';
-import { ModelProviderApplicationError } from './model-provider-application-error.js';
+} from "../ports/chat-completion-connection-client.js";
 import type {
   ListModelProvidersRequest,
   ModelProviderStore,
-} from '../ports/model-provider-store.js';
-import { TestModelProviderConnectionUseCase } from './test-model-provider-connection.use-case.js';
-import { UpdateModelProviderUseCase } from './update-model-provider.use-case.js';
-import type {
-  ModelProviderApiKey,
-  ModelProviderConfig,
-  ModelProviderSummary,
-} from '../domain/model-provider-config.js';
+} from "../ports/model-provider-store.js";
+import { CreateModelProviderUseCase } from "./create-model-provider.use-case.js";
+import { DeleteModelProviderApiKeyUseCase } from "./delete-model-provider-api-key.use-case.js";
+import { ListModelProviderModelsUseCase } from "./list-model-provider-models.use-case.js";
+import { ModelProviderApplicationError } from "./model-provider-application-error.js";
+import { TestModelProviderConnectionUseCase } from "./test-model-provider-connection.use-case.js";
+import { UpdateModelProviderUseCase } from "./update-model-provider.use-case.js";
 
-describe('model provider use cases', () => {
-  it('allows custom compatible configs to save a custom base URL without a key', async () => {
-    const store = new InMemoryModelProviderStore();
+describe("model provider use cases", () => {
+  it("creates a provider with a manual secret", async () => {
+    const state = new MemoryState();
     const useCase = new CreateModelProviderUseCase(
-      store,
-      new IncrementingIdGenerator(),
-      new FixedClock(1783090000000),
+      state.providers,
+      ids,
+      clock,
+      state.keys,
     );
-
     const config = await useCase.execute({
-      ownerUserId: 'owner',
-      name: 'Local',
-      providerKind: 'openai-compatible',
-      baseUrl: 'https://local.example/v1/',
+      ownerUserId: "owner",
+      name: "Local",
+      providerKind: "openai-compatible",
+      baseUrl: "https://local.example/v1/",
+      credentialMode: "manual",
+      secret: "manual-secret",
     });
-
     expect(config).toMatchObject({
-      id: 'id_1',
-      providerKind: 'openai-compatible',
-      providerSource: 'custom',
-      baseUrl: 'https://local.example/v1',
-      defaultModelName: '',
-      selectedApiKeyId: null,
-      apiKeys: [],
+      baseUrl: "https://local.example/v1",
+      credentialMode: "manual",
+      secret: "manual-secret",
+      apiKeyId: null,
     });
   });
 
-  it('rejects official providers when the base URL is outside the registry', async () => {
-    const store = new InMemoryModelProviderStore([
-      modelProviderConfig({ id: 'cfg_1', providerKind: 'openai', baseUrl: 'https://api.openai.com/v1' }),
-    ]);
-    const useCase = new UpdateModelProviderUseCase(store, new FixedClock(1783090000100));
-
+  it("rejects a vault key owned by another user", async () => {
+    const state = new MemoryState([], [apiKey({ ownerUserId: "other" })]);
+    const useCase = new CreateModelProviderUseCase(
+      state.providers,
+      ids,
+      clock,
+      state.keys,
+    );
     await expect(
       useCase.execute({
-        id: 'cfg_1',
-        viewerUserId: 'owner',
-        baseUrl: 'https://proxy.example/v1',
+        ownerUserId: "owner",
+        name: "Remote",
+        providerKind: "openai",
+        baseUrl: "https://api.openai.com/v1",
+        credentialMode: "vault",
+        apiKeyId: "key",
       }),
-    ).rejects.toMatchObject(new ModelProviderApplicationError('invalid-base-url', {}));
-  });
-
-  it('clears the selected key when deleting the selected API key', async () => {
-    const config = modelProviderConfig({
-      id: 'cfg_1',
-      selectedApiKeyId: 'key_1',
-      apiKeys: [
-        modelProviderApiKey({ id: 'key_1', configId: 'cfg_1' }),
-        modelProviderApiKey({ id: 'key_2', configId: 'cfg_1' }),
-      ],
-    });
-    const store = new InMemoryModelProviderStore([config]);
-    const useCase = new DeleteModelProviderApiKeyUseCase(store, new FixedClock(1783090000200));
-
-    const next = await useCase.execute({
-      configId: 'cfg_1',
-      apiKeyId: 'key_1',
-      viewerUserId: 'owner',
-    });
-
-    expect(next.selectedApiKeyId).toBeNull();
-    expect(next.apiKeys.map((apiKey) => apiKey.id)).toEqual(['key_2']);
-  });
-
-  it('does not send an authorization secret when testing a config without a key', async () => {
-    const store = new InMemoryModelProviderStore([
-      modelProviderConfig({
-        id: 'cfg_1',
-        defaultModelName: 'gpt-test',
-        selectedApiKeyId: null,
-        apiKeys: [],
-      }),
-    ]);
-    const client = new RecordingConnectionClient();
-    const useCase = new TestModelProviderConnectionUseCase(store, client);
-
-    await expect(
-      useCase.saved({ configId: 'cfg_1', viewerUserId: 'owner' }),
-    ).resolves.toMatchObject({ ok: true, modelName: 'gpt-test' });
-    expect(client.lastTestRequest?.apiKeySecret).toBeUndefined();
-  });
-
-  it('uses the selected API key secret for remote model listing', async () => {
-    const store = new InMemoryModelProviderStore([
-      modelProviderConfig({
-        id: 'cfg_1',
-        selectedApiKeyId: 'key_1',
-        apiKeys: [modelProviderApiKey({ id: 'key_1', configId: 'cfg_1', secret: 'secret_1' })],
-      }),
-    ]);
-    const client = new RecordingConnectionClient();
-    const useCase = new ListModelProviderModelsUseCase(store, client);
-
-    const result = await useCase.saved({ configId: 'cfg_1', viewerUserId: 'owner' });
-
-    expect(result.models).toEqual(['model-a']);
-    expect(typeof result.elapsedMs).toBe('number');
-    expect(client.lastListRequest?.apiKeySecret).toBe('secret_1');
-  });
-
-  it('creates API keys without selecting them implicitly', async () => {
-    const store = new InMemoryModelProviderStore([modelProviderConfig({ id: 'cfg_1' })]);
-    const useCase = new CreateModelProviderApiKeyUseCase(
-      store,
-      new IncrementingIdGenerator(),
-      new FixedClock(1783090000300),
+    ).rejects.toMatchObject(
+      new ModelProviderApplicationError("api-key-not-owned", {}),
     );
+  });
 
-    const config = await useCase.execute({
-      configId: 'cfg_1',
-      viewerUserId: 'owner',
-      name: 'Main',
-      secret: 'secret',
+  it("switches credentials without retaining the inactive value", async () => {
+    const state = new MemoryState(
+      [provider({ secret: "manual-secret" })],
+      [apiKey()],
+    );
+    const useCase = new UpdateModelProviderUseCase(
+      state.providers,
+      clock,
+      state.keys,
+    );
+    const next = await useCase.execute({
+      id: "cfg",
+      viewerUserId: "owner",
+      credentialMode: "vault",
+      apiKeyId: "key",
     });
+    expect(next).toMatchObject({
+      credentialMode: "vault",
+      secret: "",
+      apiKeyId: "key",
+      apiKeyName: "Key",
+    });
+  });
 
-    expect(config.selectedApiKeyId).toBeNull();
-    expect(config.apiKeys).toHaveLength(1);
+  it("uses the global key secret for model listing", async () => {
+    const state = new MemoryState(
+      [
+        provider({
+          credentialMode: "vault",
+          apiKeyId: "key",
+          apiKeyName: "Key",
+        }),
+      ],
+      [apiKey({ secret: "vault-secret" })],
+    );
+    const client = new RecordingClient();
+    await new ListModelProviderModelsUseCase(
+      state.providers,
+      client,
+      state.keys,
+    ).saved({ configId: "cfg", viewerUserId: "owner" });
+    expect(client.lastListRequest?.apiKeySecret).toBe("vault-secret");
+  });
+
+  it("uses the manual secret for connection testing", async () => {
+    const state = new MemoryState([
+      provider({ secret: "manual-secret", defaultModelName: "model-a" }),
+    ]);
+    const client = new RecordingClient();
+    await new TestModelProviderConnectionUseCase(
+      state.providers,
+      client,
+      state.keys,
+    ).saved({ configId: "cfg", viewerUserId: "owner" });
+    expect(client.lastTestRequest?.apiKeySecret).toBe("manual-secret");
+  });
+
+  it("deletes a global key and clears every provider reference", async () => {
+    const state = new MemoryState(
+      [
+        provider({ id: "cfg-1", credentialMode: "vault", apiKeyId: "key" }),
+        provider({ id: "cfg-2", credentialMode: "vault", apiKeyId: "key" }),
+      ],
+      [apiKey()],
+    );
+    const result = await new DeleteModelProviderApiKeyUseCase(
+      state.keys,
+      clock,
+    ).execute({ apiKeyId: "key", ownerUserId: "owner" });
+    expect(result.affectedProviderCount).toBe(2);
+    expect(await state.providers.findOwnedById("cfg-1", "owner")).toMatchObject(
+      { credentialMode: "manual", secret: "", apiKeyId: null },
+    );
   });
 });
 
-class InMemoryModelProviderStore implements ModelProviderStore {
-  private readonly configs = new Map<string, ModelProviderConfig>();
-
-  constructor(configs: ModelProviderConfig[] = []) {
-    for (const config of configs) {
-      this.configs.set(config.id, cloneConfig(config));
-    }
+class MemoryState {
+  readonly configs = new Map<string, ModelProviderConfig>();
+  readonly apiKeys = new Map<string, ApiKey>();
+  readonly providers = new MemoryModelProviderStore(this);
+  readonly keys = new MemoryApiKeyStore(this);
+  constructor(configs: ModelProviderConfig[] = [], keys: ApiKey[] = []) {
+    configs.forEach((item) => this.configs.set(item.id, { ...item }));
+    keys.forEach((item) => this.apiKeys.set(item.id, { ...item }));
   }
+}
 
-  list(request: ListModelProvidersRequest): Promise<PageResponse<ModelProviderSummary>> {
-    const items = [...this.configs.values()]
-      .filter((config) => config.ownerUserId === request.viewerUserId)
-      .map((config) => ({ ...config, apiKeyCount: config.apiKeys.length }));
-
+class MemoryModelProviderStore implements ModelProviderStore {
+  constructor(private readonly state: MemoryState) {}
+  list(
+    request: ListModelProvidersRequest,
+  ): Promise<PageResponse<ModelProviderSummary>> {
+    const items = [...this.state.configs.values()].filter(
+      (item) => item.ownerUserId === request.viewerUserId,
+    );
     return Promise.resolve({
       items,
       pageIndex: request.pageIndex,
@@ -165,156 +173,140 @@ class InMemoryModelProviderStore implements ModelProviderStore {
       totalPages: 1,
     });
   }
-
-  findOwnedById(id: string, ownerUserId: string): Promise<ModelProviderConfig | null> {
-    const config = this.configs.get(id);
-    return Promise.resolve(config?.ownerUserId === ownerUserId ? cloneConfig(config) : null);
+  findOwnedById(
+    id: string,
+    ownerUserId: string,
+  ): Promise<ModelProviderConfig | null> {
+    const item = this.state.configs.get(id);
+    return Promise.resolve(
+      item?.ownerUserId === ownerUserId ? { ...item } : null,
+    );
   }
-
   save(config: ModelProviderConfig): Promise<void> {
-    this.configs.set(config.id, cloneConfig(config));
+    this.state.configs.set(config.id, { ...config });
     return Promise.resolve();
   }
-
   update(config: ModelProviderConfig): Promise<void> {
-    this.configs.set(config.id, cloneConfig(config));
+    this.state.configs.set(config.id, { ...config });
     return Promise.resolve();
   }
-
   deleteOwned(id: string, ownerUserId: string): Promise<boolean> {
-    const config = this.configs.get(id);
-
-    if (config?.ownerUserId !== ownerUserId) {
-      return Promise.resolve(false);
-    }
-
-    return Promise.resolve(this.configs.delete(id));
-  }
-
-  addApiKey(apiKey: ModelProviderApiKey): Promise<void> {
-    const config = this.configs.get(apiKey.configId);
-
-    if (config) {
-      this.configs.set(config.id, {
-        ...config,
-        apiKeys: [...config.apiKeys, { ...apiKey }],
-      });
-    }
-
-    return Promise.resolve();
-  }
-
-  updateApiKey(apiKey: ModelProviderApiKey): Promise<void> {
-    const config = this.configs.get(apiKey.configId);
-
-    if (config) {
-      this.configs.set(config.id, {
-        ...config,
-        apiKeys: config.apiKeys.map((candidate) =>
-          candidate.id === apiKey.id ? { ...apiKey } : candidate,
-        ),
-      });
-    }
-
-    return Promise.resolve();
-  }
-
-  deleteApiKeyAndTouchConfig(
-    configId: string,
-    apiKeyId: string,
-    updatedAtMs: number,
-  ): Promise<boolean> {
-    const config = this.configs.get(configId);
-
-    if (!config || !config.apiKeys.some((apiKey) => apiKey.id === apiKeyId)) {
-      return Promise.resolve(false);
-    }
-
-    this.configs.set(config.id, {
-      ...config,
-      selectedApiKeyId: config.selectedApiKeyId === apiKeyId ? null : config.selectedApiKeyId,
-      apiKeys: config.apiKeys.filter((apiKey) => apiKey.id !== apiKeyId),
-      updatedAtMs,
-    });
-
-    return Promise.resolve(true);
+    const item = this.state.configs.get(id);
+    return Promise.resolve(
+      item?.ownerUserId === ownerUserId && this.state.configs.delete(id),
+    );
   }
 }
 
-class RecordingConnectionClient implements ChatCompletionConnectionClient {
+class MemoryApiKeyStore implements ApiKeyStore {
+  constructor(private readonly state: MemoryState) {}
+  listOwned(ownerUserId: string): Promise<ApiKey[]> {
+    return Promise.resolve(
+      [...this.state.apiKeys.values()].filter(
+        (item) => item.ownerUserId === ownerUserId,
+      ),
+    );
+  }
+  findOwnedById(id: string, ownerUserId: string): Promise<ApiKey | null> {
+    const item = this.state.apiKeys.get(id);
+    return Promise.resolve(
+      item?.ownerUserId === ownerUserId ? { ...item } : null,
+    );
+  }
+  save(apiKey: ApiKey): Promise<void> {
+    this.state.apiKeys.set(apiKey.id, { ...apiKey });
+    return Promise.resolve();
+  }
+  update(apiKey: ApiKey): Promise<void> {
+    this.state.apiKeys.set(apiKey.id, { ...apiKey });
+    return Promise.resolve();
+  }
+  countProviderReferences(
+    id: string,
+    ownerUserId: string,
+  ): Promise<number> {
+    return Promise.resolve(
+      [...this.state.configs.values()].filter(
+        (item) => item.ownerUserId === ownerUserId && item.apiKeyId === id,
+      ).length,
+    );
+  }
+  async deleteOwnedAndClearProviderReferences(
+    id: string,
+    ownerUserId: string,
+    updatedAtMs: number,
+  ): Promise<number | null> {
+    const key = await this.findOwnedById(id, ownerUserId);
+    if (!key) return null;
+    let count = 0;
+    for (const [configId, config] of this.state.configs) {
+      if (config.ownerUserId === ownerUserId && config.apiKeyId === id) {
+        this.state.configs.set(configId, {
+          ...config,
+          credentialMode: "manual",
+          secret: "",
+          apiKeyId: null,
+          apiKeyName: null,
+          updatedAtMs,
+        });
+        count += 1;
+      }
+    }
+    this.state.apiKeys.delete(id);
+    return count;
+  }
+}
+
+class RecordingClient implements ChatCompletionConnectionClient {
   lastListRequest: ListChatCompletionModelsRequest | null = null;
   lastTestRequest: TestChatCompletionRequest | null = null;
-
   listModels(request: ListChatCompletionModelsRequest): Promise<string[]> {
     this.lastListRequest = request;
-    return Promise.resolve(['model-a']);
+    return Promise.resolve(["model-a"]);
   }
-
-  testChatCompletion(request: TestChatCompletionRequest): Promise<TestChatCompletionResult> {
+  testChatCompletion(
+    request: TestChatCompletionRequest,
+  ): Promise<TestChatCompletionResult> {
     this.lastTestRequest = request;
     return Promise.resolve({
       modelName: request.defaultModelName,
-      remoteResponseId: 'resp_1',
+      remoteResponseId: "response",
     });
   }
 }
 
-class IncrementingIdGenerator {
-  private nextId = 1;
-
-  createId(): string {
-    const id = `id_${this.nextId}`;
-    this.nextId += 1;
-    return id;
-  }
+const ids = { createId: () => "cfg" };
+const clock = { now: () => new Date(1783090000000) };
+function apiKey(overrides: Partial<ApiKey> = {}): ApiKey {
+  return {
+    id: "key",
+    ownerUserId: "owner",
+    name: "Key",
+    secret: "secret",
+    createdAtMs: 1,
+    updatedAtMs: 1,
+    ...overrides,
+  };
 }
-
-class FixedClock {
-  constructor(private readonly nowMs: number) {}
-
-  now(): Date {
-    return new Date(this.nowMs);
-  }
-}
-
-function modelProviderConfig(
+function provider(
   overrides: Partial<ModelProviderConfig> = {},
 ): ModelProviderConfig {
   return {
-    id: 'cfg',
-    ownerUserId: 'owner',
-    name: 'Config',
-    providerKind: 'openai-compatible',
-    providerSource: 'custom',
-    baseUrl: 'https://local.example/v1',
-    defaultModelName: '',
-    selectedApiKeyId: null,
-    apiKeys: [],
-    createdAtMs: 1783090000000,
-    updatedAtMs: 1783090000000,
+    id: "cfg",
+    ownerUserId: "owner",
+    name: "Config",
+    providerKind: "openai-compatible",
+    providerSource: "custom",
+    baseUrl: "https://local.example/v1",
+    defaultModelName: "",
+    credentialMode: "manual",
+    secret: "",
+    apiKeyId: null,
+    apiKeyName: null,
+    createdAtMs: 1,
+    updatedAtMs: 1,
     lastUsedAtMs: null,
     usageCount: 0,
     ...overrides,
-  };
-}
-
-function modelProviderApiKey(
-  overrides: Partial<ModelProviderApiKey> = {},
-): ModelProviderApiKey {
-  return {
-    id: 'key',
-    configId: 'cfg',
-    name: 'Key',
-    secret: 'secret',
-    createdAtMs: 1783090000000,
-    updatedAtMs: 1783090000000,
-    ...overrides,
-  };
-}
-
-function cloneConfig(config: ModelProviderConfig): ModelProviderConfig {
-  return {
-    ...config,
-    apiKeys: config.apiKeys.map((apiKey) => ({ ...apiKey })),
   };
 }

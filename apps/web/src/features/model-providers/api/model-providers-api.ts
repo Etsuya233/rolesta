@@ -11,6 +11,9 @@ export type ModelProviderDetailResponse =
   components["schemas"]["ModelProviderDetailResponseDto"];
 export type ModelProviderApiKeyResponse =
   components["schemas"]["ModelProviderApiKeyResponseDto"];
+export type ApiKeyListResponse = components["schemas"]["ApiKeyListResponseDto"];
+export type DeleteApiKeyResponse =
+  components["schemas"]["DeleteApiKeyResponseDto"];
 export type ModelProviderPageResponse =
   components["schemas"]["ModelProviderPageResponseDto"];
 export type ModelProviderSaveValues =
@@ -38,7 +41,9 @@ export type ModelProviderSortKey = NonNullable<ListModelProvidersQuery["sort"]>;
 export type SortDirection = NonNullable<ListModelProvidersQuery["direction"]>;
 
 export async function getModelProviderCatalog(): Promise<ModelProviderCatalogResponse> {
-  const result = await requestApi(openApiClient.GET("/model-providers/catalog"));
+  const result = await requestApi(
+    openApiClient.GET("/model-providers/catalog"),
+  );
   return result.data;
 }
 
@@ -82,60 +87,61 @@ export async function updateModelProvider(
   return result.data;
 }
 
-export async function deleteModelProvider(id: string): Promise<{ ok?: boolean }> {
+export async function deleteModelProvider(
+  id: string,
+): Promise<{ ok?: boolean }> {
   const result = await requestApi(
     openApiClient.DELETE("/model-providers/{id}", { params: { path: { id } } }),
   );
   return result.data;
 }
 
+export async function listApiKeys(): Promise<ApiKeyListResponse> {
+  const result = await requestApi(openApiClient.GET("/api-keys"));
+  return result.data;
+}
+
 export async function createModelProviderApiKey(
-  configId: string,
   values: ModelProviderApiKeyCreateValues,
-): Promise<ModelProviderDetailResponse> {
+): Promise<ModelProviderApiKeyResponse> {
   const result = await requestApi(
-    openApiClient.POST("/model-providers/{id}/api-keys", {
+    openApiClient.POST("/api-keys", {
       body: values,
-      params: { path: { id: configId } },
     }),
   );
   return result.data;
 }
 
 export async function updateModelProviderApiKey(
-  configId: string,
   apiKeyId: string,
   values: ModelProviderApiKeySaveValues,
-): Promise<ModelProviderDetailResponse> {
+): Promise<ModelProviderApiKeyResponse> {
   const result = await requestApi(
-    openApiClient.PATCH("/model-providers/{id}/api-keys/{apiKeyId}", {
+    openApiClient.PATCH("/api-keys/{id}", {
       body: values,
-      params: { path: { id: configId, apiKeyId } },
+      params: { path: { id: apiKeyId } },
+    }),
+  );
+  return result.data;
+}
+
+export async function getApiKeyReferenceCount(
+  apiKeyId: string,
+): Promise<DeleteApiKeyResponse> {
+  const result = await requestApi(
+    openApiClient.GET("/api-keys/{id}/references", {
+      params: { path: { id: apiKeyId } },
     }),
   );
   return result.data;
 }
 
 export async function deleteModelProviderApiKey(
-  configId: string,
   apiKeyId: string,
-): Promise<ModelProviderDetailResponse> {
+): Promise<DeleteApiKeyResponse> {
   const result = await requestApi(
-    openApiClient.DELETE("/model-providers/{id}/api-keys/{apiKeyId}", {
-      params: { path: { id: configId, apiKeyId } },
-    }),
-  );
-  return result.data;
-}
-
-export async function setSelectedModelProviderApiKey(
-  configId: string,
-  selectedApiKeyId: string | null,
-): Promise<ModelProviderDetailResponse> {
-  const result = await requestApi(
-    openApiClient.PUT("/model-providers/{id}/selected-api-key", {
-      body: { selectedApiKeyId },
-      params: { path: { id: configId } },
+    openApiClient.DELETE("/api-keys/{id}", {
+      params: { path: { id: apiKeyId } },
     }),
   );
   return result.data;
@@ -154,7 +160,9 @@ export async function previewTestModelProviderConnection(
   values: TestModelProviderConnectionValues,
 ): Promise<TestModelProviderConnectionResponse> {
   const result = await requestApi(
-    openApiClient.POST("/model-providers/test-connection/preview", { body: values }),
+    openApiClient.POST("/model-providers/test-connection/preview", {
+      body: values,
+    }),
   );
   return result.data;
 }

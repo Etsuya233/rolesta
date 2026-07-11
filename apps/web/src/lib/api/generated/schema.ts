@@ -436,54 +436,6 @@ export interface paths {
     patch: operations["ModelProvidersController_update"];
     trace?: never;
   };
-  "/model-providers/{id}/api-keys": {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    get?: never;
-    put?: never;
-    post: operations["ModelProvidersController_createApiKey"];
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  "/model-providers/{id}/api-keys/{apiKeyId}": {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    get?: never;
-    put?: never;
-    post?: never;
-    delete: operations["ModelProvidersController_deleteApiKey"];
-    options?: never;
-    head?: never;
-    patch: operations["ModelProvidersController_updateApiKey"];
-    trace?: never;
-  };
-  "/model-providers/{id}/selected-api-key": {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    get?: never;
-    put: operations["ModelProvidersController_setSelectedApiKey"];
-    post?: never;
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
   "/model-providers/models/preview": {
     parameters: {
       query?: never;
@@ -509,7 +461,7 @@ export interface paths {
     };
     get?: never;
     put?: never;
-    post: operations["ModelProvidersController_previewTestConnection"];
+    post: operations["ModelProvidersController_previewTest"];
     delete?: never;
     options?: never;
     head?: never;
@@ -541,7 +493,55 @@ export interface paths {
     };
     get?: never;
     put?: never;
-    post: operations["ModelProvidersController_savedTestConnection"];
+    post: operations["ModelProvidersController_savedTest"];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/api-keys": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get: operations["ApiKeysController_list"];
+    put?: never;
+    post: operations["ApiKeysController_create"];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/api-keys/{id}": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    post?: never;
+    delete: operations["ApiKeysController_delete"];
+    options?: never;
+    head?: never;
+    patch: operations["ApiKeysController_update"];
+    trace?: never;
+  };
+  "/api-keys/{id}/references": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get: operations["ApiKeysController_references"];
+    put?: never;
+    post?: never;
     delete?: never;
     options?: never;
     head?: never;
@@ -1124,8 +1124,10 @@ export interface components {
       providerSource: "custom" | "official";
       baseUrl: string;
       defaultModelName: string;
-      selectedApiKeyId: string | null;
-      apiKeyCount: number;
+      /** @enum {string} */
+      credentialMode: "manual" | "vault";
+      apiKeyId: string | null;
+      apiKeyName: string | null;
       createdAtMs: number;
       updatedAtMs: number;
       lastUsedAtMs: number | null;
@@ -1138,14 +1140,6 @@ export interface components {
       totalItems: number;
       totalPages: number;
     };
-    ModelProviderApiKeyResponseDto: {
-      id: string;
-      configId: string;
-      name: string;
-      secret: string;
-      createdAtMs: number;
-      updatedAtMs: number;
-    };
     ModelProviderDetailResponseDto: {
       id: string;
       ownerUserId: string;
@@ -1157,13 +1151,15 @@ export interface components {
       providerSource: "custom" | "official";
       baseUrl: string;
       defaultModelName: string;
-      selectedApiKeyId: string | null;
-      apiKeyCount: number;
+      /** @enum {string} */
+      credentialMode: "manual" | "vault";
+      apiKeyId: string | null;
+      apiKeyName: string | null;
       createdAtMs: number;
       updatedAtMs: number;
       lastUsedAtMs: number | null;
       usageCount: number;
-      apiKeys: components["schemas"]["ModelProviderApiKeyResponseDto"][];
+      secret: string;
     };
     CreateModelProviderRequestDto: {
       name: string;
@@ -1172,7 +1168,10 @@ export interface components {
         "openai-compatible" | "openai" | "claude" | "z-ai" | "deepseek";
       baseUrl: string;
       defaultModelName?: string;
-      selectedApiKeyId?: string | null;
+      /** @enum {string} */
+      credentialMode: "manual" | "vault";
+      secret?: string;
+      apiKeyId?: string | null;
     };
     UpdateModelProviderRequestDto: {
       name?: string;
@@ -1181,18 +1180,10 @@ export interface components {
         "openai-compatible" | "openai" | "claude" | "z-ai" | "deepseek";
       baseUrl?: string;
       defaultModelName?: string;
-      selectedApiKeyId?: string | null;
-    };
-    CreateModelProviderApiKeyRequestDto: {
-      name: string;
-      secret: string;
-    };
-    SaveModelProviderApiKeyRequestDto: {
-      name?: string;
+      /** @enum {string} */
+      credentialMode?: "manual" | "vault";
       secret?: string;
-    };
-    SetSelectedModelProviderApiKeyRequestDto: {
-      selectedApiKeyId?: string | null;
+      apiKeyId?: string | null;
     };
     ModelProviderModelListResponseDto: {
       models: string[];
@@ -1204,6 +1195,7 @@ export interface components {
         "openai-compatible" | "openai" | "claude" | "z-ai" | "deepseek";
       baseUrl: string;
       apiKeySecret?: string;
+      apiKeyId?: string;
     };
     TestModelProviderConnectionResponseDto: {
       ok: boolean;
@@ -1217,7 +1209,28 @@ export interface components {
         "openai-compatible" | "openai" | "claude" | "z-ai" | "deepseek";
       baseUrl: string;
       apiKeySecret?: string;
+      apiKeyId?: string;
       defaultModelName: string;
+    };
+    ModelProviderApiKeyResponseDto: {
+      id: string;
+      name: string;
+      createdAtMs: number;
+      updatedAtMs: number;
+    };
+    ApiKeyListResponseDto: {
+      items: components["schemas"]["ModelProviderApiKeyResponseDto"][];
+    };
+    CreateModelProviderApiKeyRequestDto: {
+      name: string;
+      secret: string;
+    };
+    SaveModelProviderApiKeyRequestDto: {
+      name?: string;
+      secret?: string;
+    };
+    DeleteApiKeyResponseDto: {
+      affectedProviderCount: number;
     };
   };
   responses: never;
@@ -2597,140 +2610,6 @@ export interface operations {
       };
     };
   };
-  ModelProvidersController_createApiKey: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path: {
-        id: string;
-      };
-      cookie?: never;
-    };
-    requestBody: {
-      content: {
-        "application/json": components["schemas"]["CreateModelProviderApiKeyRequestDto"];
-      };
-    };
-    responses: {
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": {
-            /**
-             * @example SUCCESS
-             * @enum {string}
-             */
-            code: "SUCCESS";
-            /** @example ok */
-            msg: string;
-            data: components["schemas"]["ModelProviderDetailResponseDto"];
-          };
-        };
-      };
-    };
-  };
-  ModelProvidersController_deleteApiKey: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path: {
-        id: string;
-        apiKeyId: string;
-      };
-      cookie?: never;
-    };
-    requestBody?: never;
-    responses: {
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": {
-            /**
-             * @example SUCCESS
-             * @enum {string}
-             */
-            code: "SUCCESS";
-            /** @example ok */
-            msg: string;
-            data: components["schemas"]["ModelProviderDetailResponseDto"];
-          };
-        };
-      };
-    };
-  };
-  ModelProvidersController_updateApiKey: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path: {
-        id: string;
-        apiKeyId: string;
-      };
-      cookie?: never;
-    };
-    requestBody: {
-      content: {
-        "application/json": components["schemas"]["SaveModelProviderApiKeyRequestDto"];
-      };
-    };
-    responses: {
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": {
-            /**
-             * @example SUCCESS
-             * @enum {string}
-             */
-            code: "SUCCESS";
-            /** @example ok */
-            msg: string;
-            data: components["schemas"]["ModelProviderDetailResponseDto"];
-          };
-        };
-      };
-    };
-  };
-  ModelProvidersController_setSelectedApiKey: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path: {
-        id: string;
-      };
-      cookie?: never;
-    };
-    requestBody: {
-      content: {
-        "application/json": components["schemas"]["SetSelectedModelProviderApiKeyRequestDto"];
-      };
-    };
-    responses: {
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": {
-            /**
-             * @example SUCCESS
-             * @enum {string}
-             */
-            code: "SUCCESS";
-            /** @example ok */
-            msg: string;
-            data: components["schemas"]["ModelProviderDetailResponseDto"];
-          };
-        };
-      };
-    };
-  };
   ModelProvidersController_previewModels: {
     parameters: {
       query?: never;
@@ -2763,7 +2642,7 @@ export interface operations {
       };
     };
   };
-  ModelProvidersController_previewTestConnection: {
+  ModelProvidersController_previewTest: {
     parameters: {
       query?: never;
       header?: never;
@@ -2825,7 +2704,7 @@ export interface operations {
       };
     };
   };
-  ModelProvidersController_savedTestConnection: {
+  ModelProvidersController_savedTest: {
     parameters: {
       query?: never;
       header?: never;
@@ -2850,6 +2729,160 @@ export interface operations {
             /** @example ok */
             msg: string;
             data: components["schemas"]["TestModelProviderConnectionResponseDto"];
+          };
+        };
+      };
+    };
+  };
+  ApiKeysController_list: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": {
+            /**
+             * @example SUCCESS
+             * @enum {string}
+             */
+            code: "SUCCESS";
+            /** @example ok */
+            msg: string;
+            data: components["schemas"]["ApiKeyListResponseDto"];
+          };
+        };
+      };
+    };
+  };
+  ApiKeysController_create: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["CreateModelProviderApiKeyRequestDto"];
+      };
+    };
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": {
+            /**
+             * @example SUCCESS
+             * @enum {string}
+             */
+            code: "SUCCESS";
+            /** @example ok */
+            msg: string;
+            data: components["schemas"]["ModelProviderApiKeyResponseDto"];
+          };
+        };
+      };
+    };
+  };
+  ApiKeysController_delete: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        id: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": {
+            /**
+             * @example SUCCESS
+             * @enum {string}
+             */
+            code: "SUCCESS";
+            /** @example ok */
+            msg: string;
+            data: components["schemas"]["DeleteApiKeyResponseDto"];
+          };
+        };
+      };
+    };
+  };
+  ApiKeysController_update: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        id: string;
+      };
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["SaveModelProviderApiKeyRequestDto"];
+      };
+    };
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": {
+            /**
+             * @example SUCCESS
+             * @enum {string}
+             */
+            code: "SUCCESS";
+            /** @example ok */
+            msg: string;
+            data: components["schemas"]["ModelProviderApiKeyResponseDto"];
+          };
+        };
+      };
+    };
+  };
+  ApiKeysController_references: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        id: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": {
+            /**
+             * @example SUCCESS
+             * @enum {string}
+             */
+            code: "SUCCESS";
+            /** @example ok */
+            msg: string;
+            data: components["schemas"]["DeleteApiKeyResponseDto"];
           };
         };
       };

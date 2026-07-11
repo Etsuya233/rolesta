@@ -1,23 +1,18 @@
-import { KeyRound, Trash2 } from "lucide-react";
+import { Trash2 } from "lucide-react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
 import { Button } from "../../../components/ui/button";
 import { MobileTopBar } from "../../assets/components/mobile-top-bar";
 import { deleteModelProvider } from "../api/model-providers-api";
 import { ModelProviderMainEditor } from "./model-provider-main-editor";
-import {
-  modelProviderApiKeysPage,
-  type ModelProviderPage,
-} from "./model-provider-pages";
+import type { ModelProviderPage } from "./model-provider-pages";
 import { ModelProviderStackPage } from "./model-provider-stack-page";
 
 export function ModelProviderEditPage({
   page,
-  pushPage,
   onBack,
 }: {
   page: Extract<ModelProviderPage, { name: "edit" }>;
-  pushPage: (page: ModelProviderPage) => void;
   onBack: () => void;
 }) {
   const { t } = useTranslation();
@@ -35,18 +30,6 @@ export function ModelProviderEditPage({
       <MobileTopBar
         actions={
           <>
-            <Button
-              aria-label={t("modelProviders.apiKeys.title")}
-              className="size-10"
-              size="icon-lg"
-              type="button"
-              variant="ghost"
-              onClick={() =>
-                pushPage(modelProviderApiKeysPage(page.configId, page.sessionKey))
-              }
-            >
-              <KeyRound aria-hidden="true" />
-            </Button>
             <Button
               aria-label={t("modelProviders.editor.deleteAction")}
               className="size-10"
@@ -67,9 +50,6 @@ export function ModelProviderEditPage({
         configId={page.configId}
         sessionKey={page.sessionKey}
         submitLabel={t("modelProviders.editor.saveSubmit")}
-        onOpenApiKeys={(apiKeyId) =>
-          pushPage(modelProviderApiKeysPage(page.configId, page.sessionKey, apiKeyId))
-        }
       />
     </ModelProviderStackPage>
   );

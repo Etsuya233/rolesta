@@ -10,6 +10,10 @@ export interface ModelProviderEditorFormState {
   providerKind: ModelProviderKind;
   baseUrl: string;
   defaultModelName: string;
+  credentialMode: "manual" | "vault";
+  secret: string;
+  apiKeyId: string | null;
+  apiKeyName: string | null;
 }
 
 export const emptyModelProviderEditorForm: ModelProviderEditorFormState = {
@@ -17,6 +21,10 @@ export const emptyModelProviderEditorForm: ModelProviderEditorFormState = {
   providerKind: "openai-compatible",
   baseUrl: "",
   defaultModelName: "",
+  credentialMode: "manual",
+  secret: "",
+  apiKeyId: null,
+  apiKeyName: null,
 };
 
 export function modelProviderEditorFormFromDetail(
@@ -27,6 +35,10 @@ export function modelProviderEditorFormFromDetail(
     providerKind: asModelProviderKind(detail.providerKind),
     baseUrl: detail.baseUrl,
     defaultModelName: detail.defaultModelName,
+    credentialMode: detail.credentialMode,
+    secret: detail.secret,
+    apiKeyId: detail.apiKeyId,
+    apiKeyName: detail.apiKeyName,
   };
 }
 
@@ -38,6 +50,9 @@ export function modelProviderCreateValuesFromForm(
     providerKind: form.providerKind,
     baseUrl: form.baseUrl,
     defaultModelName: form.defaultModelName,
+    credentialMode: form.credentialMode,
+    secret: form.credentialMode === "manual" ? form.secret : "",
+    apiKeyId: form.credentialMode === "vault" ? form.apiKeyId : null,
   };
 }
 
@@ -49,6 +64,9 @@ export function modelProviderSaveValuesFromForm(
     providerKind: form.providerKind,
     baseUrl: form.baseUrl,
     defaultModelName: form.defaultModelName,
+    credentialMode: form.credentialMode,
+    secret: form.credentialMode === "manual" ? form.secret : "",
+    apiKeyId: form.credentialMode === "vault" ? form.apiKeyId : null,
   };
 }
 
