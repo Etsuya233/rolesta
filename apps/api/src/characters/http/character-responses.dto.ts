@@ -5,6 +5,15 @@ import {
   CHARACTER_VISIBILITIES,
   type CharacterVisibility,
 } from '../domain/character-visibility.js';
+import type { FileObject } from '../../files/domain/file-resource.js';
+
+export class AvatarResourceResponseDto {
+  @ApiProperty({ type: String })
+  resourceId!: string;
+
+  @ApiProperty({ type: Object, additionalProperties: { type: 'string' } })
+  sources!: Record<string, string>;
+}
 
 export class CharacterSummaryResponseDto {
   @ApiProperty({ type: String })
@@ -39,6 +48,9 @@ export class CharacterSummaryResponseDto {
 
   @ApiProperty({ type: Number })
   usageCount!: number;
+
+  @ApiProperty({ nullable: true, type: () => AvatarResourceResponseDto })
+  avatar!: AvatarResourceResponseDto | null;
 }
 
 export class CharacterDetailResponseDto extends CharacterSummaryResponseDto {
@@ -122,7 +134,10 @@ export class CharacterPageResponseDto {
 
 export class CharacterImportPreviewResponseDto extends CharacterDetailResponseDto {}
 
-export function toCharacterSummaryResponse(card: CharacterCard): CharacterSummaryResponseDto {
+export function toCharacterSummaryResponse(
+  card: CharacterCard,
+  avatar: AvatarResourceResponseDto | null = null,
+): CharacterSummaryResponseDto {
   return {
     id: card.id,
     ownerUserId: card.ownerUserId,
@@ -135,12 +150,16 @@ export function toCharacterSummaryResponse(card: CharacterCard): CharacterSummar
     updatedAtMs: card.updatedAtMs,
     lastUsedAtMs: card.lastUsedAtMs,
     usageCount: card.usageCount,
+    avatar,
   };
 }
 
-export function toCharacterDetailResponse(card: CharacterCard): CharacterDetailResponseDto {
+export function toCharacterDetailResponse(
+  card: CharacterCard,
+  avatar: AvatarResourceResponseDto | null = null,
+): CharacterDetailResponseDto {
   return {
-    ...toCharacterSummaryResponse(card),
+    ...toCharacterSummaryResponse(card, avatar),
     nickname: card.nickname,
     creator: card.creator,
     description: card.description,
@@ -164,12 +183,30 @@ export function toCharacterDetailResponse(card: CharacterCard): CharacterDetailR
   };
 }
 
-export function toCharacterPageResponse(page: PageResponse<CharacterCard>): CharacterPageResponseDto {
+export function toCharacterPageResponse(
+  page: PageResponse<CharacterCard>,
+  avatars: Map<string, AvatarResourceResponseDto> = new Map(),
+): CharacterPageResponseDto {
   return {
-    items: page.items.map(toCharacterSummaryResponse),
+    items: page.items.map((item) => toCharacterSummaryResponse(item, avatars.get(item.id) ?? null)),
     pageIndex: page.pageIndex,
     pageSize: page.pageSize,
     totalItems: page.totalItems,
     totalPages: page.totalPages,
   };
+}
+
+export function avatarResponse(
+  resourceId: string | null,
+  objects: FileObject[] | undefined,
+): AvatarResourceResponseDto | null {
+  if (!resourceId || !objects) {
+    return null;
+  }
+
+  const sources = Object.fromEntries(
+    objects.map((object) => [object.role, `/api/files/${object.id}/content`]),
+  );
+
+  return Object.keys(sources).length > 0 ? { resourceId, sources } : null;
 }

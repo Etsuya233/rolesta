@@ -3,7 +3,9 @@ import { PortError } from '../../common/errors/index.js';
 export type CharacterPortErrorReason =
   | 'invalid-import-file'
   | 'invalid-character-card'
-  | 'unsupported-character-card';
+  | 'unsupported-character-card'
+  | 'invalid-avatar'
+  | 'avatar-storage-unavailable';
 
 export interface CharacterPortErrorParamsMap {
   'invalid-import-file': {
@@ -20,6 +22,13 @@ export interface CharacterPortErrorParamsMap {
   'unsupported-character-card': {
     fileName?: string;
     sourceFormat?: string;
+    detail?: string;
+  };
+  'invalid-avatar': {
+    field?: string;
+    detail?: string;
+  };
+  'avatar-storage-unavailable': {
     detail?: string;
   };
 }

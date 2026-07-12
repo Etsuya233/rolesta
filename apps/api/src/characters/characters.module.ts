@@ -3,6 +3,9 @@ import { AuthModule } from '../auth/auth.module.js';
 import { CryptoIdGenerator } from '../auth/infrastructure/crypto-id-generator.js';
 import { SystemClock } from '../auth/infrastructure/system-clock.js';
 import { DatabaseModule } from '../database/database.module.js';
+import { FilesModule } from '../files/files.module.js';
+import { CreateFileResourceUseCase } from '../files/application/create-file-resource.use-case.js';
+import { IMAGE_PROCESSOR, type ImageProcessor } from '../files/ports/image-processor.js';
 import {
   CHARACTER_CARD_CODEC,
   type CharacterCardCodec,
@@ -23,11 +26,15 @@ import { GetCharacterUseCase } from './application/get-character.use-case.js';
 import { ImportCharacterCardUseCase } from './application/import-character-card.use-case.js';
 import { ListCharactersUseCase } from './application/list-characters.use-case.js';
 import { UpdateCharacterUseCase } from './application/update-character.use-case.js';
+import { UploadCharacterAvatarUseCase } from './application/upload-character-avatar.use-case.js';
+import { DeleteCharacterAvatarUseCase } from './application/delete-character-avatar.use-case.js';
+import { FileCharacterAvatarService } from './adapters/file-character-avatar-service.js';
+import { CHARACTER_AVATAR_SERVICE, type CharacterAvatarService } from './ports/character-avatar-service.js';
 import { CharactersController } from './http/characters.controller.js';
 import { KyselyCharacterCardStore } from './persistence/kysely-character-card-store.js';
 
 @Module({
-  imports: [DatabaseModule, AuthModule],
+  imports: [DatabaseModule, AuthModule, FilesModule],
   controllers: [CharactersController],
   providers: [
     KyselyCharacterCardStore,
@@ -36,6 +43,12 @@ import { KyselyCharacterCardStore } from './persistence/kysely-character-card-st
     SystemClock,
     { provide: CHARACTER_CARD_STORE, useExisting: KyselyCharacterCardStore },
     { provide: CHARACTER_CARD_CODEC, useExisting: SillyTavernCharacterCardCodec },
+    {
+      provide: CHARACTER_AVATAR_SERVICE,
+      useFactory: (images: ImageProcessor, createFiles: CreateFileResourceUseCase) =>
+        new FileCharacterAvatarService(images, createFiles),
+      inject: [IMAGE_PROCESSOR, CreateFileResourceUseCase],
+    },
     {
       provide: ListCharactersUseCase,
       useFactory: (store: CharacterCardStore) => new ListCharactersUseCase(store),
@@ -59,6 +72,21 @@ import { KyselyCharacterCardStore } from './persistence/kysely-character-card-st
       provide: UpdateCharacterUseCase,
       useFactory: (store: CharacterCardStore, clock: CharacterClock) =>
         new UpdateCharacterUseCase(store, clock),
+      inject: [CHARACTER_CARD_STORE, SystemClock],
+    },
+    {
+      provide: UploadCharacterAvatarUseCase,
+      useFactory: (
+        store: CharacterCardStore,
+        avatars: CharacterAvatarService,
+        clock: CharacterClock,
+      ) => new UploadCharacterAvatarUseCase(store, avatars, clock),
+      inject: [CHARACTER_CARD_STORE, CHARACTER_AVATAR_SERVICE, SystemClock],
+    },
+    {
+      provide: DeleteCharacterAvatarUseCase,
+      useFactory: (store: CharacterCardStore, clock: CharacterClock) =>
+        new DeleteCharacterAvatarUseCase(store, clock),
       inject: [CHARACTER_CARD_STORE, SystemClock],
     },
     {

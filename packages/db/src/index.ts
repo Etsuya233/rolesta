@@ -4,6 +4,7 @@ export * from "./dialects/sqlite.js";
 export * from "./migrator.js";
 export type * from "./schema/characters.js";
 export type * from "./schema/database.js";
+export type * from './schema/files.js';
 export type * from "./schema/model-providers.js";
 export type * from "./schema/presets.js";
 export type * from "./schema/users.js";

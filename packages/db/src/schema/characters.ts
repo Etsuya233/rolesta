@@ -1,6 +1,7 @@
 export interface CharactersTable {
   id: string;
   owner_user_id: string;
+  avatar_resource_id: string | null;
   visibility: 'private' | 'public';
   name: string;
   nickname: string | null;

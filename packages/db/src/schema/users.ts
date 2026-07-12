@@ -5,6 +5,7 @@ export interface UsersTable {
   username: string;
   password_hash: string;
   display_name: string;
+  avatar_resource_id: string | null;
   role: 'admin' | 'user';
   created_at: string;
   updated_at: string;

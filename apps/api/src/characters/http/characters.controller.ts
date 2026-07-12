@@ -7,6 +7,7 @@ import {
   Param,
   Patch,
   Post,
+  Put,
   Query,
   Req,
   Res,
@@ -16,7 +17,9 @@ import {
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { ApiBody, ApiConsumes, ApiOkResponse, ApiParam, ApiQuery, ApiTags } from '@nestjs/swagger';
+import { GetPublicFileObjectsUseCase } from '../../files/application/get-public-file-objects.use-case.js';
 import type { Response } from 'express';
+import type { CharacterCard } from '../domain/character-card.js';
 import { AuthGuard } from '../../auth/http/auth.guard.js';
 import type { AuthenticatedRequest } from '../../auth/http/authenticated-request.js';
 import { ApiEnvelopeOkResponse } from '../../openapi/api-envelope-response.decorator.js';
@@ -31,16 +34,21 @@ import { GetCharacterUseCase } from '../application/get-character.use-case.js';
 import { ImportCharacterCardUseCase } from '../application/import-character-card.use-case.js';
 import { ListCharactersUseCase } from '../application/list-characters.use-case.js';
 import { UpdateCharacterUseCase } from '../application/update-character.use-case.js';
+import { UploadCharacterAvatarUseCase } from '../application/upload-character-avatar.use-case.js';
+import { DeleteCharacterAvatarUseCase } from '../application/delete-character-avatar.use-case.js';
 import type { CharacterCardExportVersion } from '../ports/character-card-codec.js';
 import { toApiFailure } from './character-application-error.mapper.js';
 import {
   CreateCharacterRequestDto,
+  AvatarCropRequestDto,
   ListCharactersQueryDto,
   UpdateCharacterRequestDto,
 } from './character-requests.dto.js';
 import {
   CharacterDetailResponseDto,
   CharacterPageResponseDto,
+  type AvatarResourceResponseDto,
+  avatarResponse,
   toCharacterDetailResponse,
   toCharacterPageResponse,
 } from './character-responses.dto.js';
@@ -57,6 +65,9 @@ export class CharactersController {
     private readonly deleteCharacterUseCase: DeleteCharacterUseCase,
     private readonly importCharacterCardUseCase: ImportCharacterCardUseCase,
     private readonly exportCharacterCardUseCase: ExportCharacterCardUseCase,
+    private readonly uploadCharacterAvatarUseCase: UploadCharacterAvatarUseCase,
+    private readonly deleteCharacterAvatarUseCase: DeleteCharacterAvatarUseCase,
+    private readonly publicFileObjects: GetPublicFileObjectsUseCase,
   ) {}
 
   @Get()
@@ -65,12 +76,11 @@ export class CharactersController {
     @Req() request: AuthenticatedRequest,
     @Query() query: ListCharactersQueryDto,
   ): Promise<CharacterPageResponseDto> {
-    return toCharacterPageResponse(
-      await this.listCharactersUseCase.execute({
+    const page = await this.listCharactersUseCase.execute({
         viewerUserId: request.authUser.id,
         ...query,
-      }),
-    );
+      });
+    return toCharacterPageResponse(page, await this.avatarResponses(page.items));
   }
 
   @Get(':id')
@@ -81,9 +91,7 @@ export class CharactersController {
     @Param('id') id: string,
   ): Promise<CharacterDetailResponseDto> {
     return this.withApplicationErrors(async () =>
-      toCharacterDetailResponse(
-        await this.getCharacterUseCase.execute({ id, viewerUserId: request.authUser.id }),
-      ),
+      this.toDetail(await this.getCharacterUseCase.execute({ id, viewerUserId: request.authUser.id })),
     );
   }
 
@@ -95,12 +103,10 @@ export class CharactersController {
     @Body() body: CreateCharacterRequestDto,
   ): Promise<CharacterDetailResponseDto> {
     return this.withApplicationErrors(async () =>
-      toCharacterDetailResponse(
-        await this.createCharacterUseCase.execute({
+      this.toDetail(await this.createCharacterUseCase.execute({
           ownerUserId: request.authUser.id,
           ...body,
-        }),
-      ),
+        })),
     );
   }
 
@@ -114,13 +120,11 @@ export class CharactersController {
     @Body() body: UpdateCharacterRequestDto,
   ): Promise<CharacterDetailResponseDto> {
     return this.withApplicationErrors(async () =>
-      toCharacterDetailResponse(
-        await this.updateCharacterUseCase.execute({
+      this.toDetail(await this.updateCharacterUseCase.execute({
           id,
           viewerUserId: request.authUser.id,
           ...body,
-        }),
-      ),
+        })),
     );
   }
 
@@ -162,13 +166,67 @@ export class CharactersController {
         });
       }
 
-      return toCharacterDetailResponse(
-        await this.importCharacterCardUseCase.execute({
+      return this.toDetail(await this.importCharacterCardUseCase.execute({
           ownerUserId: request.authUser.id,
           fileName: file.originalname,
           content: file.buffer,
+        }));
+    });
+  }
+
+  @Put(':id/avatar')
+  @ApiParam({ name: 'id', type: String })
+  @ApiConsumes('multipart/form-data')
+  @ApiBody({
+    schema: {
+      type: 'object',
+      required: ['file', 'x', 'y', 'width', 'height'],
+      properties: {
+        file: { type: 'string', format: 'binary' },
+        x: { type: 'number' },
+        y: { type: 'number' },
+        width: { type: 'number' },
+        height: { type: 'number' },
+      },
+    },
+  })
+  @UseInterceptors(FileInterceptor('file', { limits: { fileSize: 10 * 1024 * 1024 } }))
+  @ApiEnvelopeOkResponse({ type: CharacterDetailResponseDto })
+  async uploadAvatar(
+    @Req() request: AuthenticatedRequest,
+    @Param('id') id: string,
+    @Body() crop: AvatarCropRequestDto,
+    @UploadedFile() file: UploadedCharacterFile | undefined,
+  ): Promise<CharacterDetailResponseDto> {
+    return this.withApplicationErrors(async () => {
+      if (!file) {
+        throw new CharacterApplicationError({
+          reason: 'invalid-avatar',
+          params: { field: 'file', detail: 'Missing uploaded file.' },
+        });
+      }
+      return this.toDetail(
+        await this.uploadCharacterAvatarUseCase.execute({
+          id,
+          ownerUserId: request.authUser.id,
+          fileName: file.originalname,
+          content: file.buffer,
+          crop,
         }),
       );
+    });
+  }
+
+  @Delete(':id/avatar')
+  @ApiParam({ name: 'id', type: String })
+  @ApiEnvelopeOkResponse({ schema: { type: 'object', properties: { ok: { type: 'boolean' } } } })
+  async deleteAvatar(
+    @Req() request: AuthenticatedRequest,
+    @Param('id') id: string,
+  ): Promise<{ ok: true }> {
+    return this.withApplicationErrors(async () => {
+      await this.deleteCharacterAvatarUseCase.execute(id, request.authUser.id);
+      return { ok: true };
     });
   }
 
@@ -208,6 +266,26 @@ export class CharactersController {
 
       throw error;
     }
+  }
+
+  private async toDetail(card: CharacterCard) {
+    const avatars = await this.avatarResponses([card]);
+    return toCharacterDetailResponse(card, avatars.get(card.id) ?? null);
+  }
+
+  private async avatarResponses(cards: CharacterCard[]) {
+    const resources = cards
+      .map((card) => card.avatarResourceId)
+      .filter((id): id is string => id !== null);
+    const objects = await this.publicFileObjects.execute(resources);
+    const responses = new Map<string, AvatarResourceResponseDto>();
+    for (const card of cards) {
+      const avatar = avatarResponse(card.avatarResourceId, objects.get(card.avatarResourceId ?? ''));
+      if (avatar) {
+        responses.set(card.id, avatar);
+      }
+    }
+    return responses;
   }
 }
 

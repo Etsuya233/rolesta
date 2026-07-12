@@ -4,6 +4,7 @@ import {
   IsArray,
   IsIn,
   IsInt,
+  IsNumber,
   IsObject,
   IsOptional,
   IsString,
@@ -23,6 +24,30 @@ import {
   CHARACTER_VISIBILITIES,
   type CharacterVisibility,
 } from '../domain/character-visibility.js';
+
+export class AvatarCropRequestDto {
+  @Type(() => Number)
+  @IsNumber({ maxDecimalPlaces: 6 })
+  @Min(0)
+  @Max(1)
+  x!: number;
+
+  @Type(() => Number)
+  @IsNumber({ maxDecimalPlaces: 6 })
+  @Min(0)
+  @Max(1)
+  y!: number;
+
+  @Type(() => Number)
+  @Min(0.000001)
+  @Max(1)
+  width!: number;
+
+  @Type(() => Number)
+  @Min(0.000001)
+  @Max(1)
+  height!: number;
+}
 
 export class ListCharactersQueryDto {
   @ApiPropertyOptional({ enum: CHARACTER_LIST_SCOPES })

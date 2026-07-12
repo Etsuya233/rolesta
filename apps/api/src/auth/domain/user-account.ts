@@ -7,6 +7,7 @@ export type UserAccountSnapshot = {
   username: string;
   passwordHash: string;
   displayName: string;
+  avatarResourceId: string | null;
   role: UserRole;
   createdAt: string;
   updatedAt: string;
@@ -37,6 +38,7 @@ export class UserAccount {
       username,
       passwordHash: options.passwordHash,
       displayName: username,
+      avatarResourceId: null,
       role: 'admin',
       createdAt: options.now,
       updatedAt: options.now,

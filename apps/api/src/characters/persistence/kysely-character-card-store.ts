@@ -75,6 +75,52 @@ export class KyselyCharacterCardStore implements CharacterCardStore {
       .execute();
   }
 
+  async replaceAvatar(
+    id: string,
+    ownerUserId: string,
+    avatarResourceId: string | null,
+    nowMs: number,
+  ): Promise<CharacterCard | null> {
+    return this.db.transaction().execute(async (transaction) => {
+      const current = await transaction
+        .selectFrom('characters')
+        .selectAll()
+        .where('id', '=', id)
+        .where('owner_user_id', '=', ownerUserId)
+        .executeTakeFirst();
+
+      if (!current) {
+        return null;
+      }
+
+      if (avatarResourceId) {
+        await transaction
+          .updateTable('file_resources')
+          .set({ status: 'active', orphaned_at_ms: null })
+          .where('id', '=', avatarResourceId)
+          .where('owner_user_id', '=', ownerUserId)
+          .execute();
+      }
+
+      if (current.avatar_resource_id) {
+        await transaction
+          .updateTable('file_resources')
+          .set({ status: 'orphaned', orphaned_at_ms: nowMs })
+          .where('id', '=', current.avatar_resource_id)
+          .execute();
+      }
+
+      const updated = await transaction
+        .updateTable('characters')
+        .set({ avatar_resource_id: avatarResourceId, updated_at_ms: nowMs })
+        .where('id', '=', id)
+        .where('owner_user_id', '=', ownerUserId)
+        .returningAll()
+        .executeTakeFirstOrThrow();
+      return toCharacterCard(updated);
+    });
+  }
+
   async deleteOwned(id: string, ownerUserId: string): Promise<boolean> {
     const result = await this.db
       .deleteFrom('characters')
@@ -139,6 +185,7 @@ function toCharacterCard(row: CharacterRow): CharacterCard {
   return {
     id: row.id,
     ownerUserId: row.owner_user_id,
+    avatarResourceId: row.avatar_resource_id,
     visibility: row.visibility,
     name: row.name,
     nickname: row.nickname,
@@ -179,6 +226,7 @@ function toCharacterRow(card: CharacterCard): CharacterInsert {
   return {
     id: card.id,
     owner_user_id: card.ownerUserId,
+    avatar_resource_id: card.avatarResourceId,
     visibility: card.visibility,
     name: card.name,
     nickname: card.nickname,

@@ -31,6 +31,7 @@ export class ImportCharacterCardUseCase {
       ...imported,
       id: this.idGenerator.createId(),
       ownerUserId: command.ownerUserId,
+      avatarResourceId: null,
       visibility: 'private',
       createdAtMs: nowMs,
       updatedAtMs: nowMs,

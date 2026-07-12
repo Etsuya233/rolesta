@@ -188,6 +188,21 @@ class InMemoryCharacterCardStore implements CharacterCardStore {
     return Promise.resolve();
   }
 
+  async replaceAvatar(
+    id: string,
+    ownerUserId: string,
+    avatarResourceId: string | null,
+    nowMs: number,
+  ): Promise<CharacterCard | null> {
+    const card = await this.findOwnedById(id, ownerUserId);
+    if (!card) {
+      return null;
+    }
+    const updated = { ...card, avatarResourceId, updatedAtMs: nowMs };
+    this.cards.set(id, updated);
+    return updated;
+  }
+
   async deleteOwned(id: string, ownerUserId: string): Promise<boolean> {
     const card = await this.findOwnedById(id, ownerUserId);
 

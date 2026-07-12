@@ -1,5 +1,5 @@
 import { useTranslation } from "react-i18next";
-import { Avatar, AvatarFallback } from "../../../components/ui/avatar";
+import { Avatar, AvatarFallback, AvatarImage } from "../../../components/ui/avatar";
 import { Badge } from "../../../components/ui/badge";
 import { cn } from "../../../lib/utils";
 import { AssetTagList } from "../../assets/components/asset-tag-list";
@@ -23,6 +23,20 @@ export function CharacterCardListItem({
       onClick={onClick}
     >
       <Avatar className="mt-0.5" size="lg">
+        {character.avatar ? (
+          <AvatarImage
+            alt={character.name}
+            sizes="40px"
+            src={character.avatar.sources["64"] ?? character.avatar.sources["128"]}
+            srcSet={[
+              character.avatar.sources["64"] ? `${character.avatar.sources["64"]} 64w` : null,
+              character.avatar.sources["128"] ? `${character.avatar.sources["128"]} 128w` : null,
+              character.avatar.sources["256"] ? `${character.avatar.sources["256"]} 256w` : null,
+            ]
+              .filter(Boolean)
+              .join(", ")}
+          />
+        ) : null}
         <AvatarFallback className="bg-primary/10 font-semibold text-primary">
           {character.name.slice(0, 1).toUpperCase()}
         </AvatarFallback>

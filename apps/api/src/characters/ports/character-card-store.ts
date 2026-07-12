@@ -34,5 +34,11 @@ export interface CharacterCardStore {
   findOwnedById(id: string, ownerUserId: string): Promise<CharacterCard | null>;
   save(card: CharacterCard): Promise<void>;
   update(card: CharacterCard): Promise<void>;
+  replaceAvatar(
+    id: string,
+    ownerUserId: string,
+    avatarResourceId: string | null,
+    nowMs: number,
+  ): Promise<CharacterCard | null>;
   deleteOwned(id: string, ownerUserId: string): Promise<boolean>;
 }

@@ -6,7 +6,14 @@ export type CharacterCardExportVersion = 'v2' | 'v3';
 
 export type ImportedCharacterCard = Omit<
   CharacterCard,
-  'id' | 'ownerUserId' | 'visibility' | 'createdAtMs' | 'updatedAtMs' | 'lastUsedAtMs' | 'usageCount'
+  | 'id'
+  | 'ownerUserId'
+  | 'avatarResourceId'
+  | 'visibility'
+  | 'createdAtMs'
+  | 'updatedAtMs'
+  | 'lastUsedAtMs'
+  | 'usageCount'
 >;
 
 export interface ImportCharacterCardFile {

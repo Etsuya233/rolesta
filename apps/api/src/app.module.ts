@@ -11,12 +11,14 @@ import { ModelProfilesModule } from './model-profiles/model-profiles.module.js';
 import { PresetsModule } from './presets/presets.module.js';
 import { UsersModule } from './users/users.module.js';
 import { WorldbooksModule } from './worldbooks/worldbooks.module.js';
+import { FilesModule } from './files/files.module.js';
 
 @Module({
   imports: [
     ConfigModule,
     ApiLoggerModule,
     DatabaseModule,
+    FilesModule,
     HealthModule,
     AuthModule,
     UsersModule,

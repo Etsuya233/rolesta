@@ -25,9 +25,16 @@ export function toApiFailure(
     case 'invalid-character-card':
     case 'invalid-import-file':
     case 'unsupported-character-card':
+    case 'invalid-avatar':
       return new ApiFailure({
         status: HttpStatus.BAD_REQUEST,
         code: ERROR_CODES.VALIDATION_FAILED,
+        params: error.params,
+      });
+    case 'avatar-storage-unavailable':
+      return new ApiFailure({
+        status: HttpStatus.SERVICE_UNAVAILABLE,
+        code: ERROR_CODES.INTERNAL_ERROR,
         params: error.params,
       });
   }

@@ -1,10 +1,12 @@
 import type { TFunction } from "i18next";
 import { BadgeInfo, FileText, MessageSquareText, UserRound } from "lucide-react";
 import { useId, useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
 import { Accordion } from "../../../components/ui/accordion";
 import { useCharacterDraftSession } from "../hooks/use-character-draft-sessions";
 import type { CharacterDetailResponse } from "../api/characters-api";
+import { getCharacter } from "../api/characters-api";
 import type { CharacterEditorFormState } from "../model/character-editor-form";
 import {
   CharacterFormSection,
@@ -15,6 +17,7 @@ import {
   FormError,
   FormSubmitButton,
 } from "./character-form-fields";
+import { CharacterAvatarEditor } from "./character-avatar-editor";
 
 export interface CharacterCardMainEditorProps {
   sessionKey: string;
@@ -51,6 +54,11 @@ export function CharacterCardMainEditor({
     { value: "private", label: t("characters.list.privateVisibility") },
     { value: "public", label: t("characters.list.publicVisibility") },
   ];
+  const character = useQuery({
+    queryKey: ["characters", characterId],
+    queryFn: () => getCharacter(characterId!),
+    enabled: characterId !== undefined,
+  });
 
   return (
     <form
@@ -61,6 +69,7 @@ export function CharacterCardMainEditor({
         aria-label={t("characters.editor.mainEditorLabel")}
         className="min-h-0 flex-1 overflow-y-auto"
       >
+        {characterId && character.data ? <CharacterAvatarEditor avatar={character.data.avatar} characterId={characterId} name={character.data.name} /> : null}
         <Accordion
           className="border-b border-border"
           type="multiple"

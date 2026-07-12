@@ -55,6 +55,33 @@ export async function deleteCharacter(id: string) {
   return result.data;
 }
 
+export async function uploadCharacterAvatar(
+  id: string,
+  file: File,
+  crop: { x: number; y: number; width: number; height: number },
+) {
+  const formData = new FormData();
+  formData.set('file', file);
+  formData.set('x', String(crop.x));
+  formData.set('y', String(crop.y));
+  formData.set('width', String(crop.width));
+  formData.set('height', String(crop.height));
+  const result = await requestApi(
+    openApiClient.PUT('/characters/{id}/avatar', {
+      params: { path: { id } },
+      body: formData as never,
+    }),
+  );
+  return result.data;
+}
+
+export async function deleteCharacterAvatar(id: string) {
+  const result = await requestApi(
+    openApiClient.DELETE('/characters/{id}/avatar', { params: { path: { id } } }),
+  );
+  return result.data;
+}
+
 export async function importCharacterCard(file: File) {
   const formData = new FormData();
   formData.set('file', file);

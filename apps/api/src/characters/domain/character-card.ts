@@ -6,6 +6,7 @@ export type CharacterCardSourceFormat = 'sillytavern_v1' | 'sillytavern_v2' | 's
 export interface CharacterCard {
   id: string;
   ownerUserId: string;
+  avatarResourceId: string | null;
   visibility: CharacterVisibility;
   name: string;
   nickname: string | null;
@@ -50,6 +51,7 @@ export function createEmptyCharacterCardDraft(request: EmptyCharacterCardDraftRe
   return {
     id: request.id,
     ownerUserId: request.ownerUserId,
+    avatarResourceId: null,
     visibility: 'private',
     name: '',
     nickname: null,

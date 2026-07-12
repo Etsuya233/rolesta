@@ -10,6 +10,7 @@ import type {
 } from "./presets.js";
 import type { MigrationLockTable, SessionsTable, UsersTable } from "./users.js";
 import type { WorldbookEntriesTable, WorldbooksTable } from "./worldbooks.js";
+import type { FileContentsTable, FileObjectsTable, FileResourcesTable } from './files.js';
 
 export interface Database {
   users: UsersTable;
@@ -22,5 +23,8 @@ export interface Database {
   preset_prompt_items: PresetPromptItemsTable;
   worldbooks: WorldbooksTable;
   worldbook_entries: WorldbookEntriesTable;
+  file_resources: FileResourcesTable;
+  file_objects: FileObjectsTable;
+  file_contents: FileContentsTable;
   migration_lock: MigrationLockTable;
 }

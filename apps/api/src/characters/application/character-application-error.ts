@@ -5,7 +5,9 @@ export type CharacterApplicationErrorReason =
   | 'forbidden'
   | 'invalid-import-file'
   | 'invalid-character-card'
-  | 'unsupported-character-card';
+  | 'unsupported-character-card'
+  | 'invalid-avatar'
+  | 'avatar-storage-unavailable';
 
 export interface CharacterApplicationErrorParamsMap {
   'not-found': {
@@ -29,6 +31,13 @@ export interface CharacterApplicationErrorParamsMap {
   'unsupported-character-card': {
     fileName?: string;
     sourceFormat?: string;
+    detail?: string;
+  };
+  'invalid-avatar': {
+    field?: string;
+    detail?: string;
+  };
+  'avatar-storage-unavailable': {
     detail?: string;
   };
 }
