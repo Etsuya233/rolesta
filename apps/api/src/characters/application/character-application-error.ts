@@ -7,6 +7,7 @@ export type CharacterApplicationErrorReason =
   | 'invalid-character-card'
   | 'unsupported-character-card'
   | 'invalid-avatar'
+  | 'avatar-assignment-conflict'
   | 'avatar-storage-unavailable';
 
 export interface CharacterApplicationErrorParamsMap {
@@ -35,6 +36,9 @@ export interface CharacterApplicationErrorParamsMap {
   };
   'invalid-avatar': {
     field?: string;
+    detail?: string;
+  };
+  'avatar-assignment-conflict': {
     detail?: string;
   };
   'avatar-storage-unavailable': {

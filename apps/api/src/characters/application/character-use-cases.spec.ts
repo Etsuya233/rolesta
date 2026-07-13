@@ -36,12 +36,18 @@ describe('character use cases', () => {
       updatedAtMs: 1783090000000,
       usageCount: 0,
     });
-    expect(await store.findOwnedById('card_1', 'owner')).toMatchObject({ name: 'Created' });
+    expect(await store.findOwnedById('card_1', 'owner')).toMatchObject({
+      name: 'Created',
+    });
   });
 
   it('blocks another user from updating a public card', async () => {
     const store = new InMemoryCharacterCardStore([
-      characterCard({ id: 'card_1', ownerUserId: 'owner', visibility: 'public' }),
+      characterCard({
+        id: 'card_1',
+        ownerUserId: 'owner',
+        visibility: 'public',
+      }),
     ]);
     const useCase = new UpdateCharacterUseCase(store, new FixedClock(1783090000100));
 
@@ -64,7 +70,12 @@ describe('character use cases', () => {
 
   it('exports a visible card as SillyTavern V3 by default', async () => {
     const store = new InMemoryCharacterCardStore([
-      characterCard({ id: 'card_1', ownerUserId: 'owner', name: 'Exported', firstMessage: 'Hello' }),
+      characterCard({
+        id: 'card_1',
+        ownerUserId: 'owner',
+        name: 'Exported',
+        firstMessage: 'Hello',
+      }),
     ]);
     const useCase = new ExportCharacterCardUseCase(store, new FakeCharacterCardCodec());
 
@@ -77,7 +88,12 @@ describe('character use cases', () => {
 
   it('maps codec port errors to application errors for import use cases', async () => {
     const store = new InMemoryCharacterCardStore();
-    const useCase = new ImportCharacterCardUseCase(store, new ThrowingCharacterCardCodec(), new FixedIdGenerator('card_1'), new FixedClock(1783090000000));
+    const useCase = new ImportCharacterCardUseCase(
+      store,
+      new ThrowingCharacterCardCodec(),
+      new FixedIdGenerator('card_1'),
+      new FixedClock(1783090000000),
+    );
 
     await expect(
       useCase.execute({
@@ -186,21 +202,6 @@ class InMemoryCharacterCardStore implements CharacterCardStore {
   update(card: CharacterCard): Promise<void> {
     this.cards.set(card.id, card);
     return Promise.resolve();
-  }
-
-  async replaceAvatar(
-    id: string,
-    ownerUserId: string,
-    avatarResourceId: string | null,
-    nowMs: number,
-  ): Promise<CharacterCard | null> {
-    const card = await this.findOwnedById(id, ownerUserId);
-    if (!card) {
-      return null;
-    }
-    const updated = { ...card, avatarResourceId, updatedAtMs: nowMs };
-    this.cards.set(id, updated);
-    return updated;
   }
 
   async deleteOwned(id: string, ownerUserId: string): Promise<boolean> {

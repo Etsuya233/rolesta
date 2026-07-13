@@ -6,13 +6,7 @@ export const CHARACTER_CARD_STORE = Symbol('CharacterCardStore');
 export const CHARACTER_LIST_SCOPES = ['all', 'mine', 'public'] as const;
 export type CharacterListScope = (typeof CHARACTER_LIST_SCOPES)[number];
 
-export const CHARACTER_SORT_KEYS = [
-  'createdAt',
-  'updatedAt',
-  'name',
-  'lastUsedAt',
-  'usageCount',
-] as const;
+export const CHARACTER_SORT_KEYS = ['createdAt', 'updatedAt', 'name', 'lastUsedAt', 'usageCount'] as const;
 export type CharacterSortKey = (typeof CHARACTER_SORT_KEYS)[number];
 
 export const SORT_DIRECTIONS = ['asc', 'desc'] as const;
@@ -34,11 +28,5 @@ export interface CharacterCardStore {
   findOwnedById(id: string, ownerUserId: string): Promise<CharacterCard | null>;
   save(card: CharacterCard): Promise<void>;
   update(card: CharacterCard): Promise<void>;
-  replaceAvatar(
-    id: string,
-    ownerUserId: string,
-    avatarResourceId: string | null,
-    nowMs: number,
-  ): Promise<CharacterCard | null>;
   deleteOwned(id: string, ownerUserId: string): Promise<boolean>;
 }

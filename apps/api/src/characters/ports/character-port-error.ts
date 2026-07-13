@@ -5,6 +5,7 @@ export type CharacterPortErrorReason =
   | 'invalid-character-card'
   | 'unsupported-character-card'
   | 'invalid-avatar'
+  | 'avatar-assignment-conflict'
   | 'avatar-storage-unavailable';
 
 export interface CharacterPortErrorParamsMap {
@@ -28,6 +29,9 @@ export interface CharacterPortErrorParamsMap {
     field?: string;
     detail?: string;
   };
+  'avatar-assignment-conflict': {
+    detail?: string;
+  };
   'avatar-storage-unavailable': {
     detail?: string;
   };
@@ -42,9 +46,10 @@ export interface CharacterPortErrorOptions<R extends CharacterPortErrorReason> {
   cause?: unknown;
 }
 
-export class CharacterPortError<
-  R extends CharacterPortErrorReason = CharacterPortErrorReason,
-> extends PortError<R, CharacterPortErrorParams<R>> {
+export class CharacterPortError<R extends CharacterPortErrorReason = CharacterPortErrorReason> extends PortError<
+  R,
+  CharacterPortErrorParams<R>
+> {
   constructor(options: CharacterPortErrorOptions<R>) {
     super(options);
   }

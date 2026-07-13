@@ -2,11 +2,11 @@ import { HttpStatus } from '@nestjs/common';
 import { ERROR_CODES } from '@rolesta/shared';
 import { ApiFailure } from '../../http/api-failure.js';
 import type {
-  CharacterApplicationError,
-  CharacterApplicationErrorReason,
-} from '../application/character-application-error.js';
+  UserAvatarApplicationError,
+  UserAvatarApplicationErrorReason,
+} from '../application/user-avatar-application-error.js';
 
-export function toApiFailure(error: CharacterApplicationError<CharacterApplicationErrorReason>): ApiFailure {
+export function toApiFailure(error: UserAvatarApplicationError<UserAvatarApplicationErrorReason>): ApiFailure {
   switch (error.reason) {
     case 'not-found':
       return new ApiFailure({
@@ -14,18 +14,15 @@ export function toApiFailure(error: CharacterApplicationError<CharacterApplicati
         code: ERROR_CODES.NOT_FOUND,
         params: error.params,
       });
-    case 'forbidden':
-      return new ApiFailure({
-        status: HttpStatus.FORBIDDEN,
-        code: ERROR_CODES.FORBIDDEN,
-        params: error.params,
-      });
-    case 'invalid-character-card':
-    case 'invalid-import-file':
-    case 'unsupported-character-card':
     case 'invalid-avatar':
       return new ApiFailure({
-        status: HttpStatus.BAD_REQUEST,
+        status: HttpStatus.UNPROCESSABLE_ENTITY,
+        code: ERROR_CODES.VALIDATION_FAILED,
+        params: error.params,
+      });
+    case 'avatar-assignment-conflict':
+      return new ApiFailure({
+        status: HttpStatus.CONFLICT,
         code: ERROR_CODES.VALIDATION_FAILED,
         params: error.params,
       });
@@ -33,12 +30,6 @@ export function toApiFailure(error: CharacterApplicationError<CharacterApplicati
       return new ApiFailure({
         status: HttpStatus.SERVICE_UNAVAILABLE,
         code: ERROR_CODES.INTERNAL_ERROR,
-        params: error.params,
-      });
-    case 'avatar-assignment-conflict':
-      return new ApiFailure({
-        status: HttpStatus.CONFLICT,
-        code: ERROR_CODES.VALIDATION_FAILED,
         params: error.params,
       });
   }

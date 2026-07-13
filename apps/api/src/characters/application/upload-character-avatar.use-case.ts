@@ -4,6 +4,7 @@ import type { CharacterClock } from './character-application-services.js';
 import { CharacterApplicationError } from './character-application-error.js';
 import { translateCharacterError } from './character-error.mapper.js';
 import type { CharacterCard } from '../domain/character-card.js';
+import type { CharacterAvatarAssignment } from '../ports/character-avatar-assignment.js';
 import type { CharacterAvatarService } from '../ports/character-avatar-service.js';
 import type { CharacterCardStore } from '../ports/character-card-store.js';
 
@@ -11,6 +12,7 @@ export class UploadCharacterAvatarUseCase {
   constructor(
     private readonly store: CharacterCardStore,
     private readonly avatars: CharacterAvatarService,
+    private readonly assignment: CharacterAvatarAssignment,
     private readonly clock: CharacterClock,
   ) {}
 
@@ -24,18 +26,24 @@ export class UploadCharacterAvatarUseCase {
   }): Promise<CharacterCard> {
     const character = await this.store.findOwnedById(command.id, command.ownerUserId);
     if (!character) {
-      throw new CharacterApplicationError({ reason: 'not-found', params: { characterId: command.id } });
+      throw new CharacterApplicationError({
+        reason: 'not-found',
+        params: { characterId: command.id },
+      });
     }
 
     const avatar = await this.avatars.createAvatar(command);
-    const updated = await this.store.replaceAvatar(
-      character.id,
-      command.ownerUserId,
-      avatar.resourceId,
-      this.clock.now().getTime(),
-    );
+    const updated = await this.assignment.replace({
+      characterId: character.id,
+      ownerUserId: command.ownerUserId,
+      resourceId: avatar.resourceId,
+      nowMs: this.clock.now().getTime(),
+    });
     if (!updated) {
-      throw new CharacterApplicationError({ reason: 'not-found', params: { characterId: command.id } });
+      throw new CharacterApplicationError({
+        reason: 'not-found',
+        params: { characterId: command.id },
+      });
     }
     return updated;
   }
