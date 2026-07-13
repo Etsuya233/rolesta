@@ -62,6 +62,8 @@ export function ModelProviderSelectField<TValue extends string>({
   options,
   onChange,
   disabled = false,
+  description,
+  placeholder,
 }: {
   id: string;
   label: string;
@@ -69,6 +71,8 @@ export function ModelProviderSelectField<TValue extends string>({
   options: Array<{ value: TValue; label: string }>;
   onChange: (value: TValue) => void;
   disabled?: boolean;
+  description?: string;
+  placeholder?: string;
 }) {
   return (
     <Field data-disabled={disabled}>
@@ -79,7 +83,7 @@ export function ModelProviderSelectField<TValue extends string>({
         onValueChange={(next) => onChange(next as TValue)}
       >
         <SelectTrigger className="w-full" id={id}>
-          <SelectValue />
+          <SelectValue placeholder={placeholder} />
         </SelectTrigger>
         <SelectContent>
           <SelectGroup>
@@ -91,6 +95,7 @@ export function ModelProviderSelectField<TValue extends string>({
           </SelectGroup>
         </SelectContent>
       </Select>
+      {description ? <FieldDescription>{description}</FieldDescription> : null}
     </Field>
   );
 }

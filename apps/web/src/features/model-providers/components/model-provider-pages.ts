@@ -1,5 +1,6 @@
 export type ModelProviderPage =
   | { name: "list"; key: "model-providers:list" }
+  | { name: "api-keys"; key: "model-providers:api-keys" }
   | { name: "create"; key: "model-providers:create"; sessionKey: string }
   | {
       name: "edit";
@@ -11,6 +12,11 @@ export type ModelProviderPage =
 export const modelProviderListPage: ModelProviderPage = {
   name: "list",
   key: "model-providers:list",
+};
+
+export const modelProviderApiKeysPage: ModelProviderPage = {
+  name: "api-keys",
+  key: "model-providers:api-keys",
 };
 
 export function createModelProviderPage(): ModelProviderPage {

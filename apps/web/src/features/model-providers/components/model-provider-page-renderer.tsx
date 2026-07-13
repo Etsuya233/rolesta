@@ -1,9 +1,11 @@
 import { ModelProviderCreatePage } from "./model-provider-create-page";
 import { ModelProviderEditPage } from "./model-provider-edit-page";
 import { ModelProviderListPage } from "./model-provider-list-page";
+import { ModelProviderApiKeyManagementPage } from "./model-provider-api-key-management-page";
 import {
   createModelProviderPage,
   editModelProviderPage,
+  modelProviderApiKeysPage,
   type ModelProviderPage,
 } from "./model-provider-pages";
 
@@ -25,9 +27,14 @@ export function ModelProviderPageRenderer({
       <ModelProviderListPage
         onBack={onRootBack}
         onCreate={() => pushPage(createModelProviderPage())}
+        onManageApiKeys={() => pushPage(modelProviderApiKeysPage)}
         onSelectConfig={(configId) => pushPage(editModelProviderPage(configId))}
       />
     );
+  }
+
+  if (page.name === "api-keys") {
+    return <ModelProviderApiKeyManagementPage onBack={popPage} />;
   }
 
   if (page.name === "create") {
@@ -36,12 +43,19 @@ export function ModelProviderPageRenderer({
         page={page}
         replacePage={replacePage}
         onBack={popPage}
+        onManageApiKeys={() => pushPage(modelProviderApiKeysPage)}
       />
     );
   }
 
   if (page.name === "edit") {
-    return <ModelProviderEditPage page={page} onBack={popPage} />;
+    return (
+      <ModelProviderEditPage
+        page={page}
+        onBack={popPage}
+        onManageApiKeys={() => pushPage(modelProviderApiKeysPage)}
+      />
+    );
   }
 
   return null;
