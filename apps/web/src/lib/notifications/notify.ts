@@ -13,6 +13,7 @@ export type NotificationContent = {
   description?: string;
   duration?: number;
   action?: NotificationAction;
+  id?: string | number;
 };
 
 export type ApiResponseError = ApiError & {
@@ -24,11 +25,13 @@ function toToastOptions({
   description,
   duration,
   action,
+  id,
 }: NotificationContent): ExternalToast {
   return {
     ...(description === undefined ? {} : { description }),
     ...(duration === undefined ? {} : { duration }),
     ...(action === undefined ? {} : { action }),
+    ...(id === undefined ? {} : { id }),
   };
 }
 

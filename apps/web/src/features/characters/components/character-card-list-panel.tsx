@@ -13,6 +13,7 @@ import type {
 } from "../api/characters-api";
 import { listCharacters } from "../api/characters-api";
 import { CharacterCardListItem } from "./character-card-list-item";
+import { useAssetDefaults } from "../../chat-preferences/hooks/use-asset-defaults";
 
 export interface CharacterCardListPanelProps {
   onSelectCharacter: (characterId: string) => void;
@@ -28,6 +29,7 @@ export function CharacterCardListPanel({
   const [q, setQ] = useState("");
   const [pageIndex, setPageIndex] = useState(0);
   const [pageSize, setPageSize] = useState(20);
+  const assetDefaultsQuery = useAssetDefaults();
 
   const charactersQuery = useQuery({
     queryKey: [
@@ -105,6 +107,11 @@ export function CharacterCardListPanel({
 
         <CharacterListContent
           characters={page?.items ?? []}
+          defaultPersonaId={
+            assetDefaultsQuery.isError
+              ? undefined
+              : assetDefaultsQuery.data?.personaCharacterId
+          }
           isError={charactersQuery.isError}
           isLoading={charactersQuery.isLoading}
           onSelectCharacter={onSelectCharacter}
@@ -116,11 +123,13 @@ export function CharacterCardListPanel({
 
 function CharacterListContent({
   characters,
+  defaultPersonaId,
   isError,
   isLoading,
   onSelectCharacter,
 }: {
   characters: CharacterSummaryResponse[];
+  defaultPersonaId: string | null | undefined;
   isError: boolean;
   isLoading: boolean;
   onSelectCharacter: (characterId: string) => void;
@@ -145,6 +154,7 @@ function CharacterListContent({
         <CharacterCardListItem
           key={character.id}
           character={character}
+          isDefault={character.id === defaultPersonaId}
           onClick={() => onSelectCharacter(character.id)}
         />
       ))}

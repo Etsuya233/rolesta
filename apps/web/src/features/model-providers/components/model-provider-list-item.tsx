@@ -2,12 +2,15 @@ import { ChevronRight } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { Button } from "../../../components/ui/button";
 import type { ModelProviderSummaryResponse } from "../api/model-providers-api";
+import { AssetDefaultBadge } from "../../chat-preferences/components/asset-default-badge";
 
 export function ModelProviderListItem({
   config,
+  isDefault = false,
   onSelect,
 }: {
   config: ModelProviderSummaryResponse;
+  isDefault?: boolean;
   onSelect: (configId: string) => void;
 }) {
   const { t } = useTranslation();
@@ -20,7 +23,10 @@ export function ModelProviderListItem({
       onClick={() => onSelect(config.id)}
     >
       <span className="flex min-w-0 flex-1 flex-col gap-1">
-        <span className="truncate text-sm font-medium">{config.name}</span>
+        <span className="flex min-w-0 items-center gap-2">
+          <span className="truncate text-sm font-medium">{config.name}</span>
+          {isDefault ? <AssetDefaultBadge kind="modelProvider" /> : null}
+        </span>
         <span className="flex flex-wrap gap-x-3 gap-y-1 text-xs text-muted-foreground">
           <span>{providerLabel(config.providerKind)}</span>
           <span className="max-w-full truncate">{config.baseUrl}</span>

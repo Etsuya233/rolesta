@@ -21,6 +21,14 @@ describe('OpenAPI document', () => {
     expect(document.paths['/health']).toBeDefined();
     expect(document.paths['/auth/current-user']).toBeDefined();
     expect(document.paths['/characters']).toBeDefined();
+    expect(document.paths['/chat-preferences/assets']?.get).toBeDefined();
+    expect(document.paths['/chat-preferences/assets']?.patch?.requestBody).toMatchObject({
+      content: {
+        'application/json': {
+          schema: { $ref: '#/components/schemas/UpdateAssetDefaultsRequestDto' },
+        },
+      },
+    });
 
     const response = document.paths['/auth/current-user']?.get?.responses['200'];
     expect(response).toMatchObject({

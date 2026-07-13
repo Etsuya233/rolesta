@@ -11,6 +11,7 @@ import * as worldbookEntryVectorizedMigration from "./0008_worldbook_entry_vecto
 import * as presetVisibilityMigration from "./0009_preset_visibility.js";
 import * as globalApiKeysMigration from "./0010_global_api_keys.js";
 import * as filesMigration from './0011_files.js';
+import * as assetDefaultsMigration from './0012_asset_defaults.js';
 
 type DialectMigration = {
   common: Migration;
@@ -52,6 +53,9 @@ const migrations: Record<string, DialectMigration> = {
   },
   '0011_files': {
     common: filesMigration,
+  },
+  '0012_asset_defaults': {
+    common: assetDefaultsMigration,
   },
 };
 

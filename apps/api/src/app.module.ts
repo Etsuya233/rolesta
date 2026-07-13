@@ -1,6 +1,7 @@
 import { Module } from '@nestjs/common';
 import { AuthModule } from './auth/auth.module.js';
 import { CharactersModule } from './characters/characters.module.js';
+import { ChatPreferencesModule } from './chat-preferences/chat-preferences.module.js';
 import { ChatsModule } from './chats/chats.module.js';
 import { ConfigModule } from './config/config.module.js';
 import { DatabaseModule } from './database/database.module.js';
@@ -23,6 +24,7 @@ import { FilesModule } from './files/files.module.js';
     AuthModule,
     UsersModule,
     CharactersModule,
+    ChatPreferencesModule,
     WorldbooksModule,
     PresetsModule,
     ModelProfilesModule,

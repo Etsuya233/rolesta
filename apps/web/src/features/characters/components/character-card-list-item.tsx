@@ -3,15 +3,18 @@ import { Avatar, AvatarFallback, AvatarImage } from "../../../components/ui/avat
 import { Badge } from "../../../components/ui/badge";
 import { cn } from "../../../lib/utils";
 import { AssetTagList } from "../../assets/components/asset-tag-list";
+import { AssetDefaultBadge } from "../../chat-preferences/components/asset-default-badge";
 import type { CharacterSummaryResponse } from "../api/characters-api";
 
 export interface CharacterCardListItemProps {
   character: CharacterSummaryResponse;
+  isDefault?: boolean;
   onClick: () => void;
 }
 
 export function CharacterCardListItem({
   character,
+  isDefault = false,
   onClick,
 }: CharacterCardListItemProps) {
   const { t } = useTranslation();
@@ -54,18 +57,21 @@ export function CharacterCardListItem({
               </p>
             ) : null}
           </div>
-          <Badge
-            className={cn(
-              "shrink-0",
-              character.visibility === "public" &&
-                "border-primary/30 text-primary",
-            )}
-            variant="outline"
-          >
-            {character.visibility === "public"
-              ? t("characters.list.publicVisibility")
-              : t("characters.list.privateVisibility")}
-          </Badge>
+          <div className="flex shrink-0 items-center gap-1">
+            {isDefault ? <AssetDefaultBadge kind="persona" /> : null}
+            <Badge
+              className={cn(
+                "shrink-0",
+                character.visibility === "public" &&
+                  "border-primary/30 text-primary",
+              )}
+              variant="outline"
+            >
+              {character.visibility === "public"
+                ? t("characters.list.publicVisibility")
+                : t("characters.list.privateVisibility")}
+            </Badge>
+          </div>
         </div>
 
         <div className="flex min-w-0 flex-wrap items-center gap-2">

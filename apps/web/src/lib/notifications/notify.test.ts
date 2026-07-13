@@ -33,7 +33,7 @@ describe("notify", () => {
     });
     notify.info({ title: "Import started" });
     notify.warning({ title: "Connection is slow" });
-    notify.error({ title: "Could not save", duration: 10_000, action });
+    notify.error({ title: "Could not save", duration: 10_000, action, id: "save-error" });
 
     expect(sonner.toast.success).toHaveBeenCalledWith("Saved", {
       description: "Your changes are available.",
@@ -43,6 +43,7 @@ describe("notify", () => {
     expect(sonner.toast.error).toHaveBeenCalledWith("Could not save", {
       duration: 10_000,
       action,
+      id: "save-error",
     });
   });
 

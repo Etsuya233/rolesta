@@ -3,12 +3,15 @@ import { useTranslation } from "react-i18next";
 import { Button } from "../../../components/ui/button";
 import { Badge } from "../../../components/ui/badge";
 import type { PresetSummaryResponse } from "../api/presets-api";
+import { AssetDefaultBadge } from "../../chat-preferences/components/asset-default-badge";
 
 export function PresetListItem({
   preset,
+  isDefault = false,
   onSelect,
 }: {
   preset: PresetSummaryResponse;
+  isDefault?: boolean;
   onSelect: (presetId: string) => void;
 }) {
   const { t } = useTranslation();
@@ -23,6 +26,7 @@ export function PresetListItem({
       <span className="flex min-w-0 flex-1 flex-col gap-1">
         <span className="flex min-w-0 items-center gap-2">
           <span className="truncate text-sm font-medium">{preset.name}</span>
+          {isDefault ? <AssetDefaultBadge kind="preset" /> : null}
           <Badge className="shrink-0" variant="outline">
             {preset.visibility === "public"
               ? t("presets.list.publicVisibility")
@@ -50,7 +54,10 @@ export function PresetListItem({
           </span>
         </span>
       </span>
-      <ChevronRight aria-hidden="true" className="size-4 shrink-0 text-muted-foreground" />
+      <ChevronRight
+        aria-hidden="true"
+        className="size-4 shrink-0 text-muted-foreground"
+      />
     </Button>
   );
 }

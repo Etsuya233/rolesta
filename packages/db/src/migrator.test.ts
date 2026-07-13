@@ -52,6 +52,47 @@ describe('database migrations', () => {
     expect(visibility).toMatchObject({ dflt_value: "'private'" });
   });
 
+  it('creates asset defaults with nullable asset references and deletion actions', async () => {
+    const database = await createTestDatabase();
+    databases.push(database);
+
+    const columns = await sql<{ name: string; notnull: number; pk: number }>`pragma table_info(asset_defaults)`
+      .execute(database.db)
+      .then((result) => result.rows);
+    const foreignKeys = await sql<{
+      from: string;
+      on_delete: string;
+      table: string;
+    }>`pragma foreign_key_list(asset_defaults)`
+      .execute(database.db)
+      .then((result) => result.rows);
+
+    expect(columns).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ name: 'user_id', pk: 1 }),
+        expect.objectContaining({ name: 'persona_character_id', notnull: 0 }),
+        expect.objectContaining({ name: 'preset_id', notnull: 0 }),
+        expect.objectContaining({ name: 'model_provider_id', notnull: 0 }),
+      ]),
+    );
+    expect(foreignKeys).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ from: 'user_id', table: 'users', on_delete: 'CASCADE' }),
+        expect.objectContaining({
+          from: 'persona_character_id',
+          table: 'characters',
+          on_delete: 'SET NULL',
+        }),
+        expect.objectContaining({ from: 'preset_id', table: 'presets', on_delete: 'SET NULL' }),
+        expect.objectContaining({
+          from: 'model_provider_id',
+          table: 'model_provider_configs',
+          on_delete: 'SET NULL',
+        }),
+      ]),
+    );
+  });
+
   it('loads sqlite configuration by default', () => {
     expect(loadDatabaseConfig({})).toEqual({
       dialect: 'sqlite',

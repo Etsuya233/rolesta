@@ -10,6 +10,7 @@ import {
   type SortDirection,
 } from "../api/model-providers-api";
 import { ModelProviderListItem } from "./model-provider-list-item";
+import { useAssetDefaults } from "../../chat-preferences/hooks/use-asset-defaults";
 
 export function ModelProviderListPanel({
   onSelectConfig,
@@ -22,6 +23,7 @@ export function ModelProviderListPanel({
   const [direction, setDirection] = useState<SortDirection>("desc");
   const [pageIndex, setPageIndex] = useState(0);
   const [pageSize, setPageSize] = useState(20);
+  const assetDefaultsQuery = useAssetDefaults();
   const query = useQuery({
     queryKey: ["model-providers", { q, sort, direction, pageIndex, pageSize }],
     queryFn: () =>
@@ -82,6 +84,10 @@ export function ModelProviderListPanel({
           <ModelProviderListItem
             key={config.id}
             config={config}
+            isDefault={
+              !assetDefaultsQuery.isError &&
+              config.id === assetDefaultsQuery.data?.modelProviderId
+            }
             onSelect={onSelectConfig}
           />
         ))}

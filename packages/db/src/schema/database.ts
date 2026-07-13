@@ -1,4 +1,5 @@
 import type { CharactersTable } from "./characters.js";
+import type { AssetDefaultsTable } from "./asset-defaults.js";
 import type {
   ApiKeysTable,
   ModelProviderConfigsTable,
@@ -15,6 +16,7 @@ import type { FileContentsTable, FileObjectsTable, FileResourcesTable } from './
 export interface Database {
   users: UsersTable;
   sessions: SessionsTable;
+  asset_defaults: AssetDefaultsTable;
   characters: CharactersTable;
   model_provider_configs: ModelProviderConfigsTable;
   api_keys: ApiKeysTable;

@@ -212,6 +212,22 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/chat-preferences/assets": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["ChatPreferencesController_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch: operations["ChatPreferencesController_update"];
+        trace?: never;
+    };
     "/worldbooks": {
         parameters: {
             query?: never;
@@ -757,6 +773,16 @@ export interface components {
                 [key: string]: unknown;
             };
             name?: string;
+        };
+        AssetDefaultsResponseDto: {
+            personaCharacterId: string | null;
+            presetId: string | null;
+            modelProviderId: string | null;
+        };
+        UpdateAssetDefaultsRequestDto: {
+            personaCharacterId?: string | null;
+            presetId?: string | null;
+            modelProviderId?: string | null;
         };
         WorldbookSummaryResponseDto: {
             id: string;
@@ -1859,6 +1885,66 @@ export interface operations {
                 };
                 content: {
                     "application/json": Record<string, never>;
+                };
+            };
+        };
+    };
+    ChatPreferencesController_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /**
+                         * @example SUCCESS
+                         * @enum {string}
+                         */
+                        code: "SUCCESS";
+                        /** @example ok */
+                        msg: string;
+                        data: components["schemas"]["AssetDefaultsResponseDto"];
+                    };
+                };
+            };
+        };
+    };
+    ChatPreferencesController_update: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UpdateAssetDefaultsRequestDto"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /**
+                         * @example SUCCESS
+                         * @enum {string}
+                         */
+                        code: "SUCCESS";
+                        /** @example ok */
+                        msg: string;
+                        data: components["schemas"]["AssetDefaultsResponseDto"];
+                    };
                 };
             };
         };

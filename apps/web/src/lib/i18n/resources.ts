@@ -958,6 +958,23 @@ export const resources = {
         },
       },
       worldbooks: worldbookTranslations["en-US"],
+      chatPreferences: {
+        loadFailed: "Failed to load chat asset defaults.",
+        loadingDefault: "Loading default state",
+        badges: {
+          persona: "Default Persona",
+          preset: "Default preset",
+          connection: "Default connection",
+        },
+        actions: {
+          setPersona: "Set as default Persona",
+          removePersona: "Remove default Persona",
+          setPreset: "Set as default preset",
+          removePreset: "Remove default preset",
+          setConnection: "Set as default connection",
+          removeConnection: "Remove default connection",
+        },
+      },
       characters: {
         list: {
           title: "Character cards",
@@ -1351,6 +1368,9 @@ export const resources = {
         validationFailed: "The request parameters are invalid.",
         internalError: "The request failed.",
         passwordTooShort: "Password must be at least {{min}} characters.",
+        assetUnavailable: "One or more selected assets are unavailable.",
+        assetDefaultsConflict:
+          "The asset changed before its default could be saved. Try again.",
       },
     },
   },
@@ -1472,6 +1492,23 @@ export const resources = {
         },
       },
       worldbooks: worldbookTranslations["zh-CN"],
+      chatPreferences: {
+        loadFailed: "聊天资产默认值加载失败。",
+        loadingDefault: "正在加载默认状态",
+        badges: {
+          persona: "默认 Persona",
+          preset: "默认预设",
+          connection: "默认连接",
+        },
+        actions: {
+          setPersona: "设为默认 Persona",
+          removePersona: "取消默认 Persona",
+          setPreset: "设为默认预设",
+          removePreset: "取消默认预设",
+          setConnection: "设为默认连接",
+          removeConnection: "取消默认连接",
+        },
+      },
       characters: {
         list: {
           title: "角色卡",
@@ -1860,6 +1897,8 @@ export const resources = {
         validationFailed: "请求参数无效。",
         internalError: "请求失败。",
         passwordTooShort: "密码至少需要 {{min}} 个字符。",
+        assetUnavailable: "一个或多个所选资产不可用。",
+        assetDefaultsConflict: "保存默认值前资产已发生变化，请重试。",
       },
     },
   },
@@ -1981,6 +2020,23 @@ export const resources = {
         },
       },
       worldbooks: worldbookTranslations["zh-TW"],
+      chatPreferences: {
+        loadFailed: "聊天資產預設值載入失敗。",
+        loadingDefault: "正在載入預設狀態",
+        badges: {
+          persona: "預設 Persona",
+          preset: "預設預設",
+          connection: "預設連線",
+        },
+        actions: {
+          setPersona: "設為預設 Persona",
+          removePersona: "取消預設 Persona",
+          setPreset: "設為預設預設",
+          removePreset: "取消預設預設",
+          setConnection: "設為預設連線",
+          removeConnection: "取消預設連線",
+        },
+      },
       characters: {
         list: {
           title: "角色卡",
@@ -2369,6 +2425,8 @@ export const resources = {
         validationFailed: "請求參數無效。",
         internalError: "請求失敗。",
         passwordTooShort: "密碼至少需要 {{min}} 個字元。",
+        assetUnavailable: "一個或多個所選資產不可用。",
+        assetDefaultsConflict: "儲存預設值前資產已發生變更，請重試。",
       },
     },
   },
@@ -2493,6 +2551,23 @@ export const resources = {
         },
       },
       worldbooks: worldbookTranslations["ja-JP"],
+      chatPreferences: {
+        loadFailed: "チャットアセットの既定値を読み込めませんでした。",
+        loadingDefault: "既定状態を読み込み中",
+        badges: {
+          persona: "既定の Persona",
+          preset: "既定のプリセット",
+          connection: "既定の接続",
+        },
+        actions: {
+          setPersona: "既定の Persona に設定",
+          removePersona: "既定の Persona を解除",
+          setPreset: "既定のプリセットに設定",
+          removePreset: "既定のプリセットを解除",
+          setConnection: "既定の接続に設定",
+          removeConnection: "既定の接続を解除",
+        },
+      },
       characters: {
         list: {
           title: "キャラクターカード",
@@ -2883,6 +2958,9 @@ export const resources = {
         validationFailed: "リクエストパラメーターが無効です。",
         internalError: "リクエストに失敗しました。",
         passwordTooShort: "パスワードは {{min}} 文字以上で入力してください。",
+        assetUnavailable: "選択したアセットの一部を利用できません。",
+        assetDefaultsConflict:
+          "既定値を保存する前にアセットが変更されました。もう一度お試しください。",
       },
     },
   },

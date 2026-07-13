@@ -1,0 +1,40 @@
+import { Module } from "@nestjs/common";
+import { AuthModule } from "../auth/auth.module.js";
+import { DatabaseModule } from "../database/database.module.js";
+import { GetAssetDefaultsUseCase } from "./application/get-asset-defaults.use-case.js";
+import { UpdateAssetDefaultsUseCase } from "./application/update-asset-defaults.use-case.js";
+import { ChatPreferencesController } from "./http/chat-preferences.controller.js";
+import { KyselyAssetDefaultsStore } from "./persistence/kysely-asset-defaults-store.js";
+import { KyselyChatAssetOwnership } from "./persistence/kysely-chat-asset-ownership.js";
+import {
+  ASSET_DEFAULTS_STORE,
+  type AssetDefaultsStore,
+} from "./ports/asset-defaults-store.js";
+import {
+  CHAT_ASSET_OWNERSHIP,
+  type ChatAssetOwnership,
+} from "./ports/chat-asset-ownership.js";
+
+@Module({
+  imports: [DatabaseModule, AuthModule],
+  controllers: [ChatPreferencesController],
+  providers: [
+    KyselyAssetDefaultsStore,
+    KyselyChatAssetOwnership,
+    { provide: ASSET_DEFAULTS_STORE, useExisting: KyselyAssetDefaultsStore },
+    { provide: CHAT_ASSET_OWNERSHIP, useExisting: KyselyChatAssetOwnership },
+    {
+      provide: GetAssetDefaultsUseCase,
+      useFactory: (store: AssetDefaultsStore) =>
+        new GetAssetDefaultsUseCase(store),
+      inject: [ASSET_DEFAULTS_STORE],
+    },
+    {
+      provide: UpdateAssetDefaultsUseCase,
+      useFactory: (ownership: ChatAssetOwnership, store: AssetDefaultsStore) =>
+        new UpdateAssetDefaultsUseCase(ownership, store),
+      inject: [CHAT_ASSET_OWNERSHIP, ASSET_DEFAULTS_STORE],
+    },
+  ],
+})
+export class ChatPreferencesModule {}

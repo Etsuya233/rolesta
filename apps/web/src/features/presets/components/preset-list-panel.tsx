@@ -14,6 +14,7 @@ import {
   type SortDirection,
 } from "../api/presets-api";
 import { PresetListItem } from "./preset-list-item";
+import { useAssetDefaults } from "../../chat-preferences/hooks/use-asset-defaults";
 
 export function PresetListPanel({
   onSelectPreset,
@@ -27,6 +28,7 @@ export function PresetListPanel({
   const [direction, setDirection] = useState<SortDirection>("desc");
   const [pageIndex, setPageIndex] = useState(0);
   const [pageSize, setPageSize] = useState(20);
+  const assetDefaultsQuery = useAssetDefaults();
   const query = useQuery({
     queryKey: [
       "presets",
@@ -101,6 +103,10 @@ export function PresetListPanel({
         {query.data?.items.map((preset) => (
           <PresetListItem
             key={preset.id}
+            isDefault={
+              !assetDefaultsQuery.isError &&
+              preset.id === assetDefaultsQuery.data?.presetId
+            }
             preset={preset}
             onSelect={onSelectPreset}
           />
