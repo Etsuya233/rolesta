@@ -1,7 +1,7 @@
-import { Inject, Injectable } from '@nestjs/common';
-import type { Database, FileObjectsTable, FileResourcesTable } from '@rolesta/db';
-import type { Insertable, Kysely, Selectable } from 'kysely';
-import { KYSELY_DB } from '../../database/database.provider.js';
+import { Injectable } from '@nestjs/common';
+import type { FileObjectsTable, FileResourcesTable } from '@rolesta/db';
+import type { Insertable, Selectable } from 'kysely';
+import { KyselyDatabaseContext } from '../../database/kysely-database-context.js';
 import type { FileObject, FileResource } from '../domain/file-resource.js';
 import type {
   FileMetadataStore,
@@ -10,29 +10,37 @@ import type {
 
 @Injectable()
 export class KyselyFileMetadataStore implements FileMetadataStore {
-  constructor(@Inject(KYSELY_DB) private readonly db: Kysely<Database>) {}
+  constructor(private readonly context: KyselyDatabaseContext) {}
 
   async createPending(resource: FileResource): Promise<void> {
-    await this.db.transaction().execute(async (transaction) => {
-      await transaction.insertInto('file_resources').values(toResourceRow(resource)).execute();
-      await transaction
-        .insertInto('file_objects')
-        .values(resource.objects.map(toObjectRow))
-        .execute();
-    });
+    const database = this.context.database;
+    await database
+      .insertInto('file_resources')
+      .values(toResourceRow(resource))
+      .execute();
+    await database
+      .insertInto('file_objects')
+      .values(resource.objects.map(toObjectRow))
+      .execute();
   }
 
   async findReadableObject(fileId: string): Promise<ReadableFileObject | null> {
-    const row = await this.db
+    const row = await this.context.database
       .selectFrom('file_objects')
-      .innerJoin('file_resources', 'file_resources.id', 'file_objects.resource_id')
+      .innerJoin(
+        'file_resources',
+        'file_resources.id',
+        'file_objects.resource_id',
+      )
       .selectAll('file_objects')
       .select('file_resources.owner_user_id')
       .where('file_objects.id', '=', fileId)
       .where('file_resources.status', '=', 'active')
       .executeTakeFirst();
 
-    return row ? { ...toFileObject(row), ownerUserId: row.owner_user_id } : null;
+    return row
+      ? { ...toFileObject(row), ownerUserId: row.owner_user_id }
+      : null;
   }
 
   async findObjectsByResourceIds(resourceIds: string[]): Promise<FileObject[]> {
@@ -40,7 +48,7 @@ export class KyselyFileMetadataStore implements FileMetadataStore {
       return [];
     }
 
-    const rows = await this.db
+    const rows = await this.context.database
       .selectFrom('file_objects')
       .selectAll()
       .where('resource_id', 'in', resourceIds)
@@ -48,13 +56,19 @@ export class KyselyFileMetadataStore implements FileMetadataStore {
     return rows.map(toFileObject);
   }
 
-  async findExpiredResourceIds(cutoffMs: number, limit: number): Promise<string[]> {
-    const rows = await this.db
+  async findExpiredResourceIds(
+    cutoffMs: number,
+    limit: number,
+  ): Promise<string[]> {
+    const rows = await this.context.database
       .selectFrom('file_resources')
       .select('id')
       .where((builder) =>
         builder.or([
-          builder.and([builder('status', '=', 'pending'), builder('created_at_ms', '<=', cutoffMs)]),
+          builder.and([
+            builder('status', '=', 'pending'),
+            builder('created_at_ms', '<=', cutoffMs),
+          ]),
           builder.and([
             builder('status', '=', 'orphaned'),
             builder('orphaned_at_ms', '<=', cutoffMs),
@@ -68,7 +82,7 @@ export class KyselyFileMetadataStore implements FileMetadataStore {
   }
 
   async findObjectsByResourceId(resourceId: string): Promise<FileObject[]> {
-    const rows = await this.db
+    const rows = await this.context.database
       .selectFrom('file_objects')
       .selectAll()
       .where('resource_id', '=', resourceId)
@@ -77,7 +91,10 @@ export class KyselyFileMetadataStore implements FileMetadataStore {
   }
 
   async deleteResource(resourceId: string): Promise<void> {
-    await this.db.deleteFrom('file_resources').where('id', '=', resourceId).execute();
+    await this.context.database
+      .deleteFrom('file_resources')
+      .where('id', '=', resourceId)
+      .execute();
   }
 }
 

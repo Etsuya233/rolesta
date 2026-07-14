@@ -1,4 +1,5 @@
 import { UseCase } from "../../common/errors/index.js";
+import type { UnitOfWork } from "../../common/application/unit-of-work.js";
 import { ensureEpochMillis } from "../../shared/epoch-millis.js";
 import type { Worldbook } from "../domain/worldbook.js";
 import type { WorldbookCodec } from "../ports/worldbook-codec.js";
@@ -21,6 +22,7 @@ export class ImportWorldbookUseCase {
     private readonly codec: WorldbookCodec,
     private readonly idGenerator: WorldbookIdGenerator,
     private readonly clock: WorldbookClock,
+    private readonly unitOfWork: UnitOfWork,
   ) {}
 
   @UseCase(translateWorldbookError)
@@ -56,7 +58,7 @@ export class ImportWorldbookUseCase {
       usageCount: 0,
     };
 
-    await this.store.save(worldbook);
+    await this.unitOfWork.run(() => this.store.save(worldbook));
 
     return worldbook;
   }

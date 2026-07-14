@@ -1,5 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { createTestDatabase } from "../../../../../packages/db/src/test-utils/create-test-database.js";
+import { KyselyDatabaseContext } from "../../database/kysely-database-context.js";
+import { KyselyUnitOfWork } from "../../database/kysely-unit-of-work.js";
 import { createDefaultPresetModelSettings } from "../domain/preset-model-settings.js";
 import type { Preset } from "../domain/preset.js";
 import { KyselyPresetStore } from "./kysely-preset-store.js";
@@ -7,28 +9,36 @@ import { KyselyPresetStore } from "./kysely-preset-store.js";
 describe("KyselyPresetStore", () => {
   it("filters visible presets by permission scope", async () => {
     const database = await createTestDatabase();
-    const store = new KyselyPresetStore(database.db);
+    const context = new KyselyDatabaseContext(database.db);
+    const unitOfWork = new KyselyUnitOfWork(database.db, context);
+    const store = new KyselyPresetStore(context);
 
     try {
       await seedUser(database.db, "owner");
       await seedUser(database.db, "other");
-      await store.save(
-        preset({ id: "mine", ownerUserId: "owner", visibility: "private" }),
-      );
-      await store.save(
-        preset({ id: "public", ownerUserId: "other", visibility: "public" }),
-      );
-      await store.save(
-        preset({ id: "hidden", ownerUserId: "other", visibility: "private" }),
-      );
+      await unitOfWork.run(async () => {
+        await store.save(
+          preset({ id: "mine", ownerUserId: "owner", visibility: "private" }),
+        );
+        await store.save(
+          preset({ id: "public", ownerUserId: "other", visibility: "public" }),
+        );
+        await store.save(
+          preset({ id: "hidden", ownerUserId: "other", visibility: "private" }),
+        );
+      });
 
       await expect(listIds(store, "all")).resolves.toEqual(["mine", "public"]);
       await expect(listIds(store, "mine")).resolves.toEqual(["mine"]);
       await expect(listIds(store, "public")).resolves.toEqual(["public"]);
-      await expect(store.findVisibleById("public", "owner")).resolves.toMatchObject({
+      await expect(
+        store.findVisibleById("public", "owner"),
+      ).resolves.toMatchObject({
         id: "public",
       });
-      await expect(store.findVisibleById("hidden", "owner")).resolves.toBeNull();
+      await expect(
+        store.findVisibleById("hidden", "owner"),
+      ).resolves.toBeNull();
     } finally {
       await database.destroy();
     }

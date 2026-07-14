@@ -1,4 +1,5 @@
 import { UseCase } from "../../common/errors/index.js";
+import type { UnitOfWork } from "../../common/application/unit-of-work.js";
 import { ensureEpochMillis } from "../../shared/epoch-millis.js";
 import type { Worldbook } from "../domain/worldbook.js";
 import type { WorldbookStore } from "../ports/worldbook-store.js";
@@ -20,60 +21,63 @@ export class UpdateWorldbookEntryUseCase {
   constructor(
     private readonly store: WorldbookStore,
     private readonly clock: WorldbookClock,
+    private readonly unitOfWork: UnitOfWork,
   ) {}
 
   @UseCase(translateWorldbookError)
   async execute(command: UpdateWorldbookEntryCommand): Promise<Worldbook> {
-    const current = await this.store.findVisibleById(
-      command.worldbookId,
-      command.viewerUserId,
-    );
+    return this.unitOfWork.run(async () => {
+      const current = await this.store.findVisibleById(
+        command.worldbookId,
+        command.viewerUserId,
+      );
 
-    if (current === null) {
-      throw new WorldbookApplicationError({
-        reason: "not-found",
-        params: { worldbookId: command.worldbookId },
-      });
-    }
-
-    if (current.ownerUserId !== command.viewerUserId) {
-      throw new WorldbookApplicationError({
-        reason: "forbidden",
-        params: {
-          worldbookId: command.worldbookId,
-          viewerUserId: command.viewerUserId,
-        },
-      });
-    }
-
-    const nowMs = ensureEpochMillis(this.clock.now().getTime());
-    let found = false;
-    const entries = current.entries.map((entry) => {
-      if (entry.id !== command.entryId) {
-        return entry;
+      if (current === null) {
+        throw new WorldbookApplicationError({
+          reason: "not-found",
+          params: { worldbookId: command.worldbookId },
+        });
       }
 
-      found = true;
-      return applyWorldbookEntryEditableFields(
-        { ...entry, updatedAtMs: nowMs },
-        command,
-      );
-    });
+      if (current.ownerUserId !== command.viewerUserId) {
+        throw new WorldbookApplicationError({
+          reason: "forbidden",
+          params: {
+            worldbookId: command.worldbookId,
+            viewerUserId: command.viewerUserId,
+          },
+        });
+      }
 
-    if (!found) {
-      throw new WorldbookApplicationError({
-        reason: "unknown-entry",
-        params: {
-          worldbookId: command.worldbookId,
-          entryId: command.entryId,
-        },
+      const nowMs = ensureEpochMillis(this.clock.now().getTime());
+      let found = false;
+      const entries = current.entries.map((entry) => {
+        if (entry.id !== command.entryId) {
+          return entry;
+        }
+
+        found = true;
+        return applyWorldbookEntryEditableFields(
+          { ...entry, updatedAtMs: nowMs },
+          command,
+        );
       });
-    }
 
-    const updated = { ...current, entries, updatedAtMs: nowMs };
+      if (!found) {
+        throw new WorldbookApplicationError({
+          reason: "unknown-entry",
+          params: {
+            worldbookId: command.worldbookId,
+            entryId: command.entryId,
+          },
+        });
+      }
 
-    await this.store.update(updated);
+      const updated = { ...current, entries, updatedAtMs: nowMs };
 
-    return updated;
+      await this.store.update(updated);
+
+      return updated;
+    });
   }
 }

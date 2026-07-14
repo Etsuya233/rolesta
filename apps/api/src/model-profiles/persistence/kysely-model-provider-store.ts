@@ -1,13 +1,8 @@
-import { Inject, Injectable } from "@nestjs/common";
+import { Injectable } from "@nestjs/common";
 import type { Database, ModelProviderConfigsTable } from "@rolesta/db";
 import { getTotalPages, type PageResponse } from "@rolesta/shared";
-import type {
-  Insertable,
-  Kysely,
-  Selectable,
-  SelectQueryBuilder,
-} from "kysely";
-import { KYSELY_DB } from "../../database/database.provider.js";
+import type { Insertable, Selectable, SelectQueryBuilder } from "kysely";
+import { KyselyDatabaseContext } from "../../database/kysely-database-context.js";
 import { ensureEpochMillis } from "../../shared/epoch-millis.js";
 import type {
   ModelProviderConfig,
@@ -21,19 +16,19 @@ import type {
 
 @Injectable()
 export class KyselyModelProviderStore implements ModelProviderStore {
-  constructor(@Inject(KYSELY_DB) private readonly db: Kysely<Database>) {}
+  constructor(private readonly context: KyselyDatabaseContext) {}
 
   async list(
     request: ListModelProvidersRequest,
   ): Promise<PageResponse<ModelProviderSummary>> {
     const countRow = await withListFilters(
-      this.db.selectFrom("model_provider_configs"),
+      this.context.database.selectFrom("model_provider_configs"),
       request,
     )
       .select((builder) => builder.fn.countAll<number>().as("count"))
       .executeTakeFirstOrThrow();
     const rows = await withListFilters(
-      this.db.selectFrom("model_provider_configs"),
+      this.context.database.selectFrom("model_provider_configs"),
       request,
     )
       .leftJoin("api_keys", "api_keys.id", "model_provider_configs.api_key_id")
@@ -75,7 +70,7 @@ export class KyselyModelProviderStore implements ModelProviderStore {
     id: string,
     ownerUserId: string,
   ): Promise<ModelProviderConfig | null> {
-    const row = await this.db
+    const row = await this.context.database
       .selectFrom("model_provider_configs")
       .leftJoin("api_keys", "api_keys.id", "model_provider_configs.api_key_id")
       .selectAll("model_provider_configs")
@@ -87,14 +82,14 @@ export class KyselyModelProviderStore implements ModelProviderStore {
   }
 
   async save(config: ModelProviderConfig): Promise<void> {
-    await this.db
+    await this.context.database
       .insertInto("model_provider_configs")
       .values(toRow(config))
       .execute();
   }
 
   async update(config: ModelProviderConfig): Promise<void> {
-    await this.db
+    await this.context.database
       .updateTable("model_provider_configs")
       .set(toRow(config))
       .where("id", "=", config.id)
@@ -103,7 +98,7 @@ export class KyselyModelProviderStore implements ModelProviderStore {
   }
 
   async deleteOwned(id: string, ownerUserId: string): Promise<boolean> {
-    const result = await this.db
+    const result = await this.context.database
       .deleteFrom("model_provider_configs")
       .where("id", "=", id)
       .where("owner_user_id", "=", ownerUserId)

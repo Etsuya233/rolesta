@@ -1,4 +1,8 @@
 import { Module } from '@nestjs/common';
+import {
+  UNIT_OF_WORK,
+  type UnitOfWork,
+} from '../common/application/unit-of-work.js';
 import { DatabaseModule } from '../database/database.module.js';
 import {
   CLOCK,
@@ -59,7 +63,17 @@ import { KyselyUserAccountStore } from './persistence/kysely-user-account-store.
         tokenIssuer: SessionTokenIssuer,
         clock: Clock,
         idGenerator: IdGenerator,
-      ) => new SetupAdminUseCase(users, sessions, passwordHashing, tokenIssuer, clock, idGenerator),
+        unitOfWork: UnitOfWork,
+      ) =>
+        new SetupAdminUseCase(
+          users,
+          sessions,
+          passwordHashing,
+          tokenIssuer,
+          clock,
+          idGenerator,
+          unitOfWork,
+        ),
       inject: [
         USER_ACCOUNT_STORE,
         SESSION_STORE,
@@ -67,6 +81,7 @@ import { KyselyUserAccountStore } from './persistence/kysely-user-account-store.
         SESSION_TOKEN_ISSUER,
         CLOCK,
         ID_GENERATOR,
+        UNIT_OF_WORK,
       ],
     },
     {
@@ -77,8 +92,15 @@ import { KyselyUserAccountStore } from './persistence/kysely-user-account-store.
         passwordHashing: PasswordHashing,
         tokenIssuer: SessionTokenIssuer,
         clock: Clock,
-      ) => new LoginUseCase(users, sessions, passwordHashing, tokenIssuer, clock),
-      inject: [USER_ACCOUNT_STORE, SESSION_STORE, PASSWORD_HASHING, SESSION_TOKEN_ISSUER, CLOCK],
+      ) =>
+        new LoginUseCase(users, sessions, passwordHashing, tokenIssuer, clock),
+      inject: [
+        USER_ACCOUNT_STORE,
+        SESSION_STORE,
+        PASSWORD_HASHING,
+        SESSION_TOKEN_ISSUER,
+        CLOCK,
+      ],
     },
     {
       provide: AuthenticateTokenUseCase,

@@ -1,4 +1,8 @@
 import { Module } from "@nestjs/common";
+import {
+  UNIT_OF_WORK,
+  type UnitOfWork,
+} from "../common/application/unit-of-work.js";
 import { AuthModule } from "../auth/auth.module.js";
 import { DatabaseModule } from "../database/database.module.js";
 import { GetAssetDefaultsUseCase } from "./application/get-asset-defaults.use-case.js";
@@ -31,9 +35,12 @@ import {
     },
     {
       provide: UpdateAssetDefaultsUseCase,
-      useFactory: (ownership: ChatAssetOwnership, store: AssetDefaultsStore) =>
-        new UpdateAssetDefaultsUseCase(ownership, store),
-      inject: [CHAT_ASSET_OWNERSHIP, ASSET_DEFAULTS_STORE],
+      useFactory: (
+        ownership: ChatAssetOwnership,
+        store: AssetDefaultsStore,
+        unitOfWork: UnitOfWork,
+      ) => new UpdateAssetDefaultsUseCase(ownership, store, unitOfWork),
+      inject: [CHAT_ASSET_OWNERSHIP, ASSET_DEFAULTS_STORE, UNIT_OF_WORK],
     },
   ],
 })

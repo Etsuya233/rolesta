@@ -1,4 +1,5 @@
 import { UseCase } from "../../common/errors/index.js";
+import type { UnitOfWork } from "../../common/application/unit-of-work.js";
 import { ensureEpochMillis } from "../../shared/epoch-millis.js";
 import type { Worldbook } from "../domain/worldbook.js";
 import type { WorldbookStore } from "../ports/worldbook-store.js";
@@ -19,42 +20,45 @@ export class UpdateWorldbookUseCase {
   constructor(
     private readonly store: WorldbookStore,
     private readonly clock: WorldbookClock,
+    private readonly unitOfWork: UnitOfWork,
   ) {}
 
   @UseCase(translateWorldbookError)
   async execute(command: UpdateWorldbookCommand): Promise<Worldbook> {
-    const current = await this.store.findVisibleById(
-      command.id,
-      command.viewerUserId,
-    );
+    return this.unitOfWork.run(async () => {
+      const current = await this.store.findVisibleById(
+        command.id,
+        command.viewerUserId,
+      );
 
-    if (current === null) {
-      throw new WorldbookApplicationError({
-        reason: "not-found",
-        params: { worldbookId: command.id },
-      });
-    }
+      if (current === null) {
+        throw new WorldbookApplicationError({
+          reason: "not-found",
+          params: { worldbookId: command.id },
+        });
+      }
 
-    if (current.ownerUserId !== command.viewerUserId) {
-      throw new WorldbookApplicationError({
-        reason: "forbidden",
-        params: {
-          worldbookId: command.id,
-          viewerUserId: command.viewerUserId,
+      if (current.ownerUserId !== command.viewerUserId) {
+        throw new WorldbookApplicationError({
+          reason: "forbidden",
+          params: {
+            worldbookId: command.id,
+            viewerUserId: command.viewerUserId,
+          },
+        });
+      }
+
+      const updated = applyWorldbookEditableFields(
+        {
+          ...current,
+          updatedAtMs: ensureEpochMillis(this.clock.now().getTime()),
         },
-      });
-    }
+        command,
+      );
 
-    const updated = applyWorldbookEditableFields(
-      {
-        ...current,
-        updatedAtMs: ensureEpochMillis(this.clock.now().getTime()),
-      },
-      command,
-    );
+      await this.store.update(updated);
 
-    await this.store.update(updated);
-
-    return updated;
+      return updated;
+    });
   }
 }

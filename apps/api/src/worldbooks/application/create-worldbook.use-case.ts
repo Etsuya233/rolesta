@@ -1,4 +1,5 @@
 import { UseCase } from "../../common/errors/index.js";
+import type { UnitOfWork } from "../../common/application/unit-of-work.js";
 import { ensureEpochMillis } from "../../shared/epoch-millis.js";
 import type { Worldbook } from "../domain/worldbook.js";
 import { translateWorldbookError } from "./worldbook-error.mapper.js";
@@ -21,6 +22,7 @@ export class CreateWorldbookUseCase {
     private readonly store: WorldbookStore,
     private readonly idGenerator: WorldbookIdGenerator,
     private readonly clock: WorldbookClock,
+    private readonly unitOfWork: UnitOfWork,
   ) {}
 
   @UseCase(translateWorldbookError)
@@ -46,7 +48,7 @@ export class CreateWorldbookUseCase {
     };
     const worldbook = applyWorldbookEditableFields(draft, command);
 
-    await this.store.save(worldbook);
+    await this.unitOfWork.run(() => this.store.save(worldbook));
 
     return worldbook;
   }

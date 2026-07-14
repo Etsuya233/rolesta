@@ -1,4 +1,8 @@
 import { Module } from "@nestjs/common";
+import {
+  UNIT_OF_WORK,
+  type UnitOfWork,
+} from "../common/application/unit-of-work.js";
 import { AuthModule } from "../auth/auth.module.js";
 import { CryptoIdGenerator } from "../auth/infrastructure/crypto-id-generator.js";
 import { SystemClock } from "../auth/infrastructure/system-clock.js";
@@ -57,8 +61,9 @@ import { KyselyWorldbookStore } from "./persistence/kysely-worldbook-store.js";
         store: WorldbookStore,
         idGenerator: WorldbookIdGenerator,
         clock: WorldbookClock,
-      ) => new CreateWorldbookUseCase(store, idGenerator, clock),
-      inject: [WORLDBOOK_STORE, CryptoIdGenerator, SystemClock],
+        unitOfWork: UnitOfWork,
+      ) => new CreateWorldbookUseCase(store, idGenerator, clock, unitOfWork),
+      inject: [WORLDBOOK_STORE, CryptoIdGenerator, SystemClock, UNIT_OF_WORK],
     },
     {
       provide: UpdateWorldbookDocumentUseCase,
@@ -66,14 +71,24 @@ import { KyselyWorldbookStore } from "./persistence/kysely-worldbook-store.js";
         store: WorldbookStore,
         idGenerator: WorldbookIdGenerator,
         clock: WorldbookClock,
-      ) => new UpdateWorldbookDocumentUseCase(store, idGenerator, clock),
-      inject: [WORLDBOOK_STORE, CryptoIdGenerator, SystemClock],
+        unitOfWork: UnitOfWork,
+      ) =>
+        new UpdateWorldbookDocumentUseCase(
+          store,
+          idGenerator,
+          clock,
+          unitOfWork,
+        ),
+      inject: [WORLDBOOK_STORE, CryptoIdGenerator, SystemClock, UNIT_OF_WORK],
     },
     {
       provide: UpdateWorldbookUseCase,
-      useFactory: (store: WorldbookStore, clock: WorldbookClock) =>
-        new UpdateWorldbookUseCase(store, clock),
-      inject: [WORLDBOOK_STORE, SystemClock],
+      useFactory: (
+        store: WorldbookStore,
+        clock: WorldbookClock,
+        unitOfWork: UnitOfWork,
+      ) => new UpdateWorldbookUseCase(store, clock, unitOfWork),
+      inject: [WORLDBOOK_STORE, SystemClock, UNIT_OF_WORK],
     },
     {
       provide: DeleteWorldbookUseCase,
@@ -87,12 +102,21 @@ import { KyselyWorldbookStore } from "./persistence/kysely-worldbook-store.js";
         codec: WorldbookCodec,
         idGenerator: WorldbookIdGenerator,
         clock: WorldbookClock,
-      ) => new ImportWorldbookUseCase(store, codec, idGenerator, clock),
+        unitOfWork: UnitOfWork,
+      ) =>
+        new ImportWorldbookUseCase(
+          store,
+          codec,
+          idGenerator,
+          clock,
+          unitOfWork,
+        ),
       inject: [
         WORLDBOOK_STORE,
         WORLDBOOK_CODEC,
         CryptoIdGenerator,
         SystemClock,
+        UNIT_OF_WORK,
       ],
     },
     {
@@ -107,26 +131,37 @@ import { KyselyWorldbookStore } from "./persistence/kysely-worldbook-store.js";
         store: WorldbookStore,
         idGenerator: WorldbookIdGenerator,
         clock: WorldbookClock,
-      ) => new CreateWorldbookEntryUseCase(store, idGenerator, clock),
-      inject: [WORLDBOOK_STORE, CryptoIdGenerator, SystemClock],
+        unitOfWork: UnitOfWork,
+      ) =>
+        new CreateWorldbookEntryUseCase(store, idGenerator, clock, unitOfWork),
+      inject: [WORLDBOOK_STORE, CryptoIdGenerator, SystemClock, UNIT_OF_WORK],
     },
     {
       provide: UpdateWorldbookEntryUseCase,
-      useFactory: (store: WorldbookStore, clock: WorldbookClock) =>
-        new UpdateWorldbookEntryUseCase(store, clock),
-      inject: [WORLDBOOK_STORE, SystemClock],
+      useFactory: (
+        store: WorldbookStore,
+        clock: WorldbookClock,
+        unitOfWork: UnitOfWork,
+      ) => new UpdateWorldbookEntryUseCase(store, clock, unitOfWork),
+      inject: [WORLDBOOK_STORE, SystemClock, UNIT_OF_WORK],
     },
     {
       provide: DeleteWorldbookEntryUseCase,
-      useFactory: (store: WorldbookStore, clock: WorldbookClock) =>
-        new DeleteWorldbookEntryUseCase(store, clock),
-      inject: [WORLDBOOK_STORE, SystemClock],
+      useFactory: (
+        store: WorldbookStore,
+        clock: WorldbookClock,
+        unitOfWork: UnitOfWork,
+      ) => new DeleteWorldbookEntryUseCase(store, clock, unitOfWork),
+      inject: [WORLDBOOK_STORE, SystemClock, UNIT_OF_WORK],
     },
     {
       provide: UpdateWorldbookEntryOrderUseCase,
-      useFactory: (store: WorldbookStore, clock: WorldbookClock) =>
-        new UpdateWorldbookEntryOrderUseCase(store, clock),
-      inject: [WORLDBOOK_STORE, SystemClock],
+      useFactory: (
+        store: WorldbookStore,
+        clock: WorldbookClock,
+        unitOfWork: UnitOfWork,
+      ) => new UpdateWorldbookEntryOrderUseCase(store, clock, unitOfWork),
+      inject: [WORLDBOOK_STORE, SystemClock, UNIT_OF_WORK],
     },
   ],
 })

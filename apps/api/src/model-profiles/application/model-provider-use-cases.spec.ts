@@ -1,5 +1,6 @@
 import type { PageResponse } from "@rolesta/shared";
 import { describe, expect, it } from "vitest";
+import type { UnitOfWork } from "../../common/application/unit-of-work.js";
 import type {
   ApiKey,
   ModelProviderConfig,
@@ -138,6 +139,7 @@ describe("model provider use cases", () => {
     const result = await new DeleteModelProviderApiKeyUseCase(
       state.keys,
       clock,
+      unitOfWork,
     ).execute({ apiKeyId: "key", ownerUserId: "owner" });
     expect(result.affectedProviderCount).toBe(2);
     expect(await state.providers.findOwnedById("cfg-1", "owner")).toMatchObject(
@@ -145,6 +147,8 @@ describe("model provider use cases", () => {
     );
   });
 });
+
+const unitOfWork: UnitOfWork = { run: (operation) => operation() };
 
 class MemoryState {
   readonly configs = new Map<string, ModelProviderConfig>();
@@ -221,10 +225,7 @@ class MemoryApiKeyStore implements ApiKeyStore {
     this.state.apiKeys.set(apiKey.id, { ...apiKey });
     return Promise.resolve();
   }
-  countProviderReferences(
-    id: string,
-    ownerUserId: string,
-  ): Promise<number> {
+  countProviderReferences(id: string, ownerUserId: string): Promise<number> {
     return Promise.resolve(
       [...this.state.configs.values()].filter(
         (item) => item.ownerUserId === ownerUserId && item.apiKeyId === id,

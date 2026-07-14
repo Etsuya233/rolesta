@@ -1,25 +1,43 @@
 import { describe, expect, it } from "vitest";
 import { createTestDatabase } from "../../../../../packages/db/src/test-utils/create-test-database.js";
+import { KyselyDatabaseContext } from "../../database/kysely-database-context.js";
+import { KyselyUnitOfWork } from "../../database/kysely-unit-of-work.js";
 import type { Worldbook } from "../domain/worldbook.js";
 import { KyselyWorldbookStore } from "./kysely-worldbook-store.js";
 
 describe("KyselyWorldbookStore", () => {
   it("filters visible worldbooks by permission scope", async () => {
     const database = await createTestDatabase();
-    const store = new KyselyWorldbookStore(database.db);
+    const context = new KyselyDatabaseContext(database.db);
+    const unitOfWork = new KyselyUnitOfWork(database.db, context);
+    const store = new KyselyWorldbookStore(context);
 
     try {
       await seedUser(database.db, "owner");
       await seedUser(database.db, "other");
-      await store.save(
-        worldbook({ id: "mine", ownerUserId: "owner", visibility: "private" }),
-      );
-      await store.save(
-        worldbook({ id: "public", ownerUserId: "other", visibility: "public" }),
-      );
-      await store.save(
-        worldbook({ id: "hidden", ownerUserId: "other", visibility: "private" }),
-      );
+      await unitOfWork.run(async () => {
+        await store.save(
+          worldbook({
+            id: "mine",
+            ownerUserId: "owner",
+            visibility: "private",
+          }),
+        );
+        await store.save(
+          worldbook({
+            id: "public",
+            ownerUserId: "other",
+            visibility: "public",
+          }),
+        );
+        await store.save(
+          worldbook({
+            id: "hidden",
+            ownerUserId: "other",
+            visibility: "private",
+          }),
+        );
+      });
 
       await expect(listIds(store, "all")).resolves.toEqual(["mine", "public"]);
       await expect(listIds(store, "mine")).resolves.toEqual(["mine"]);

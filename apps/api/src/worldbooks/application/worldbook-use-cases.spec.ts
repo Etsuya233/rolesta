@@ -1,5 +1,6 @@
 import type { PageResponse } from "@rolesta/shared";
 import { describe, expect, it } from "vitest";
+import type { UnitOfWork } from "../../common/application/unit-of-work.js";
 import {
   toWorldbookSummary,
   type Worldbook,
@@ -32,6 +33,7 @@ describe("worldbook use cases", () => {
       store,
       new SequenceIdGenerator(["book-1"]),
       new FixedClock(1783090000000),
+      unitOfWork,
     );
 
     const worldbook = await useCase.execute({
@@ -64,6 +66,7 @@ describe("worldbook use cases", () => {
     const updateUseCase = new UpdateWorldbookUseCase(
       store,
       new FixedClock(1783090000100),
+      unitOfWork,
     );
 
     await expect(
@@ -87,6 +90,7 @@ describe("worldbook use cases", () => {
       new FailingWorldbookCodec(),
       new SequenceIdGenerator(["book-1"]),
       new FixedClock(1783090000100),
+      unitOfWork,
     );
 
     await expect(
@@ -105,10 +109,27 @@ describe("worldbook use cases", () => {
     const store = new InMemoryWorldbookStore([worldbook({ id: "book-1" })]);
     const ids = new SequenceIdGenerator(["entry-1", "entry-2"]);
     const clock = new FixedClock(1783090000200);
-    const createUseCase = new CreateWorldbookEntryUseCase(store, ids, clock);
-    const updateUseCase = new UpdateWorldbookEntryUseCase(store, clock);
-    const orderUseCase = new UpdateWorldbookEntryOrderUseCase(store, clock);
-    const deleteUseCase = new DeleteWorldbookEntryUseCase(store, clock);
+    const createUseCase = new CreateWorldbookEntryUseCase(
+      store,
+      ids,
+      clock,
+      unitOfWork,
+    );
+    const updateUseCase = new UpdateWorldbookEntryUseCase(
+      store,
+      clock,
+      unitOfWork,
+    );
+    const orderUseCase = new UpdateWorldbookEntryOrderUseCase(
+      store,
+      clock,
+      unitOfWork,
+    );
+    const deleteUseCase = new DeleteWorldbookEntryUseCase(
+      store,
+      clock,
+      unitOfWork,
+    );
 
     await createUseCase.execute({
       worldbookId: "book-1",
@@ -196,6 +217,7 @@ describe("worldbook use cases", () => {
     const useCase = new UpdateWorldbookEntryOrderUseCase(
       store,
       new FixedClock(1783090000300),
+      unitOfWork,
     );
 
     await expect(
@@ -236,6 +258,7 @@ describe("worldbook use cases", () => {
     const useCase = new UpdateWorldbookEntryOrderUseCase(
       store,
       new FixedClock(1783090000400),
+      unitOfWork,
     );
 
     await expect(
@@ -273,6 +296,7 @@ describe("worldbook use cases", () => {
       store,
       new SequenceIdGenerator(["entry-2"]),
       new FixedClock(1783090000500),
+      unitOfWork,
     );
 
     const updated = await useCase.execute({
@@ -334,6 +358,7 @@ describe("worldbook use cases", () => {
       store,
       new SequenceIdGenerator([]),
       new FixedClock(1783090000500),
+      unitOfWork,
     );
     const entry = documentEntry({ id: "duplicate" });
 
@@ -356,6 +381,8 @@ describe("worldbook use cases", () => {
     });
   });
 });
+
+const unitOfWork: UnitOfWork = { run: (operation) => operation() };
 
 class InMemoryWorldbookStore implements WorldbookStore {
   private readonly worldbooks = new Map<string, Worldbook>();

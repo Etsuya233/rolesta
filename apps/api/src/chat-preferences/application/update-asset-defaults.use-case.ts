@@ -1,4 +1,5 @@
 import { UseCase } from "../../common/errors/index.js";
+import type { UnitOfWork } from "../../common/application/unit-of-work.js";
 import {
   ASSET_DEFAULT_FIELDS,
   type AssetDefaults,
@@ -13,6 +14,7 @@ export class UpdateAssetDefaultsUseCase {
   constructor(
     private readonly ownership: ChatAssetOwnership,
     private readonly store: AssetDefaultsStore,
+    private readonly unitOfWork: UnitOfWork,
   ) {}
 
   @UseCase(translateChatPreferencesError)
@@ -31,20 +33,22 @@ export class UpdateAssetDefaultsUseCase {
       });
     }
 
-    if (submittedFields.some((field) => patch[field] !== null)) {
-      const unavailableFields = await this.ownership.findUnavailableFields(
-        userId,
-        patch,
-      );
+    return this.unitOfWork.run(async () => {
+      if (submittedFields.some((field) => patch[field] !== null)) {
+        const unavailableFields = await this.ownership.findUnavailableFields(
+          userId,
+          patch,
+        );
 
-      if (unavailableFields.length > 0) {
-        throw new ChatPreferencesApplicationError({
-          reason: "asset-unavailable",
-          params: { fields: unavailableFields },
-        });
+        if (unavailableFields.length > 0) {
+          throw new ChatPreferencesApplicationError({
+            reason: "asset-unavailable",
+            params: { fields: unavailableFields },
+          });
+        }
       }
-    }
 
-    return this.store.update(userId, patch);
+      return this.store.update(userId, patch);
+    });
   }
 }

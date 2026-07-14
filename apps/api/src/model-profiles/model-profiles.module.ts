@@ -1,4 +1,8 @@
 import { Module } from "@nestjs/common";
+import {
+  UNIT_OF_WORK,
+  type UnitOfWork,
+} from "../common/application/unit-of-work.js";
 import { AuthModule } from "../auth/auth.module.js";
 import { CryptoIdGenerator } from "../auth/infrastructure/crypto-id-generator.js";
 import { SystemClock } from "../auth/infrastructure/system-clock.js";
@@ -109,9 +113,12 @@ import { API_KEY_STORE, type ApiKeyStore } from "./ports/api-key-store.js";
     },
     {
       provide: DeleteModelProviderApiKeyUseCase,
-      useFactory: (store: ApiKeyStore, clock: ModelProviderClock) =>
-        new DeleteModelProviderApiKeyUseCase(store, clock),
-      inject: [API_KEY_STORE, SystemClock],
+      useFactory: (
+        store: ApiKeyStore,
+        clock: ModelProviderClock,
+        unitOfWork: UnitOfWork,
+      ) => new DeleteModelProviderApiKeyUseCase(store, clock, unitOfWork),
+      inject: [API_KEY_STORE, SystemClock, UNIT_OF_WORK],
     },
     {
       provide: ListApiKeysUseCase,

@@ -1,7 +1,7 @@
-import { Inject, Injectable } from "@nestjs/common";
-import type { AssetDefaultsTable, Database } from "@rolesta/db";
-import type { Insertable, Kysely, Selectable, Updateable } from "kysely";
-import { KYSELY_DB } from "../../database/database.provider.js";
+import { Injectable } from "@nestjs/common";
+import type { AssetDefaultsTable } from "@rolesta/db";
+import type { Insertable, Selectable, Updateable } from "kysely";
+import { KyselyDatabaseContext } from "../../database/kysely-database-context.js";
 import type {
   AssetDefaults,
   AssetDefaultsPatch,
@@ -11,10 +11,10 @@ import type { AssetDefaultsStore } from "../ports/asset-defaults-store.js";
 
 @Injectable()
 export class KyselyAssetDefaultsStore implements AssetDefaultsStore {
-  constructor(@Inject(KYSELY_DB) private readonly db: Kysely<Database>) {}
+  constructor(private readonly context: KyselyDatabaseContext) {}
 
   async get(userId: string): Promise<AssetDefaults> {
-    const row = await this.db
+    const row = await this.context.database
       .selectFrom("asset_defaults")
       .selectAll()
       .where("user_id", "=", userId)
@@ -47,7 +47,7 @@ export class KyselyAssetDefaultsStore implements AssetDefaultsStore {
     };
 
     try {
-      await this.db
+      await this.context.database
         .insertInto("asset_defaults")
         .values(values)
         .onConflict((conflict) =>

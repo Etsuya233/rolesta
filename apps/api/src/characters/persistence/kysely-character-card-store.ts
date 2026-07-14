@@ -1,19 +1,34 @@
-import { Inject, Injectable } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import type { CharactersTable, Database } from '@rolesta/db';
 import { getTotalPages, type PageResponse } from '@rolesta/shared';
-import type { Kysely, SelectQueryBuilder } from 'kysely';
-import { KYSELY_DB } from '../../database/database.provider.js';
-import type { CharacterCardStore, CharacterSortKey, ListCharactersRequest } from '../ports/character-card-store.js';
+import type { SelectQueryBuilder } from 'kysely';
+import { KyselyDatabaseContext } from '../../database/kysely-database-context.js';
+import type {
+  CharacterCardStore,
+  CharacterSortKey,
+  ListCharactersRequest,
+} from '../ports/character-card-store.js';
 import type { CharacterCard } from '../domain/character-card.js';
-import { toCharacterCard, toCharacterRow } from './character-card-row-mapper.js';
+import {
+  toCharacterCard,
+  toCharacterRow,
+} from './character-card-row-mapper.js';
 
 @Injectable()
 export class KyselyCharacterCardStore implements CharacterCardStore {
-  constructor(@Inject(KYSELY_DB) private readonly db: Kysely<Database>) {}
+  constructor(private readonly context: KyselyDatabaseContext) {}
 
-  async list(request: ListCharactersRequest): Promise<PageResponse<CharacterCard>> {
-    const filteredRows = withListFilters(this.db.selectFrom('characters'), request);
-    const countRow = await withListFilters(this.db.selectFrom('characters'), request)
+  async list(
+    request: ListCharactersRequest,
+  ): Promise<PageResponse<CharacterCard>> {
+    const filteredRows = withListFilters(
+      this.context.database.selectFrom('characters'),
+      request,
+    );
+    const countRow = await withListFilters(
+      this.context.database.selectFrom('characters'),
+      request,
+    )
       .select((builder) => builder.fn.countAll<number>().as('count'))
       .executeTakeFirstOrThrow();
     const rows = await filteredRows
@@ -34,21 +49,30 @@ export class KyselyCharacterCardStore implements CharacterCardStore {
     };
   }
 
-  async findVisibleById(id: string, viewerUserId: string): Promise<CharacterCard | null> {
-    const row = await this.db
+  async findVisibleById(
+    id: string,
+    viewerUserId: string,
+  ): Promise<CharacterCard | null> {
+    const row = await this.context.database
       .selectFrom('characters')
       .selectAll()
       .where('id', '=', id)
       .where((builder) =>
-        builder.or([builder('owner_user_id', '=', viewerUserId), builder('visibility', '=', 'public')]),
+        builder.or([
+          builder('owner_user_id', '=', viewerUserId),
+          builder('visibility', '=', 'public'),
+        ]),
       )
       .executeTakeFirst();
 
     return row ? toCharacterCard(row) : null;
   }
 
-  async findOwnedById(id: string, ownerUserId: string): Promise<CharacterCard | null> {
-    const row = await this.db
+  async findOwnedById(
+    id: string,
+    ownerUserId: string,
+  ): Promise<CharacterCard | null> {
+    const row = await this.context.database
       .selectFrom('characters')
       .selectAll()
       .where('id', '=', id)
@@ -59,11 +83,14 @@ export class KyselyCharacterCardStore implements CharacterCardStore {
   }
 
   async save(card: CharacterCard): Promise<void> {
-    await this.db.insertInto('characters').values(toCharacterRow(card)).execute();
+    await this.context.database
+      .insertInto('characters')
+      .values(toCharacterRow(card))
+      .execute();
   }
 
   async update(card: CharacterCard): Promise<void> {
-    await this.db
+    await this.context.database
       .updateTable('characters')
       .set(toCharacterRow(card))
       .where('id', '=', card.id)
@@ -72,7 +99,7 @@ export class KyselyCharacterCardStore implements CharacterCardStore {
   }
 
   async deleteOwned(id: string, ownerUserId: string): Promise<boolean> {
-    const result = await this.db
+    const result = await this.context.database
       .deleteFrom('characters')
       .where('id', '=', id)
       .where('owner_user_id', '=', ownerUserId)
@@ -82,7 +109,11 @@ export class KyselyCharacterCardStore implements CharacterCardStore {
   }
 }
 
-type CharacterSelectQuery = SelectQueryBuilder<Database, 'characters', Record<string, never>>;
+type CharacterSelectQuery = SelectQueryBuilder<
+  Database,
+  'characters',
+  Record<string, never>
+>;
 
 const sortColumns = {
   createdAt: 'created_at_ms',
@@ -92,7 +123,10 @@ const sortColumns = {
   usageCount: 'usage_count',
 } satisfies Record<CharacterSortKey, keyof CharactersTable>;
 
-function withListFilters(query: CharacterSelectQuery, request: ListCharactersRequest): CharacterSelectQuery {
+function withListFilters(
+  query: CharacterSelectQuery,
+  request: ListCharactersRequest,
+): CharacterSelectQuery {
   let nextQuery = query;
 
   if (request.scope === 'mine') {
@@ -105,7 +139,10 @@ function withListFilters(query: CharacterSelectQuery, request: ListCharactersReq
 
   if (request.scope === 'all') {
     nextQuery = nextQuery.where((builder) =>
-      builder.or([builder('owner_user_id', '=', request.viewerUserId), builder('visibility', '=', 'public')]),
+      builder.or([
+        builder('owner_user_id', '=', request.viewerUserId),
+        builder('visibility', '=', 'public'),
+      ]),
     );
   }
 

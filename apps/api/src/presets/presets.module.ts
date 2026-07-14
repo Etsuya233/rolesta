@@ -1,4 +1,8 @@
 import { Module } from '@nestjs/common';
+import {
+  UNIT_OF_WORK,
+  type UnitOfWork,
+} from '../common/application/unit-of-work.js';
 import { AuthModule } from '../auth/auth.module.js';
 import { CryptoIdGenerator } from '../auth/infrastructure/crypto-id-generator.js';
 import { SystemClock } from '../auth/infrastructure/system-clock.js';
@@ -51,20 +55,27 @@ import { PresetsController } from './http/presets.controller.js';
         store: PresetStore,
         idGenerator: PresetIdGenerator,
         clock: PresetClock,
-      ) => new CreatePresetUseCase(store, idGenerator, clock),
-      inject: [PRESET_STORE, CryptoIdGenerator, SystemClock],
+        unitOfWork: UnitOfWork,
+      ) => new CreatePresetUseCase(store, idGenerator, clock, unitOfWork),
+      inject: [PRESET_STORE, CryptoIdGenerator, SystemClock, UNIT_OF_WORK],
     },
     {
       provide: UpdatePresetUseCase,
-      useFactory: (store: PresetStore, clock: PresetClock) =>
-        new UpdatePresetUseCase(store, clock),
-      inject: [PRESET_STORE, SystemClock],
+      useFactory: (
+        store: PresetStore,
+        clock: PresetClock,
+        unitOfWork: UnitOfWork,
+      ) => new UpdatePresetUseCase(store, clock, unitOfWork),
+      inject: [PRESET_STORE, SystemClock, UNIT_OF_WORK],
     },
     {
       provide: UpdatePresetDocumentUseCase,
-      useFactory: (store: PresetStore, clock: PresetClock) =>
-        new UpdatePresetDocumentUseCase(store, clock),
-      inject: [PRESET_STORE, SystemClock],
+      useFactory: (
+        store: PresetStore,
+        clock: PresetClock,
+        unitOfWork: UnitOfWork,
+      ) => new UpdatePresetDocumentUseCase(store, clock, unitOfWork),
+      inject: [PRESET_STORE, SystemClock, UNIT_OF_WORK],
     },
     {
       provide: DeletePresetUseCase,
@@ -78,8 +89,16 @@ import { PresetsController } from './http/presets.controller.js';
         codec: PresetCodec,
         idGenerator: PresetIdGenerator,
         clock: PresetClock,
-      ) => new ImportPresetUseCase(store, codec, idGenerator, clock),
-      inject: [PRESET_STORE, PRESET_CODEC, CryptoIdGenerator, SystemClock],
+        unitOfWork: UnitOfWork,
+      ) =>
+        new ImportPresetUseCase(store, codec, idGenerator, clock, unitOfWork),
+      inject: [
+        PRESET_STORE,
+        PRESET_CODEC,
+        CryptoIdGenerator,
+        SystemClock,
+        UNIT_OF_WORK,
+      ],
     },
     {
       provide: ExportPresetUseCase,
@@ -93,26 +112,36 @@ import { PresetsController } from './http/presets.controller.js';
         store: PresetStore,
         idGenerator: PresetIdGenerator,
         clock: PresetClock,
-      ) => new CreatePresetEntryUseCase(store, idGenerator, clock),
-      inject: [PRESET_STORE, CryptoIdGenerator, SystemClock],
+        unitOfWork: UnitOfWork,
+      ) => new CreatePresetEntryUseCase(store, idGenerator, clock, unitOfWork),
+      inject: [PRESET_STORE, CryptoIdGenerator, SystemClock, UNIT_OF_WORK],
     },
     {
       provide: UpdatePresetEntryUseCase,
-      useFactory: (store: PresetStore, clock: PresetClock) =>
-        new UpdatePresetEntryUseCase(store, clock),
-      inject: [PRESET_STORE, SystemClock],
+      useFactory: (
+        store: PresetStore,
+        clock: PresetClock,
+        unitOfWork: UnitOfWork,
+      ) => new UpdatePresetEntryUseCase(store, clock, unitOfWork),
+      inject: [PRESET_STORE, SystemClock, UNIT_OF_WORK],
     },
     {
       provide: DeletePresetEntryUseCase,
-      useFactory: (store: PresetStore, clock: PresetClock) =>
-        new DeletePresetEntryUseCase(store, clock),
-      inject: [PRESET_STORE, SystemClock],
+      useFactory: (
+        store: PresetStore,
+        clock: PresetClock,
+        unitOfWork: UnitOfWork,
+      ) => new DeletePresetEntryUseCase(store, clock, unitOfWork),
+      inject: [PRESET_STORE, SystemClock, UNIT_OF_WORK],
     },
     {
       provide: UpdatePresetPromptItemsUseCase,
-      useFactory: (store: PresetStore, clock: PresetClock) =>
-        new UpdatePresetPromptItemsUseCase(store, clock),
-      inject: [PRESET_STORE, SystemClock],
+      useFactory: (
+        store: PresetStore,
+        clock: PresetClock,
+        unitOfWork: UnitOfWork,
+      ) => new UpdatePresetPromptItemsUseCase(store, clock, unitOfWork),
+      inject: [PRESET_STORE, SystemClock, UNIT_OF_WORK],
     },
   ],
 })

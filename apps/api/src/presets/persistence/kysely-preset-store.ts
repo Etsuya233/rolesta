@@ -1,4 +1,4 @@
-import { Inject, Injectable } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import type {
   Database,
   PresetEntriesTable,
@@ -6,8 +6,8 @@ import type {
   PresetsTable,
 } from '@rolesta/db';
 import { getTotalPages, type PageResponse } from '@rolesta/shared';
-import type { Insertable, Kysely, Selectable, SelectQueryBuilder } from 'kysely';
-import { KYSELY_DB } from '../../database/database.provider.js';
+import type { Insertable, Selectable, SelectQueryBuilder } from 'kysely';
+import { KyselyDatabaseContext } from '../../database/kysely-database-context.js';
 import { ensureEpochMillis } from '../../shared/epoch-millis.js';
 import type {
   ListPresetsRequest,
@@ -24,11 +24,19 @@ import {
 
 @Injectable()
 export class KyselyPresetStore implements PresetStore {
-  constructor(@Inject(KYSELY_DB) private readonly db: Kysely<Database>) {}
+  constructor(private readonly context: KyselyDatabaseContext) {}
 
-  async list(request: ListPresetsRequest): Promise<PageResponse<PresetSummary>> {
-    const filteredRows = withListFilters(this.db.selectFrom('presets'), request);
-    const countRow = await withListFilters(this.db.selectFrom('presets'), request)
+  async list(
+    request: ListPresetsRequest,
+  ): Promise<PageResponse<PresetSummary>> {
+    const filteredRows = withListFilters(
+      this.context.database.selectFrom('presets'),
+      request,
+    );
+    const countRow = await withListFilters(
+      this.context.database.selectFrom('presets'),
+      request,
+    )
       .select((builder) => builder.fn.countAll<number>().as('count'))
       .executeTakeFirstOrThrow();
     const rows = await filteredRows
@@ -61,7 +69,7 @@ export class KyselyPresetStore implements PresetStore {
   }
 
   async findOwnedById(id: string, ownerUserId: string): Promise<Preset | null> {
-    const row = await this.db
+    const row = await this.context.database
       .selectFrom('presets')
       .selectAll()
       .where('id', '=', id)
@@ -71,8 +79,11 @@ export class KyselyPresetStore implements PresetStore {
     return row ? this.aggregate(row) : null;
   }
 
-  async findVisibleById(id: string, viewerUserId: string): Promise<Preset | null> {
-    const row = await this.db
+  async findVisibleById(
+    id: string,
+    viewerUserId: string,
+  ): Promise<Preset | null> {
+    const row = await this.context.database
       .selectFrom('presets')
       .selectAll()
       .where('id', '=', id)
@@ -88,48 +99,62 @@ export class KyselyPresetStore implements PresetStore {
   }
 
   async save(preset: Preset): Promise<void> {
-    await this.db.transaction().execute(async (trx) => {
-      await trx.insertInto('presets').values(toPresetRow(preset)).execute();
+    const database = this.context.database;
+    await database.insertInto('presets').values(toPresetRow(preset)).execute();
 
-      if (preset.entries.length > 0) {
-        await trx.insertInto('preset_entries').values(preset.entries.map(toEntryRow)).execute();
-      }
+    if (preset.entries.length > 0) {
+      await database
+        .insertInto('preset_entries')
+        .values(preset.entries.map(toEntryRow))
+        .execute();
+    }
 
-      if (preset.promptItems.length > 0) {
-        await trx
-          .insertInto('preset_prompt_items')
-          .values(preset.promptItems.map((item) => toPromptItemRow(preset.id, item)))
-          .execute();
-      }
-    });
+    if (preset.promptItems.length > 0) {
+      await database
+        .insertInto('preset_prompt_items')
+        .values(
+          preset.promptItems.map((item) => toPromptItemRow(preset.id, item)),
+        )
+        .execute();
+    }
   }
 
   async update(preset: Preset): Promise<void> {
-    await this.db.transaction().execute(async (trx) => {
-      await trx
-        .updateTable('presets')
-        .set(toPresetRow(preset))
-        .where('id', '=', preset.id)
-        .where('owner_user_id', '=', preset.ownerUserId)
+    const database = this.context.database;
+    await database
+      .updateTable('presets')
+      .set(toPresetRow(preset))
+      .where('id', '=', preset.id)
+      .where('owner_user_id', '=', preset.ownerUserId)
+      .execute();
+    await database
+      .deleteFrom('preset_prompt_items')
+      .where('preset_id', '=', preset.id)
+      .execute();
+    await database
+      .deleteFrom('preset_entries')
+      .where('preset_id', '=', preset.id)
+      .execute();
+
+    if (preset.entries.length > 0) {
+      await database
+        .insertInto('preset_entries')
+        .values(preset.entries.map(toEntryRow))
         .execute();
-      await trx.deleteFrom('preset_prompt_items').where('preset_id', '=', preset.id).execute();
-      await trx.deleteFrom('preset_entries').where('preset_id', '=', preset.id).execute();
+    }
 
-      if (preset.entries.length > 0) {
-        await trx.insertInto('preset_entries').values(preset.entries.map(toEntryRow)).execute();
-      }
-
-      if (preset.promptItems.length > 0) {
-        await trx
-          .insertInto('preset_prompt_items')
-          .values(preset.promptItems.map((item) => toPromptItemRow(preset.id, item)))
-          .execute();
-      }
-    });
+    if (preset.promptItems.length > 0) {
+      await database
+        .insertInto('preset_prompt_items')
+        .values(
+          preset.promptItems.map((item) => toPromptItemRow(preset.id, item)),
+        )
+        .execute();
+    }
   }
 
   async deleteOwned(id: string, ownerUserId: string): Promise<boolean> {
-    const result = await this.db
+    const result = await this.context.database
       .deleteFrom('presets')
       .where('id', '=', id)
       .where('owner_user_id', '=', ownerUserId)
@@ -139,14 +164,14 @@ export class KyselyPresetStore implements PresetStore {
   }
 
   private async aggregate(row: PresetRow): Promise<Preset> {
-    const entryRows = await this.db
+    const entryRows = await this.context.database
       .selectFrom('preset_entries')
       .selectAll()
       .where('preset_id', '=', row.id)
       .orderBy('created_at_ms', 'asc')
       .orderBy('id', 'asc')
       .execute();
-    const itemRows = await this.db
+    const itemRows = await this.context.database
       .selectFrom('preset_prompt_items')
       .selectAll()
       .where('preset_id', '=', row.id)
@@ -172,16 +197,21 @@ export class KyselyPresetStore implements PresetStore {
     });
   }
 
-  private async summaryStats(presetIds: string[]): Promise<Map<string, PresetSummaryStats>> {
+  private async summaryStats(
+    presetIds: string[],
+  ): Promise<Map<string, PresetSummaryStats>> {
     const stats = new Map<string, PresetSummaryStats>(
-      presetIds.map((id) => [id, { entryCount: 0, promptItemCount: 0, tokenCount: 0 }]),
+      presetIds.map((id) => [
+        id,
+        { entryCount: 0, promptItemCount: 0, tokenCount: 0 },
+      ]),
     );
 
     if (presetIds.length === 0) {
       return stats;
     }
 
-    const entryRows = await this.db
+    const entryRows = await this.context.database
       .selectFrom('preset_entries')
       .select(['id', 'preset_id', 'token_count'])
       .where('preset_id', 'in', presetIds)
@@ -197,7 +227,7 @@ export class KyselyPresetStore implements PresetStore {
       }
     }
 
-    const itemRows = await this.db
+    const itemRows = await this.context.database
       .selectFrom('preset_prompt_items')
       .select(['preset_id', 'entry_id', 'enabled'])
       .where('preset_id', 'in', presetIds)
@@ -236,8 +266,15 @@ type PresetEntryRow = Selectable<PresetEntriesTable>;
 type PresetEntryInsert = Insertable<PresetEntriesTable>;
 type PresetPromptItemRow = Selectable<PresetPromptItemsTable>;
 type PresetPromptItemInsert = Insertable<PresetPromptItemsTable>;
-type PresetSelectQuery = SelectQueryBuilder<Database, 'presets', Record<string, never>>;
-type PresetSummaryStats = Pick<PresetSummary, 'entryCount' | 'promptItemCount' | 'tokenCount'>;
+type PresetSelectQuery = SelectQueryBuilder<
+  Database,
+  'presets',
+  Record<string, never>
+>;
+type PresetSummaryStats = Pick<
+  PresetSummary,
+  'entryCount' | 'promptItemCount' | 'tokenCount'
+>;
 
 const sortColumns = {
   createdAt: 'created_at_ms',
@@ -247,7 +284,10 @@ const sortColumns = {
   usageCount: 'usage_count',
 } satisfies Record<PresetSortKey, keyof PresetsTable>;
 
-function withListFilters(query: PresetSelectQuery, request: ListPresetsRequest): PresetSelectQuery {
+function withListFilters(
+  query: PresetSelectQuery,
+  request: ListPresetsRequest,
+): PresetSelectQuery {
   let nextQuery = query;
 
   if (request.scope === 'mine') {
@@ -287,7 +327,10 @@ function toPresetRow(preset: Preset): PresetInsert {
     source_snapshot_json: JSON.stringify(preset.sourceSnapshot),
     created_at_ms: ensureEpochMillis(preset.createdAtMs),
     updated_at_ms: ensureEpochMillis(preset.updatedAtMs),
-    last_used_at_ms: preset.lastUsedAtMs === null ? null : ensureEpochMillis(preset.lastUsedAtMs),
+    last_used_at_ms:
+      preset.lastUsedAtMs === null
+        ? null
+        : ensureEpochMillis(preset.lastUsedAtMs),
     usage_count: preset.usageCount,
   };
 }
@@ -388,5 +431,7 @@ function numberColumn(value: unknown): number {
     return Number(value);
   }
 
-  throw new Error('Database number column must be a number, bigint, or string.');
+  throw new Error(
+    'Database number column must be a number, bigint, or string.',
+  );
 }

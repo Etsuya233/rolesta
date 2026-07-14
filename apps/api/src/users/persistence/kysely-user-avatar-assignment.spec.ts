@@ -1,11 +1,15 @@
 import { describe, expect, it } from 'vitest';
 import { createTestDatabase } from '../../../../../packages/db/src/test-utils/create-test-database.js';
+import { KyselyDatabaseContext } from '../../database/kysely-database-context.js';
+import { KyselyUnitOfWork } from '../../database/kysely-unit-of-work.js';
 import { KyselyUserAvatarAssignment } from './kysely-user-avatar-assignment.js';
 
 describe('KyselyUserAvatarAssignment', () => {
   it('atomically activates the new avatar and orphans the previous avatar', async () => {
     const database = await createTestDatabase();
-    const assignment = new KyselyUserAvatarAssignment(database.db);
+    const context = new KyselyDatabaseContext(database.db);
+    const unitOfWork = new KyselyUnitOfWork(database.db, context);
+    const assignment = new KyselyUserAvatarAssignment(context);
 
     try {
       await seedUser(database.db, 'owner');
@@ -28,14 +32,18 @@ describe('KyselyUserAvatarAssignment', () => {
         .execute();
 
       await expect(
-        assignment.replace({
-          userId: 'owner',
-          resourceId: 'new_avatar',
-          nowMs: 200,
-        }),
+        unitOfWork.run(() =>
+          assignment.replace({
+            userId: 'owner',
+            resourceId: 'new_avatar',
+            nowMs: 200,
+          }),
+        ),
       ).resolves.toBe(true);
 
-      await expect(userAvatar(database.db, 'owner')).resolves.toBe('new_avatar');
+      await expect(userAvatar(database.db, 'owner')).resolves.toBe(
+        'new_avatar',
+      );
       await expect(resourceState(database.db, 'new_avatar')).resolves.toEqual({
         status: 'active',
         orphaned_at_ms: null,
@@ -45,7 +53,11 @@ describe('KyselyUserAvatarAssignment', () => {
         orphaned_at_ms: 200,
       });
 
-      await expect(assignment.remove({ userId: 'owner', nowMs: 300 })).resolves.toBe(true);
+      await expect(
+        unitOfWork.run(() =>
+          assignment.remove({ userId: 'owner', nowMs: 300 }),
+        ),
+      ).resolves.toBe(true);
       await expect(userAvatar(database.db, 'owner')).resolves.toBeNull();
       await expect(resourceState(database.db, 'new_avatar')).resolves.toEqual({
         status: 'orphaned',
@@ -58,7 +70,9 @@ describe('KyselyUserAvatarAssignment', () => {
 
   it('rolls back activation when the previous resource violates avatar invariants', async () => {
     const database = await createTestDatabase();
-    const assignment = new KyselyUserAvatarAssignment(database.db);
+    const context = new KyselyDatabaseContext(database.db);
+    const unitOfWork = new KyselyUnitOfWork(database.db, context);
+    const assignment = new KyselyUserAvatarAssignment(context);
 
     try {
       await seedUser(database.db, 'owner');
@@ -81,16 +95,20 @@ describe('KyselyUserAvatarAssignment', () => {
         .execute();
 
       await expect(
-        assignment.replace({
-          userId: 'owner',
-          resourceId: 'new_avatar',
-          nowMs: 200,
-        }),
+        unitOfWork.run(() =>
+          assignment.replace({
+            userId: 'owner',
+            resourceId: 'new_avatar',
+            nowMs: 200,
+          }),
+        ),
       ).rejects.toMatchObject({
         reason: 'avatar-assignment-conflict',
       });
 
-      await expect(userAvatar(database.db, 'owner')).resolves.toBe('invalid_old_avatar');
+      await expect(userAvatar(database.db, 'owner')).resolves.toBe(
+        'invalid_old_avatar',
+      );
       await expect(resourceState(database.db, 'new_avatar')).resolves.toEqual({
         status: 'pending',
         orphaned_at_ms: null,
@@ -140,7 +158,10 @@ async function seedResource(
     .execute();
 }
 
-async function userAvatar(db: TestDatabase, userId: string): Promise<string | null> {
+async function userAvatar(
+  db: TestDatabase,
+  userId: string,
+): Promise<string | null> {
   const user = await db
     .selectFrom('users')
     .select('avatar_resource_id')

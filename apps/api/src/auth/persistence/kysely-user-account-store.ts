@@ -1,18 +1,18 @@
-import { Inject, Injectable } from '@nestjs/common';
-import type { Database, UsersTable } from '@rolesta/db';
-import type { Kysely, Selectable } from 'kysely';
-import { KYSELY_DB } from '../../database/database.provider.js';
+import { Injectable } from '@nestjs/common';
+import type { UsersTable } from '@rolesta/db';
+import type { Selectable } from 'kysely';
+import { KyselyDatabaseContext } from '../../database/kysely-database-context.js';
 import type { UserAccountStore } from '../ports/auth-ports.js';
 import { UserAccount } from '../domain/user-account.js';
 import { AuthPortError } from '../ports/auth-port-error.js';
 
 @Injectable()
 export class KyselyUserAccountStore implements UserAccountStore {
-  constructor(@Inject(KYSELY_DB) private readonly db: Kysely<Database>) {}
+  constructor(private readonly context: KyselyDatabaseContext) {}
 
   async count(): Promise<number> {
     try {
-      const row = await this.db
+      const row = await this.context.database
         .selectFrom('users')
         .select((builder) => builder.fn.countAll<number>().as('count'))
         .executeTakeFirstOrThrow();
@@ -29,7 +29,11 @@ export class KyselyUserAccountStore implements UserAccountStore {
 
   async findById(id: string): Promise<UserAccount | null> {
     try {
-      const row = await this.db.selectFrom('users').selectAll().where('id', '=', id).executeTakeFirst();
+      const row = await this.context.database
+        .selectFrom('users')
+        .selectAll()
+        .where('id', '=', id)
+        .executeTakeFirst();
       return row ? toUserAccount(row) : null;
     } catch (error) {
       throw new AuthPortError({
@@ -42,7 +46,7 @@ export class KyselyUserAccountStore implements UserAccountStore {
 
   async findByUsername(username: string): Promise<UserAccount | null> {
     try {
-      const row = await this.db
+      const row = await this.context.database
         .selectFrom('users')
         .selectAll()
         .where('username', '=', username)
@@ -62,7 +66,7 @@ export class KyselyUserAccountStore implements UserAccountStore {
     try {
       const snapshot = user.toSnapshot();
 
-      await this.db
+      await this.context.database
         .insertInto('users')
         .values({
           id: snapshot.id,

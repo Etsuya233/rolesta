@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest';
+import type { UnitOfWork } from '../../common/application/unit-of-work.js';
 import type { PageResponse } from '@rolesta/shared';
 import { PresetApplicationError } from './preset-application-error.js';
 import { ImportPresetUseCase } from './import-preset.use-case.js';
@@ -36,6 +37,7 @@ describe('preset use cases', () => {
       new ThrowingPresetCodec(),
       new FixedIdGenerator('preset_1'),
       new FixedClock(1783090000000),
+      unitOfWork,
     );
 
     await expect(
@@ -79,6 +81,7 @@ describe('preset use cases', () => {
         }),
       ]),
       new FixedClock(1783090000000),
+      unitOfWork,
     );
 
     await expect(
@@ -127,6 +130,7 @@ describe('preset use cases', () => {
     const useCase = new UpdatePresetDocumentUseCase(
       store,
       new FixedClock(1783090000000),
+      unitOfWork,
     );
 
     const updated = await useCase.execute({
@@ -188,6 +192,7 @@ describe('preset use cases', () => {
     const useCase = new UpdatePresetDocumentUseCase(
       new InMemoryPresetStore([preset({ id: 'preset_1' })]),
       new FixedClock(1783090000000),
+      unitOfWork,
     );
 
     await expect(
@@ -208,6 +213,8 @@ describe('preset use cases', () => {
     );
   });
 });
+
+const unitOfWork: UnitOfWork = { run: (operation) => operation() };
 
 class ThrowingPresetCodec implements PresetCodec {
   importFile(): ImportedPreset {

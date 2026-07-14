@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { createTestDatabase } from "../../../../../packages/db/src/test-utils/create-test-database.js";
+import { KyselyDatabaseContext } from "../../database/kysely-database-context.js";
 import { AssetDefaultsPortError } from "../ports/asset-defaults-port-error.js";
 import { KyselyAssetDefaultsStore } from "./kysely-asset-defaults-store.js";
 import { KyselyChatAssetOwnership } from "./kysely-chat-asset-ownership.js";
@@ -7,7 +8,9 @@ import { KyselyChatAssetOwnership } from "./kysely-chat-asset-ownership.js";
 describe("Kysely asset defaults persistence", () => {
   it("upserts only submitted fields and returns the complete row", async () => {
     const database = await createTestDatabase();
-    const store = new KyselyAssetDefaultsStore(database.db);
+    const store = new KyselyAssetDefaultsStore(
+      new KyselyDatabaseContext(database.db),
+    );
 
     try {
       await seedUser(database.db, "owner");
@@ -40,7 +43,9 @@ describe("Kysely asset defaults persistence", () => {
 
   it("does not lose different fields updated concurrently and commits the last same-field value", async () => {
     const database = await createTestDatabase();
-    const store = new KyselyAssetDefaultsStore(database.db);
+    const store = new KyselyAssetDefaultsStore(
+      new KyselyDatabaseContext(database.db),
+    );
 
     try {
       await seedUser(database.db, "owner");
@@ -70,7 +75,9 @@ describe("Kysely asset defaults persistence", () => {
 
   it("clears deleted asset references and cascades when the user is deleted", async () => {
     const database = await createTestDatabase();
-    const store = new KyselyAssetDefaultsStore(database.db);
+    const store = new KyselyAssetDefaultsStore(
+      new KyselyDatabaseContext(database.db),
+    );
 
     try {
       await seedUser(database.db, "owner");
@@ -106,7 +113,9 @@ describe("Kysely asset defaults persistence", () => {
 
   it("checks ownership for every submitted non-null field including public foreign assets", async () => {
     const database = await createTestDatabase();
-    const ownership = new KyselyChatAssetOwnership(database.db);
+    const ownership = new KyselyChatAssetOwnership(
+      new KyselyDatabaseContext(database.db),
+    );
 
     try {
       await seedUser(database.db, "owner");
@@ -132,8 +141,9 @@ describe("Kysely asset defaults persistence", () => {
 
   it("translates deletion between ownership validation and upsert into a conflict", async () => {
     const database = await createTestDatabase();
-    const store = new KyselyAssetDefaultsStore(database.db);
-    const ownership = new KyselyChatAssetOwnership(database.db);
+    const context = new KyselyDatabaseContext(database.db);
+    const store = new KyselyAssetDefaultsStore(context);
+    const ownership = new KyselyChatAssetOwnership(context);
 
     try {
       await seedUser(database.db, "owner");

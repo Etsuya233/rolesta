@@ -1,5 +1,6 @@
 import { countPromptTokens } from '@rolesta/shared';
 import { UseCase } from '../../common/errors/index.js';
+import type { UnitOfWork } from '../../common/application/unit-of-work.js';
 import { ensureEpochMillis } from '../../shared/epoch-millis.js';
 import {
   withPresetTokenCount,
@@ -41,66 +42,69 @@ export class UpdatePresetDocumentUseCase {
   constructor(
     private readonly store: PresetStore,
     private readonly clock: PresetClock,
+    private readonly unitOfWork: UnitOfWork,
   ) {}
 
   @UseCase(translatePresetError)
   async execute(command: UpdatePresetDocumentCommand): Promise<Preset> {
-    const current = await this.store.findOwnedById(
-      command.presetId,
-      command.viewerUserId,
-    );
+    return this.unitOfWork.run(async () => {
+      const current = await this.store.findOwnedById(
+        command.presetId,
+        command.viewerUserId,
+      );
 
-    if (current === null) {
-      throw new PresetApplicationError({
-        reason: 'not-found',
-        params: { presetId: command.presetId },
+      if (current === null) {
+        throw new PresetApplicationError({
+          reason: 'not-found',
+          params: { presetId: command.presetId },
+        });
+      }
+
+      assertUniqueEntryIds(command.presetId, command.entries);
+      assertValidPromptItems(
+        command.presetId,
+        command.entries,
+        command.promptItems,
+      );
+
+      const nowMs = ensureEpochMillis(this.clock.now().getTime());
+      const currentEntryById = new Map(
+        current.entries.map((entry) => [entry.id, entry]),
+      );
+      const entries = command.entries.map((entry) => {
+        const existing = currentEntryById.get(entry.id);
+
+        return {
+          id: entry.id,
+          presetId: current.id,
+          identifier: existing?.identifier ?? entry.id,
+          name: entry.name,
+          role: entry.role,
+          position: entry.position,
+          content: entry.content,
+          tokenCount: countPromptTokens(entry.content),
+          metadata: existing?.metadata ?? {},
+          createdAtMs: existing?.createdAtMs ?? nowMs,
+          updatedAtMs: nowMs,
+        };
       });
-    }
-
-    assertUniqueEntryIds(command.presetId, command.entries);
-    assertValidPromptItems(
-      command.presetId,
-      command.entries,
-      command.promptItems,
-    );
-
-    const nowMs = ensureEpochMillis(this.clock.now().getTime());
-    const currentEntryById = new Map(
-      current.entries.map((entry) => [entry.id, entry]),
-    );
-    const entries = command.entries.map((entry) => {
-      const existing = currentEntryById.get(entry.id);
-
-      return {
-        id: entry.id,
-        presetId: current.id,
-        identifier: existing?.identifier ?? entry.id,
-        name: entry.name,
-        role: entry.role,
-        position: entry.position,
-        content: entry.content,
-        tokenCount: countPromptTokens(entry.content),
-        metadata: existing?.metadata ?? {},
-        createdAtMs: existing?.createdAtMs ?? nowMs,
+      const updated = withPresetTokenCount({
+        ...current,
+        visibility: command.visibility,
+        name: command.name,
+        modelSettings: command.modelSettings,
+        entries,
+        promptItems: command.promptItems.map((item, orderIndex) => ({
+          entryId: item.entryId,
+          enabled: item.enabled,
+          orderIndex,
+        })),
         updatedAtMs: nowMs,
-      };
-    });
-    const updated = withPresetTokenCount({
-      ...current,
-      visibility: command.visibility,
-      name: command.name,
-      modelSettings: command.modelSettings,
-      entries,
-      promptItems: command.promptItems.map((item, orderIndex) => ({
-        entryId: item.entryId,
-        enabled: item.enabled,
-        orderIndex,
-      })),
-      updatedAtMs: nowMs,
-    });
+      });
 
-    await this.store.update(updated);
-    return updated;
+      await this.store.update(updated);
+      return updated;
+    });
   }
 }
 

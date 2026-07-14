@@ -1,5 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { createTestDatabase } from "../../../../../packages/db/src/test-utils/create-test-database.js";
+import { KyselyDatabaseContext } from "../../database/kysely-database-context.js";
+import { KyselyUnitOfWork } from "../../database/kysely-unit-of-work.js";
 import type {
   ApiKey,
   ModelProviderConfig,
@@ -10,8 +12,9 @@ import { KyselyModelProviderStore } from "./kysely-model-provider-store.js";
 describe("KyselyApiKeyStore", () => {
   it("lists providers joined to global API keys without ambiguous filters", async () => {
     const database = await createTestDatabase();
-    const apiKeys = new KyselyApiKeyStore(database.db);
-    const providers = new KyselyModelProviderStore(database.db);
+    const context = new KyselyDatabaseContext(database.db);
+    const apiKeys = new KyselyApiKeyStore(context);
+    const providers = new KyselyModelProviderStore(context);
 
     try {
       await seedUser(database.db);
@@ -38,8 +41,10 @@ describe("KyselyApiKeyStore", () => {
 
   it("deletes a key and clears all provider references in one operation", async () => {
     const database = await createTestDatabase();
-    const apiKeys = new KyselyApiKeyStore(database.db);
-    const providers = new KyselyModelProviderStore(database.db);
+    const context = new KyselyDatabaseContext(database.db);
+    const unitOfWork = new KyselyUnitOfWork(database.db, context);
+    const apiKeys = new KyselyApiKeyStore(context);
+    const providers = new KyselyModelProviderStore(context);
 
     try {
       await seedUser(database.db);
@@ -48,7 +53,9 @@ describe("KyselyApiKeyStore", () => {
       await providers.save(provider("provider-2"));
 
       await expect(
-        apiKeys.deleteOwnedAndClearProviderReferences("key", "owner", 200),
+        unitOfWork.run(() =>
+          apiKeys.deleteOwnedAndClearProviderReferences("key", "owner", 200),
+        ),
       ).resolves.toBe(2);
       await expect(apiKeys.findOwnedById("key", "owner")).resolves.toBeNull();
       await expect(

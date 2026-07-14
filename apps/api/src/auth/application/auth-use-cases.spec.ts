@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest';
+import type { UnitOfWork } from '../../common/application/unit-of-work.js';
 import { AuthApplicationError } from './auth-application-error.js';
 import { AuthPortError } from '../ports/auth-port-error.js';
 import { AuthDomainError } from '../domain/auth-domain-error.js';
@@ -21,6 +22,7 @@ describe('auth use cases', () => {
       new FakeSessionTokenIssuer(),
       new FixedClock('2026-07-09T00:00:00.000Z'),
       new FixedIdGenerator('user_1'),
+      unitOfWork,
     );
 
     await expect(
@@ -47,6 +49,7 @@ describe('auth use cases', () => {
       new FakeSessionTokenIssuer(),
       new FixedClock('2026-07-09T00:00:00.000Z'),
       new FixedIdGenerator('user_1'),
+      unitOfWork,
     );
 
     await expect(
@@ -66,6 +69,8 @@ describe('auth use cases', () => {
     );
   });
 });
+
+const unitOfWork: UnitOfWork = { run: (operation) => operation() };
 
 class InMemoryUserAccountStore implements UserAccountStore {
   constructor(private readonly countValue: number) {}

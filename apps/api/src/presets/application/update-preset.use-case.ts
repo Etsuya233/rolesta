@@ -1,5 +1,6 @@
 import { ensureEpochMillis } from '../../shared/epoch-millis.js';
 import { UseCase } from '../../common/errors/index.js';
+import type { UnitOfWork } from '../../common/application/unit-of-work.js';
 import { PresetApplicationError } from './preset-application-error.js';
 import { translatePresetError } from './preset-error.mapper.js';
 import type { PresetClock } from './preset-application-services.js';
@@ -19,31 +20,37 @@ export class UpdatePresetUseCase {
   constructor(
     private readonly store: PresetStore,
     private readonly clock: PresetClock,
+    private readonly unitOfWork: UnitOfWork,
   ) {}
 
   @UseCase(translatePresetError)
   async execute(command: UpdatePresetCommand): Promise<Preset> {
-    const current = await this.store.findOwnedById(command.id, command.viewerUserId);
+    return this.unitOfWork.run(async () => {
+      const current = await this.store.findOwnedById(
+        command.id,
+        command.viewerUserId,
+      );
 
-    if (current === null) {
-      throw new PresetApplicationError({
-        reason: 'not-found',
-        params: {
-          presetId: command.id,
+      if (current === null) {
+        throw new PresetApplicationError({
+          reason: 'not-found',
+          params: {
+            presetId: command.id,
+          },
+        });
+      }
+
+      const updated = applyPresetEditableFields(
+        {
+          ...current,
+          updatedAtMs: ensureEpochMillis(this.clock.now().getTime()),
         },
-      });
-    }
+        command,
+      );
 
-    const updated = applyPresetEditableFields(
-      {
-        ...current,
-        updatedAtMs: ensureEpochMillis(this.clock.now().getTime()),
-      },
-      command,
-    );
+      await this.store.update(updated);
 
-    await this.store.update(updated);
-
-    return updated;
+      return updated;
+    });
   }
 }

@@ -1,5 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { createTestDatabase } from '../../../../../packages/db/src/test-utils/create-test-database.js';
+import { KyselyDatabaseContext } from '../../database/kysely-database-context.js';
+import { KyselyUnitOfWork } from '../../database/kysely-unit-of-work.js';
 import { createEmptyCharacterCardDraft } from '../domain/character-card.js';
 import { KyselyCharacterAvatarAssignment } from './kysely-character-avatar-assignment.js';
 import { KyselyCharacterCardStore } from './kysely-character-card-store.js';
@@ -7,8 +9,10 @@ import { KyselyCharacterCardStore } from './kysely-character-card-store.js';
 describe('KyselyCharacterAvatarAssignment', () => {
   it('atomically activates the new avatar and orphans the previous avatar', async () => {
     const database = await createTestDatabase();
-    const assignment = new KyselyCharacterAvatarAssignment(database.db);
-    const cards = new KyselyCharacterCardStore(database.db);
+    const context = new KyselyDatabaseContext(database.db);
+    const unitOfWork = new KyselyUnitOfWork(database.db, context);
+    const assignment = new KyselyCharacterAvatarAssignment(context);
+    const cards = new KyselyCharacterCardStore(context);
 
     try {
       await seedUser(database.db, 'owner');
@@ -33,12 +37,14 @@ describe('KyselyCharacterAvatarAssignment', () => {
         avatarResourceId: 'old_avatar',
       });
 
-      const updated = await assignment.replace({
-        characterId: 'card',
-        ownerUserId: 'owner',
-        resourceId: 'new_avatar',
-        nowMs: 200,
-      });
+      const updated = await unitOfWork.run(() =>
+        assignment.replace({
+          characterId: 'card',
+          ownerUserId: 'owner',
+          resourceId: 'new_avatar',
+          nowMs: 200,
+        }),
+      );
 
       expect(updated).toMatchObject({
         avatarResourceId: 'new_avatar',
@@ -53,13 +59,18 @@ describe('KyselyCharacterAvatarAssignment', () => {
         orphaned_at_ms: 200,
       });
 
-      const removed = await assignment.remove({
-        characterId: 'card',
-        ownerUserId: 'owner',
-        nowMs: 300,
-      });
+      const removed = await unitOfWork.run(() =>
+        assignment.remove({
+          characterId: 'card',
+          ownerUserId: 'owner',
+          nowMs: 300,
+        }),
+      );
 
-      expect(removed).toMatchObject({ avatarResourceId: null, updatedAtMs: 300 });
+      expect(removed).toMatchObject({
+        avatarResourceId: null,
+        updatedAtMs: 300,
+      });
       await expect(resourceState(database.db, 'new_avatar')).resolves.toEqual({
         status: 'orphaned',
         orphaned_at_ms: 300,
@@ -71,8 +82,10 @@ describe('KyselyCharacterAvatarAssignment', () => {
 
   it('rejects a resource for another purpose and rolls back all changes', async () => {
     const database = await createTestDatabase();
-    const assignment = new KyselyCharacterAvatarAssignment(database.db);
-    const cards = new KyselyCharacterCardStore(database.db);
+    const context = new KyselyDatabaseContext(database.db);
+    const unitOfWork = new KyselyUnitOfWork(database.db, context);
+    const assignment = new KyselyCharacterAvatarAssignment(context);
+    const cards = new KyselyCharacterCardStore(context);
 
     try {
       await seedUser(database.db, 'owner');
@@ -91,18 +104,22 @@ describe('KyselyCharacterAvatarAssignment', () => {
       );
 
       await expect(
-        assignment.replace({
-          characterId: 'card',
-          ownerUserId: 'owner',
-          resourceId: 'candidate',
-          nowMs: 200,
-        }),
+        unitOfWork.run(() =>
+          assignment.replace({
+            characterId: 'card',
+            ownerUserId: 'owner',
+            resourceId: 'candidate',
+            nowMs: 200,
+          }),
+        ),
       ).rejects.toMatchObject({ reason: 'invalid-avatar' });
 
-      await expect(cards.findOwnedById('card', 'owner')).resolves.toMatchObject({
-        avatarResourceId: null,
-        updatedAtMs: 1,
-      });
+      await expect(cards.findOwnedById('card', 'owner')).resolves.toMatchObject(
+        {
+          avatarResourceId: null,
+          updatedAtMs: 1,
+        },
+      );
       await expect(resourceState(database.db, 'candidate')).resolves.toEqual({
         status: 'pending',
         orphaned_at_ms: null,

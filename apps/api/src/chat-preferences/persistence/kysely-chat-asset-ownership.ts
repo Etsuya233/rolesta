@@ -1,7 +1,5 @@
-import { Inject, Injectable } from "@nestjs/common";
-import type { Database } from "@rolesta/db";
-import type { Kysely } from "kysely";
-import { KYSELY_DB } from "../../database/database.provider.js";
+import { Injectable } from "@nestjs/common";
+import { KyselyDatabaseContext } from "../../database/kysely-database-context.js";
 import type {
   AssetDefaultField,
   AssetDefaultsPatch,
@@ -10,7 +8,7 @@ import type { ChatAssetOwnership } from "../ports/chat-asset-ownership.js";
 
 @Injectable()
 export class KyselyChatAssetOwnership implements ChatAssetOwnership {
-  constructor(@Inject(KYSELY_DB) private readonly db: Kysely<Database>) {}
+  constructor(private readonly context: KyselyDatabaseContext) {}
 
   async findUnavailableFields(
     userId: string,
@@ -23,7 +21,7 @@ export class KyselyChatAssetOwnership implements ChatAssetOwnership {
       patch.personaCharacterId !== null
     ) {
       checks.push(
-        this.db
+        this.context.database
           .selectFrom("characters")
           .select("id")
           .where("id", "=", patch.personaCharacterId)
@@ -35,7 +33,7 @@ export class KyselyChatAssetOwnership implements ChatAssetOwnership {
 
     if (patch.presetId !== undefined && patch.presetId !== null) {
       checks.push(
-        this.db
+        this.context.database
           .selectFrom("presets")
           .select("id")
           .where("id", "=", patch.presetId)
@@ -47,7 +45,7 @@ export class KyselyChatAssetOwnership implements ChatAssetOwnership {
 
     if (patch.modelProviderId !== undefined && patch.modelProviderId !== null) {
       checks.push(
-        this.db
+        this.context.database
           .selectFrom("model_provider_configs")
           .select("id")
           .where("id", "=", patch.modelProviderId)

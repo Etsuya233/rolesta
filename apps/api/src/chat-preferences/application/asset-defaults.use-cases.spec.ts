@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import type { UnitOfWork } from "../../common/application/unit-of-work.js";
 import type {
   AssetDefaults,
   AssetDefaultsPatch,
@@ -41,7 +42,10 @@ describe("asset defaults use cases", () => {
     } satisfies AssetDefaultsPatch;
 
     await expect(
-      new UpdateAssetDefaultsUseCase(ownership, store).execute("owner", patch),
+      new UpdateAssetDefaultsUseCase(ownership, store, unitOfWork).execute(
+        "owner",
+        patch,
+      ),
     ).resolves.toEqual({
       personaCharacterId: "old-character",
       presetId: "preset",
@@ -60,9 +64,12 @@ describe("asset defaults use cases", () => {
     });
 
     await expect(
-      new UpdateAssetDefaultsUseCase(ownership, store).execute("owner", {
-        personaCharacterId: null,
-      }),
+      new UpdateAssetDefaultsUseCase(ownership, store, unitOfWork).execute(
+        "owner",
+        {
+          personaCharacterId: null,
+        },
+      ),
     ).resolves.toMatchObject({ personaCharacterId: null });
     expect(ownership.requests).toEqual([]);
   });
@@ -72,7 +79,10 @@ describe("asset defaults use cases", () => {
     const store = new MemoryAssetDefaultsStore();
 
     await expectApplicationError(
-      new UpdateAssetDefaultsUseCase(ownership, store).execute("owner", {}),
+      new UpdateAssetDefaultsUseCase(ownership, store, unitOfWork).execute(
+        "owner",
+        {},
+      ),
       "invalid-patch",
     );
     expect(ownership.requests).toEqual([]);
@@ -87,14 +97,15 @@ describe("asset defaults use cases", () => {
     ]);
     const store = new MemoryAssetDefaultsStore();
 
-    const promise = new UpdateAssetDefaultsUseCase(ownership, store).execute(
-      "owner",
-      {
-        personaCharacterId: "public-card-owned-by-someone-else",
-        presetId: "missing-preset",
-        modelProviderId: "missing-provider",
-      },
-    );
+    const promise = new UpdateAssetDefaultsUseCase(
+      ownership,
+      store,
+      unitOfWork,
+    ).execute("owner", {
+      personaCharacterId: "public-card-owned-by-someone-else",
+      presetId: "missing-preset",
+      modelProviderId: "missing-provider",
+    });
 
     await expectApplicationError(promise, "asset-unavailable", {
       fields: ["personaCharacterId", "presetId", "modelProviderId"],
@@ -112,7 +123,11 @@ describe("asset defaults use cases", () => {
   it("keeps repeated updates idempotent", async () => {
     const ownership = new StubChatAssetOwnership();
     const store = new MemoryAssetDefaultsStore();
-    const useCase = new UpdateAssetDefaultsUseCase(ownership, store);
+    const useCase = new UpdateAssetDefaultsUseCase(
+      ownership,
+      store,
+      unitOfWork,
+    );
 
     await useCase.execute("owner", { presetId: "preset" });
     await expect(
@@ -122,6 +137,8 @@ describe("asset defaults use cases", () => {
     });
   });
 });
+
+const unitOfWork: UnitOfWork = { run: (operation) => operation() };
 
 class StubChatAssetOwnership implements ChatAssetOwnership {
   readonly requests: Array<{ userId: string; patch: AssetDefaultsPatch }> = [];

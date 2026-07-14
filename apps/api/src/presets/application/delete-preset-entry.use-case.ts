@@ -1,4 +1,5 @@
 import { UseCase } from '../../common/errors/index.js';
+import type { UnitOfWork } from '../../common/application/unit-of-work.js';
 import { ensureEpochMillis } from '../../shared/epoch-millis.js';
 import { PresetApplicationError } from './preset-application-error.js';
 import { translatePresetError } from './preset-error.mapper.js';
@@ -17,44 +18,52 @@ export class DeletePresetEntryUseCase {
   constructor(
     private readonly store: PresetStore,
     private readonly clock: PresetClock,
+    private readonly unitOfWork: UnitOfWork,
   ) {}
 
   @UseCase(translatePresetError)
   async execute(command: DeletePresetEntryCommand): Promise<Preset> {
-    const current = await this.store.findOwnedById(command.presetId, command.viewerUserId);
+    return this.unitOfWork.run(async () => {
+      const current = await this.store.findOwnedById(
+        command.presetId,
+        command.viewerUserId,
+      );
 
-    if (current === null) {
-      throw new PresetApplicationError({
-        reason: 'not-found',
-        params: {
-          presetId: command.presetId,
-        },
+      if (current === null) {
+        throw new PresetApplicationError({
+          reason: 'not-found',
+          params: {
+            presetId: command.presetId,
+          },
+        });
+      }
+
+      if (!current.entries.some((entry) => entry.id === command.entryId)) {
+        throw new PresetApplicationError({
+          reason: 'unknown-entry',
+          params: {
+            presetId: command.presetId,
+            entryId: command.entryId,
+          },
+        });
+      }
+
+      const nowMs = ensureEpochMillis(this.clock.now().getTime());
+      const remainingItems = current.promptItems
+        .filter((item) => item.entryId !== command.entryId)
+        .map((item, index) => ({ ...item, orderIndex: index }));
+      const updated = withPresetTokenCount({
+        ...current,
+        entries: current.entries.filter(
+          (entry) => entry.id !== command.entryId,
+        ),
+        promptItems: remainingItems,
+        updatedAtMs: nowMs,
       });
-    }
 
-    if (!current.entries.some((entry) => entry.id === command.entryId)) {
-      throw new PresetApplicationError({
-        reason: 'unknown-entry',
-        params: {
-          presetId: command.presetId,
-          entryId: command.entryId,
-        },
-      });
-    }
+      await this.store.update(updated);
 
-    const nowMs = ensureEpochMillis(this.clock.now().getTime());
-    const remainingItems = current.promptItems
-      .filter((item) => item.entryId !== command.entryId)
-      .map((item, index) => ({ ...item, orderIndex: index }));
-    const updated = withPresetTokenCount({
-      ...current,
-      entries: current.entries.filter((entry) => entry.id !== command.entryId),
-      promptItems: remainingItems,
-      updatedAtMs: nowMs,
+      return updated;
     });
-
-    await this.store.update(updated);
-
-    return updated;
   }
 }

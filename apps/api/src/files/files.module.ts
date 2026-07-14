@@ -1,4 +1,8 @@
 import { Module } from '@nestjs/common';
+import {
+  UNIT_OF_WORK,
+  type UnitOfWork,
+} from '../common/application/unit-of-work.js';
 import type { AppConfig } from '../config/app-config.js';
 import { APP_CONFIG } from '../config/config.module.js';
 import { DatabaseModule } from '../database/database.module.js';
@@ -26,8 +30,14 @@ import {
   type FileContentHasher,
   type FileIdGenerator,
 } from './ports/file-application-services.js';
-import { FILE_CONTENT_STORE, type FileContentStore } from './ports/file-content-store.js';
-import { FILE_METADATA_STORE, type FileMetadataStore } from './ports/file-metadata-store.js';
+import {
+  FILE_CONTENT_STORE,
+  type FileContentStore,
+} from './ports/file-content-store.js';
+import {
+  FILE_METADATA_STORE,
+  type FileMetadataStore,
+} from './ports/file-metadata-store.js';
 import { IMAGE_PROCESSOR } from './ports/image-processor.js';
 
 @Module({
@@ -42,7 +52,8 @@ import { IMAGE_PROCESSOR } from './ports/image-processor.js';
     Sha256FileContentHasher,
     {
       provide: LocalFileContentStore,
-      useFactory: (config: AppConfig) => new LocalFileContentStore(config.files.localDirectory),
+      useFactory: (config: AppConfig) =>
+        new LocalFileContentStore(config.files.localDirectory),
       inject: [APP_CONFIG],
     },
     { provide: FILE_METADATA_STORE, useExisting: KyselyFileMetadataStore },
@@ -56,7 +67,8 @@ import { IMAGE_PROCESSOR } from './ports/image-processor.js';
         config: AppConfig,
         local: LocalFileContentStore,
         database: DatabaseFileContentStore,
-      ): FileContentStore => (config.files.driver === 'local' ? local : database),
+      ): FileContentStore =>
+        config.files.driver === 'local' ? local : database,
       inject: [APP_CONFIG, LocalFileContentStore, DatabaseFileContentStore],
     },
     {
@@ -67,13 +79,23 @@ import { IMAGE_PROCESSOR } from './ports/image-processor.js';
         ids: FileIdGenerator,
         clock: FileClock,
         hasher: FileContentHasher,
-      ) => new CreateFileResourceUseCase(metadata, contents, ids, clock, hasher),
+        unitOfWork: UnitOfWork,
+      ) =>
+        new CreateFileResourceUseCase(
+          metadata,
+          contents,
+          ids,
+          clock,
+          hasher,
+          unitOfWork,
+        ),
       inject: [
         FILE_METADATA_STORE,
         FILE_CONTENT_STORE,
         FILE_ID_GENERATOR,
         FILE_CLOCK,
         FILE_CONTENT_HASHER,
+        UNIT_OF_WORK,
       ],
     },
     {
@@ -84,7 +106,8 @@ import { IMAGE_PROCESSOR } from './ports/image-processor.js';
     },
     {
       provide: GetPublicFileObjectsUseCase,
-      useFactory: (metadata: FileMetadataStore) => new GetPublicFileObjectsUseCase(metadata),
+      useFactory: (metadata: FileMetadataStore) =>
+        new GetPublicFileObjectsUseCase(metadata),
       inject: [FILE_METADATA_STORE],
     },
     {

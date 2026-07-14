@@ -1,5 +1,6 @@
 import { countPromptTokens } from "@rolesta/shared";
 import { UseCase } from "../../common/errors/index.js";
+import type { UnitOfWork } from "../../common/application/unit-of-work.js";
 import { ensureEpochMillis } from "../../shared/epoch-millis.js";
 import type {
   Worldbook,
@@ -59,66 +60,69 @@ export class UpdateWorldbookDocumentUseCase {
     private readonly store: WorldbookStore,
     private readonly idGenerator: WorldbookIdGenerator,
     private readonly clock: WorldbookClock,
+    private readonly unitOfWork: UnitOfWork,
   ) {}
 
   @UseCase(translateWorldbookError)
   async execute(command: UpdateWorldbookDocumentCommand): Promise<Worldbook> {
-    const current = await this.store.findVisibleById(
-      command.worldbookId,
-      command.viewerUserId,
-    );
+    return this.unitOfWork.run(async () => {
+      const current = await this.store.findVisibleById(
+        command.worldbookId,
+        command.viewerUserId,
+      );
 
-    if (current === null) {
-      throw new WorldbookApplicationError({
-        reason: "not-found",
-        params: { worldbookId: command.worldbookId },
+      if (current === null) {
+        throw new WorldbookApplicationError({
+          reason: "not-found",
+          params: { worldbookId: command.worldbookId },
+        });
+      }
+
+      if (current.ownerUserId !== command.viewerUserId) {
+        throw new WorldbookApplicationError({
+          reason: "forbidden",
+          params: {
+            worldbookId: command.worldbookId,
+            viewerUserId: command.viewerUserId,
+          },
+        });
+      }
+
+      assertUniqueEntryIds(command.worldbookId, command.entries);
+
+      const nowMs = ensureEpochMillis(this.clock.now().getTime());
+      const currentEntryById = new Map(
+        current.entries.map((entry) => [entry.id, entry]),
+      );
+      const entries = command.entries.map((entry, insertionOrder) => {
+        const existing = currentEntryById.get(entry.id);
+
+        return {
+          ...entry,
+          id: existing?.id ?? this.idGenerator.createId(),
+          worldbookId: current.id,
+          insertionOrder,
+          tokenCount: countPromptTokens(entry.content),
+          createdAtMs: existing?.createdAtMs ?? nowMs,
+          updatedAtMs: nowMs,
+        };
       });
-    }
-
-    if (current.ownerUserId !== command.viewerUserId) {
-      throw new WorldbookApplicationError({
-        reason: "forbidden",
-        params: {
-          worldbookId: command.worldbookId,
-          viewerUserId: command.viewerUserId,
-        },
-      });
-    }
-
-    assertUniqueEntryIds(command.worldbookId, command.entries);
-
-    const nowMs = ensureEpochMillis(this.clock.now().getTime());
-    const currentEntryById = new Map(
-      current.entries.map((entry) => [entry.id, entry]),
-    );
-    const entries = command.entries.map((entry, insertionOrder) => {
-      const existing = currentEntryById.get(entry.id);
-
-      return {
-        ...entry,
-        id: existing?.id ?? this.idGenerator.createId(),
-        worldbookId: current.id,
-        insertionOrder,
-        tokenCount: countPromptTokens(entry.content),
-        createdAtMs: existing?.createdAtMs ?? nowMs,
+      const updated: Worldbook = {
+        ...current,
+        visibility: command.visibility,
+        name: command.name,
+        description: command.description,
+        tags: command.tags,
+        scanDepth: command.scanDepth,
+        tokenBudget: command.tokenBudget,
+        recursiveScan: command.recursiveScan,
+        entries,
         updatedAtMs: nowMs,
       };
-    });
-    const updated: Worldbook = {
-      ...current,
-      visibility: command.visibility,
-      name: command.name,
-      description: command.description,
-      tags: command.tags,
-      scanDepth: command.scanDepth,
-      tokenBudget: command.tokenBudget,
-      recursiveScan: command.recursiveScan,
-      entries,
-      updatedAtMs: nowMs,
-    };
 
-    await this.store.update(updated);
-    return updated;
+      await this.store.update(updated);
+      return updated;
+    });
   }
 }
 

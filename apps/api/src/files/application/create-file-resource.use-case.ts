@@ -1,5 +1,10 @@
 import { UseCase } from '../../common/errors/use-case.decorator.js';
-import type { FileObject, FileResource, FileVisibility } from '../domain/file-resource.js';
+import type { UnitOfWork } from '../../common/application/unit-of-work.js';
+import type {
+  FileObject,
+  FileResource,
+  FileVisibility,
+} from '../domain/file-resource.js';
 import type { FileContentStore } from '../ports/file-content-store.js';
 import type {
   FileClock,
@@ -36,13 +41,18 @@ export class CreateFileResourceUseCase {
     private readonly ids: FileIdGenerator,
     private readonly clock: FileClock,
     private readonly hasher: FileContentHasher,
+    private readonly unitOfWork: UnitOfWork,
   ) {}
 
   @UseCase(toFileApplicationError)
-  async execute(command: CreateFileResourceCommand): Promise<CreatedFileResource> {
+  async execute(
+    command: CreateFileResourceCommand,
+  ): Promise<CreatedFileResource> {
     const resourceId = this.ids.createId();
     const nowMs = this.clock.nowMs();
-    const objects = command.objects.map((object) => this.fileObject(resourceId, nowMs, object));
+    const objects = command.objects.map((object) =>
+      this.fileObject(resourceId, nowMs, object),
+    );
     const resource: FileResource = {
       id: resourceId,
       ownerUserId: command.ownerUserId,
@@ -53,7 +63,7 @@ export class CreateFileResourceUseCase {
       objects,
     };
 
-    await this.metadata.createPending(resource);
+    await this.unitOfWork.run(() => this.metadata.createPending(resource));
     await Promise.all(
       objects.map((object, index) =>
         this.contents.save(object.storageKey, command.objects[index]!.content),
@@ -63,7 +73,11 @@ export class CreateFileResourceUseCase {
     return { resource };
   }
 
-  private fileObject(resourceId: string, nowMs: number, input: NewFileObject): FileObject {
+  private fileObject(
+    resourceId: string,
+    nowMs: number,
+    input: NewFileObject,
+  ): FileObject {
     const id = this.ids.createId();
 
     return {

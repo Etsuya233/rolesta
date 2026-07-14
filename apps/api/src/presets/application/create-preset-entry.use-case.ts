@@ -1,11 +1,19 @@
 import { countPromptTokens } from '@rolesta/shared';
 import { UseCase } from '../../common/errors/index.js';
+import type { UnitOfWork } from '../../common/application/unit-of-work.js';
 import { ensureEpochMillis } from '../../shared/epoch-millis.js';
 import { PresetApplicationError } from './preset-application-error.js';
 import { translatePresetError } from './preset-error.mapper.js';
-import type { PresetClock, PresetIdGenerator } from './preset-application-services.js';
+import type {
+  PresetClock,
+  PresetIdGenerator,
+} from './preset-application-services.js';
 import type { PresetStore } from '../ports/preset-store.js';
-import type { Preset, PresetEntryPosition, PresetEntryRole } from '../domain/preset.js';
+import type {
+  Preset,
+  PresetEntryPosition,
+  PresetEntryRole,
+} from '../domain/preset.js';
 import { withPresetTokenCount } from '../domain/preset.js';
 
 export interface CreatePresetEntryCommand {
@@ -22,54 +30,60 @@ export class CreatePresetEntryUseCase {
     private readonly store: PresetStore,
     private readonly idGenerator: PresetIdGenerator,
     private readonly clock: PresetClock,
+    private readonly unitOfWork: UnitOfWork,
   ) {}
 
   @UseCase(translatePresetError)
   async execute(command: CreatePresetEntryCommand): Promise<Preset> {
-    const current = await this.store.findOwnedById(command.presetId, command.viewerUserId);
+    return this.unitOfWork.run(async () => {
+      const current = await this.store.findOwnedById(
+        command.presetId,
+        command.viewerUserId,
+      );
 
-    if (current === null) {
-      throw new PresetApplicationError({
-        reason: 'not-found',
-        params: {
-          presetId: command.presetId,
-        },
+      if (current === null) {
+        throw new PresetApplicationError({
+          reason: 'not-found',
+          params: {
+            presetId: command.presetId,
+          },
+        });
+      }
+
+      const nowMs = ensureEpochMillis(this.clock.now().getTime());
+      const entryId = this.idGenerator.createId();
+      const updated = withPresetTokenCount({
+        ...current,
+        entries: [
+          ...current.entries,
+          {
+            id: entryId,
+            presetId: current.id,
+            identifier: entryId,
+            name: command.name,
+            role: command.role,
+            position: command.position,
+            content: command.content,
+            tokenCount: countPromptTokens(command.content),
+            metadata: {},
+            createdAtMs: nowMs,
+            updatedAtMs: nowMs,
+          },
+        ],
+        promptItems: [
+          ...current.promptItems,
+          {
+            entryId,
+            enabled: true,
+            orderIndex: current.promptItems.length,
+          },
+        ],
+        updatedAtMs: nowMs,
       });
-    }
 
-    const nowMs = ensureEpochMillis(this.clock.now().getTime());
-    const entryId = this.idGenerator.createId();
-    const updated = withPresetTokenCount({
-      ...current,
-      entries: [
-        ...current.entries,
-        {
-          id: entryId,
-          presetId: current.id,
-          identifier: entryId,
-          name: command.name,
-          role: command.role,
-          position: command.position,
-          content: command.content,
-          tokenCount: countPromptTokens(command.content),
-          metadata: {},
-          createdAtMs: nowMs,
-          updatedAtMs: nowMs,
-        },
-      ],
-      promptItems: [
-        ...current.promptItems,
-        {
-          entryId,
-          enabled: true,
-          orderIndex: current.promptItems.length,
-        },
-      ],
-      updatedAtMs: nowMs,
+      await this.store.update(updated);
+
+      return updated;
     });
-
-    await this.store.update(updated);
-
-    return updated;
   }
 }

@@ -1,20 +1,20 @@
-import { Inject, Injectable } from '@nestjs/common';
-import type { Database, SessionsTable } from '@rolesta/db';
-import type { Kysely, Selectable } from 'kysely';
-import { KYSELY_DB } from '../../database/database.provider.js';
+import { Injectable } from '@nestjs/common';
+import type { SessionsTable } from '@rolesta/db';
+import type { Selectable } from 'kysely';
+import { KyselyDatabaseContext } from '../../database/kysely-database-context.js';
 import type { SessionStore } from '../ports/auth-ports.js';
 import { Session } from '../domain/session.js';
 import { AuthPortError } from '../ports/auth-port-error.js';
 
 @Injectable()
 export class KyselySessionStore implements SessionStore {
-  constructor(@Inject(KYSELY_DB) private readonly db: Kysely<Database>) {}
+  constructor(private readonly context: KyselyDatabaseContext) {}
 
   async save(session: Session): Promise<void> {
     try {
       const snapshot = session.toSnapshot();
 
-      await this.db
+      await this.context.database
         .insertInto('sessions')
         .values({
           id: snapshot.tokenHash,
@@ -34,7 +34,7 @@ export class KyselySessionStore implements SessionStore {
 
   async findByTokenHash(tokenHash: string): Promise<Session | null> {
     try {
-      const row = await this.db
+      const row = await this.context.database
         .selectFrom('sessions')
         .selectAll()
         .where('id', '=', tokenHash)
@@ -52,7 +52,10 @@ export class KyselySessionStore implements SessionStore {
 
   async deleteByTokenHash(tokenHash: string): Promise<void> {
     try {
-      await this.db.deleteFrom('sessions').where('id', '=', tokenHash).execute();
+      await this.context.database
+        .deleteFrom('sessions')
+        .where('id', '=', tokenHash)
+        .execute();
     } catch (error) {
       throw new AuthPortError({
         reason: 'session-store-failed',
@@ -64,7 +67,10 @@ export class KyselySessionStore implements SessionStore {
 
   async deleteExpired(now: Date): Promise<void> {
     try {
-      await this.db.deleteFrom('sessions').where('expires_at', '<=', now.toISOString()).execute();
+      await this.context.database
+        .deleteFrom('sessions')
+        .where('expires_at', '<=', now.toISOString())
+        .execute();
     } catch (error) {
       throw new AuthPortError({
         reason: 'session-store-failed',

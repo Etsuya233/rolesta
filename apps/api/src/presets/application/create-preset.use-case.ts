@@ -1,8 +1,12 @@
 import { PROMPT_TOKENIZER } from '@rolesta/shared';
 import { UseCase } from '../../common/errors/index.js';
+import type { UnitOfWork } from '../../common/application/unit-of-work.js';
 import { ensureEpochMillis } from '../../shared/epoch-millis.js';
 import { translatePresetError } from './preset-error.mapper.js';
-import type { PresetClock, PresetIdGenerator } from './preset-application-services.js';
+import type {
+  PresetClock,
+  PresetIdGenerator,
+} from './preset-application-services.js';
 import {
   applyPresetEditableFields,
   type PresetEditableFields,
@@ -20,6 +24,7 @@ export class CreatePresetUseCase {
     private readonly store: PresetStore,
     private readonly idGenerator: PresetIdGenerator,
     private readonly clock: PresetClock,
+    private readonly unitOfWork: UnitOfWork,
   ) {}
 
   @UseCase(translatePresetError)
@@ -44,7 +49,7 @@ export class CreatePresetUseCase {
     });
     const preset = applyPresetEditableFields(draft, command);
 
-    await this.store.save(preset);
+    await this.unitOfWork.run(() => this.store.save(preset));
 
     return preset;
   }

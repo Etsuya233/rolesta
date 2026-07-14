@@ -1,6 +1,10 @@
 import { UseCase } from '../../common/errors/index.js';
+import type { UnitOfWork } from '../../common/application/unit-of-work.js';
 import { ensureEpochMillis } from '../../shared/epoch-millis.js';
-import type { PresetClock, PresetIdGenerator } from './preset-application-services.js';
+import type {
+  PresetClock,
+  PresetIdGenerator,
+} from './preset-application-services.js';
 import { PresetApplicationError } from './preset-application-error.js';
 import { translatePresetError } from './preset-error.mapper.js';
 import type { PresetStore } from '../ports/preset-store.js';
@@ -18,6 +22,7 @@ export class ImportPresetUseCase {
     private readonly codec: PresetCodec,
     private readonly idGenerator: PresetIdGenerator,
     private readonly clock: PresetClock,
+    private readonly unitOfWork: UnitOfWork,
   ) {}
 
   @UseCase(translatePresetError)
@@ -33,7 +38,9 @@ export class ImportPresetUseCase {
       updatedAtMs: nowMs,
     }));
     const promptItems = imported.promptItems.map((item) => {
-      const entry = entries.find((candidate) => candidate.identifier === item.identifier);
+      const entry = entries.find(
+        (candidate) => candidate.identifier === item.identifier,
+      );
 
       if (entry === undefined) {
         throw new PresetApplicationError({
@@ -69,7 +76,7 @@ export class ImportPresetUseCase {
       usageCount: 0,
     });
 
-    await this.store.save(preset);
+    await this.unitOfWork.run(() => this.store.save(preset));
 
     return preset;
   }
