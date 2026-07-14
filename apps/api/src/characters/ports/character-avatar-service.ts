@@ -9,4 +9,8 @@ export interface CharacterAvatarService {
     content: Buffer;
     crop: NormalizedCrop;
   }): Promise<{ resourceId: string }>;
+
+  activate(resourceId: string, ownerUserId: string): Promise<void>;
+
+  release(resourceId: string, ownerUserId: string, releasedAtMs: number): Promise<void>;
 }

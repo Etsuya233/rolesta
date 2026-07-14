@@ -1,3 +1,5 @@
+import type { FilePurpose } from './file-purpose.js';
+
 export const FILE_RESOURCE_STATUSES = ['pending', 'active', 'orphaned'] as const;
 export type FileResourceStatus = (typeof FILE_RESOURCE_STATUSES)[number];
 
@@ -7,7 +9,7 @@ export type FileVisibility = (typeof FILE_VISIBILITIES)[number];
 export interface FileResource {
   id: string;
   ownerUserId: string;
-  purpose: string;
+  purpose: FilePurpose;
   status: FileResourceStatus;
   orphanedAtMs: number | null;
   createdAtMs: number;

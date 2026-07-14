@@ -166,7 +166,7 @@ describe("Chat preferences API", () => {
     });
   }, 15_000);
 
-  it("rolls back avatar removal when the file listener rejects its state", async () => {
+  it("rolls back avatar removal when the file lifecycle rejects its state", async () => {
     const auth = await setupAdmin(app!);
     const db = app!.get<Kysely<Database>>(KYSELY_DB, { strict: false });
     await seedAssets(db, auth.userId);

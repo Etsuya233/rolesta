@@ -4,6 +4,7 @@ import {
   type NewFileObject,
 } from '../../files/application/create-file-resource.use-case.js';
 import { FileApplicationError } from '../../files/application/file-application-error.js';
+import type { FileResourceLifecycle } from '../../files/contracts/file-resource-lifecycle.js';
 import type { ImageProcessor, NormalizedCrop } from '../../files/ports/image-processor.js';
 import { CharacterPortError } from '../ports/character-port-error.js';
 import type { CharacterAvatarService } from '../ports/character-avatar-service.js';
@@ -17,6 +18,7 @@ export class FileCharacterAvatarService implements CharacterAvatarService {
   constructor(
     private readonly images: ImageProcessor,
     private readonly createFileResource: CreateFileResourceUseCase,
+    private readonly lifecycle: FileResourceLifecycle,
   ) {}
 
   async createAvatar(input: {
@@ -99,6 +101,49 @@ export class FileCharacterAvatarService implements CharacterAvatarService {
         });
       }
 
+      throw error;
+    }
+  }
+
+  async activate(resourceId: string, ownerUserId: string): Promise<void> {
+    try {
+      await this.lifecycle.activatePending({
+        resourceId,
+        ownerUserId,
+        purpose: 'character-avatar',
+      });
+    } catch (error) {
+      if (error instanceof FileApplicationError) {
+        throw new CharacterPortError({
+          reason: 'avatar-assignment-conflict',
+          params: { detail: 'Avatar resource state changed concurrently.' },
+          cause: error,
+        });
+      }
+      throw error;
+    }
+  }
+
+  async release(
+    resourceId: string,
+    ownerUserId: string,
+    releasedAtMs: number,
+  ): Promise<void> {
+    try {
+      await this.lifecycle.markOrphaned({
+        resourceId,
+        ownerUserId,
+        purpose: 'character-avatar',
+        orphanedAtMs: releasedAtMs,
+      });
+    } catch (error) {
+      if (error instanceof FileApplicationError) {
+        throw new CharacterPortError({
+          reason: 'avatar-assignment-conflict',
+          params: { detail: 'Avatar resource state changed concurrently.' },
+          cause: error,
+        });
+      }
       throw error;
     }
   }

@@ -5,11 +5,13 @@ import type { CharacterClock } from './character-application-services.js';
 import { CharacterApplicationError } from './character-application-error.js';
 import { translateCharacterError } from './character-error.mapper.js';
 import type { CharacterAvatarAssignment } from '../ports/character-avatar-assignment.js';
+import type { CharacterAvatarService } from '../ports/character-avatar-service.js';
 import { CharacterAvatarChangedEvent } from '../events/index.js';
 
 export class DeleteCharacterAvatarUseCase {
   constructor(
     private readonly assignment: CharacterAvatarAssignment,
+    private readonly avatars: CharacterAvatarService,
     private readonly clock: CharacterClock,
     private readonly unitOfWork: UnitOfWork,
     private readonly events: DomainEventPublisher,
@@ -25,6 +27,7 @@ export class DeleteCharacterAvatarUseCase {
         nowMs,
       });
       if (result?.previousResourceId) {
+        await this.avatars.release(result.previousResourceId, ownerUserId, nowMs);
         await this.events.publish(
           new CharacterAvatarChangedEvent({
             characterId: id,

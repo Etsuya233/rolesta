@@ -14,6 +14,10 @@ import {
 import { FilesModule } from '../files/files.module.js';
 import { CreateFileResourceUseCase } from '../files/application/create-file-resource.use-case.js';
 import {
+  FILE_RESOURCE_LIFECYCLE,
+  type FileResourceLifecycle,
+} from '../files/contracts/file-resource-lifecycle.js';
+import {
   IMAGE_PROCESSOR,
   type ImageProcessor,
 } from '../files/ports/image-processor.js';
@@ -75,8 +79,9 @@ import { KyselyCharacterCardStore } from './persistence/kysely-character-card-st
       useFactory: (
         images: ImageProcessor,
         createFiles: CreateFileResourceUseCase,
-      ) => new FileCharacterAvatarService(images, createFiles),
-      inject: [IMAGE_PROCESSOR, CreateFileResourceUseCase],
+        lifecycle: FileResourceLifecycle,
+      ) => new FileCharacterAvatarService(images, createFiles, lifecycle),
+      inject: [IMAGE_PROCESSOR, CreateFileResourceUseCase, FILE_RESOURCE_LIFECYCLE],
     },
     {
       provide: ListCharactersUseCase,
@@ -135,18 +140,21 @@ import { KyselyCharacterCardStore } from './persistence/kysely-character-card-st
       provide: DeleteCharacterAvatarUseCase,
       useFactory: (
         assignment: CharacterAvatarAssignment,
+        avatars: CharacterAvatarService,
         clock: CharacterClock,
         unitOfWork: UnitOfWork,
         events: DomainEventPublisher,
       ) =>
         new DeleteCharacterAvatarUseCase(
           assignment,
+          avatars,
           clock,
           unitOfWork,
           events,
         ),
       inject: [
         CHARACTER_AVATAR_ASSIGNMENT,
+        CHARACTER_AVATAR_SERVICE,
         SystemClock,
         UNIT_OF_WORK,
         DomainEventPublisher,
@@ -156,12 +164,14 @@ import { KyselyCharacterCardStore } from './persistence/kysely-character-card-st
       provide: DeleteCharacterUseCase,
       useFactory: (
         store: CharacterCardStore,
+        avatars: CharacterAvatarService,
         clock: CharacterClock,
         unitOfWork: UnitOfWork,
         events: DomainEventPublisher,
-      ) => new DeleteCharacterUseCase(store, clock, unitOfWork, events),
+      ) => new DeleteCharacterUseCase(store, avatars, clock, unitOfWork, events),
       inject: [
         CHARACTER_CARD_STORE,
+        CHARACTER_AVATAR_SERVICE,
         SystemClock,
         UNIT_OF_WORK,
         DomainEventPublisher,

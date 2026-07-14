@@ -5,6 +5,7 @@ import type {
   FileResource,
   FileVisibility,
 } from '../domain/file-resource.js';
+import type { FilePurpose } from '../domain/file-purpose.js';
 import type { FileContentStore } from '../ports/file-content-store.js';
 import type {
   FileClock,
@@ -26,7 +27,7 @@ export interface NewFileObject {
 
 export interface CreateFileResourceCommand {
   ownerUserId: string;
-  purpose: string;
+  purpose: FilePurpose;
   objects: NewFileObject[];
 }
 

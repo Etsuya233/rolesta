@@ -3,19 +3,21 @@ import { describe, expect, it } from 'vitest';
 import { DomainEventPublisher } from '../../common/events/index.js';
 import { KyselyDatabaseContext } from '../../database/kysely-database-context.js';
 import { KyselyUnitOfWork } from '../../database/kysely-unit-of-work.js';
-import { CharacterAvatarEventsListener } from '../../files/application/character-avatar-events.listener.js';
+import { FileApplicationError } from '../../files/application/file-application-error.js';
+import { FileResourceLifecycleService } from '../../files/application/file-resource-lifecycle.service.js';
+import type { FileResourceLifecycle } from '../../files/contracts/file-resource-lifecycle.js';
 import { KyselyFileMetadataStore } from '../../files/persistence/kysely-file-metadata-store.js';
 import { createTestDatabase } from '../../../../../packages/db/src/test-utils/create-test-database.js';
 import { createEmptyCharacterCardDraft } from '../domain/character-card.js';
-import { CHARACTER_AVATAR_CHANGED, type CharacterAvatarChangedEvent } from '../events/index.js';
 import type { CharacterAvatarService } from '../ports/character-avatar-service.js';
+import { CharacterPortError } from '../ports/character-port-error.js';
 import { KyselyCharacterAvatarAssignment } from '../persistence/kysely-character-avatar-assignment.js';
 import { KyselyCharacterCardStore } from '../persistence/kysely-character-card-store.js';
 import { CharacterApplicationError } from './character-application-error.js';
 import { DeleteCharacterAvatarUseCase } from './delete-character-avatar.use-case.js';
 import { UploadCharacterAvatarUseCase } from './upload-character-avatar.use-case.js';
 
-describe('character avatar domain events', () => {
+describe('character avatar file lifecycle', () => {
   it('commits the character reference and file lifecycle changes together', async () => {
     const database = await createTestDatabase();
     const context = new KyselyDatabaseContext(database.db);
@@ -23,7 +25,8 @@ describe('character avatar domain events', () => {
     const cards = new KyselyCharacterCardStore(context);
     const assignment = new KyselyCharacterAvatarAssignment(context);
     const metadata = new KyselyFileMetadataStore(context);
-    const events = publisherWithFileListener(metadata);
+    const lifecycle = new FileResourceLifecycleService(metadata);
+    const events = new DomainEventPublisher(new EventEmitter2());
 
     try {
       await seedUser(database.db, 'owner');
@@ -37,9 +40,10 @@ describe('character avatar domain events', () => {
         }),
         avatarResourceId: 'old-avatar',
       });
+      const avatars = new FixedAvatarService('new-avatar', lifecycle);
       const upload = new UploadCharacterAvatarUseCase(
         cards,
-        new FixedAvatarService('new-avatar'),
+        avatars,
         assignment,
         new FixedClock(200),
         unitOfWork,
@@ -66,6 +70,7 @@ describe('character avatar domain events', () => {
 
       const remove = new DeleteCharacterAvatarUseCase(
         assignment,
+        avatars,
         new FixedClock(300),
         unitOfWork,
         events,
@@ -91,7 +96,8 @@ describe('character avatar domain events', () => {
     const cards = new KyselyCharacterCardStore(context);
     const assignment = new KyselyCharacterAvatarAssignment(context);
     const metadata = new KyselyFileMetadataStore(context);
-    const events = publisherWithFileListener(metadata);
+    const lifecycle = new FileResourceLifecycleService(metadata);
+    const events = new DomainEventPublisher(new EventEmitter2());
 
     try {
       await seedUser(database.db, 'owner');
@@ -107,7 +113,7 @@ describe('character avatar domain events', () => {
       });
       const upload = new UploadCharacterAvatarUseCase(
         cards,
-        new FixedAvatarService('candidate'),
+        new FixedAvatarService('candidate', lifecycle),
         assignment,
         new FixedClock(200),
         unitOfWork,
@@ -146,28 +152,57 @@ describe('character avatar domain events', () => {
   });
 });
 
-function publisherWithFileListener(metadata: KyselyFileMetadataStore): DomainEventPublisher {
-  const emitter = new EventEmitter2();
-  const listener = new CharacterAvatarEventsListener(metadata);
-  onAsyncEvent<CharacterAvatarChangedEvent>(emitter, CHARACTER_AVATAR_CHANGED, (event) =>
-    listener.onCharacterAvatarChanged(event),
-  );
-  return new DomainEventPublisher(emitter);
-}
-
-function onAsyncEvent<TEvent>(
-  emitter: EventEmitter2,
-  eventName: string,
-  listener: (event: TEvent) => Promise<void>,
-): void {
-  emitter.on(eventName, listener as (event: TEvent) => void);
-}
-
 class FixedAvatarService implements CharacterAvatarService {
-  constructor(private readonly resourceId: string) {}
+  constructor(
+    private readonly resourceId: string,
+    private readonly lifecycle: FileResourceLifecycle,
+  ) {}
 
   createAvatar(): Promise<{ resourceId: string }> {
     return Promise.resolve({ resourceId: this.resourceId });
+  }
+
+  async activate(resourceId: string, ownerUserId: string): Promise<void> {
+    try {
+      await this.lifecycle.activatePending({
+        resourceId,
+        ownerUserId,
+        purpose: 'character-avatar',
+      });
+    } catch (error) {
+      if (error instanceof FileApplicationError) {
+        throw new CharacterPortError({
+          reason: 'avatar-assignment-conflict',
+          params: { detail: 'Avatar resource state changed concurrently.' },
+          cause: error,
+        });
+      }
+      throw error;
+    }
+  }
+
+  async release(
+    resourceId: string,
+    ownerUserId: string,
+    releasedAtMs: number,
+  ): Promise<void> {
+    try {
+      await this.lifecycle.markOrphaned({
+        resourceId,
+        ownerUserId,
+        purpose: 'character-avatar',
+        orphanedAtMs: releasedAtMs,
+      });
+    } catch (error) {
+      if (error instanceof FileApplicationError) {
+        throw new CharacterPortError({
+          reason: 'avatar-assignment-conflict',
+          params: { detail: 'Avatar resource state changed concurrently.' },
+          cause: error,
+        });
+      }
+      throw error;
+    }
   }
 }
 

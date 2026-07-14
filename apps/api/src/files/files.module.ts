@@ -11,8 +11,8 @@ import { DatabaseFileContentStore } from './adapters/database-file-content-store
 import { LocalFileContentStore } from './adapters/local-file-content-store.js';
 import { SharpImageProcessor } from './adapters/sharp-image-processor.js';
 import { CleanupFilesUseCase } from './application/cleanup-files.use-case.js';
-import { CharacterAvatarEventsListener } from './application/character-avatar-events.listener.js';
 import { CreateFileResourceUseCase } from './application/create-file-resource.use-case.js';
+import { FileResourceLifecycleService } from './application/file-resource-lifecycle.service.js';
 import { GetPublicFileObjectsUseCase } from './application/get-public-file-objects.use-case.js';
 import { ReadFileUseCase } from './application/read-file.use-case.js';
 import { FilesController } from './http/files.controller.js';
@@ -40,6 +40,10 @@ import {
   type FileMetadataStore,
 } from './ports/file-metadata-store.js';
 import { IMAGE_PROCESSOR } from './ports/image-processor.js';
+import {
+  FILE_RESOURCE_LIFECYCLE,
+  type FileResourceLifecycle,
+} from './contracts/file-resource-lifecycle.js';
 
 @Module({
   imports: [DatabaseModule, AuthModule],
@@ -58,6 +62,12 @@ import { IMAGE_PROCESSOR } from './ports/image-processor.js';
       inject: [APP_CONFIG],
     },
     { provide: FILE_METADATA_STORE, useExisting: KyselyFileMetadataStore },
+    {
+      provide: FILE_RESOURCE_LIFECYCLE,
+      useFactory: (metadata: FileMetadataStore): FileResourceLifecycle =>
+        new FileResourceLifecycleService(metadata),
+      inject: [FILE_METADATA_STORE],
+    },
     { provide: IMAGE_PROCESSOR, useExisting: SharpImageProcessor },
     { provide: FILE_ID_GENERATOR, useExisting: CryptoFileIdGenerator },
     { provide: FILE_CLOCK, useExisting: SystemFileClock },
@@ -128,14 +138,13 @@ import { IMAGE_PROCESSOR } from './ports/image-processor.js';
       inject: [FILE_METADATA_STORE, FILE_CONTENT_STORE, FILE_CLOCK, APP_CONFIG],
     },
     FileCleanupScheduler,
-    CharacterAvatarEventsListener,
   ],
   exports: [
     CreateFileResourceUseCase,
     GetPublicFileObjectsUseCase,
-    FILE_METADATA_STORE,
     IMAGE_PROCESSOR,
     FILE_CLOCK,
+    FILE_RESOURCE_LIFECYCLE,
   ],
 })
 export class FilesModule {}

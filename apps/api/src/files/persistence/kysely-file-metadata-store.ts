@@ -3,6 +3,7 @@ import type { FileObjectsTable, FileResourcesTable } from '@rolesta/db';
 import type { Insertable, Selectable } from 'kysely';
 import { KyselyDatabaseContext } from '../../database/kysely-database-context.js';
 import type { FileObject, FileResource } from '../domain/file-resource.js';
+import type { FilePurpose } from '../domain/file-purpose.js';
 import type {
   FileMetadataStore,
   ReadableFileObject,
@@ -24,25 +25,27 @@ export class KyselyFileMetadataStore implements FileMetadataStore {
       .execute();
   }
 
-  async activatePendingCharacterAvatar(
+  async activatePending(
     resourceId: string,
     ownerUserId: string,
+    purpose: FilePurpose,
   ): Promise<boolean> {
     const result = await this.context.database
       .updateTable('file_resources')
       .set({ status: 'active', orphaned_at_ms: null })
       .where('id', '=', resourceId)
       .where('owner_user_id', '=', ownerUserId)
-      .where('purpose', '=', 'character-avatar')
+      .where('purpose', '=', purpose)
       .where('status', '=', 'pending')
       .executeTakeFirst();
 
     return Number(result.numUpdatedRows) === 1;
   }
 
-  async orphanActiveCharacterAvatar(
+  async markOrphaned(
     resourceId: string,
     ownerUserId: string,
+    purpose: FilePurpose,
     orphanedAtMs: number,
   ): Promise<boolean> {
     const result = await this.context.database
@@ -50,7 +53,7 @@ export class KyselyFileMetadataStore implements FileMetadataStore {
       .set({ status: 'orphaned', orphaned_at_ms: orphanedAtMs })
       .where('id', '=', resourceId)
       .where('owner_user_id', '=', ownerUserId)
-      .where('purpose', '=', 'character-avatar')
+      .where('purpose', '=', purpose)
       .where('status', '=', 'active')
       .executeTakeFirst();
 
