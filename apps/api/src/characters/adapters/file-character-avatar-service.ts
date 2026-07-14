@@ -5,9 +5,12 @@ import {
 } from '../../files/application/create-file-resource.use-case.js';
 import { FileApplicationError } from '../../files/application/file-application-error.js';
 import type { FileResourceLifecycle } from '../../files/contracts/file-resource-lifecycle.js';
-import type { ImageProcessor, NormalizedCrop } from '../../files/ports/image-processor.js';
+import type { ImageProcessor } from '../../files/ports/image-processor.js';
 import { CharacterPortError } from '../ports/character-port-error.js';
-import type { CharacterAvatarService } from '../ports/character-avatar-service.js';
+import type {
+  CharacterAvatarCrop,
+  CharacterAvatarService,
+} from '../ports/character-avatar-service.js';
 
 const MAX_FILE_SIZE = 10 * 1024 * 1024;
 const MAX_EDGE = 8192;
@@ -25,7 +28,7 @@ export class FileCharacterAvatarService implements CharacterAvatarService {
     ownerUserId: string;
     fileName: string;
     content: Buffer;
-    crop: NormalizedCrop;
+    crop: CharacterAvatarCrop;
   }): Promise<{ resourceId: string }> {
     if (input.content.byteLength > MAX_FILE_SIZE) {
       throw new CharacterPortError({
@@ -149,7 +152,7 @@ export class FileCharacterAvatarService implements CharacterAvatarService {
   }
 }
 
-function validCrop(crop: NormalizedCrop): boolean {
+function validCrop(crop: CharacterAvatarCrop): boolean {
   return (
     crop.x >= 0 &&
     crop.y >= 0 &&

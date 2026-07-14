@@ -1,13 +1,15 @@
 import { UseCase } from '../../common/errors/use-case.decorator.js';
 import type { UnitOfWork } from '../../common/application/unit-of-work.js';
 import type { DomainEventPublisher } from '../../common/events/index.js';
-import type { NormalizedCrop } from '../../files/ports/image-processor.js';
 import type { CharacterClock } from './character-application-services.js';
 import { CharacterApplicationError } from './character-application-error.js';
 import { translateCharacterError } from './character-error.mapper.js';
 import type { CharacterCard } from '../domain/character-card.js';
 import type { CharacterAvatarAssignment } from '../ports/character-avatar-assignment.js';
-import type { CharacterAvatarService } from '../ports/character-avatar-service.js';
+import type {
+  CharacterAvatarCrop,
+  CharacterAvatarService,
+} from '../ports/character-avatar-service.js';
 import type { CharacterCardStore } from '../ports/character-card-store.js';
 import { CharacterAvatarChangedEvent } from '../events/index.js';
 
@@ -27,7 +29,7 @@ export class UploadCharacterAvatarUseCase {
     ownerUserId: string;
     fileName: string;
     content: Buffer;
-    crop: NormalizedCrop;
+    crop: CharacterAvatarCrop;
   }): Promise<CharacterCard> {
     const character = await this.store.findOwnedById(command.id, command.ownerUserId);
     if (!character) {

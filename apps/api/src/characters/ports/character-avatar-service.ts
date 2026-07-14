@@ -1,13 +1,18 @@
-import type { NormalizedCrop } from '../../files/ports/image-processor.js';
-
 export const CHARACTER_AVATAR_SERVICE = Symbol('CharacterAvatarService');
+
+export interface CharacterAvatarCrop {
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+}
 
 export interface CharacterAvatarService {
   createAvatar(input: {
     ownerUserId: string;
     fileName: string;
     content: Buffer;
-    crop: NormalizedCrop;
+    crop: CharacterAvatarCrop;
   }): Promise<{ resourceId: string }>;
 
   activate(resourceId: string, ownerUserId: string): Promise<void>;
