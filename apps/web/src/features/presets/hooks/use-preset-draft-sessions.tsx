@@ -77,6 +77,7 @@ export interface PresetDraftSession {
 const emptyPresetDocument: PresetDocument = {
   name: emptyPresetEditorForm.name,
   visibility: emptyPresetEditorForm.visibility,
+  modelProviderId: emptyPresetEditorForm.modelProviderId,
   modelSettings: emptyPresetEditorForm.modelSettings,
   entries: [],
   promptItems: [],
@@ -278,6 +279,7 @@ export function usePresetDraftSession({
       createPreset({
         name: document.name,
         visibility: document.visibility,
+        modelProviderId: document.modelProviderId,
         modelSettings: document.modelSettings,
       }),
     async onSuccess(preset) {
@@ -301,9 +303,15 @@ export function usePresetDraftSession({
     () => ({
       name: document.name,
       visibility: document.visibility,
+      modelProviderId: document.modelProviderId,
       modelSettings: document.modelSettings,
     }),
-    [document.modelSettings, document.name, document.visibility],
+    [
+      document.modelProviderId,
+      document.modelSettings,
+      document.name,
+      document.visibility,
+    ],
   );
   const setForm = useCallback(
     (update: SetStateAction<PresetEditorFormState>) => {
@@ -311,6 +319,7 @@ export function usePresetDraftSession({
         const currentForm = {
           name: current.name,
           visibility: current.visibility,
+          modelProviderId: current.modelProviderId,
           modelSettings: current.modelSettings,
         };
         const nextForm =
@@ -320,6 +329,7 @@ export function usePresetDraftSession({
           ...current,
           name: nextForm.name,
           visibility: nextForm.visibility,
+          modelProviderId: nextForm.modelProviderId,
           modelSettings: nextForm.modelSettings,
         };
       });

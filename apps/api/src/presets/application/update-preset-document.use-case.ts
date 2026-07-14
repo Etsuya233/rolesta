@@ -11,6 +11,7 @@ import {
 } from '../domain/preset.js';
 import type { PresetModelSettings } from '../domain/preset-model-settings.js';
 import type { PresetStore } from '../ports/preset-store.js';
+import type { PresetModelProviderAccess } from '../ports/preset-model-provider-access.js';
 import type { PresetClock } from './preset-application-services.js';
 import { PresetApplicationError } from './preset-application-error.js';
 import { translatePresetError } from './preset-error.mapper.js';
@@ -33,6 +34,7 @@ export interface UpdatePresetDocumentCommand {
   viewerUserId: string;
   visibility: PresetVisibility;
   name: string;
+  modelProviderId: string | null;
   modelSettings: PresetModelSettings;
   entries: PresetDocumentEntry[];
   promptItems: PresetDocumentPromptItem[];
@@ -42,6 +44,7 @@ export class UpdatePresetDocumentUseCase {
   constructor(
     private readonly store: PresetStore,
     private readonly clock: PresetClock,
+    private readonly modelProviderAccess: PresetModelProviderAccess,
     private readonly unitOfWork: UnitOfWork,
   ) {}
 
@@ -66,6 +69,19 @@ export class UpdatePresetDocumentUseCase {
         command.entries,
         command.promptItems,
       );
+
+      if (
+        command.modelProviderId !== null &&
+        !(await this.modelProviderAccess.acquireOwned(
+          command.modelProviderId,
+          current.ownerUserId,
+        ))
+      ) {
+        throw new PresetApplicationError({
+          reason: 'model-provider-unavailable',
+          params: { modelProviderId: command.modelProviderId },
+        });
+      }
 
       const nowMs = ensureEpochMillis(this.clock.now().getTime());
       const currentEntryById = new Map(
@@ -92,6 +108,7 @@ export class UpdatePresetDocumentUseCase {
         ...current,
         visibility: command.visibility,
         name: command.name,
+        modelProviderId: command.modelProviderId,
         modelSettings: command.modelSettings,
         entries,
         promptItems: command.promptItems.map((item, orderIndex) => ({
@@ -103,6 +120,11 @@ export class UpdatePresetDocumentUseCase {
       });
 
       await this.store.update(updated);
+      await this.store.updateModelProviderAssociation(
+        current.id,
+        current.ownerUserId,
+        command.modelProviderId,
+      );
       return updated;
     });
   }

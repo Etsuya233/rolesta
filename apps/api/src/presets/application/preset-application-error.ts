@@ -5,6 +5,7 @@ export type PresetApplicationErrorReason =
   | 'forbidden'
   | 'invalid-import-file'
   | 'invalid-preset'
+  | 'model-provider-unavailable'
   | 'duplicate-entry'
   | 'unknown-entry';
 
@@ -24,6 +25,9 @@ export interface PresetApplicationErrorParamsMap {
     fileName?: string;
     field?: string;
   };
+  'model-provider-unavailable': {
+    modelProviderId: string;
+  };
   'duplicate-entry': {
     presetId: string;
     entryId: string;
@@ -39,7 +43,9 @@ export type PresetApplicationErrorParams<
   R extends PresetApplicationErrorReason = PresetApplicationErrorReason,
 > = PresetApplicationErrorParamsMap[R];
 
-export interface PresetApplicationErrorOptions<R extends PresetApplicationErrorReason> {
+export interface PresetApplicationErrorOptions<
+  R extends PresetApplicationErrorReason,
+> {
   reason: R;
   params: PresetApplicationErrorParams<R>;
   cause?: unknown;

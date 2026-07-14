@@ -103,7 +103,18 @@ export class KyselyModelProviderStore implements ModelProviderStore {
       .where("id", "=", id)
       .where("owner_user_id", "=", ownerUserId)
       .executeTakeFirst();
-    return Number(result.numDeletedRows) > 0;
+    const deleted = Number(result.numDeletedRows) > 0;
+
+    if (deleted) {
+      await this.context.database
+        .updateTable("presets")
+        .set({ model_provider_id: null })
+        .where("model_provider_id", "=", id)
+        .where("owner_user_id", "=", ownerUserId)
+        .execute();
+    }
+
+    return deleted;
   }
 }
 

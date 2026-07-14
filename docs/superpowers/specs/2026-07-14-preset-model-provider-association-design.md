@@ -1,6 +1,6 @@
 # 预设关联模型连接设计
 
-**状态：** 已确认  
+**状态：** 已确认
 **日期：** 2026-07-14
 
 ## 目标
@@ -22,6 +22,8 @@
 `CreatePresetRequestDto` 增加可选且可空的 `modelProviderId`，`PresetEditableFieldsDto` 增加可选且可空的 `modelProviderId`，`UpdatePresetDocumentRequestDto` 增加必填且可空的 `modelProviderId`。预设创建、局部更新和整文档保存命令同步携带该字段。
 
 `PresetEditableFields` 接受 `modelProviderId?: string | null`。局部更新省略字段时保留当前关联，提交 `null` 时解除关联，提交字符串时更新关联。整文档保存始终提交该字段。当前 `applyPresetEditableFields` 无条件清空关联的行为需要修正。导入预设继续创建为未关联状态。
+
+常规预设聚合更新不写入模型连接关联列，防止条目或提示词保存把并发删除已经清空的关联重新写回。创建预设会随聚合首次保存关联；局部更新明确提交该字段或整文档保存时，才通过独立的关联写入操作更新该列。
 
 ### 所有权校验
 

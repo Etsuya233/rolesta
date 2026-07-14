@@ -123,7 +123,7 @@ export class KyselyPresetStore implements PresetStore {
     const database = this.context.database;
     await database
       .updateTable('presets')
-      .set(toPresetRow(preset))
+      .set(toPresetUpdateRow(preset))
       .where('id', '=', preset.id)
       .where('owner_user_id', '=', preset.ownerUserId)
       .execute();
@@ -151,6 +151,19 @@ export class KyselyPresetStore implements PresetStore {
         )
         .execute();
     }
+  }
+
+  async updateModelProviderAssociation(
+    presetId: string,
+    ownerUserId: string,
+    modelProviderId: string | null,
+  ): Promise<void> {
+    await this.context.database
+      .updateTable('presets')
+      .set({ model_provider_id: modelProviderId })
+      .where('id', '=', presetId)
+      .where('owner_user_id', '=', ownerUserId)
+      .execute();
   }
 
   async deleteOwned(id: string, ownerUserId: string): Promise<boolean> {
@@ -321,6 +334,28 @@ function toPresetRow(preset: Preset): PresetInsert {
     visibility: preset.visibility,
     name: preset.name,
     model_provider_id: preset.modelProviderId,
+    model_settings_json: JSON.stringify(preset.modelSettings),
+    tokenizer: preset.tokenizer,
+    source_format: preset.sourceFormat,
+    source_snapshot_json: JSON.stringify(preset.sourceSnapshot),
+    created_at_ms: ensureEpochMillis(preset.createdAtMs),
+    updated_at_ms: ensureEpochMillis(preset.updatedAtMs),
+    last_used_at_ms:
+      preset.lastUsedAtMs === null
+        ? null
+        : ensureEpochMillis(preset.lastUsedAtMs),
+    usage_count: preset.usageCount,
+  };
+}
+
+function toPresetUpdateRow(
+  preset: Preset,
+): Omit<PresetInsert, 'model_provider_id'> {
+  return {
+    id: preset.id,
+    owner_user_id: preset.ownerUserId,
+    visibility: preset.visibility,
+    name: preset.name,
     model_settings_json: JSON.stringify(preset.modelSettings),
     tokenizer: preset.tokenizer,
     source_format: preset.sourceFormat,

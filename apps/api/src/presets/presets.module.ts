@@ -27,6 +27,11 @@ import { UpdatePresetUseCase } from './application/update-preset.use-case.js';
 import { PRESET_CODEC, type PresetCodec } from './ports/preset-codec.js';
 import { PRESET_STORE, type PresetStore } from './ports/preset-store.js';
 import { KyselyPresetStore } from './persistence/kysely-preset-store.js';
+import { KyselyPresetModelProviderAccess } from './persistence/kysely-preset-model-provider-access.js';
+import {
+  PRESET_MODEL_PROVIDER_ACCESS,
+  type PresetModelProviderAccess,
+} from './ports/preset-model-provider-access.js';
 import { PresetsController } from './http/presets.controller.js';
 
 @Module({
@@ -34,10 +39,15 @@ import { PresetsController } from './http/presets.controller.js';
   controllers: [PresetsController],
   providers: [
     KyselyPresetStore,
+    KyselyPresetModelProviderAccess,
     SillyTavernPresetCodec,
     CryptoIdGenerator,
     SystemClock,
     { provide: PRESET_STORE, useExisting: KyselyPresetStore },
+    {
+      provide: PRESET_MODEL_PROVIDER_ACCESS,
+      useExisting: KyselyPresetModelProviderAccess,
+    },
     { provide: PRESET_CODEC, useExisting: SillyTavernPresetCodec },
     {
       provide: ListPresetsUseCase,
@@ -55,27 +65,60 @@ import { PresetsController } from './http/presets.controller.js';
         store: PresetStore,
         idGenerator: PresetIdGenerator,
         clock: PresetClock,
+        modelProviderAccess: PresetModelProviderAccess,
         unitOfWork: UnitOfWork,
-      ) => new CreatePresetUseCase(store, idGenerator, clock, unitOfWork),
-      inject: [PRESET_STORE, CryptoIdGenerator, SystemClock, UNIT_OF_WORK],
+      ) =>
+        new CreatePresetUseCase(
+          store,
+          idGenerator,
+          clock,
+          modelProviderAccess,
+          unitOfWork,
+        ),
+      inject: [
+        PRESET_STORE,
+        CryptoIdGenerator,
+        SystemClock,
+        PRESET_MODEL_PROVIDER_ACCESS,
+        UNIT_OF_WORK,
+      ],
     },
     {
       provide: UpdatePresetUseCase,
       useFactory: (
         store: PresetStore,
         clock: PresetClock,
+        modelProviderAccess: PresetModelProviderAccess,
         unitOfWork: UnitOfWork,
-      ) => new UpdatePresetUseCase(store, clock, unitOfWork),
-      inject: [PRESET_STORE, SystemClock, UNIT_OF_WORK],
+      ) =>
+        new UpdatePresetUseCase(store, clock, modelProviderAccess, unitOfWork),
+      inject: [
+        PRESET_STORE,
+        SystemClock,
+        PRESET_MODEL_PROVIDER_ACCESS,
+        UNIT_OF_WORK,
+      ],
     },
     {
       provide: UpdatePresetDocumentUseCase,
       useFactory: (
         store: PresetStore,
         clock: PresetClock,
+        modelProviderAccess: PresetModelProviderAccess,
         unitOfWork: UnitOfWork,
-      ) => new UpdatePresetDocumentUseCase(store, clock, unitOfWork),
-      inject: [PRESET_STORE, SystemClock, UNIT_OF_WORK],
+      ) =>
+        new UpdatePresetDocumentUseCase(
+          store,
+          clock,
+          modelProviderAccess,
+          unitOfWork,
+        ),
+      inject: [
+        PRESET_STORE,
+        SystemClock,
+        PRESET_MODEL_PROVIDER_ACCESS,
+        UNIT_OF_WORK,
+      ],
     },
     {
       provide: DeletePresetUseCase,

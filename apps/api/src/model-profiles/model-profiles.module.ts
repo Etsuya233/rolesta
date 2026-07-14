@@ -92,9 +92,9 @@ import { API_KEY_STORE, type ApiKeyStore } from "./ports/api-key-store.js";
     },
     {
       provide: DeleteModelProviderUseCase,
-      useFactory: (store: ModelProviderStore) =>
-        new DeleteModelProviderUseCase(store),
-      inject: [MODEL_PROVIDER_STORE],
+      useFactory: (store: ModelProviderStore, unitOfWork: UnitOfWork) =>
+        new DeleteModelProviderUseCase(store, unitOfWork),
+      inject: [MODEL_PROVIDER_STORE, UNIT_OF_WORK],
     },
     {
       provide: CreateModelProviderApiKeyUseCase,
