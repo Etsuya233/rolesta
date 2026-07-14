@@ -9,6 +9,7 @@ import {
   type PresetEditableFields,
 } from './preset-editable-fields.js';
 import type { PresetStore } from '../ports/preset-store.js';
+import type { PresetModelProviderAccess } from '../ports/preset-model-provider-access.js';
 import type { Preset } from '../domain/preset.js';
 
 export interface UpdatePresetCommand extends PresetEditableFields {
@@ -20,6 +21,7 @@ export class UpdatePresetUseCase {
   constructor(
     private readonly store: PresetStore,
     private readonly clock: PresetClock,
+    private readonly modelProviderAccess: PresetModelProviderAccess,
     private readonly unitOfWork: UnitOfWork,
   ) {}
 
@@ -48,7 +50,28 @@ export class UpdatePresetUseCase {
         command,
       );
 
+      if (
+        command.modelProviderId !== undefined &&
+        command.modelProviderId !== null &&
+        !(await this.modelProviderAccess.acquireOwned(
+          command.modelProviderId,
+          current.ownerUserId,
+        ))
+      ) {
+        throw new PresetApplicationError({
+          reason: 'model-provider-unavailable',
+          params: { modelProviderId: command.modelProviderId },
+        });
+      }
+
       await this.store.update(updated);
+      if (command.modelProviderId !== undefined) {
+        await this.store.updateModelProviderAssociation(
+          current.id,
+          current.ownerUserId,
+          command.modelProviderId,
+        );
+      }
 
       return updated;
     });

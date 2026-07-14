@@ -56,6 +56,31 @@ export async function listModelProviders(
   return result.data;
 }
 
+export async function listAllModelProviders(): Promise<
+  ModelProviderSummaryResponse[]
+> {
+  const firstPage = await listModelProviders({
+    q: "",
+    sort: "name",
+    direction: "asc",
+    pageIndex: 0,
+    pageSize: 100,
+  });
+  const remainingPages = await Promise.all(
+    Array.from({ length: Math.max(0, firstPage.totalPages - 1) }, (_, index) =>
+      listModelProviders({
+        q: "",
+        sort: "name",
+        direction: "asc",
+        pageIndex: index + 1,
+        pageSize: 100,
+      }),
+    ),
+  );
+
+  return [firstPage, ...remainingPages].flatMap((page) => page.items);
+}
+
 export async function getModelProvider(
   id: string,
 ): Promise<ModelProviderDetailResponse> {

@@ -7,6 +7,32 @@ import type { Preset } from "../domain/preset.js";
 import { KyselyPresetStore } from "./kysely-preset-store.js";
 
 describe("KyselyPresetStore", () => {
+  it("keeps association changes isolated from regular aggregate updates", async () => {
+    const database = await createTestDatabase();
+    const context = new KyselyDatabaseContext(database.db);
+    const unitOfWork = new KyselyUnitOfWork(database.db, context);
+    const store = new KyselyPresetStore(context);
+
+    try {
+      await seedUser(database.db, "owner");
+      const original = preset({ modelProviderId: "provider_1" });
+      await unitOfWork.run(() => store.save(original));
+      await store.updateModelProviderAssociation("preset", "owner", null);
+      await unitOfWork.run(() =>
+        store.update({ ...original, name: "Renamed" }),
+      );
+
+      await expect(
+        store.findOwnedById("preset", "owner"),
+      ).resolves.toMatchObject({
+        name: "Renamed",
+        modelProviderId: null,
+      });
+    } finally {
+      await database.destroy();
+    }
+  });
+
   it("filters visible presets by permission scope", async () => {
     const database = await createTestDatabase();
     const context = new KyselyDatabaseContext(database.db);

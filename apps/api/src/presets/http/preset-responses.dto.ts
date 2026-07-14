@@ -114,7 +114,9 @@ export class PresetEntryResponseDto {
   @ApiProperty({ enum: ['system', 'user', 'assistant'] })
   role!: PresetEntryRole;
 
-  @ApiProperty({ enum: ['system', 'chat', 'preHistory', 'postHistory', 'unknown'] })
+  @ApiProperty({
+    enum: ['system', 'chat', 'preHistory', 'postHistory', 'unknown'],
+  })
   position!: PresetEntryPosition;
 
   @ApiProperty({ type: String })
@@ -181,7 +183,9 @@ export class PresetPageResponseDto {
   totalPages!: number;
 }
 
-export function toPresetSummaryResponse(preset: PresetSummary): PresetSummaryResponseDto {
+export function toPresetSummaryResponse(
+  preset: PresetSummary,
+): PresetSummaryResponseDto {
   return {
     id: preset.id,
     ownerUserId: preset.ownerUserId,
@@ -197,10 +201,14 @@ export function toPresetSummaryResponse(preset: PresetSummary): PresetSummaryRes
   };
 }
 
-export function toPresetDetailResponse(preset: Preset): PresetDetailResponseDto {
+export function toPresetDetailResponse(
+  preset: Preset,
+  viewerUserId: string,
+): PresetDetailResponseDto {
   return {
     ...toPresetAggregateSummaryResponse(preset),
-    modelProviderId: preset.modelProviderId,
+    modelProviderId:
+      preset.ownerUserId === viewerUserId ? preset.modelProviderId : null,
     modelSettings: preset.modelSettings,
     tokenizer: preset.tokenizer,
     sourceFormat: preset.sourceFormat,
@@ -209,7 +217,9 @@ export function toPresetDetailResponse(preset: Preset): PresetDetailResponseDto 
   };
 }
 
-function toPresetAggregateSummaryResponse(preset: Preset): PresetSummaryResponseDto {
+function toPresetAggregateSummaryResponse(
+  preset: Preset,
+): PresetSummaryResponseDto {
   return {
     id: preset.id,
     ownerUserId: preset.ownerUserId,
@@ -225,7 +235,9 @@ function toPresetAggregateSummaryResponse(preset: Preset): PresetSummaryResponse
   };
 }
 
-export function toPresetPageResponse(page: PageResponse<PresetSummary>): PresetPageResponseDto {
+export function toPresetPageResponse(
+  page: PageResponse<PresetSummary>,
+): PresetPageResponseDto {
   return {
     items: page.items.map(toPresetSummaryResponse),
     pageIndex: page.pageIndex,
@@ -251,7 +263,9 @@ function toPresetEntryResponse(entry: PresetEntry): PresetEntryResponseDto {
   };
 }
 
-function toPresetPromptItemResponse(item: PresetPromptItem): PresetPromptItemResponseDto {
+function toPresetPromptItemResponse(
+  item: PresetPromptItem,
+): PresetPromptItemResponseDto {
   return {
     entryId: item.entryId,
     enabled: item.enabled,

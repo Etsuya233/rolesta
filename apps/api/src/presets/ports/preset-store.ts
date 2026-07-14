@@ -34,5 +34,14 @@ export interface PresetStore {
   findOwnedById(id: string, ownerUserId: string): Promise<Preset | null>;
   save(preset: Preset): Promise<void>;
   update(preset: Preset): Promise<void>;
+  updateModelProviderAssociation(
+    presetId: string,
+    ownerUserId: string,
+    modelProviderId: string | null,
+  ): Promise<void>;
+  clearModelProviderAssociations(
+    ownerUserId: string,
+    modelProviderId: string,
+  ): Promise<void>;
   deleteOwned(id: string, ownerUserId: string): Promise<boolean>;
 }

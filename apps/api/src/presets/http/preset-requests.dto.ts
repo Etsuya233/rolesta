@@ -163,6 +163,11 @@ export class PresetEditableFieldsDto {
   @MaxLength(255)
   name?: string;
 
+  @ApiPropertyOptional({ nullable: true, type: String })
+  @IsOptional()
+  @IsString()
+  modelProviderId?: string | null;
+
   @ApiPropertyOptional({ type: PresetModelSettingsDto })
   @IsOptional()
   @ValidateNested()
@@ -180,6 +185,11 @@ export class CreatePresetRequestDto {
   @IsString()
   @MaxLength(255)
   name!: string;
+
+  @ApiPropertyOptional({ nullable: true, type: String })
+  @IsOptional()
+  @IsString()
+  modelProviderId?: string | null;
 
   @ApiPropertyOptional({ type: PresetModelSettingsDto })
   @IsOptional()
@@ -310,6 +320,11 @@ export class UpdatePresetDocumentRequestDto {
   @IsString()
   @MaxLength(255)
   name!: string;
+
+  @ApiProperty({ nullable: true, type: String })
+  @ValidateIf((_object, value) => value !== null)
+  @IsString()
+  modelProviderId!: string | null;
 
   @ApiProperty({ type: PresetDocumentModelSettingsDto })
   @ValidateNested()

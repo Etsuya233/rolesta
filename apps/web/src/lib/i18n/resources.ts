@@ -1108,6 +1108,13 @@ export const resources = {
           exportAction: "Export SillyTavern preset",
           deleteAction: "Delete preset",
           unlinkedProvider: "Unlinked",
+          clearModelProvider: "Clear model connection",
+          modelProviderLoading: "Loading model connections",
+          modelProvidersLoadFailed: "Failed to load model connections",
+          noModelProviders: "No model connections",
+          noDefaultModel: "No default model",
+          selectedModelProviderUnavailable:
+            "The selected model connection is unavailable",
           sections: {
             basic: {
               title: "Basic info",
@@ -1130,6 +1137,7 @@ export const resources = {
           fields: {
             name: "Name",
             visibility: "Visibility",
+            modelProvider: "Model connection",
             contextLength: "Context length",
             maxResponseLength: "Max response length",
             stream: "Stream",
@@ -1642,6 +1650,12 @@ export const resources = {
           exportAction: "导出 SillyTavern 预设",
           deleteAction: "删除预设",
           unlinkedProvider: "未关联",
+          clearModelProvider: "清除模型连接",
+          modelProviderLoading: "正在加载模型连接",
+          modelProvidersLoadFailed: "模型连接加载失败",
+          noModelProviders: "暂无模型连接",
+          noDefaultModel: "未设置默认模型",
+          selectedModelProviderUnavailable: "所选模型连接已不可用",
           sections: {
             basic: {
               title: "基础信息",
@@ -1664,6 +1678,7 @@ export const resources = {
           fields: {
             name: "名称",
             visibility: "权限",
+            modelProvider: "模型连接",
             contextLength: "上下文长度",
             maxResponseLength: "最大回复长度",
             stream: "流式传输",
@@ -2170,6 +2185,12 @@ export const resources = {
           exportAction: "匯出 SillyTavern 預設",
           deleteAction: "刪除預設",
           unlinkedProvider: "未關聯",
+          clearModelProvider: "清除模型連線",
+          modelProviderLoading: "正在載入模型連線",
+          modelProvidersLoadFailed: "模型連線載入失敗",
+          noModelProviders: "暫無模型連線",
+          noDefaultModel: "未設定預設模型",
+          selectedModelProviderUnavailable: "所選模型連線已無法使用",
           sections: {
             basic: {
               title: "基本資訊",
@@ -2192,6 +2213,7 @@ export const resources = {
           fields: {
             name: "名稱",
             visibility: "權限",
+            modelProvider: "模型連線",
             contextLength: "上下文長度",
             maxResponseLength: "最大回覆長度",
             stream: "串流傳輸",
@@ -2701,6 +2723,13 @@ export const resources = {
           exportAction: "SillyTavern プリセットをエクスポート",
           deleteAction: "プリセットを削除",
           unlinkedProvider: "未連携",
+          clearModelProvider: "モデル接続を解除",
+          modelProviderLoading: "モデル接続を読み込み中",
+          modelProvidersLoadFailed: "モデル接続の読み込みに失敗しました",
+          noModelProviders: "モデル接続がありません",
+          noDefaultModel: "デフォルトモデルなし",
+          selectedModelProviderUnavailable:
+            "選択したモデル接続は利用できません",
           sections: {
             basic: {
               title: "基本情報",
@@ -2723,6 +2752,7 @@ export const resources = {
           fields: {
             name: "名前",
             visibility: "権限",
+            modelProvider: "モデル接続",
             contextLength: "コンテキスト長",
             maxResponseLength: "最大応答長",
             stream: "ストリーミング",

@@ -115,6 +115,7 @@ test("saves one complete preset document across editor pages", async ({
     .poll(() => savedDocument)
     .toMatchObject({
       name: "Complete preset",
+      modelProviderId: "provider_1",
       entries: [
         { id: "entry_1", name: "First" },
         { id: "entry_2", name: "Second updated" },
@@ -126,7 +127,70 @@ test("saves one complete preset document across editor pages", async ({
     });
 });
 
+test("updates and clears the preset model connection", async ({ page }) => {
+  let savedDocument: Record<string, unknown> | null = null;
+
+  await mockAuthenticatedApp(page);
+  await mockPresetList(page);
+  await page.route(/\/api\/presets\/preset_e2e$/, async (route) => {
+    if (route.request().method() === "PUT") {
+      savedDocument = route.request().postDataJSON() as Record<string, unknown>;
+      await fulfillPresetDetail(route, savedDocument);
+      return;
+    }
+
+    await fulfillPresetDetail(route);
+  });
+
+  await page.goto("/app/presets");
+  await page.getByRole("button", { name: /Complete preset/ }).click();
+
+  const modelConnection = page.getByRole("combobox", {
+    name: "Model connection",
+  });
+  await expect(modelConnection).toContainText("Primary connection");
+  await modelConnection.click();
+  await page.getByRole("option", { name: /Secondary connection/ }).click();
+  await page.getByRole("button", { name: "Save" }).click();
+  await expect.poll(() => savedDocument?.modelProviderId).toBe("provider_2");
+
+  await page.getByRole("button", { name: "Clear model connection" }).click();
+  await page.getByRole("button", { name: "Save" }).click();
+  await expect.poll(() => savedDocument?.modelProviderId).toBeNull();
+});
+
 async function mockPresetList(page: Page) {
+  await page.route(/\/api\/model-providers(?:\?.*)?$/, async (route) => {
+    const pageIndex = Number(
+      new URL(route.request().url()).searchParams.get("pageIndex"),
+    );
+    const providers =
+      pageIndex === 0
+        ? [modelProviderSummary("provider_1", "Primary connection", "model-a")]
+        : [
+            modelProviderSummary(
+              "provider_2",
+              "Secondary connection",
+              "model-b",
+            ),
+          ];
+
+    await route.fulfill({
+      contentType: "application/json",
+      json: {
+        code: "SUCCESS",
+        msg: "ok",
+        data: {
+          items: providers,
+          pageIndex,
+          pageSize: 100,
+          totalItems: 2,
+          totalPages: 2,
+        },
+      },
+    });
+  });
+
   await page.route(/\/api\/presets(?:\?.*)?$/, async (route) => {
     await route.fulfill({
       contentType: "application/json",
@@ -203,7 +267,9 @@ async function fulfillPresetDetail(
         updatedAtMs: 1783090001000,
         lastUsedAtMs: null,
         usageCount: 0,
-        modelProviderId: null,
+        modelProviderId: Object.hasOwn(document, "modelProviderId")
+          ? document.modelProviderId
+          : "provider_1",
         modelSettings: document.modelSettings ?? defaultModelSettings,
         tokenizer: "cl100k_base",
         sourceFormat: "rolesta",
@@ -223,6 +289,29 @@ async function fulfillPresetDetail(
       },
     },
   });
+}
+
+function modelProviderSummary(
+  id: string,
+  name: string,
+  defaultModelName: string,
+) {
+  return {
+    id,
+    ownerUserId: "user_e2e",
+    name,
+    providerKind: "openai-compatible",
+    providerSource: "custom",
+    baseUrl: "https://example.com/v1",
+    defaultModelName,
+    credentialMode: "manual",
+    apiKeyId: null,
+    apiKeyName: null,
+    createdAtMs: 1783090000000,
+    updatedAtMs: 1783090000000,
+    lastUsedAtMs: null,
+    usageCount: 0,
+  };
 }
 
 const defaultModelSettings = {

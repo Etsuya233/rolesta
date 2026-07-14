@@ -1088,12 +1088,14 @@ export interface components {
             /** @enum {string} */
             visibility?: "private" | "public";
             name: string;
+            modelProviderId?: string | null;
             modelSettings?: components["schemas"]["PresetModelSettingsDto"];
         };
         UpdatePresetRequestDto: {
             /** @enum {string} */
             visibility?: "private" | "public";
             name?: string;
+            modelProviderId?: string | null;
             modelSettings?: components["schemas"]["PresetModelSettingsDto"];
         };
         PresetDocumentModelSettingsDto: {
@@ -1131,6 +1133,7 @@ export interface components {
             /** @enum {string} */
             visibility: "private" | "public";
             name: string;
+            modelProviderId: string | null;
             modelSettings: components["schemas"]["PresetDocumentModelSettingsDto"];
             entries: components["schemas"]["PresetDocumentEntryDto"][];
             promptItems: components["schemas"]["PresetDocumentPromptItemDto"][];

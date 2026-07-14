@@ -1,10 +1,27 @@
 import type { TFunction } from "i18next";
 import { countPromptTokens } from "@rolesta/shared";
-import { BadgeInfo, SlidersHorizontal } from "lucide-react";
+import { useQuery } from "@tanstack/react-query";
+import { BadgeInfo, SlidersHorizontal, XIcon } from "lucide-react";
 import { useId, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Accordion } from "../../../components/ui/accordion";
-import { Badge } from "../../../components/ui/badge";
+import { Button } from "../../../components/ui/button";
+import { Field, FieldError, FieldLabel } from "../../../components/ui/field";
+import {
+  Select,
+  SelectContent,
+  SelectGroup,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "../../../components/ui/select";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "../../../components/ui/tooltip";
+import { listAllModelProviders } from "../../model-providers/api/model-providers-api";
 import { usePresetDraftSession } from "../hooks/use-preset-draft-sessions";
 import type {
   PresetDetailResponse,
@@ -106,12 +123,14 @@ export function PresetMainEditor({
               value={form.visibility}
               onChange={(visibility) => setForm({ ...form, visibility })}
             />
-            <div className="flex items-center justify-between rounded-md border border-border px-3 py-2 text-sm">
-              <span className="text-muted-foreground">Model Provider</span>
-              <Badge variant="outline">
-                {t("presets.editor.unlinkedProvider")}
-              </Badge>
-            </div>
+            <PresetModelProviderField
+              disabled={isPending}
+              id={`${fieldPrefix}-model-provider`}
+              value={form.modelProviderId}
+              onChange={(modelProviderId) =>
+                setForm({ ...form, modelProviderId })
+              }
+            />
             <div className="grid grid-cols-2 gap-2 text-sm">
               <Metric
                 label={t("presets.metrics.totalTokens")}
@@ -236,6 +255,100 @@ export function PresetMainEditor({
         </div>
       ) : null}
     </form>
+  );
+}
+
+function PresetModelProviderField({
+  id,
+  value,
+  onChange,
+  disabled,
+}: {
+  id: string;
+  value: string | null;
+  onChange: (value: string | null) => void;
+  disabled: boolean;
+}) {
+  const { t } = useTranslation();
+  const providersQuery = useQuery({
+    queryKey: ["model-providers", "preset-options"],
+    queryFn: listAllModelProviders,
+  });
+  const providers = providersQuery.data ?? [];
+  const selectedProviderUnavailable =
+    value !== null &&
+    providersQuery.isSuccess &&
+    !providers.some((provider) => provider.id === value);
+  const invalid = providersQuery.isError || selectedProviderUnavailable;
+  const selectDisabled =
+    disabled || providersQuery.isLoading || providers.length === 0;
+  const placeholder = providersQuery.isLoading
+    ? t("presets.editor.modelProviderLoading")
+    : providers.length === 0
+      ? t("presets.editor.noModelProviders")
+      : t("presets.editor.unlinkedProvider");
+
+  return (
+    <Field
+      data-disabled={disabled || providersQuery.isLoading}
+      data-invalid={invalid}
+    >
+      <FieldLabel htmlFor={id}>
+        {t("presets.editor.fields.modelProvider")}
+      </FieldLabel>
+      <div className="flex min-w-0 items-center gap-2">
+        <Select
+          disabled={selectDisabled}
+          value={value ?? ""}
+          onValueChange={onChange}
+        >
+          <SelectTrigger
+            aria-invalid={invalid}
+            className="min-w-0 flex-1"
+            id={id}
+          >
+            <SelectValue placeholder={placeholder} />
+          </SelectTrigger>
+          <SelectContent position="popper">
+            <SelectGroup>
+              {providers.map((provider) => (
+                <SelectItem key={provider.id} value={provider.id}>
+                  {provider.name} · {provider.providerKind} ·{" "}
+                  {provider.defaultModelName ||
+                    t("presets.editor.noDefaultModel")}
+                </SelectItem>
+              ))}
+            </SelectGroup>
+          </SelectContent>
+        </Select>
+        <TooltipProvider>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                aria-label={t("presets.editor.clearModelProvider")}
+                disabled={disabled || value === null}
+                size="icon"
+                type="button"
+                variant="outline"
+                onClick={() => onChange(null)}
+              >
+                <XIcon />
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>
+              {t("presets.editor.clearModelProvider")}
+            </TooltipContent>
+          </Tooltip>
+        </TooltipProvider>
+      </div>
+      {providersQuery.isError ? (
+        <FieldError>{t("presets.editor.modelProvidersLoadFailed")}</FieldError>
+      ) : selectedProviderUnavailable ? (
+        <FieldError>
+          {t("presets.editor.selectedModelProviderUnavailable")}
+        </FieldError>
+      ) : null}
+    </Field>
   );
 }
 

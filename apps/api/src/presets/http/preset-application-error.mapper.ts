@@ -6,6 +6,7 @@ import type { PresetApplicationError } from '../application/preset-application-e
 export function toApiFailure(error: PresetApplicationError): ApiFailure {
   switch (error.reason) {
     case 'not-found':
+    case 'model-provider-unavailable':
       return new ApiFailure({
         status: HttpStatus.NOT_FOUND,
         code: ERROR_CODES.NOT_FOUND,

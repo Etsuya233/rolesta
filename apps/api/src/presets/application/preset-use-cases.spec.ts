@@ -2,10 +2,12 @@ import { describe, expect, it } from 'vitest';
 import type { UnitOfWork } from '../../common/application/unit-of-work.js';
 import type { PageResponse } from '@rolesta/shared';
 import { PresetApplicationError } from './preset-application-error.js';
+import { CreatePresetUseCase } from './create-preset.use-case.js';
 import { ImportPresetUseCase } from './import-preset.use-case.js';
 import { GetPresetUseCase } from './get-preset.use-case.js';
 import { UpdatePresetPromptItemsUseCase } from './update-preset-prompt-items.use-case.js';
 import { UpdatePresetDocumentUseCase } from './update-preset-document.use-case.js';
+import { UpdatePresetUseCase } from './update-preset.use-case.js';
 import type {
   PresetClock,
   PresetIdGenerator,
@@ -14,8 +16,88 @@ import type { Preset, PresetSummary } from '../domain/preset.js';
 import type { PresetCodec, ImportedPreset } from '../ports/preset-codec.js';
 import { PresetPortError } from '../ports/preset-port-error.js';
 import type { PresetStore } from '../ports/preset-store.js';
+import type { PresetModelProviderAccess } from '../ports/preset-model-provider-access.js';
 
 describe('preset use cases', () => {
+  it('creates a preset linked to an owned model provider', async () => {
+    const store = new InMemoryPresetStore();
+    const useCase = new CreatePresetUseCase(
+      store,
+      new FixedIdGenerator('preset_1'),
+      new FixedClock(1783090000000),
+      new InMemoryPresetModelProviderAccess([
+        { id: 'provider_1', ownerUserId: 'owner' },
+      ]),
+      unitOfWork,
+    );
+
+    await expect(
+      useCase.execute({
+        ownerUserId: 'owner',
+        name: 'Linked preset',
+        modelProviderId: 'provider_1',
+      }),
+    ).resolves.toMatchObject({ modelProviderId: 'provider_1' });
+    expect(store.savedPreset?.modelProviderId).toBe('provider_1');
+  });
+
+  it('rejects a model provider unavailable to the preset owner', async () => {
+    const useCase = new CreatePresetUseCase(
+      new InMemoryPresetStore(),
+      new FixedIdGenerator('preset_1'),
+      new FixedClock(1783090000000),
+      new InMemoryPresetModelProviderAccess([
+        { id: 'provider_1', ownerUserId: 'other' },
+      ]),
+      unitOfWork,
+    );
+
+    await expect(
+      useCase.execute({
+        ownerUserId: 'owner',
+        name: 'Linked preset',
+        modelProviderId: 'provider_1',
+      }),
+    ).rejects.toMatchObject({
+      reason: 'model-provider-unavailable',
+      params: { modelProviderId: 'provider_1' },
+    });
+  });
+
+  it('preserves omitted model provider fields and clears explicit nulls', async () => {
+    const store = new InMemoryPresetStore([
+      preset({ id: 'preset_1', modelProviderId: 'provider_1' }),
+    ]);
+    const useCase = new UpdatePresetUseCase(
+      store,
+      new FixedClock(1783090000000),
+      new InMemoryPresetModelProviderAccess(),
+      unitOfWork,
+    );
+
+    await expect(
+      useCase.execute({
+        id: 'preset_1',
+        viewerUserId: 'owner',
+        name: 'Renamed',
+      }),
+    ).resolves.toMatchObject({ modelProviderId: 'provider_1' });
+    expect(store.updatedAssociation).toBeNull();
+
+    await expect(
+      useCase.execute({
+        id: 'preset_1',
+        viewerUserId: 'owner',
+        modelProviderId: null,
+      }),
+    ).resolves.toMatchObject({ modelProviderId: null });
+    expect(store.updatedAssociation).toEqual({
+      presetId: 'preset_1',
+      ownerUserId: 'owner',
+      modelProviderId: null,
+    });
+  });
+
   it('allows public reads and keeps private presets owner-only', async () => {
     const store = new InMemoryPresetStore([
       preset({ id: 'public', ownerUserId: 'owner', visibility: 'public' }),
@@ -130,6 +212,9 @@ describe('preset use cases', () => {
     const useCase = new UpdatePresetDocumentUseCase(
       store,
       new FixedClock(1783090000000),
+      new InMemoryPresetModelProviderAccess([
+        { id: 'provider_1', ownerUserId: 'owner' },
+      ]),
       unitOfWork,
     );
 
@@ -138,6 +223,7 @@ describe('preset use cases', () => {
       viewerUserId: 'owner',
       visibility: 'public',
       name: 'Updated preset',
+      modelProviderId: 'provider_1',
       modelSettings: {
         ...preset({}).modelSettings,
         stream: false,
@@ -167,6 +253,7 @@ describe('preset use cases', () => {
     expect(updated.name).toBe('Updated preset');
     expect(updated.visibility).toBe('public');
     expect(updated.modelSettings.stream).toBe(false);
+    expect(updated.modelProviderId).toBe('provider_1');
     expect(updated.entries).toHaveLength(2);
     expect(updated.entries[0]).toMatchObject({
       id: 'entry_1',
@@ -192,6 +279,7 @@ describe('preset use cases', () => {
     const useCase = new UpdatePresetDocumentUseCase(
       new InMemoryPresetStore([preset({ id: 'preset_1' })]),
       new FixedClock(1783090000000),
+      new InMemoryPresetModelProviderAccess(),
       unitOfWork,
     );
 
@@ -201,6 +289,7 @@ describe('preset use cases', () => {
         viewerUserId: 'owner',
         visibility: 'private',
         name: 'Preset',
+        modelProviderId: null,
         modelSettings: preset({}).modelSettings,
         entries: [],
         promptItems: [{ entryId: 'missing', enabled: true }],
@@ -252,13 +341,27 @@ class NoopPresetStore implements PresetStore {
     return Promise.resolve();
   }
 
+  updateModelProviderAssociation(): Promise<void> {
+    return Promise.resolve();
+  }
+
+  clearModelProviderAssociations(): Promise<void> {
+    return Promise.resolve();
+  }
+
   deleteOwned(): Promise<boolean> {
     return Promise.resolve(false);
   }
 }
 
 class InMemoryPresetStore implements PresetStore {
+  savedPreset: Preset | null = null;
   updatedPreset: Preset | null = null;
+  updatedAssociation: {
+    presetId: string;
+    ownerUserId: string;
+    modelProviderId: string | null;
+  } | null = null;
 
   constructor(private readonly presets: Preset[] = []) {}
 
@@ -284,7 +387,8 @@ class InMemoryPresetStore implements PresetStore {
     return Promise.resolve(preset ?? null);
   }
 
-  save(): Promise<void> {
+  save(preset: Preset): Promise<void> {
+    this.savedPreset = preset;
     return Promise.resolve();
   }
 
@@ -293,8 +397,48 @@ class InMemoryPresetStore implements PresetStore {
     return Promise.resolve();
   }
 
+  updateModelProviderAssociation(
+    presetId: string,
+    ownerUserId: string,
+    modelProviderId: string | null,
+  ): Promise<void> {
+    this.updatedAssociation = { presetId, ownerUserId, modelProviderId };
+    return Promise.resolve();
+  }
+
+  clearModelProviderAssociations(
+    ownerUserId: string,
+    modelProviderId: string,
+  ): Promise<void> {
+    for (const preset of this.presets) {
+      if (
+        preset.ownerUserId === ownerUserId &&
+        preset.modelProviderId === modelProviderId
+      ) {
+        preset.modelProviderId = null;
+      }
+    }
+    return Promise.resolve();
+  }
+
   deleteOwned(): Promise<boolean> {
     return Promise.resolve(false);
+  }
+}
+
+class InMemoryPresetModelProviderAccess implements PresetModelProviderAccess {
+  constructor(
+    private readonly providers: Array<{ id: string; ownerUserId: string }> = [],
+  ) {}
+
+  acquireOwned(modelProviderId: string, ownerUserId: string): Promise<boolean> {
+    return Promise.resolve(
+      this.providers.some(
+        (provider) =>
+          provider.id === modelProviderId &&
+          provider.ownerUserId === ownerUserId,
+      ),
+    );
   }
 }
 

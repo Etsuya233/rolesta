@@ -5,6 +5,7 @@ import type { PresetVisibility } from '../domain/preset.js';
 export interface PresetEditableFields {
   visibility?: PresetVisibility;
   name?: string;
+  modelProviderId?: string | null;
   modelSettings?: Partial<PresetModelSettings>;
 }
 
@@ -16,7 +17,10 @@ export function applyPresetEditableFields(
     ...preset,
     visibility: fields.visibility ?? preset.visibility,
     name: fields.name ?? preset.name,
-    modelProviderId: null,
+    modelProviderId:
+      fields.modelProviderId === undefined
+        ? preset.modelProviderId
+        : fields.modelProviderId,
     modelSettings:
       fields.modelSettings === undefined
         ? preset.modelSettings

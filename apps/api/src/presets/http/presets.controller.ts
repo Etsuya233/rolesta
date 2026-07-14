@@ -104,6 +104,7 @@ export class PresetsController {
           id,
           viewerUserId: request.authUser.id,
         }),
+        request.authUser.id,
       ),
     );
   }
@@ -120,6 +121,7 @@ export class PresetsController {
         ownerUserId: request.authUser.id,
         ...body,
       }),
+      request.authUser.id,
     );
   }
 
@@ -139,6 +141,7 @@ export class PresetsController {
           viewerUserId: request.authUser.id,
           ...body,
         }),
+        request.authUser.id,
       ),
     );
   }
@@ -159,6 +162,7 @@ export class PresetsController {
           viewerUserId: request.authUser.id,
           ...body,
         }),
+        request.authUser.id,
       ),
     );
   }
@@ -213,6 +217,7 @@ export class PresetsController {
           ownerUserId: request.authUser.id,
           content: file.buffer,
         }),
+        request.authUser.id,
       );
     });
   }
@@ -255,6 +260,7 @@ export class PresetsController {
           viewerUserId: request.authUser.id,
           ...body,
         }),
+        request.authUser.id,
       ),
     );
   }
@@ -278,6 +284,7 @@ export class PresetsController {
           viewerUserId: request.authUser.id,
           ...body,
         }),
+        request.authUser.id,
       ),
     );
   }
@@ -298,6 +305,7 @@ export class PresetsController {
           entryId,
           viewerUserId: request.authUser.id,
         }),
+        request.authUser.id,
       ),
     );
   }
@@ -318,6 +326,7 @@ export class PresetsController {
           viewerUserId: request.authUser.id,
           items: body.items,
         }),
+        request.authUser.id,
       ),
     );
   }
