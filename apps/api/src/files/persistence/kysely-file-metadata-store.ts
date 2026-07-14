@@ -24,6 +24,39 @@ export class KyselyFileMetadataStore implements FileMetadataStore {
       .execute();
   }
 
+  async activatePendingCharacterAvatar(
+    resourceId: string,
+    ownerUserId: string,
+  ): Promise<boolean> {
+    const result = await this.context.database
+      .updateTable('file_resources')
+      .set({ status: 'active', orphaned_at_ms: null })
+      .where('id', '=', resourceId)
+      .where('owner_user_id', '=', ownerUserId)
+      .where('purpose', '=', 'character-avatar')
+      .where('status', '=', 'pending')
+      .executeTakeFirst();
+
+    return Number(result.numUpdatedRows) === 1;
+  }
+
+  async orphanActiveCharacterAvatar(
+    resourceId: string,
+    ownerUserId: string,
+    orphanedAtMs: number,
+  ): Promise<boolean> {
+    const result = await this.context.database
+      .updateTable('file_resources')
+      .set({ status: 'orphaned', orphaned_at_ms: orphanedAtMs })
+      .where('id', '=', resourceId)
+      .where('owner_user_id', '=', ownerUserId)
+      .where('purpose', '=', 'character-avatar')
+      .where('status', '=', 'active')
+      .executeTakeFirst();
+
+    return Number(result.numUpdatedRows) === 1;
+  }
+
   async findReadableObject(fileId: string): Promise<ReadableFileObject | null> {
     const row = await this.context.database
       .selectFrom('file_objects')

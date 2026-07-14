@@ -176,6 +176,30 @@ class MemoryAssetDefaultsStore implements AssetDefaultsStore {
     this.value = { ...this.value, ...patch };
     return Promise.resolve({ ...this.value });
   }
+
+  clearPersonaCharacter(userId: string, characterId: string): Promise<void> {
+    void userId;
+    if (this.value.personaCharacterId === characterId) {
+      this.value = { ...this.value, personaCharacterId: null };
+    }
+    return Promise.resolve();
+  }
+
+  clearPreset(userId: string, presetId: string): Promise<void> {
+    void userId;
+    if (this.value.presetId === presetId) {
+      this.value = { ...this.value, presetId: null };
+    }
+    return Promise.resolve();
+  }
+
+  clearModelProvider(userId: string, modelProviderId: string): Promise<void> {
+    void userId;
+    if (this.value.modelProviderId === modelProviderId) {
+      this.value = { ...this.value, modelProviderId: null };
+    }
+    return Promise.resolve();
+  }
 }
 
 async function expectApplicationError(

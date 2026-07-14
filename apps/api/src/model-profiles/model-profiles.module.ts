@@ -7,6 +7,10 @@ import { AuthModule } from "../auth/auth.module.js";
 import { CryptoIdGenerator } from "../auth/infrastructure/crypto-id-generator.js";
 import { SystemClock } from "../auth/infrastructure/system-clock.js";
 import { DatabaseModule } from "../database/database.module.js";
+import {
+  DomainEventPublisher,
+  DomainEventsModule,
+} from "../common/events/index.js";
 import { ApiLoggerModule } from "../logging/api-logger.module.js";
 import { CreateModelProviderApiKeyUseCase } from "./application/create-model-provider-api-key.use-case.js";
 import { CreateModelProviderUseCase } from "./application/create-model-provider.use-case.js";
@@ -39,7 +43,7 @@ import { KyselyApiKeyStore } from "./persistence/kysely-api-key-store.js";
 import { API_KEY_STORE, type ApiKeyStore } from "./ports/api-key-store.js";
 
 @Module({
-  imports: [DatabaseModule, AuthModule, ApiLoggerModule],
+  imports: [DatabaseModule, DomainEventsModule, AuthModule, ApiLoggerModule],
   controllers: [ModelProvidersController, ApiKeysController],
   providers: [
     KyselyModelProviderStore,
@@ -92,9 +96,18 @@ import { API_KEY_STORE, type ApiKeyStore } from "./ports/api-key-store.js";
     },
     {
       provide: DeleteModelProviderUseCase,
-      useFactory: (store: ModelProviderStore) =>
-        new DeleteModelProviderUseCase(store),
-      inject: [MODEL_PROVIDER_STORE],
+      useFactory: (
+        store: ModelProviderStore,
+        clock: ModelProviderClock,
+        unitOfWork: UnitOfWork,
+        events: DomainEventPublisher,
+      ) => new DeleteModelProviderUseCase(store, clock, unitOfWork, events),
+      inject: [
+        MODEL_PROVIDER_STORE,
+        SystemClock,
+        UNIT_OF_WORK,
+        DomainEventPublisher,
+      ],
     },
     {
       provide: CreateModelProviderApiKeyUseCase,

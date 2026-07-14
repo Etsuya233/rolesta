@@ -67,6 +67,39 @@ export class KyselyAssetDefaultsStore implements AssetDefaultsStore {
 
     return this.get(userId);
   }
+
+  async clearPersonaCharacter(
+    userId: string,
+    characterId: string,
+  ): Promise<void> {
+    await this.context.database
+      .updateTable("asset_defaults")
+      .set({ persona_character_id: null })
+      .where("user_id", "=", userId)
+      .where("persona_character_id", "=", characterId)
+      .execute();
+  }
+
+  async clearPreset(userId: string, presetId: string): Promise<void> {
+    await this.context.database
+      .updateTable("asset_defaults")
+      .set({ preset_id: null })
+      .where("user_id", "=", userId)
+      .where("preset_id", "=", presetId)
+      .execute();
+  }
+
+  async clearModelProvider(
+    userId: string,
+    modelProviderId: string,
+  ): Promise<void> {
+    await this.context.database
+      .updateTable("asset_defaults")
+      .set({ model_provider_id: null })
+      .where("user_id", "=", userId)
+      .where("model_provider_id", "=", modelProviderId)
+      .execute();
+  }
 }
 
 const emptyAssetDefaults: AssetDefaults = {

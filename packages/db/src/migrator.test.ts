@@ -5,6 +5,7 @@ import { afterEach, describe, expect, it } from 'vitest';
 import { loadDatabaseConfig } from './config/database-config.js';
 import { createMigrationProvider } from './migrations/index.js';
 import { createTestDatabase } from './test-utils/create-test-database.js';
+import * as assetDefaultsDomainEventsMigration from './migrations/0013_asset_defaults_domain_events.js';
 
 describe('database migrations', () => {
   const databases: Array<Awaited<ReturnType<typeof createTestDatabase>>> = [];
@@ -52,7 +53,7 @@ describe('database migrations', () => {
     expect(visibility).toMatchObject({ dflt_value: "'private'" });
   });
 
-  it('creates asset defaults with nullable asset references and deletion actions', async () => {
+  it('creates asset defaults with nullable references and only user ownership enforced', async () => {
     const database = await createTestDatabase();
     databases.push(database);
 
@@ -75,22 +76,58 @@ describe('database migrations', () => {
         expect.objectContaining({ name: 'model_provider_id', notnull: 0 }),
       ]),
     );
-    expect(foreignKeys).toEqual(
-      expect.arrayContaining([
-        expect.objectContaining({ from: 'user_id', table: 'users', on_delete: 'CASCADE' }),
-        expect.objectContaining({
-          from: 'persona_character_id',
-          table: 'characters',
-          on_delete: 'SET NULL',
-        }),
-        expect.objectContaining({ from: 'preset_id', table: 'presets', on_delete: 'SET NULL' }),
-        expect.objectContaining({
-          from: 'model_provider_id',
-          table: 'model_provider_configs',
-          on_delete: 'SET NULL',
-        }),
-      ]),
-    );
+    expect(foreignKeys).toEqual([
+      expect.objectContaining({ from: 'user_id', table: 'users', on_delete: 'CASCADE' }),
+    ]);
+  });
+
+  it('preserves asset defaults while removing asset foreign keys', async () => {
+    const database = await createTestDatabase();
+    databases.push(database);
+    await assetDefaultsDomainEventsMigration.down(database.db);
+    await database.db
+      .insertInto('users')
+      .values({
+        id: 'user_1',
+        username: 'owner',
+        password_hash: 'hash',
+        display_name: 'Owner',
+        role: 'user',
+        created_at: '2026-07-14T00:00:00.000Z',
+        updated_at: '2026-07-14T00:00:00.000Z',
+      })
+      .execute();
+    await sql`pragma foreign_keys = off`.execute(database.db);
+    await database.db
+      .insertInto('asset_defaults')
+      .values({
+        user_id: 'user_1',
+        persona_character_id: 'character_1',
+        preset_id: 'preset_1',
+        model_provider_id: 'provider_1',
+      })
+      .execute();
+
+    await assetDefaultsDomainEventsMigration.up(database.db);
+    await sql`pragma foreign_keys = on`.execute(database.db);
+
+    await expect(
+      database.db
+        .selectFrom('asset_defaults')
+        .selectAll()
+        .where('user_id', '=', 'user_1')
+        .executeTakeFirst(),
+    ).resolves.toEqual({
+      user_id: 'user_1',
+      persona_character_id: 'character_1',
+      preset_id: 'preset_1',
+      model_provider_id: 'provider_1',
+    });
+
+    await database.db.deleteFrom('users').where('id', '=', 'user_1').execute();
+    await expect(
+      database.db.selectFrom('asset_defaults').selectAll().execute(),
+    ).resolves.toEqual([]);
   });
 
   it('loads sqlite configuration by default', () => {

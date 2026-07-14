@@ -7,6 +7,10 @@ import { AuthModule } from '../auth/auth.module.js';
 import { CryptoIdGenerator } from '../auth/infrastructure/crypto-id-generator.js';
 import { SystemClock } from '../auth/infrastructure/system-clock.js';
 import { DatabaseModule } from '../database/database.module.js';
+import {
+  DomainEventPublisher,
+  DomainEventsModule,
+} from '../common/events/index.js';
 import { FilesModule } from '../files/files.module.js';
 import { CreateFileResourceUseCase } from '../files/application/create-file-resource.use-case.js';
 import {
@@ -49,7 +53,7 @@ import { KyselyCharacterAvatarAssignment } from './persistence/kysely-character-
 import { KyselyCharacterCardStore } from './persistence/kysely-character-card-store.js';
 
 @Module({
-  imports: [DatabaseModule, AuthModule, FilesModule],
+  imports: [DatabaseModule, DomainEventsModule, AuthModule, FilesModule],
   controllers: [CharactersController],
   providers: [
     KyselyCharacterCardStore,
@@ -108,6 +112,7 @@ import { KyselyCharacterCardStore } from './persistence/kysely-character-card-st
         assignment: CharacterAvatarAssignment,
         clock: CharacterClock,
         unitOfWork: UnitOfWork,
+        events: DomainEventPublisher,
       ) =>
         new UploadCharacterAvatarUseCase(
           store,
@@ -115,6 +120,7 @@ import { KyselyCharacterCardStore } from './persistence/kysely-character-card-st
           assignment,
           clock,
           unitOfWork,
+          events,
         ),
       inject: [
         CHARACTER_CARD_STORE,
@@ -122,6 +128,7 @@ import { KyselyCharacterCardStore } from './persistence/kysely-character-card-st
         CHARACTER_AVATAR_ASSIGNMENT,
         SystemClock,
         UNIT_OF_WORK,
+        DomainEventPublisher,
       ],
     },
     {
@@ -130,14 +137,35 @@ import { KyselyCharacterCardStore } from './persistence/kysely-character-card-st
         assignment: CharacterAvatarAssignment,
         clock: CharacterClock,
         unitOfWork: UnitOfWork,
-      ) => new DeleteCharacterAvatarUseCase(assignment, clock, unitOfWork),
-      inject: [CHARACTER_AVATAR_ASSIGNMENT, SystemClock, UNIT_OF_WORK],
+        events: DomainEventPublisher,
+      ) =>
+        new DeleteCharacterAvatarUseCase(
+          assignment,
+          clock,
+          unitOfWork,
+          events,
+        ),
+      inject: [
+        CHARACTER_AVATAR_ASSIGNMENT,
+        SystemClock,
+        UNIT_OF_WORK,
+        DomainEventPublisher,
+      ],
     },
     {
       provide: DeleteCharacterUseCase,
-      useFactory: (store: CharacterCardStore) =>
-        new DeleteCharacterUseCase(store),
-      inject: [CHARACTER_CARD_STORE],
+      useFactory: (
+        store: CharacterCardStore,
+        clock: CharacterClock,
+        unitOfWork: UnitOfWork,
+        events: DomainEventPublisher,
+      ) => new DeleteCharacterUseCase(store, clock, unitOfWork, events),
+      inject: [
+        CHARACTER_CARD_STORE,
+        SystemClock,
+        UNIT_OF_WORK,
+        DomainEventPublisher,
+      ],
     },
     {
       provide: ImportCharacterCardUseCase,

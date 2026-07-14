@@ -7,6 +7,10 @@ import { AuthModule } from '../auth/auth.module.js';
 import { CryptoIdGenerator } from '../auth/infrastructure/crypto-id-generator.js';
 import { SystemClock } from '../auth/infrastructure/system-clock.js';
 import { DatabaseModule } from '../database/database.module.js';
+import {
+  DomainEventPublisher,
+  DomainEventsModule,
+} from '../common/events/index.js';
 import { SillyTavernPresetCodec } from './adapters/silly-tavern/silly-tavern-preset-codec.js';
 import { CreatePresetEntryUseCase } from './application/create-preset-entry.use-case.js';
 import { CreatePresetUseCase } from './application/create-preset.use-case.js';
@@ -30,7 +34,7 @@ import { KyselyPresetStore } from './persistence/kysely-preset-store.js';
 import { PresetsController } from './http/presets.controller.js';
 
 @Module({
-  imports: [DatabaseModule, AuthModule],
+  imports: [DatabaseModule, DomainEventsModule, AuthModule],
   controllers: [PresetsController],
   providers: [
     KyselyPresetStore,
@@ -79,8 +83,18 @@ import { PresetsController } from './http/presets.controller.js';
     },
     {
       provide: DeletePresetUseCase,
-      useFactory: (store: PresetStore) => new DeletePresetUseCase(store),
-      inject: [PRESET_STORE],
+      useFactory: (
+        store: PresetStore,
+        clock: PresetClock,
+        unitOfWork: UnitOfWork,
+        events: DomainEventPublisher,
+      ) => new DeletePresetUseCase(store, clock, unitOfWork, events),
+      inject: [
+        PRESET_STORE,
+        SystemClock,
+        UNIT_OF_WORK,
+        DomainEventPublisher,
+      ],
     },
     {
       provide: ImportPresetUseCase,

@@ -1,7 +1,9 @@
 import { Injectable } from '@nestjs/common';
 import { KyselyDatabaseContext } from '../../database/kysely-database-context.js';
-import type { CharacterCard } from '../domain/character-card.js';
-import type { CharacterAvatarAssignment } from '../ports/character-avatar-assignment.js';
+import type {
+  CharacterAvatarAssignment,
+  CharacterAvatarAssignmentResult,
+} from '../ports/character-avatar-assignment.js';
 import { CharacterPortError } from '../ports/character-port-error.js';
 import { toCharacterCard } from './character-card-row-mapper.js';
 
@@ -14,7 +16,7 @@ export class KyselyCharacterAvatarAssignment implements CharacterAvatarAssignmen
     ownerUserId: string;
     resourceId: string;
     nowMs: number;
-  }): Promise<CharacterCard | null> {
+  }): Promise<CharacterAvatarAssignmentResult | null> {
     const database = this.context.database;
     const current = await database
       .selectFrom('characters')
@@ -28,26 +30,10 @@ export class KyselyCharacterAvatarAssignment implements CharacterAvatarAssignmen
     }
 
     if (current.avatar_resource_id === input.resourceId) {
-      return toCharacterCard(current);
-    }
-
-    const activated = await database
-      .updateTable('file_resources')
-      .set({ status: 'active', orphaned_at_ms: null })
-      .where('id', '=', input.resourceId)
-      .where('owner_user_id', '=', input.ownerUserId)
-      .where('purpose', '=', 'character-avatar')
-      .where('status', '=', 'pending')
-      .executeTakeFirst();
-
-    if (Number(activated.numUpdatedRows) !== 1) {
-      throw new CharacterPortError({
-        reason: 'invalid-avatar',
-        params: {
-          field: 'resourceId',
-          detail: 'Avatar resource is not assignable.',
-        },
-      });
+      return {
+        character: toCharacterCard(current),
+        previousResourceId: current.avatar_resource_id,
+      };
     }
 
     let update = database
@@ -68,29 +54,17 @@ export class KyselyCharacterAvatarAssignment implements CharacterAvatarAssignmen
       throw avatarAssignmentConflict();
     }
 
-    if (current.avatar_resource_id) {
-      const orphaned = await database
-        .updateTable('file_resources')
-        .set({ status: 'orphaned', orphaned_at_ms: input.nowMs })
-        .where('id', '=', current.avatar_resource_id)
-        .where('owner_user_id', '=', input.ownerUserId)
-        .where('purpose', '=', 'character-avatar')
-        .where('status', '=', 'active')
-        .executeTakeFirst();
-
-      if (Number(orphaned.numUpdatedRows) !== 1) {
-        throw avatarAssignmentConflict();
-      }
-    }
-
-    return toCharacterCard(updated);
+    return {
+      character: toCharacterCard(updated),
+      previousResourceId: current.avatar_resource_id,
+    };
   }
 
   async remove(input: {
     characterId: string;
     ownerUserId: string;
     nowMs: number;
-  }): Promise<CharacterCard | null> {
+  }): Promise<CharacterAvatarAssignmentResult | null> {
     const database = this.context.database;
     const current = await database
       .selectFrom('characters')
@@ -104,7 +78,10 @@ export class KyselyCharacterAvatarAssignment implements CharacterAvatarAssignmen
     }
 
     if (current.avatar_resource_id === null) {
-      return toCharacterCard(current);
+      return {
+        character: toCharacterCard(current),
+        previousResourceId: null,
+      };
     }
 
     const updated = await database
@@ -120,20 +97,10 @@ export class KyselyCharacterAvatarAssignment implements CharacterAvatarAssignmen
       throw avatarAssignmentConflict();
     }
 
-    const orphaned = await database
-      .updateTable('file_resources')
-      .set({ status: 'orphaned', orphaned_at_ms: input.nowMs })
-      .where('id', '=', current.avatar_resource_id)
-      .where('owner_user_id', '=', input.ownerUserId)
-      .where('purpose', '=', 'character-avatar')
-      .where('status', '=', 'active')
-      .executeTakeFirst();
-
-    if (Number(orphaned.numUpdatedRows) !== 1) {
-      throw avatarAssignmentConflict();
-    }
-
-    return toCharacterCard(updated);
+    return {
+      character: toCharacterCard(updated),
+      previousResourceId: current.avatar_resource_id,
+    };
   }
 }
 

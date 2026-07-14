@@ -73,7 +73,7 @@ describe("Kysely asset defaults persistence", () => {
     }
   });
 
-  it("clears deleted asset references and cascades when the user is deleted", async () => {
+  it("conditionally clears deleted asset references and cascades with the user", async () => {
     const database = await createTestDatabase();
     const store = new KyselyAssetDefaultsStore(
       new KyselyDatabaseContext(database.db),
@@ -100,6 +100,24 @@ describe("Kysely asset defaults persistence", () => {
         .deleteFrom("model_provider_configs")
         .where("id", "=", "provider")
         .execute();
+      await expect(store.get("owner")).resolves.toEqual({
+        personaCharacterId: "character",
+        presetId: "preset",
+        modelProviderId: "provider",
+      });
+
+      await store.clearPersonaCharacter("owner", "other-character");
+      await store.clearPreset("owner", "other-preset");
+      await store.clearModelProvider("owner", "other-provider");
+      await expect(store.get("owner")).resolves.toEqual({
+        personaCharacterId: "character",
+        presetId: "preset",
+        modelProviderId: "provider",
+      });
+
+      await store.clearPersonaCharacter("owner", "character");
+      await store.clearPreset("owner", "preset");
+      await store.clearModelProvider("owner", "provider");
       await expect(store.get("owner")).resolves.toEqual(emptyDefaults);
 
       await database.db.deleteFrom("users").where("id", "=", "owner").execute();
@@ -139,24 +157,15 @@ describe("Kysely asset defaults persistence", () => {
     }
   });
 
-  it("translates deletion between ownership validation and upsert into a conflict", async () => {
+  it("translates a missing owner during upsert into a conflict", async () => {
     const database = await createTestDatabase();
     const context = new KyselyDatabaseContext(database.db);
     const store = new KyselyAssetDefaultsStore(context);
-    const ownership = new KyselyChatAssetOwnership(context);
 
     try {
       await seedUser(database.db, "owner");
       await seedAssets(database.db, "owner");
-      await expect(
-        ownership.findUnavailableFields("owner", {
-          personaCharacterId: "character",
-        }),
-      ).resolves.toEqual([]);
-      await database.db
-        .deleteFrom("characters")
-        .where("id", "=", "character")
-        .execute();
+      await database.db.deleteFrom("users").where("id", "=", "owner").execute();
 
       await expect(
         store.update("owner", { personaCharacterId: "character" }),

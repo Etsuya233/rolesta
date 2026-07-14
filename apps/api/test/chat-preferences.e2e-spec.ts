@@ -114,6 +114,90 @@ describe("Chat preferences API", () => {
       });
   });
 
+  it("clears defaults and orphans the avatar when owned assets are deleted", async () => {
+    const auth = await setupAdmin(app!);
+    const db = app!.get<Kysely<Database>>(KYSELY_DB, { strict: false });
+    await seedAssets(db, auth.userId);
+    await seedCharacterAvatar(db, auth.userId, "avatar", "active");
+    await db
+      .updateTable("characters")
+      .set({ avatar_resource_id: "avatar" })
+      .where("id", "=", "character")
+      .execute();
+    await request(app!.getHttpServer() as App)
+      .patch("/chat-preferences/assets")
+      .set("Authorization", `Bearer ${auth.token}`)
+      .send({
+        personaCharacterId: "character",
+        presetId: "preset",
+        modelProviderId: "provider",
+      })
+      .expect(200);
+
+    await request(app!.getHttpServer() as App)
+      .delete("/characters/character")
+      .set("Authorization", `Bearer ${auth.token}`)
+      .expect(200);
+    await expect(
+      db
+        .selectFrom("file_resources")
+        .select(["status", "orphaned_at_ms"])
+        .where("id", "=", "avatar")
+        .executeTakeFirst(),
+    ).resolves.toMatchObject({ status: "orphaned" });
+    await expectAssetDefaults(app!, auth.token, {
+      personaCharacterId: null,
+      presetId: "preset",
+      modelProviderId: "provider",
+    });
+
+    await request(app!.getHttpServer() as App)
+      .delete("/presets/preset")
+      .set("Authorization", `Bearer ${auth.token}`)
+      .expect(200);
+    await request(app!.getHttpServer() as App)
+      .delete("/model-providers/provider")
+      .set("Authorization", `Bearer ${auth.token}`)
+      .expect(200);
+    await expectAssetDefaults(app!, auth.token, {
+      personaCharacterId: null,
+      presetId: null,
+      modelProviderId: null,
+    });
+  }, 15_000);
+
+  it("rolls back avatar removal when the file listener rejects its state", async () => {
+    const auth = await setupAdmin(app!);
+    const db = app!.get<Kysely<Database>>(KYSELY_DB, { strict: false });
+    await seedAssets(db, auth.userId);
+    await seedCharacterAvatar(db, auth.userId, "pending-avatar", "pending");
+    await db
+      .updateTable("characters")
+      .set({ avatar_resource_id: "pending-avatar" })
+      .where("id", "=", "character")
+      .execute();
+
+    await request(app!.getHttpServer() as App)
+      .delete("/characters/character/avatar")
+      .set("Authorization", `Bearer ${auth.token}`)
+      .expect(409);
+
+    await expect(
+      db
+        .selectFrom("characters")
+        .select("avatar_resource_id")
+        .where("id", "=", "character")
+        .executeTakeFirst(),
+    ).resolves.toEqual({ avatar_resource_id: "pending-avatar" });
+    await expect(
+      db
+        .selectFrom("file_resources")
+        .select(["status", "orphaned_at_ms"])
+        .where("id", "=", "pending-avatar")
+        .executeTakeFirst(),
+    ).resolves.toEqual({ status: "pending", orphaned_at_ms: null });
+  });
+
   it("rejects empty and malformed patches", async () => {
     const auth = await setupAdmin(app!);
 
@@ -319,6 +403,39 @@ async function seedAssets(
       usage_count: 0,
     })
     .execute();
+}
+
+async function seedCharacterAvatar(
+  db: TestDatabase,
+  ownerUserId: string,
+  id: string,
+  status: "pending" | "active",
+): Promise<void> {
+  await db
+    .insertInto("file_resources")
+    .values({
+      id,
+      owner_user_id: ownerUserId,
+      purpose: "character-avatar",
+      status,
+      orphaned_at_ms: null,
+      created_at_ms: 1,
+    })
+    .execute();
+}
+
+async function expectAssetDefaults(
+  app: INestApplication,
+  token: string,
+  expected: AssetDefaultsBody["data"],
+): Promise<void> {
+  await request(app.getHttpServer() as App)
+    .get("/chat-preferences/assets")
+    .set("Authorization", `Bearer ${token}`)
+    .expect(200)
+    .expect((response) => {
+      expect(responseBody<AssetDefaultsBody>(response).data).toEqual(expected);
+    });
 }
 
 function responseBody<TBody>(response: { body: unknown }): TBody {

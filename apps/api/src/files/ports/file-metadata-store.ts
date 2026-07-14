@@ -8,6 +8,12 @@ export interface ReadableFileObject extends FileObject {
 
 export interface FileMetadataStore {
   createPending(resource: FileResource): Promise<void>;
+  activatePendingCharacterAvatar(resourceId: string, ownerUserId: string): Promise<boolean>;
+  orphanActiveCharacterAvatar(
+    resourceId: string,
+    ownerUserId: string,
+    orphanedAtMs: number,
+  ): Promise<boolean>;
   findReadableObject(fileId: string): Promise<ReadableFileObject | null>;
   findObjectsByResourceIds(resourceIds: string[]): Promise<FileObject[]>;
   findExpiredResourceIds(cutoffMs: number, limit: number): Promise<string[]>;

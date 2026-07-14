@@ -19,6 +19,7 @@ export function toFileApplicationError(error: unknown): FileApplicationError {
       });
     case 'content-conflict':
     case 'content-unavailable':
+    case 'resource-state-conflict':
       return new FileApplicationError({ reason: 'storage-unavailable', params: error.params, cause: error });
   }
 }

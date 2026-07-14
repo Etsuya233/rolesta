@@ -4,6 +4,7 @@ export type FilePortErrorReason =
   | 'content-conflict'
   | 'content-unavailable'
   | 'invalid-image'
+  | 'resource-state-conflict'
   | 'unsupported-image';
 
 export interface FilePortErrorOptions {

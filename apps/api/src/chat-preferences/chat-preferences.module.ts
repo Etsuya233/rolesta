@@ -6,6 +6,7 @@ import {
 import { AuthModule } from "../auth/auth.module.js";
 import { DatabaseModule } from "../database/database.module.js";
 import { GetAssetDefaultsUseCase } from "./application/get-asset-defaults.use-case.js";
+import { AssetDeletedEventsListener } from "./application/asset-deleted-events.listener.js";
 import { UpdateAssetDefaultsUseCase } from "./application/update-asset-defaults.use-case.js";
 import { ChatPreferencesController } from "./http/chat-preferences.controller.js";
 import { KyselyAssetDefaultsStore } from "./persistence/kysely-asset-defaults-store.js";
@@ -27,6 +28,7 @@ import {
     KyselyChatAssetOwnership,
     { provide: ASSET_DEFAULTS_STORE, useExisting: KyselyAssetDefaultsStore },
     { provide: CHAT_ASSET_OWNERSHIP, useExisting: KyselyChatAssetOwnership },
+    AssetDeletedEventsListener,
     {
       provide: GetAssetDefaultsUseCase,
       useFactory: (store: AssetDefaultsStore) =>

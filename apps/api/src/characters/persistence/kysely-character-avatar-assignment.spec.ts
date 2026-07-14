@@ -7,7 +7,7 @@ import { KyselyCharacterAvatarAssignment } from './kysely-character-avatar-assig
 import { KyselyCharacterCardStore } from './kysely-character-card-store.js';
 
 describe('KyselyCharacterAvatarAssignment', () => {
-  it('atomically activates the new avatar and orphans the previous avatar', async () => {
+  it('updates only the character reference and returns the previous resource', async () => {
     const database = await createTestDatabase();
     const context = new KyselyDatabaseContext(database.db);
     const unitOfWork = new KyselyUnitOfWork(database.db, context);
@@ -47,16 +47,19 @@ describe('KyselyCharacterAvatarAssignment', () => {
       );
 
       expect(updated).toMatchObject({
-        avatarResourceId: 'new_avatar',
-        updatedAtMs: 200,
+        previousResourceId: 'old_avatar',
+        character: {
+          avatarResourceId: 'new_avatar',
+          updatedAtMs: 200,
+        },
       });
       await expect(resourceState(database.db, 'new_avatar')).resolves.toEqual({
-        status: 'active',
+        status: 'pending',
         orphaned_at_ms: null,
       });
       await expect(resourceState(database.db, 'old_avatar')).resolves.toEqual({
-        status: 'orphaned',
-        orphaned_at_ms: 200,
+        status: 'active',
+        orphaned_at_ms: null,
       });
 
       const removed = await unitOfWork.run(() =>
@@ -68,19 +71,22 @@ describe('KyselyCharacterAvatarAssignment', () => {
       );
 
       expect(removed).toMatchObject({
-        avatarResourceId: null,
-        updatedAtMs: 300,
+        previousResourceId: 'new_avatar',
+        character: {
+          avatarResourceId: null,
+          updatedAtMs: 300,
+        },
       });
       await expect(resourceState(database.db, 'new_avatar')).resolves.toEqual({
-        status: 'orphaned',
-        orphaned_at_ms: 300,
+        status: 'pending',
+        orphaned_at_ms: null,
       });
     } finally {
       await database.destroy();
     }
   });
 
-  it('rejects a resource for another purpose and rolls back all changes', async () => {
+  it('does not inspect file lifecycle fields owned by the files module', async () => {
     const database = await createTestDatabase();
     const context = new KyselyDatabaseContext(database.db);
     const unitOfWork = new KyselyUnitOfWork(database.db, context);
@@ -112,14 +118,15 @@ describe('KyselyCharacterAvatarAssignment', () => {
             nowMs: 200,
           }),
         ),
-      ).rejects.toMatchObject({ reason: 'invalid-avatar' });
+      ).resolves.toMatchObject({
+        previousResourceId: null,
+        character: { avatarResourceId: 'candidate', updatedAtMs: 200 },
+      });
 
-      await expect(cards.findOwnedById('card', 'owner')).resolves.toMatchObject(
-        {
-          avatarResourceId: null,
-          updatedAtMs: 1,
-        },
-      );
+      await expect(cards.findOwnedById('card', 'owner')).resolves.toMatchObject({
+        avatarResourceId: 'candidate',
+        updatedAtMs: 200,
+      });
       await expect(resourceState(database.db, 'candidate')).resolves.toEqual({
         status: 'pending',
         orphaned_at_ms: null,
