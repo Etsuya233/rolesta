@@ -70,10 +70,7 @@ describe('SillyTavern preset mapper', () => {
   it('imports the default SillyTavern preset export data', () => {
     const input = JSON.parse(
       readFileSync(
-        resolve(
-          process.cwd(),
-          'test/fixtures/silly-tavern/st_default_presets.json',
-        ),
+        resolve(process.cwd(), 'test/fixtures/silly-tavern/st_default_presets.json'),
         'utf8',
       ),
     ) as { data: unknown };
@@ -104,9 +101,7 @@ describe('SillyTavern preset mapper', () => {
       ],
     });
 
-    expect(preset.promptItems).toEqual([
-      { identifier: 'b', enabled: true, orderIndex: 0 },
-    ]);
+    expect(preset.promptItems).toEqual([{ identifier: 'b', enabled: true, orderIndex: 0 }]);
   });
 
   it('keeps the default stream setting when stream_openai is absent', () => {

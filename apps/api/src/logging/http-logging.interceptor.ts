@@ -1,5 +1,12 @@
 import { performance } from 'node:perf_hooks';
-import { HttpException, Inject, Injectable, type CallHandler, type ExecutionContext, type NestInterceptor } from '@nestjs/common';
+import {
+  HttpException,
+  Inject,
+  Injectable,
+  type CallHandler,
+  type ExecutionContext,
+  type NestInterceptor,
+} from '@nestjs/common';
 import type { Request, Response } from 'express';
 import { InjectPinoLogger, PinoLogger } from 'nestjs-pino';
 import { catchError, tap, throwError, type Observable } from 'rxjs';

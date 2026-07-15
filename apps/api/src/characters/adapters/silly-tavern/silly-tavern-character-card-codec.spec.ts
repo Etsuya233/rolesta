@@ -10,17 +10,11 @@ describe('SillyTavern character card mapper', () => {
   it('imports the default SillyTavern character card', () => {
     const input = JSON.parse(
       readFileSync(
-        resolve(
-          process.cwd(),
-          'test/fixtures/silly-tavern/st_default_character.json',
-        ),
+        resolve(process.cwd(), 'test/fixtures/silly-tavern/st_default_character.json'),
         'utf8',
       ),
     ) as unknown;
-    const card = fromSillyTavernCharacterCard(
-      input,
-      'st_default_character.json',
-    );
+    const card = fromSillyTavernCharacterCard(input, 'st_default_character.json');
 
     expect(card).toMatchObject({
       sourceFormat: 'sillytavern_v3',

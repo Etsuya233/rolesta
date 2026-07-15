@@ -9,26 +9,15 @@ import type {
   ListCharactersRequest,
 } from '../ports/character-card-store.js';
 import type { CharacterCard } from '../domain/character-card.js';
-import {
-  toCharacterCard,
-  toCharacterRow,
-} from './character-card-row-mapper.js';
+import { toCharacterCard, toCharacterRow } from './character-card-row-mapper.js';
 
 @Injectable()
 export class KyselyCharacterCardStore implements CharacterCardStore {
   constructor(private readonly context: KyselyDatabaseContext) {}
 
-  async list(
-    request: ListCharactersRequest,
-  ): Promise<PageResponse<CharacterCard>> {
-    const filteredRows = withListFilters(
-      this.context.database.selectFrom('characters'),
-      request,
-    );
-    const countRow = await withListFilters(
-      this.context.database.selectFrom('characters'),
-      request,
-    )
+  async list(request: ListCharactersRequest): Promise<PageResponse<CharacterCard>> {
+    const filteredRows = withListFilters(this.context.database.selectFrom('characters'), request);
+    const countRow = await withListFilters(this.context.database.selectFrom('characters'), request)
       .select((builder) => builder.fn.countAll<number>().as('count'))
       .executeTakeFirstOrThrow();
     const rows = await filteredRows
@@ -49,10 +38,7 @@ export class KyselyCharacterCardStore implements CharacterCardStore {
     };
   }
 
-  async findVisibleById(
-    id: string,
-    viewerUserId: string,
-  ): Promise<CharacterCard | null> {
+  async findVisibleById(id: string, viewerUserId: string): Promise<CharacterCard | null> {
     const row = await this.context.database
       .selectFrom('characters')
       .selectAll()
@@ -68,10 +54,7 @@ export class KyselyCharacterCardStore implements CharacterCardStore {
     return row ? toCharacterCard(row) : null;
   }
 
-  async findOwnedById(
-    id: string,
-    ownerUserId: string,
-  ): Promise<CharacterCard | null> {
+  async findOwnedById(id: string, ownerUserId: string): Promise<CharacterCard | null> {
     const row = await this.context.database
       .selectFrom('characters')
       .selectAll()
@@ -83,10 +66,7 @@ export class KyselyCharacterCardStore implements CharacterCardStore {
   }
 
   async save(card: CharacterCard): Promise<void> {
-    await this.context.database
-      .insertInto('characters')
-      .values(toCharacterRow(card))
-      .execute();
+    await this.context.database.insertInto('characters').values(toCharacterRow(card)).execute();
   }
 
   async update(card: CharacterCard): Promise<void> {
@@ -109,11 +89,7 @@ export class KyselyCharacterCardStore implements CharacterCardStore {
   }
 }
 
-type CharacterSelectQuery = SelectQueryBuilder<
-  Database,
-  'characters',
-  Record<string, never>
->;
+type CharacterSelectQuery = SelectQueryBuilder<Database, 'characters', Record<string, never>>;
 
 const sortColumns = {
   createdAt: 'created_at_ms',

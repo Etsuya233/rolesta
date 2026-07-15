@@ -1,4 +1,4 @@
-import type { Worldbook, WorldbookVisibility } from "../domain/worldbook.js";
+import type { Worldbook, WorldbookVisibility } from '../domain/worldbook.js';
 
 export interface WorldbookEditableFields {
   visibility?: WorldbookVisibility;

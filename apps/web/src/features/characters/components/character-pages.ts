@@ -1,48 +1,45 @@
 export type CharacterPage =
-  | { name: "list"; key: "characters:list" }
-  | { name: "create"; key: "characters:create"; sessionKey: string }
+  | { name: 'list'; key: 'characters:list' }
+  | { name: 'create'; key: 'characters:create'; sessionKey: string }
   | {
-      name: "editMain";
+      name: 'editMain';
       key: string;
       characterId: string;
       sessionKey: string;
     }
   | {
-      name: "alternateGreetings";
+      name: 'alternateGreetings';
       key: string;
       characterId: string;
       sessionKey: string;
     }
-  | { name: "import"; key: "characters:import" };
+  | { name: 'import'; key: 'characters:import' };
 
 export const characterListPage: CharacterPage = {
-  name: "list",
-  key: "characters:list",
+  name: 'list',
+  key: 'characters:list',
 };
 
 export function createCharacterPage(): CharacterPage {
   return {
-    name: "create",
-    key: "characters:create",
-    sessionKey: "characters:create",
+    name: 'create',
+    key: 'characters:create',
+    sessionKey: 'characters:create',
   };
 }
 
 export function editCharacterPage(characterId: string): CharacterPage {
   return {
-    name: "editMain",
+    name: 'editMain',
     key: `character:${characterId}:edit`,
     characterId,
     sessionKey: characterSessionKey(characterId),
   };
 }
 
-export function alternateGreetingsPage(
-  characterId: string,
-  sessionKey: string,
-): CharacterPage {
+export function alternateGreetingsPage(characterId: string, sessionKey: string): CharacterPage {
   return {
-    name: "alternateGreetings",
+    name: 'alternateGreetings',
     key: `${sessionKey}:alternateGreetings`,
     characterId,
     sessionKey,
@@ -50,7 +47,7 @@ export function alternateGreetingsPage(
 }
 
 export function importCharacterPage(): CharacterPage {
-  return { name: "import", key: "characters:import" };
+  return { name: 'import', key: 'characters:import' };
 }
 
 export function characterSessionKey(characterId: string): string {

@@ -1,58 +1,42 @@
-import { Injectable } from "@nestjs/common";
-import type {
-  Database,
-  WorldbookEntriesTable,
-  WorldbooksTable,
-} from "@rolesta/db";
-import { getTotalPages, type PageResponse } from "@rolesta/shared";
-import type { Insertable, Selectable, SelectQueryBuilder } from "kysely";
-import { ensureEpochMillis } from "../../shared/epoch-millis.js";
-import { KyselyDatabaseContext } from "../../database/kysely-database-context.js";
+import { Injectable } from '@nestjs/common';
+import type { Database, WorldbookEntriesTable, WorldbooksTable } from '@rolesta/db';
+import { getTotalPages, type PageResponse } from '@rolesta/shared';
+import type { Insertable, Selectable, SelectQueryBuilder } from 'kysely';
+import { ensureEpochMillis } from '../../shared/epoch-millis.js';
+import { KyselyDatabaseContext } from '../../database/kysely-database-context.js';
 import type {
   ListWorldbooksRequest,
   WorldbookSortKey,
   WorldbookStore,
-} from "../ports/worldbook-store.js";
-import type {
-  Worldbook,
-  WorldbookEntry,
-  WorldbookSummary,
-} from "../domain/worldbook.js";
+} from '../ports/worldbook-store.js';
+import type { Worldbook, WorldbookEntry, WorldbookSummary } from '../domain/worldbook.js';
 
 @Injectable()
 export class KyselyWorldbookStore implements WorldbookStore {
   constructor(private readonly context: KyselyDatabaseContext) {}
 
-  async list(
-    request: ListWorldbooksRequest,
-  ): Promise<PageResponse<WorldbookSummary>> {
-    const countRow = await withListFilters(
-      this.context.database.selectFrom("worldbooks"),
-      request,
-    )
-      .select((builder) => builder.fn.countAll<number>().as("count"))
+  async list(request: ListWorldbooksRequest): Promise<PageResponse<WorldbookSummary>> {
+    const countRow = await withListFilters(this.context.database.selectFrom('worldbooks'), request)
+      .select((builder) => builder.fn.countAll<number>().as('count'))
       .executeTakeFirstOrThrow();
-    const rows = await withListFilters(
-      this.context.database.selectFrom("worldbooks"),
-      request,
-    )
+    const rows = await withListFilters(this.context.database.selectFrom('worldbooks'), request)
       .select([
-        "id",
-        "owner_user_id",
-        "visibility",
-        "name",
-        "description",
-        "tags_json",
-        "scan_depth",
-        "token_budget",
-        "recursive_scan",
-        "created_at_ms",
-        "updated_at_ms",
-        "last_used_at_ms",
-        "usage_count",
+        'id',
+        'owner_user_id',
+        'visibility',
+        'name',
+        'description',
+        'tags_json',
+        'scan_depth',
+        'token_budget',
+        'recursive_scan',
+        'created_at_ms',
+        'updated_at_ms',
+        'last_used_at_ms',
+        'usage_count',
       ])
       .orderBy(sortColumns[request.sort], request.direction)
-      .orderBy("id", "asc")
+      .orderBy('id', 'asc')
       .limit(request.pageSize)
       .offset(request.pageIndex * request.pageSize)
       .execute();
@@ -68,18 +52,15 @@ export class KyselyWorldbookStore implements WorldbookStore {
     };
   }
 
-  async findVisibleById(
-    id: string,
-    viewerUserId: string,
-  ): Promise<Worldbook | null> {
+  async findVisibleById(id: string, viewerUserId: string): Promise<Worldbook | null> {
     const row = await this.context.database
-      .selectFrom("worldbooks")
+      .selectFrom('worldbooks')
       .selectAll()
-      .where("id", "=", id)
+      .where('id', '=', id)
       .where((builder) =>
         builder.or([
-          builder("owner_user_id", "=", viewerUserId),
-          builder("visibility", "=", "public"),
+          builder('owner_user_id', '=', viewerUserId),
+          builder('visibility', '=', 'public'),
         ]),
       )
       .executeTakeFirst();
@@ -87,15 +68,12 @@ export class KyselyWorldbookStore implements WorldbookStore {
     return row ? this.aggregate(row) : null;
   }
 
-  async findOwnedById(
-    id: string,
-    ownerUserId: string,
-  ): Promise<Worldbook | null> {
+  async findOwnedById(id: string, ownerUserId: string): Promise<Worldbook | null> {
     const row = await this.context.database
-      .selectFrom("worldbooks")
+      .selectFrom('worldbooks')
       .selectAll()
-      .where("id", "=", id)
-      .where("owner_user_id", "=", ownerUserId)
+      .where('id', '=', id)
+      .where('owner_user_id', '=', ownerUserId)
       .executeTakeFirst();
 
     return row ? this.aggregate(row) : null;
@@ -103,14 +81,11 @@ export class KyselyWorldbookStore implements WorldbookStore {
 
   async save(worldbook: Worldbook): Promise<void> {
     const database = this.context.database;
-    await database
-      .insertInto("worldbooks")
-      .values(toWorldbookRow(worldbook))
-      .execute();
+    await database.insertInto('worldbooks').values(toWorldbookRow(worldbook)).execute();
 
     if (worldbook.entries.length > 0) {
       await database
-        .insertInto("worldbook_entries")
+        .insertInto('worldbook_entries')
         .values(worldbook.entries.map(toEntryRow))
         .execute();
     }
@@ -119,19 +94,19 @@ export class KyselyWorldbookStore implements WorldbookStore {
   async update(worldbook: Worldbook): Promise<void> {
     const database = this.context.database;
     await database
-      .updateTable("worldbooks")
+      .updateTable('worldbooks')
       .set(toWorldbookRow(worldbook))
-      .where("id", "=", worldbook.id)
-      .where("owner_user_id", "=", worldbook.ownerUserId)
+      .where('id', '=', worldbook.id)
+      .where('owner_user_id', '=', worldbook.ownerUserId)
       .execute();
     await database
-      .deleteFrom("worldbook_entries")
-      .where("worldbook_id", "=", worldbook.id)
+      .deleteFrom('worldbook_entries')
+      .where('worldbook_id', '=', worldbook.id)
       .execute();
 
     if (worldbook.entries.length > 0) {
       await database
-        .insertInto("worldbook_entries")
+        .insertInto('worldbook_entries')
         .values(worldbook.entries.map(toEntryRow))
         .execute();
     }
@@ -139,9 +114,9 @@ export class KyselyWorldbookStore implements WorldbookStore {
 
   async deleteOwned(id: string, ownerUserId: string): Promise<boolean> {
     const result = await this.context.database
-      .deleteFrom("worldbooks")
-      .where("id", "=", id)
-      .where("owner_user_id", "=", ownerUserId)
+      .deleteFrom('worldbooks')
+      .where('id', '=', id)
+      .where('owner_user_id', '=', ownerUserId)
       .executeTakeFirst();
 
     return Number(result.numDeletedRows) > 0;
@@ -149,11 +124,11 @@ export class KyselyWorldbookStore implements WorldbookStore {
 
   private async aggregate(row: WorldbookRow): Promise<Worldbook> {
     const entries = await this.context.database
-      .selectFrom("worldbook_entries")
+      .selectFrom('worldbook_entries')
       .selectAll()
-      .where("worldbook_id", "=", row.id)
-      .orderBy("insertion_order", "asc")
-      .orderBy("created_at_ms", "asc")
+      .where('worldbook_id', '=', row.id)
+      .orderBy('insertion_order', 'asc')
+      .orderBy('created_at_ms', 'asc')
       .execute();
 
     return {
@@ -176,14 +151,9 @@ export class KyselyWorldbookStore implements WorldbookStore {
     };
   }
 
-  private async summaryStats(
-    worldbookIds: string[],
-  ): Promise<Map<string, WorldbookSummaryStats>> {
+  private async summaryStats(worldbookIds: string[]): Promise<Map<string, WorldbookSummaryStats>> {
     const stats = new Map<string, WorldbookSummaryStats>(
-      worldbookIds.map((id) => [
-        id,
-        { entryCount: 0, enabledEntryCount: 0, tokenCount: 0 },
-      ]),
+      worldbookIds.map((id) => [id, { entryCount: 0, enabledEntryCount: 0, tokenCount: 0 }]),
     );
 
     if (worldbookIds.length === 0) {
@@ -191,9 +161,9 @@ export class KyselyWorldbookStore implements WorldbookStore {
     }
 
     const rows = await this.context.database
-      .selectFrom("worldbook_entries")
-      .select(["worldbook_id", "enabled", "token_count"])
-      .where("worldbook_id", "in", worldbookIds)
+      .selectFrom('worldbook_entries')
+      .select(['worldbook_id', 'enabled', 'token_count'])
+      .where('worldbook_id', 'in', worldbookIds)
       .execute();
 
     for (const row of rows) {
@@ -216,39 +186,35 @@ export class KyselyWorldbookStore implements WorldbookStore {
 type WorldbookRow = Selectable<WorldbooksTable>;
 type WorldbookListRow = Pick<
   WorldbookRow,
-  | "id"
-  | "owner_user_id"
-  | "visibility"
-  | "name"
-  | "description"
-  | "tags_json"
-  | "scan_depth"
-  | "token_budget"
-  | "recursive_scan"
-  | "created_at_ms"
-  | "updated_at_ms"
-  | "last_used_at_ms"
-  | "usage_count"
+  | 'id'
+  | 'owner_user_id'
+  | 'visibility'
+  | 'name'
+  | 'description'
+  | 'tags_json'
+  | 'scan_depth'
+  | 'token_budget'
+  | 'recursive_scan'
+  | 'created_at_ms'
+  | 'updated_at_ms'
+  | 'last_used_at_ms'
+  | 'usage_count'
 >;
 type WorldbookInsert = Insertable<WorldbooksTable>;
 type WorldbookEntryRow = Selectable<WorldbookEntriesTable>;
 type WorldbookEntryInsert = Insertable<WorldbookEntriesTable>;
-type WorldbookSelectQuery = SelectQueryBuilder<
-  Database,
-  "worldbooks",
-  Record<string, never>
->;
+type WorldbookSelectQuery = SelectQueryBuilder<Database, 'worldbooks', Record<string, never>>;
 type WorldbookSummaryStats = Pick<
   WorldbookSummary,
-  "entryCount" | "enabledEntryCount" | "tokenCount"
+  'entryCount' | 'enabledEntryCount' | 'tokenCount'
 >;
 
 const sortColumns = {
-  createdAt: "created_at_ms",
-  updatedAt: "updated_at_ms",
-  name: "name",
-  lastUsedAt: "last_used_at_ms",
-  usageCount: "usage_count",
+  createdAt: 'created_at_ms',
+  updatedAt: 'updated_at_ms',
+  name: 'name',
+  lastUsedAt: 'last_used_at_ms',
+  usageCount: 'usage_count',
 } satisfies Record<WorldbookSortKey, keyof WorldbooksTable>;
 
 function withListFilters(
@@ -257,25 +223,25 @@ function withListFilters(
 ): WorldbookSelectQuery {
   let nextQuery = query;
 
-  if (request.scope === "mine") {
-    nextQuery = nextQuery.where("owner_user_id", "=", request.viewerUserId);
+  if (request.scope === 'mine') {
+    nextQuery = nextQuery.where('owner_user_id', '=', request.viewerUserId);
   }
 
-  if (request.scope === "public") {
-    nextQuery = nextQuery.where("visibility", "=", "public");
+  if (request.scope === 'public') {
+    nextQuery = nextQuery.where('visibility', '=', 'public');
   }
 
-  if (request.scope === "all") {
+  if (request.scope === 'all') {
     nextQuery = nextQuery.where((builder) =>
       builder.or([
-        builder("owner_user_id", "=", request.viewerUserId),
-        builder("visibility", "=", "public"),
+        builder('owner_user_id', '=', request.viewerUserId),
+        builder('visibility', '=', 'public'),
       ]),
     );
   }
 
   if (request.q.trim().length > 0) {
-    nextQuery = nextQuery.where("name", "like", `%${request.q.trim()}%`);
+    nextQuery = nextQuery.where('name', 'like', `%${request.q.trim()}%`);
   }
 
   return nextQuery;
@@ -297,9 +263,7 @@ function toWorldbookRow(worldbook: Worldbook): WorldbookInsert {
     created_at_ms: ensureEpochMillis(worldbook.createdAtMs),
     updated_at_ms: ensureEpochMillis(worldbook.updatedAtMs),
     last_used_at_ms:
-      worldbook.lastUsedAtMs === null
-        ? null
-        : ensureEpochMillis(worldbook.lastUsedAtMs),
+      worldbook.lastUsedAtMs === null ? null : ensureEpochMillis(worldbook.lastUsedAtMs),
     usage_count: worldbook.usageCount,
   };
 }
@@ -405,19 +369,17 @@ function nullableEpochMillisColumn(value: unknown): number | null {
 }
 
 function numberColumn(value: unknown): number {
-  if (typeof value === "number") {
+  if (typeof value === 'number') {
     return value;
   }
 
-  if (typeof value === "bigint") {
+  if (typeof value === 'bigint') {
     return Number(value);
   }
 
-  if (typeof value === "string") {
+  if (typeof value === 'string') {
     return Number(value);
   }
 
-  throw new Error(
-    "Database number column must be a number, bigint, or string.",
-  );
+  throw new Error('Database number column must be a number, bigint, or string.');
 }

@@ -1,19 +1,16 @@
-import { useTranslation } from "react-i18next";
-import { MobileTopBar } from "../../assets/components/mobile-top-bar";
-import { useCharacterDraftSession } from "../hooks/use-character-draft-sessions";
-import type { CharacterPage } from "./character-pages";
-import { CharacterGreetingsEditor } from "./character-greetings-editor";
-import { CharacterStackPage } from "./character-stack-page";
+import { useTranslation } from 'react-i18next';
+import { MobileTopBar } from '../../assets/components/mobile-top-bar';
+import { useCharacterDraftSession } from '../hooks/use-character-draft-sessions';
+import type { CharacterPage } from './character-pages';
+import { CharacterGreetingsEditor } from './character-greetings-editor';
+import { CharacterStackPage } from './character-stack-page';
 
 export interface CharacterGreetingsPageProps {
-  page: Extract<CharacterPage, { name: "alternateGreetings" }>;
+  page: Extract<CharacterPage, { name: 'alternateGreetings' }>;
   onBack: () => void;
 }
 
-export function CharacterGreetingsPage({
-  page,
-  onBack,
-}: CharacterGreetingsPageProps) {
+export function CharacterGreetingsPage({ page, onBack }: CharacterGreetingsPageProps) {
   const { t } = useTranslation();
   const { form, setForm, isPending } = useCharacterDraftSession({
     sessionKey: page.sessionKey,
@@ -22,14 +19,12 @@ export function CharacterGreetingsPage({
 
   return (
     <CharacterStackPage>
-      <MobileTopBar title={t("characters.greetings.title")} onBack={onBack} />
+      <MobileTopBar title={t('characters.greetings.title')} onBack={onBack} />
       <div className="mx-auto min-h-0 w-full max-w-2xl flex-1 overflow-y-auto">
         <CharacterGreetingsEditor
           disabled={isPending}
           greetings={form.alternateGreetings}
-          onChange={(alternateGreetings) =>
-            setForm({ ...form, alternateGreetings })
-          }
+          onChange={(alternateGreetings) => setForm({ ...form, alternateGreetings })}
         />
       </div>
     </CharacterStackPage>

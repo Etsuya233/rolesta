@@ -1,14 +1,11 @@
-import { UseCase } from "../../common/errors/index.js";
-import type { UnitOfWork } from "../../common/application/unit-of-work.js";
-import { ensureEpochMillis } from "../../shared/epoch-millis.js";
-import type { Worldbook } from "../domain/worldbook.js";
-import type { WorldbookCodec } from "../ports/worldbook-codec.js";
-import type { WorldbookStore } from "../ports/worldbook-store.js";
-import { translateWorldbookError } from "./worldbook-error.mapper.js";
-import type {
-  WorldbookClock,
-  WorldbookIdGenerator,
-} from "./worldbook-application-services.js";
+import { UseCase } from '../../common/errors/index.js';
+import type { UnitOfWork } from '../../common/application/unit-of-work.js';
+import { ensureEpochMillis } from '../../shared/epoch-millis.js';
+import type { Worldbook } from '../domain/worldbook.js';
+import type { WorldbookCodec } from '../ports/worldbook-codec.js';
+import type { WorldbookStore } from '../ports/worldbook-store.js';
+import { translateWorldbookError } from './worldbook-error.mapper.js';
+import type { WorldbookClock, WorldbookIdGenerator } from './worldbook-application-services.js';
 
 export interface ImportWorldbookCommand {
   ownerUserId: string;
@@ -36,7 +33,7 @@ export class ImportWorldbookUseCase {
     const worldbook: Worldbook = {
       id: worldbookId,
       ownerUserId: command.ownerUserId,
-      visibility: "private",
+      visibility: 'private',
       name: imported.name,
       description: imported.description,
       tags: imported.tags,
@@ -50,7 +47,7 @@ export class ImportWorldbookUseCase {
         createdAtMs: nowMs,
         updatedAtMs: nowMs,
       })),
-      sourceFormat: "sillytavern_world_info",
+      sourceFormat: 'sillytavern_world_info',
       sourceSnapshot: imported.sourceSnapshot,
       createdAtMs: nowMs,
       updatedAtMs: nowMs,

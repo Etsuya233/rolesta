@@ -1,21 +1,18 @@
-import { countPromptTokens } from "@rolesta/shared";
-import { UseCase } from "../../common/errors/index.js";
-import type { UnitOfWork } from "../../common/application/unit-of-work.js";
-import { ensureEpochMillis } from "../../shared/epoch-millis.js";
+import { countPromptTokens } from '@rolesta/shared';
+import { UseCase } from '../../common/errors/index.js';
+import type { UnitOfWork } from '../../common/application/unit-of-work.js';
+import { ensureEpochMillis } from '../../shared/epoch-millis.js';
 import type {
   Worldbook,
   WorldbookEntryRole,
   WorldbookInsertionPosition,
   WorldbookSelectiveLogic,
   WorldbookVisibility,
-} from "../domain/worldbook.js";
-import type { WorldbookStore } from "../ports/worldbook-store.js";
-import type {
-  WorldbookClock,
-  WorldbookIdGenerator,
-} from "./worldbook-application-services.js";
-import { WorldbookApplicationError } from "./worldbook-application-error.js";
-import { translateWorldbookError } from "./worldbook-error.mapper.js";
+} from '../domain/worldbook.js';
+import type { WorldbookStore } from '../ports/worldbook-store.js';
+import type { WorldbookClock, WorldbookIdGenerator } from './worldbook-application-services.js';
+import { WorldbookApplicationError } from './worldbook-application-error.js';
+import { translateWorldbookError } from './worldbook-error.mapper.js';
 
 export interface WorldbookDocumentEntry {
   id: string;
@@ -66,21 +63,18 @@ export class UpdateWorldbookDocumentUseCase {
   @UseCase(translateWorldbookError)
   async execute(command: UpdateWorldbookDocumentCommand): Promise<Worldbook> {
     return this.unitOfWork.run(async () => {
-      const current = await this.store.findVisibleById(
-        command.worldbookId,
-        command.viewerUserId,
-      );
+      const current = await this.store.findVisibleById(command.worldbookId, command.viewerUserId);
 
       if (current === null) {
         throw new WorldbookApplicationError({
-          reason: "not-found",
+          reason: 'not-found',
           params: { worldbookId: command.worldbookId },
         });
       }
 
       if (current.ownerUserId !== command.viewerUserId) {
         throw new WorldbookApplicationError({
-          reason: "forbidden",
+          reason: 'forbidden',
           params: {
             worldbookId: command.worldbookId,
             viewerUserId: command.viewerUserId,
@@ -91,9 +85,7 @@ export class UpdateWorldbookDocumentUseCase {
       assertUniqueEntryIds(command.worldbookId, command.entries);
 
       const nowMs = ensureEpochMillis(this.clock.now().getTime());
-      const currentEntryById = new Map(
-        current.entries.map((entry) => [entry.id, entry]),
-      );
+      const currentEntryById = new Map(current.entries.map((entry) => [entry.id, entry]));
       const entries = command.entries.map((entry, insertionOrder) => {
         const existing = currentEntryById.get(entry.id);
 
@@ -126,16 +118,13 @@ export class UpdateWorldbookDocumentUseCase {
   }
 }
 
-function assertUniqueEntryIds(
-  worldbookId: string,
-  entries: WorldbookDocumentEntry[],
-): void {
+function assertUniqueEntryIds(worldbookId: string, entries: WorldbookDocumentEntry[]): void {
   const entryIds = new Set<string>();
 
   for (const entry of entries) {
     if (entryIds.has(entry.id)) {
       throw new WorldbookApplicationError({
-        reason: "duplicate-entry",
+        reason: 'duplicate-entry',
         params: { worldbookId, entryId: entry.id },
       });
     }

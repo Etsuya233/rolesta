@@ -9,36 +9,36 @@ import {
   Query,
   Req,
   UseGuards,
-} from "@nestjs/common";
-import { ApiBody, ApiParam, ApiTags } from "@nestjs/swagger";
-import { AuthGuard } from "../../auth/http/auth.guard.js";
-import type { AuthenticatedRequest } from "../../auth/http/authenticated-request.js";
-import { GetPublicFileObjectsUseCase } from "../../files/application/get-public-file-objects.use-case.js";
-import { ApiEnvelopeOkResponse } from "../../openapi/api-envelope-response.decorator.js";
-import { ChatApplicationError } from "../application/chat-application-error.js";
-import type { ChatApplicationErrorReason } from "../application/chat-application-error.js";
-import { CreateChatUseCase } from "../application/create-chat.use-case.js";
-import { DeleteChatUseCase } from "../application/delete-chat.use-case.js";
-import { GetChatUseCase } from "../application/get-chat.use-case.js";
-import { ListChatsUseCase } from "../application/list-chats.use-case.js";
-import { UpdateChatUseCase } from "../application/update-chat.use-case.js";
-import type { ChatCharacterSummary, ChatDetail } from "../ports/chat-store.js";
-import { toChatApiFailure } from "./chat-application-error.mapper.js";
+} from '@nestjs/common';
+import { ApiBody, ApiParam, ApiTags } from '@nestjs/swagger';
+import { AuthGuard } from '../../auth/http/auth.guard.js';
+import type { AuthenticatedRequest } from '../../auth/http/authenticated-request.js';
+import { GetPublicFileObjectsUseCase } from '../../files/application/get-public-file-objects.use-case.js';
+import { ApiEnvelopeOkResponse } from '../../openapi/api-envelope-response.decorator.js';
+import { ChatApplicationError } from '../application/chat-application-error.js';
+import type { ChatApplicationErrorReason } from '../application/chat-application-error.js';
+import { CreateChatUseCase } from '../application/create-chat.use-case.js';
+import { DeleteChatUseCase } from '../application/delete-chat.use-case.js';
+import { GetChatUseCase } from '../application/get-chat.use-case.js';
+import { ListChatsUseCase } from '../application/list-chats.use-case.js';
+import { UpdateChatUseCase } from '../application/update-chat.use-case.js';
+import type { ChatCharacterSummary, ChatDetail } from '../ports/chat-store.js';
+import { toChatApiFailure } from './chat-application-error.mapper.js';
 import {
   CreateChatRequestDto,
   ListChatsQueryDto,
   UpdateChatRequestDto,
-} from "./chat-requests.dto.js";
+} from './chat-requests.dto.js';
 import {
   ChatDetailResponseDto,
   ChatPageResponseDto,
   toChatDetailResponse,
   toChatListItemResponse,
-} from "./chat-responses.dto.js";
+} from './chat-responses.dto.js';
 
-@ApiTags("chats")
+@ApiTags('chats')
 @UseGuards(AuthGuard)
-@Controller("chats")
+@Controller('chats')
 export class ChatsController {
   constructor(
     private readonly createChat: CreateChatUseCase,
@@ -85,25 +85,25 @@ export class ChatsController {
     };
   }
 
-  @Get(":id")
-  @ApiParam({ name: "id", type: String })
+  @Get(':id')
+  @ApiParam({ name: 'id', type: String })
   @ApiEnvelopeOkResponse({ type: ChatDetailResponseDto })
   async get(
     @Req() request: AuthenticatedRequest,
-    @Param("id") id: string,
+    @Param('id') id: string,
   ): Promise<ChatDetailResponseDto> {
     return this.withErrors(async () =>
       this.detailResponse(await this.getChat.execute(id, request.authUser.id)),
     );
   }
 
-  @Patch(":id")
-  @ApiParam({ name: "id", type: String })
+  @Patch(':id')
+  @ApiParam({ name: 'id', type: String })
   @ApiBody({ type: UpdateChatRequestDto })
   @ApiEnvelopeOkResponse({ type: ChatDetailResponseDto })
   async update(
     @Req() request: AuthenticatedRequest,
-    @Param("id") id: string,
+    @Param('id') id: string,
     @Body() body: UpdateChatRequestDto,
   ): Promise<ChatDetailResponseDto> {
     return this.withErrors(async () =>
@@ -117,14 +117,14 @@ export class ChatsController {
     );
   }
 
-  @Delete(":id")
-  @ApiParam({ name: "id", type: String })
+  @Delete(':id')
+  @ApiParam({ name: 'id', type: String })
   @ApiEnvelopeOkResponse({
-    schema: { type: "object", properties: { ok: { type: "boolean" } } },
+    schema: { type: 'object', properties: { ok: { type: 'boolean' } } },
   })
   async delete(
     @Req() request: AuthenticatedRequest,
-    @Param("id") id: string,
+    @Param('id') id: string,
   ): Promise<{ ok: true }> {
     return this.withErrors(async () => {
       await this.deleteChat.execute(id, request.authUser.id);
@@ -132,37 +132,25 @@ export class ChatsController {
     });
   }
 
-  private async detailResponse(
-    chat: ChatDetail,
-  ): Promise<ChatDetailResponseDto> {
+  private async detailResponse(chat: ChatDetail): Promise<ChatDetailResponseDto> {
     const files = await this.publicFiles.execute(
       avatarResourceIds([chat.chatCharacter, chat.persona]),
     );
     return toChatDetailResponse(chat, files);
   }
 
-  private async withErrors<TResult>(
-    operation: () => Promise<TResult>,
-  ): Promise<TResult> {
+  private async withErrors<TResult>(operation: () => Promise<TResult>): Promise<TResult> {
     try {
       return await operation();
     } catch (error) {
       if (error instanceof ChatApplicationError) {
-        throw toChatApiFailure(
-          error as ChatApplicationError<ChatApplicationErrorReason>,
-        );
+        throw toChatApiFailure(error as ChatApplicationError<ChatApplicationErrorReason>);
       }
       throw error;
     }
   }
 }
 
-function avatarResourceIds(
-  characters: Array<ChatCharacterSummary | null>,
-): string[] {
-  return Array.from(
-    new Set(
-      characters.flatMap((character) => character?.avatarResourceId ?? []),
-    ),
-  );
+function avatarResourceIds(characters: Array<ChatCharacterSummary | null>): string[] {
+  return Array.from(new Set(characters.flatMap((character) => character?.avatarResourceId ?? [])));
 }

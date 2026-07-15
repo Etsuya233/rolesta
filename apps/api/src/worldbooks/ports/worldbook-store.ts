@@ -1,21 +1,21 @@
-import type { PageResponse } from "@rolesta/shared";
-import type { Worldbook, WorldbookSummary } from "../domain/worldbook.js";
+import type { PageResponse } from '@rolesta/shared';
+import type { Worldbook, WorldbookSummary } from '../domain/worldbook.js';
 
-export const WORLDBOOK_STORE = Symbol("WorldbookStore");
+export const WORLDBOOK_STORE = Symbol('WorldbookStore');
 
 export const WORLDBOOK_SORT_KEYS = [
-  "createdAt",
-  "updatedAt",
-  "name",
-  "lastUsedAt",
-  "usageCount",
+  'createdAt',
+  'updatedAt',
+  'name',
+  'lastUsedAt',
+  'usageCount',
 ] as const;
 export type WorldbookSortKey = (typeof WORLDBOOK_SORT_KEYS)[number];
 
-export const SORT_DIRECTIONS = ["asc", "desc"] as const;
+export const SORT_DIRECTIONS = ['asc', 'desc'] as const;
 export type SortDirection = (typeof SORT_DIRECTIONS)[number];
 
-export const WORLDBOOK_LIST_SCOPES = ["all", "mine", "public"] as const;
+export const WORLDBOOK_LIST_SCOPES = ['all', 'mine', 'public'] as const;
 export type WorldbookListScope = (typeof WORLDBOOK_LIST_SCOPES)[number];
 
 export interface ListWorldbooksRequest {

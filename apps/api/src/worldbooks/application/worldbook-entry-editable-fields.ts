@@ -1,10 +1,10 @@
-import { countPromptTokens } from "@rolesta/shared";
+import { countPromptTokens } from '@rolesta/shared';
 import type {
   WorldbookEntryRole,
   WorldbookEntry,
   WorldbookInsertionPosition,
   WorldbookSelectiveLogic,
-} from "../domain/worldbook.js";
+} from '../domain/worldbook.js';
 
 export interface WorldbookEntryEditableFields {
   enabled?: boolean;
@@ -56,14 +56,11 @@ export function applyWorldbookEntryEditableFields(
     depth: fields.depth ?? entry.depth,
     insertionRole: fields.insertionRole ?? entry.insertionRole,
     anchorName: fields.anchorName ?? entry.anchorName,
-    scanDepth:
-      fields.scanDepth === undefined ? entry.scanDepth : fields.scanDepth,
+    scanDepth: fields.scanDepth === undefined ? entry.scanDepth : fields.scanDepth,
     excludeRecursion: fields.excludeRecursion ?? entry.excludeRecursion,
     preventRecursion: fields.preventRecursion ?? entry.preventRecursion,
-    delayUntilRecursion:
-      fields.delayUntilRecursion ?? entry.delayUntilRecursion,
+    delayUntilRecursion: fields.delayUntilRecursion ?? entry.delayUntilRecursion,
     probability: fields.probability ?? entry.probability,
-    tokenCount:
-      content === entry.content ? entry.tokenCount : countPromptTokens(content),
+    tokenCount: content === entry.content ? entry.tokenCount : countPromptTokens(content),
   };
 }

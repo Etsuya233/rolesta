@@ -1,12 +1,12 @@
-import { useMutation, useQuery } from "@tanstack/react-query";
-import type { TFunction } from "i18next";
-import { Activity, BadgeInfo, Bot } from "lucide-react";
-import { useId, useMemo, useState } from "react";
-import { useTranslation } from "react-i18next";
-import { Accordion } from "../../../components/ui/accordion";
-import { Button } from "../../../components/ui/button";
-import { ApiError } from "../../../lib/api/client";
-import { formatApiMessage } from "../../../lib/i18n/api-error-message";
+import { useMutation, useQuery } from '@tanstack/react-query';
+import type { TFunction } from 'i18next';
+import { Activity, BadgeInfo, Bot } from 'lucide-react';
+import { useId, useMemo, useState } from 'react';
+import { useTranslation } from 'react-i18next';
+import { Accordion } from '../../../components/ui/accordion';
+import { Button } from '../../../components/ui/button';
+import { ApiError } from '../../../lib/api/client';
+import { formatApiMessage } from '../../../lib/i18n/api-error-message';
 import {
   getModelProviderCatalog,
   previewModelProviderModels,
@@ -14,12 +14,12 @@ import {
   type ModelProviderCatalogItem,
   type ModelProviderDetailResponse,
   type ModelProviderKind,
-} from "../api/model-providers-api";
-import { useModelProviderDraftSession } from "../hooks/use-model-provider-draft-sessions";
+} from '../api/model-providers-api';
+import { useModelProviderDraftSession } from '../hooks/use-model-provider-draft-sessions';
 import {
   asModelProviderKind,
   type ModelProviderEditorFormState,
-} from "../model/model-provider-editor-form";
+} from '../model/model-provider-editor-form';
 import {
   FormActionButton,
   FormError,
@@ -28,8 +28,8 @@ import {
   ModelProviderFormSection,
   ModelProviderSelectField,
   ModelProviderTextField,
-} from "./model-provider-form-fields";
-import { ModelProviderCredentialField } from "./model-provider-credential-field";
+} from './model-provider-form-fields';
+import { ModelProviderCredentialField } from './model-provider-credential-field';
 
 export interface ModelProviderMainEditorProps {
   sessionKey: string;
@@ -48,29 +48,22 @@ export function ModelProviderMainEditor({
 }: ModelProviderMainEditorProps) {
   const { t } = useTranslation();
   const fieldPrefix = useId();
-  const [openSections, setOpenSections] = useState<string[]>([
-    "basic",
-    "model",
-    "test",
-  ]);
-  const { form, setForm, isPending, visibleError, submit } =
-    useModelProviderDraftSession({
-      sessionKey,
-      ...(configId ? { configId } : {}),
-      ...(onCreated ? { onCreated } : {}),
-    });
+  const [openSections, setOpenSections] = useState<string[]>(['basic', 'model', 'test']);
+  const { form, setForm, isPending, visibleError, submit } = useModelProviderDraftSession({
+    sessionKey,
+    ...(configId ? { configId } : {}),
+    ...(onCreated ? { onCreated } : {}),
+  });
   const catalogQuery = useQuery({
-    queryKey: ["model-provider-catalog"],
+    queryKey: ['model-provider-catalog'],
     queryFn: getModelProviderCatalog,
   });
   const catalogItems = useMemo(
     () => catalogQuery.data?.items.map(normalizeCatalogItem) ?? [],
     [catalogQuery.data],
   );
-  const selectedCatalogItem = catalogItems.find(
-    (item) => item.kind === form.providerKind,
-  );
-  const modelOpen = openSections.includes("model");
+  const selectedCatalogItem = catalogItems.find((item) => item.kind === form.providerKind);
+  const modelOpen = openSections.includes('model');
   const connectionKey = [
     form.providerKind,
     form.baseUrl,
@@ -80,20 +73,15 @@ export function ModelProviderMainEditor({
   ] as const;
   const modelsQuery = useQuery({
     enabled: modelOpen && Boolean(form.baseUrl.trim()),
-    queryKey: ["model-provider-models-preview", ...connectionKey],
+    queryKey: ['model-provider-models-preview', ...connectionKey],
     queryFn: () =>
       previewModelProviderModels({
         providerKind: form.providerKind,
         baseUrl: form.baseUrl,
-        ...(form.credentialMode === "vault" && form.apiKeyId
-          ? { apiKeyId: form.apiKeyId }
-          : {}),
-        ...(form.credentialMode === "manual" && form.secret
-          ? { apiKeySecret: form.secret }
-          : {}),
+        ...(form.credentialMode === 'vault' && form.apiKeyId ? { apiKeyId: form.apiKeyId } : {}),
+        ...(form.credentialMode === 'manual' && form.secret ? { apiKeySecret: form.secret } : {}),
       }),
-    select: (result) =>
-      [...result.models].sort((left, right) => left.localeCompare(right)),
+    select: (result) => [...result.models].sort((left, right) => left.localeCompare(right)),
   });
   const testMutation = useMutation({
     mutationFn: () =>
@@ -101,12 +89,8 @@ export function ModelProviderMainEditor({
         providerKind: form.providerKind,
         baseUrl: form.baseUrl,
         defaultModelName: form.defaultModelName,
-        ...(form.credentialMode === "vault" && form.apiKeyId
-          ? { apiKeyId: form.apiKeyId }
-          : {}),
-        ...(form.credentialMode === "manual" && form.secret
-          ? { apiKeySecret: form.secret }
-          : {}),
+        ...(form.credentialMode === 'vault' && form.apiKeyId ? { apiKeyId: form.apiKeyId } : {}),
+        ...(form.credentialMode === 'manual' && form.secret ? { apiKeySecret: form.secret } : {}),
       }),
   });
 
@@ -125,23 +109,21 @@ export function ModelProviderMainEditor({
           <ModelProviderFormSection
             icon={BadgeInfo}
             summary={basicSummary(form, selectedCatalogItem, t)}
-            title={t("modelProviders.editor.sections.basic.title")}
+            title={t('modelProviders.editor.sections.basic.title')}
             value="basic"
           >
             <ModelProviderTextField
               disabled={isPending}
               id={`${fieldPrefix}-name`}
-              label={t("modelProviders.editor.fields.name")}
+              label={t('modelProviders.editor.fields.name')}
               value={form.name}
-              onChange={(event) =>
-                setForm({ ...form, name: event.target.value })
-              }
+              onChange={(event) => setForm({ ...form, name: event.target.value })}
             />
             <ProviderSelect
               disabled={isPending || catalogQuery.isLoading}
               id={`${fieldPrefix}-provider`}
               items={catalogItems}
-              label={t("modelProviders.editor.fields.provider")}
+              label={t('modelProviders.editor.fields.provider')}
               value={form.providerKind}
               onChange={(providerKind) =>
                 setForm(providerChanged(form, providerKind, catalogItems))
@@ -151,18 +133,16 @@ export function ModelProviderMainEditor({
               <ModelProviderTextField
                 disabled={isPending}
                 id={`${fieldPrefix}-base-url`}
-                label={t("modelProviders.editor.fields.baseUrl")}
+                label={t('modelProviders.editor.fields.baseUrl')}
                 placeholder="https://example.com/v1"
                 value={form.baseUrl}
-                onChange={(event) =>
-                  setForm({ ...form, baseUrl: event.target.value })
-                }
+                onChange={(event) => setForm({ ...form, baseUrl: event.target.value })}
               />
             ) : (
               <ModelProviderSelectField
                 disabled={isPending || !selectedCatalogItem}
                 id={`${fieldPrefix}-base-url`}
-                label={t("modelProviders.editor.fields.baseUrl")}
+                label={t('modelProviders.editor.fields.baseUrl')}
                 options={(selectedCatalogItem?.baseUrls ?? []).map((value) => ({
                   value,
                   label: value,
@@ -181,21 +161,16 @@ export function ModelProviderMainEditor({
 
           <ModelProviderFormSection
             icon={Bot}
-            summary={
-              form.defaultModelName.trim() ||
-              t("modelProviders.editor.summaries.noModel")
-            }
-            title={t("modelProviders.editor.sections.model.title")}
+            summary={form.defaultModelName.trim() || t('modelProviders.editor.summaries.noModel')}
+            title={t('modelProviders.editor.sections.model.title')}
             value="model"
           >
             <ModelProviderTextField
               disabled={isPending}
               id={`${fieldPrefix}-model-name`}
-              label={t("modelProviders.editor.fields.model")}
+              label={t('modelProviders.editor.fields.model')}
               value={form.defaultModelName}
-              onChange={(event) =>
-                setForm({ ...form, defaultModelName: event.target.value })
-              }
+              onChange={(event) => setForm({ ...form, defaultModelName: event.target.value })}
             />
             <RemoteModelSelect
               disabled={isPending}
@@ -219,34 +194,30 @@ export function ModelProviderMainEditor({
               testMutation.data?.elapsedMs,
               t,
             )}
-            title={t("modelProviders.editor.sections.test.title")}
+            title={t('modelProviders.editor.sections.test.title')}
             value="test"
           >
             <FormActionButton
               disabled={
-                testMutation.isPending ||
-                !form.baseUrl.trim() ||
-                !form.defaultModelName.trim()
+                testMutation.isPending || !form.baseUrl.trim() || !form.defaultModelName.trim()
               }
               onClick={() => testMutation.mutate()}
             >
               {testMutation.isPending
-                ? t("modelProviders.editor.actions.testing")
-                : t("modelProviders.editor.actions.testConnection")}
+                ? t('modelProviders.editor.actions.testing')
+                : t('modelProviders.editor.actions.testConnection')}
             </FormActionButton>
             {testMutation.data ? (
               <FormNotice>
-                {t("modelProviders.editor.testSuccess", {
+                {t('modelProviders.editor.testSuccess', {
                   model: testMutation.data.modelName,
                   elapsed: testMutation.data.elapsedMs,
-                  id: testMutation.data.remoteResponseId ?? "-",
+                  id: testMutation.data.remoteResponseId ?? '-',
                 })}
               </FormNotice>
             ) : null}
             {testMutation.error ? (
-              <FormError>
-                {connectionErrorMessage(testMutation.error, t)}
-              </FormError>
+              <FormError>{connectionErrorMessage(testMutation.error, t)}</FormError>
             ) : null}
           </ModelProviderFormSection>
         </Accordion>
@@ -283,15 +254,15 @@ function RemoteModelSelect({
   const { t } = useTranslation();
   const options = models ?? [];
   const description = loading
-    ? t("modelProviders.editor.actions.fetchingModels")
+    ? t('modelProviders.editor.actions.fetchingModels')
     : error
       ? connectionErrorMessage(error, t)
       : t(
           ready
             ? options.length
-              ? "modelProviders.editor.availableModels.count"
-              : "modelProviders.editor.availableModels.empty"
-            : "modelProviders.editor.availableModels.notReady",
+              ? 'modelProviders.editor.availableModels.count'
+              : 'modelProviders.editor.availableModels.empty'
+            : 'modelProviders.editor.availableModels.notReady',
           { count: options.length },
         );
 
@@ -301,15 +272,15 @@ function RemoteModelSelect({
         description={description}
         disabled={disabled || loading || Boolean(error) || !ready || !options.length}
         id={id}
-        label={t("modelProviders.editor.fields.modelCandidates")}
+        label={t('modelProviders.editor.fields.modelCandidates')}
         options={options.map((model) => ({ value: model, label: model }))}
-        placeholder={t("modelProviders.editor.fields.modelCandidates")}
-        value={options.includes(value) ? value : ""}
+        placeholder={t('modelProviders.editor.fields.modelCandidates')}
+        value={options.includes(value) ? value : ''}
         onChange={onChange}
       />
       {error ? (
         <Button type="button" variant="outline" onClick={onRetry}>
-          {t("modelProviders.editor.actions.retryModels")}
+          {t('modelProviders.editor.actions.retryModels')}
         </Button>
       ) : null}
     </>
@@ -355,7 +326,7 @@ function providerChanged(
   return {
     ...form,
     providerKind,
-    baseUrl: item?.allowCustomBaseUrl ? "" : (item?.baseUrls[0] ?? ""),
+    baseUrl: item?.allowCustomBaseUrl ? '' : (item?.baseUrls[0] ?? ''),
   };
 }
 
@@ -372,19 +343,15 @@ function basicSummary(
   const host = hostFromBaseUrl(form.baseUrl);
   const provider = item?.displayName ?? form.providerKind;
   const credential =
-    form.credentialMode === "vault"
-      ? (form.apiKeyName ?? t("modelProviders.editor.summaries.noKey"))
-      : t("modelProviders.editor.credentials.manual");
-  return [
-    form.name.trim(),
-    host ? `${provider} · ${host}` : provider,
-    credential,
-  ]
+    form.credentialMode === 'vault'
+      ? (form.apiKeyName ?? t('modelProviders.editor.summaries.noKey'))
+      : t('modelProviders.editor.credentials.manual');
+  return [form.name.trim(), host ? `${provider} · ${host}` : provider, credential]
     .filter(Boolean)
-    .join(" · ");
+    .join(' · ');
 }
 function hostFromBaseUrl(value: string): string {
-  if (!value.trim()) return "";
+  if (!value.trim()) return '';
   try {
     return new URL(value.trim()).host;
   } catch {
@@ -399,16 +366,16 @@ function testSummary(
   t: TFunction,
 ): string {
   if (elapsedMs !== undefined)
-    return t("modelProviders.editor.summaries.testConnected", {
+    return t('modelProviders.editor.summaries.testConnected', {
       elapsed: elapsedMs,
     });
-  if (hasError) return t("modelProviders.editor.summaries.testFailed");
+  if (hasError) return t('modelProviders.editor.summaries.testFailed');
   return hasBaseUrl && hasModel
-    ? t("modelProviders.editor.summaries.testReady")
-    : t("modelProviders.editor.summaries.testNotReady");
+    ? t('modelProviders.editor.summaries.testReady')
+    : t('modelProviders.editor.summaries.testNotReady');
 }
 function connectionErrorMessage(error: Error, t: TFunction): string {
   return error instanceof ApiError
     ? formatApiMessage(error.message, error.envelope?.data ?? {})
-    : t("modelProviders.editor.errors.connectionFailed");
+    : t('modelProviders.editor.errors.connectionFailed');
 }

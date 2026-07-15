@@ -1,17 +1,14 @@
-import { UseCase } from "../../common/errors/index.js";
-import type { UnitOfWork } from "../../common/application/unit-of-work.js";
-import { ensureEpochMillis } from "../../shared/epoch-millis.js";
-import type { Worldbook } from "../domain/worldbook.js";
-import { translateWorldbookError } from "./worldbook-error.mapper.js";
-import type {
-  WorldbookClock,
-  WorldbookIdGenerator,
-} from "./worldbook-application-services.js";
+import { UseCase } from '../../common/errors/index.js';
+import type { UnitOfWork } from '../../common/application/unit-of-work.js';
+import { ensureEpochMillis } from '../../shared/epoch-millis.js';
+import type { Worldbook } from '../domain/worldbook.js';
+import { translateWorldbookError } from './worldbook-error.mapper.js';
+import type { WorldbookClock, WorldbookIdGenerator } from './worldbook-application-services.js';
 import {
   applyWorldbookEditableFields,
   type WorldbookEditableFields,
-} from "./worldbook-editable-fields.js";
-import type { WorldbookStore } from "../ports/worldbook-store.js";
+} from './worldbook-editable-fields.js';
+import type { WorldbookStore } from '../ports/worldbook-store.js';
 
 export interface CreateWorldbookCommand extends WorldbookEditableFields {
   ownerUserId: string;
@@ -31,15 +28,15 @@ export class CreateWorldbookUseCase {
     const draft: Worldbook = {
       id: this.idGenerator.createId(),
       ownerUserId: command.ownerUserId,
-      visibility: "private",
-      name: "Untitled worldbook",
-      description: "",
+      visibility: 'private',
+      name: 'Untitled worldbook',
+      description: '',
       tags: [],
       scanDepth: 3,
       tokenBudget: 1024,
       recursiveScan: false,
       entries: [],
-      sourceFormat: "rolesta",
+      sourceFormat: 'rolesta',
       sourceSnapshot: {},
       createdAtMs: nowMs,
       updatedAtMs: nowMs,

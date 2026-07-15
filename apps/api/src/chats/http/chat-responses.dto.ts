@@ -1,17 +1,17 @@
-import { ApiProperty } from "@nestjs/swagger";
-import type { FileObject } from "../../files/domain/file-resource.js";
+import { ApiProperty } from '@nestjs/swagger';
+import type { FileObject } from '../../files/domain/file-resource.js';
 import type {
   ChatCharacterSummary,
   ChatDetail,
   ChatListItem,
   ChatModelProviderSummary,
-} from "../ports/chat-store.js";
+} from '../ports/chat-store.js';
 
 export class ChatAvatarResponseDto {
   @ApiProperty({ type: String })
   resourceId!: string;
 
-  @ApiProperty({ type: Object, additionalProperties: { type: "string" } })
+  @ApiProperty({ type: Object, additionalProperties: { type: 'string' } })
   sources!: Record<string, string>;
 }
 
@@ -42,9 +42,9 @@ export class ChatModelProviderSummaryResponseDto {
   name!: string;
 
   @ApiProperty({
-    enum: ["openai-compatible", "openai", "claude", "z-ai", "deepseek"],
+    enum: ['openai-compatible', 'openai', 'claude', 'z-ai', 'deepseek'],
   })
-  providerKind!: ChatModelProviderSummary["providerKind"];
+  providerKind!: ChatModelProviderSummary['providerKind'];
 
   @ApiProperty({ type: String })
   defaultModelName!: string;
@@ -164,9 +164,7 @@ function toCharacterResponse(
     name: character.name,
     avatar: toAvatarResponse(
       character.avatarResourceId,
-      character.avatarResourceId === null
-        ? undefined
-        : fileObjects.get(character.avatarResourceId),
+      character.avatarResourceId === null ? undefined : fileObjects.get(character.avatarResourceId),
     ),
   };
 }

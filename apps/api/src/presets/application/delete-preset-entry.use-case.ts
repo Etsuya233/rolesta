@@ -24,10 +24,7 @@ export class DeletePresetEntryUseCase {
   @UseCase(translatePresetError)
   async execute(command: DeletePresetEntryCommand): Promise<Preset> {
     return this.unitOfWork.run(async () => {
-      const current = await this.store.findOwnedById(
-        command.presetId,
-        command.viewerUserId,
-      );
+      const current = await this.store.findOwnedById(command.presetId, command.viewerUserId);
 
       if (current === null) {
         throw new PresetApplicationError({
@@ -54,9 +51,7 @@ export class DeletePresetEntryUseCase {
         .map((item, index) => ({ ...item, orderIndex: index }));
       const updated = withPresetTokenCount({
         ...current,
-        entries: current.entries.filter(
-          (entry) => entry.id !== command.entryId,
-        ),
+        entries: current.entries.filter((entry) => entry.id !== command.entryId),
         promptItems: remainingItems,
         updatedAtMs: nowMs,
       });

@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   hasWorkspacePanel,
   workspacePanelByKey,
@@ -8,13 +8,13 @@ import {
   type WorkspaceArea,
   type WorkspaceOpenedPanels,
   type WorkspacePanelKey,
-} from "./workspace-panels";
+} from './workspace-panels';
 import {
   readWorkspaceLayout,
   workspaceAreaKeys,
   type WorkspacePanelSizes,
   writeWorkspaceLayout,
-} from "./workspace-layout-storage";
+} from './workspace-layout-storage';
 
 const emptyOpenedPanels: WorkspaceOpenedPanels = {
   left: [],
@@ -35,7 +35,7 @@ const defaultPanelSizes: WorkspacePanelSizes = {
   rightWidth: 448,
 };
 
-export type WorkspaceResizableSide = "left" | "right";
+export type WorkspaceResizableSide = 'left' | 'right';
 
 export interface WorkspaceLayoutState {
   openedByArea: WorkspaceOpenedPanels;
@@ -44,10 +44,7 @@ export interface WorkspaceLayoutState {
   rightVisible: boolean;
   mobileArea: WorkspaceArea | null;
   panelSizes: WorkspacePanelSizes;
-  openPanel: (
-    panelKey: WorkspacePanelKey,
-    options?: OpenWorkspacePanelOptions,
-  ) => void;
+  openPanel: (panelKey: WorkspacePanelKey, options?: OpenWorkspacePanelOptions) => void;
   closeArea: (area: WorkspaceArea) => void;
   toggleLeft: () => void;
   toggleRight: () => void;
@@ -85,11 +82,11 @@ export function useWorkspaceLayout(): WorkspaceLayoutState {
         [targetArea]: panelKey,
       }));
 
-      if (targetArea === "left") {
+      if (targetArea === 'left') {
         setLeftVisible(true);
       }
 
-      if (targetArea === "right") {
+      if (targetArea === 'right') {
         setRightVisible(true);
       }
 
@@ -97,7 +94,7 @@ export function useWorkspaceLayout(): WorkspaceLayoutState {
         return;
       }
 
-      if (targetArea === "left" || targetArea === "right" || targetArea === "bottom") {
+      if (targetArea === 'left' || targetArea === 'right' || targetArea === 'bottom') {
         setMobileArea(targetArea);
       }
     },
@@ -107,12 +104,12 @@ export function useWorkspaceLayout(): WorkspaceLayoutState {
   const closeArea = useCallback((area: WorkspaceArea) => {
     setMobileArea((current) => (current === area ? null : current));
 
-    if (area === "left") {
+    if (area === 'left') {
       setLeftVisible(false);
       return;
     }
 
-    if (area === "right") {
+    if (area === 'right') {
       setRightVisible(false);
       return;
     }
@@ -125,27 +122,24 @@ export function useWorkspaceLayout(): WorkspaceLayoutState {
 
   const toggleLeft = useCallback(() => {
     setLeftVisible((value) => !value);
-    setMobileArea((current) => (current === "left" ? null : "left"));
+    setMobileArea((current) => (current === 'left' ? null : 'left'));
   }, []);
 
   const toggleRight = useCallback(() => {
     setRightVisible((value) => !value);
-    setMobileArea((current) => (current === "right" ? null : "right"));
+    setMobileArea((current) => (current === 'right' ? null : 'right'));
   }, []);
 
   const closeMobileArea = useCallback(() => {
     setMobileArea(null);
   }, []);
 
-  const setPanelWidth = useCallback(
-    (side: WorkspaceResizableSide, width: number) => {
-      setPanelSizes((current) => ({
-        ...current,
-        [side === "left" ? "leftWidth" : "rightWidth"]: width,
-      }));
-    },
-    [],
-  );
+  const setPanelWidth = useCallback((side: WorkspaceResizableSide, width: number) => {
+    setPanelSizes((current) => ({
+      ...current,
+      [side === 'left' ? 'leftWidth' : 'rightWidth']: width,
+    }));
+  }, []);
 
   useEffect(() => {
     writeWorkspaceLayout({

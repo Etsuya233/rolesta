@@ -34,11 +34,7 @@ export type ModelProviderApplicationErrorParams<
 export class ModelProviderApplicationError<
   R extends ModelProviderApplicationErrorReason = ModelProviderApplicationErrorReason,
 > extends ApplicationError<R, ModelProviderApplicationErrorParams<R>> {
-  constructor(
-    reason: R,
-    params: ModelProviderApplicationErrorParams<R>,
-    cause?: unknown,
-  ) {
+  constructor(reason: R, params: ModelProviderApplicationErrorParams<R>, cause?: unknown) {
     super({ reason, params, cause });
   }
 }

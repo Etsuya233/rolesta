@@ -16,13 +16,7 @@ import {
   UseInterceptors,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
-import {
-  ApiBody,
-  ApiConsumes,
-  ApiOkResponse,
-  ApiParam,
-  ApiTags,
-} from '@nestjs/swagger';
+import { ApiBody, ApiConsumes, ApiOkResponse, ApiParam, ApiTags } from '@nestjs/swagger';
 import type { Response } from 'express';
 import { AuthGuard } from '../../auth/http/auth.guard.js';
 import type { AuthenticatedRequest } from '../../auth/http/authenticated-request.js';
@@ -331,16 +325,12 @@ export class PresetsController {
     );
   }
 
-  private async withApplicationErrors<TResult>(
-    handler: () => Promise<TResult>,
-  ): Promise<TResult> {
+  private async withApplicationErrors<TResult>(handler: () => Promise<TResult>): Promise<TResult> {
     try {
       return await handler();
     } catch (error) {
       if (error instanceof PresetApplicationError) {
-        throw toApiFailure(
-          error as PresetApplicationError<PresetApplicationErrorReason>,
-        );
+        throw toApiFailure(error as PresetApplicationError<PresetApplicationErrorReason>);
       }
 
       throw error;

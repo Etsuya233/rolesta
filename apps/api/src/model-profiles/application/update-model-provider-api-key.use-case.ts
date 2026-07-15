@@ -1,9 +1,9 @@
-import { UseCase } from "../../common/errors/index.js";
-import type { ApiKey } from "../domain/model-provider-config.js";
-import type { ApiKeyStore } from "../ports/api-key-store.js";
-import { ModelProviderApplicationError } from "./model-provider-application-error.js";
-import type { ModelProviderClock } from "./model-provider-application-services.js";
-import { translateModelProviderError } from "./model-provider-error.mapper.js";
+import { UseCase } from '../../common/errors/index.js';
+import type { ApiKey } from '../domain/model-provider-config.js';
+import type { ApiKeyStore } from '../ports/api-key-store.js';
+import { ModelProviderApplicationError } from './model-provider-application-error.js';
+import type { ModelProviderClock } from './model-provider-application-services.js';
+import { translateModelProviderError } from './model-provider-error.mapper.js';
 
 export class UpdateModelProviderApiKeyUseCase {
   constructor(
@@ -18,11 +18,8 @@ export class UpdateModelProviderApiKeyUseCase {
     name?: string;
     secret?: string;
   }): Promise<ApiKey> {
-    const current = await this.store.findOwnedById(
-      command.apiKeyId,
-      command.ownerUserId,
-    );
-    if (!current) throw new ModelProviderApplicationError("not-found", {});
+    const current = await this.store.findOwnedById(command.apiKeyId, command.ownerUserId);
+    if (!current) throw new ModelProviderApplicationError('not-found', {});
     const next = {
       ...current,
       name: command.name === undefined ? current.name : command.name.trim(),

@@ -1,15 +1,31 @@
-import { Body, Controller, Delete, Get, Put, Req, UploadedFile, UseGuards, UseInterceptors } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  Put,
+  Req,
+  UploadedFile,
+  UseGuards,
+  UseInterceptors,
+} from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { ApiBody, ApiConsumes, ApiTags } from '@nestjs/swagger';
 import { AuthGuard } from '../../auth/http/auth.guard.js';
 import type { AuthenticatedRequest } from '../../auth/http/authenticated-request.js';
 import { ApiEnvelopeOkResponse } from '../../openapi/api-envelope-response.decorator.js';
-import { GetUserAvatarUseCase, type UserAvatarView } from '../application/get-user-avatar.use-case.js';
+import {
+  GetUserAvatarUseCase,
+  type UserAvatarView,
+} from '../application/get-user-avatar.use-case.js';
 import {
   UserAvatarApplicationError,
   type UserAvatarApplicationErrorReason,
 } from '../application/user-avatar-application-error.js';
-import { DeleteUserAvatarUseCase, UploadUserAvatarUseCase } from '../application/user-avatar.use-cases.js';
+import {
+  DeleteUserAvatarUseCase,
+  UploadUserAvatarUseCase,
+} from '../application/user-avatar.use-cases.js';
 import { toApiFailure } from './user-avatar-application-error.mapper.js';
 
 class AvatarCropRequestDto {
@@ -115,6 +131,8 @@ function toAvatarResponse(view: UserAvatarView | null): UserAvatarResponseDto | 
   }
   return {
     resourceId: view.resourceId,
-    sources: Object.fromEntries(view.objects.map((object) => [object.role, `/api/files/${object.id}/content`])),
+    sources: Object.fromEntries(
+      view.objects.map((object) => [object.role, `/api/files/${object.id}/content`]),
+    ),
   };
 }

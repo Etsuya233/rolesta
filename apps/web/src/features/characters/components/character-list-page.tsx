@@ -1,10 +1,10 @@
-import { Import, Plus } from "lucide-react";
-import type { ReactNode } from "react";
-import { useTranslation } from "react-i18next";
-import { Button } from "../../../components/ui/button";
-import { MobileTopBar } from "../../assets/components/mobile-top-bar";
-import { CharacterCardListPanel } from "./character-card-list-panel";
-import { CharacterStackPage } from "./character-stack-page";
+import { Import, Plus } from 'lucide-react';
+import type { ReactNode } from 'react';
+import { useTranslation } from 'react-i18next';
+import { Button } from '../../../components/ui/button';
+import { MobileTopBar } from '../../assets/components/mobile-top-bar';
+import { CharacterCardListPanel } from './character-card-list-panel';
+import { CharacterStackPage } from './character-stack-page';
 
 export interface CharacterListPageProps {
   onBack: () => void;
@@ -26,21 +26,15 @@ export function CharacterListPage({
       <MobileTopBar
         actions={
           <>
-            <IconAction
-              label={t("characters.list.importAction")}
-              onClick={onImport}
-            >
+            <IconAction label={t('characters.list.importAction')} onClick={onImport}>
               <Import aria-hidden="true" />
             </IconAction>
-            <IconAction
-              label={t("characters.list.createAction")}
-              onClick={onCreate}
-            >
+            <IconAction label={t('characters.list.createAction')} onClick={onCreate}>
               <Plus aria-hidden="true" />
             </IconAction>
           </>
         }
-        title={t("characters.list.title")}
+        title={t('characters.list.title')}
         onBack={onBack}
       />
       <CharacterCardListPanel onSelectCharacter={onSelectCharacter} />

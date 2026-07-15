@@ -80,9 +80,15 @@ export class FileUserAvatarService implements UserAvatarService {
       }
       if (error instanceof FileApplicationError) {
         throw new UserAvatarPortError({
-          reason: error.reason === 'storage-unavailable' ? 'avatar-storage-unavailable' : 'invalid-avatar',
+          reason:
+            error.reason === 'storage-unavailable'
+              ? 'avatar-storage-unavailable'
+              : 'invalid-avatar',
           params: {
-            detail: error.reason === 'storage-unavailable' ? 'Avatar storage is unavailable.' : 'Invalid avatar image.',
+            detail:
+              error.reason === 'storage-unavailable'
+                ? 'Avatar storage is unavailable.'
+                : 'Invalid avatar image.',
           },
           cause: error,
         });

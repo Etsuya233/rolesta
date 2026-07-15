@@ -1,17 +1,17 @@
-import { Trash2 } from "lucide-react";
-import { useTranslation } from "react-i18next";
-import { Button } from "../../../components/ui/button";
-import { MobileTopBar } from "../../assets/components/mobile-top-bar";
-import { usePresetDraftSession } from "../hooks/use-preset-draft-sessions";
-import { PresetEntryEditor } from "./preset-entry-editor";
-import type { PresetPage } from "./preset-pages";
-import { PresetStackPage } from "./preset-stack-page";
+import { Trash2 } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
+import { Button } from '../../../components/ui/button';
+import { MobileTopBar } from '../../assets/components/mobile-top-bar';
+import { usePresetDraftSession } from '../hooks/use-preset-draft-sessions';
+import { PresetEntryEditor } from './preset-entry-editor';
+import type { PresetPage } from './preset-pages';
+import { PresetStackPage } from './preset-stack-page';
 
 export function PresetEntryEditPage({
   page,
   onBack,
 }: {
-  page: Extract<PresetPage, { name: "entryEdit" }>;
+  page: Extract<PresetPage, { name: 'entryEdit' }>;
   onBack: () => void;
 }) {
   const { t } = useTranslation();
@@ -24,12 +24,8 @@ export function PresetEntryEditPage({
     saveDocument(
       {
         ...document,
-        entries: document.entries.filter(
-          (candidate) => candidate.id !== page.entryId,
-        ),
-        promptItems: document.promptItems.filter(
-          (item) => item.entryId !== page.entryId,
-        ),
+        entries: document.entries.filter((candidate) => candidate.id !== page.entryId),
+        promptItems: document.promptItems.filter((item) => item.entryId !== page.entryId),
       },
       onBack,
     );
@@ -40,7 +36,7 @@ export function PresetEntryEditPage({
       <MobileTopBar
         actions={
           <Button
-            aria-label={t("presets.entries.deleteAction")}
+            aria-label={t('presets.entries.deleteAction')}
             className="size-10"
             disabled={isPending}
             size="icon-lg"
@@ -51,7 +47,7 @@ export function PresetEntryEditPage({
             <Trash2 aria-hidden="true" />
           </Button>
         }
-        title={t("presets.entries.editTitle")}
+        title={t('presets.entries.editTitle')}
         onBack={onBack}
       />
       <PresetEntryEditor

@@ -49,35 +49,35 @@ Character 根组件维护一个页面栈：
 
 ```ts
 type CharacterPage =
-  | { name: "list"; key: "list" }
-  | { name: "create"; key: "create"; sessionKey: string }
+  | { name: 'list'; key: 'list' }
+  | { name: 'create'; key: 'create'; sessionKey: string }
   | {
-      name: "editMain";
+      name: 'editMain';
       key: string;
       characterId: string;
       sessionKey: string;
     }
   | {
-      name: "alternateGreetings";
+      name: 'alternateGreetings';
       key: string;
       characterId: string;
       sessionKey: string;
     }
-  | { name: "import"; key: "import" };
+  | { name: 'import'; key: 'import' };
 ```
 
 示例：
 
 ```ts
 pushPage({
-  name: "editMain",
+  name: 'editMain',
   key: `character:${characterId}:edit`,
   characterId,
   sessionKey: `character:${characterId}`,
 });
 
 pushPage({
-  name: "alternateGreetings",
+  name: 'alternateGreetings',
   key: `character:${characterId}:alternateGreetings`,
   characterId,
   sessionKey: `character:${characterId}`,
@@ -137,9 +137,7 @@ export interface KeepAliveStackPage {
   key: string;
 }
 
-export function useKeepAliveStack<TPage extends KeepAliveStackPage>(
-  rootPage: TPage,
-) {
+export function useKeepAliveStack<TPage extends KeepAliveStackPage>(rootPage: TPage) {
   const [pages, setPages] = useState<TPage[]>([rootPage]);
   const activePage = pages[pages.length - 1]!;
 
@@ -187,8 +185,8 @@ export function KeepAliveStackViewport<TPage extends KeepAliveStackPage>({
             key={page.key}
             aria-hidden={!active}
             className={cn(
-              "absolute inset-0 min-h-0 overflow-y-auto bg-background",
-              active ? "pointer-events-auto" : "pointer-events-none",
+              'absolute inset-0 min-h-0 overflow-y-auto bg-background',
+              active ? 'pointer-events-auto' : 'pointer-events-none',
             )}
             style={{ zIndex: index }}
           >
@@ -278,19 +276,19 @@ apps/web/src/features/characters/model/character-editor-form.ts
 
 ```tsx
 function CharacterPageRenderer({ page }: { page: CharacterPage }) {
-  if (page.name === "list") {
+  if (page.name === 'list') {
     return <CharacterListPage />;
   }
 
-  if (page.name === "editMain") {
+  if (page.name === 'editMain') {
     return <CharacterEditPage page={page} />;
   }
 
-  if (page.name === "alternateGreetings") {
+  if (page.name === 'alternateGreetings') {
     return <CharacterGreetingsPage page={page} />;
   }
 
-  if (page.name === "create") {
+  if (page.name === 'create') {
     return <CharacterCreatePage page={page} />;
   }
 
@@ -318,9 +316,7 @@ function CharacterEditPage({ page }: { page: EditMainPage }) {
 ```tsx
 function CharacterStackPage({ children }: { children: React.ReactNode }) {
   return (
-    <div className="flex h-full min-h-0 flex-col bg-background text-foreground">
-      {children}
-    </div>
+    <div className="flex h-full min-h-0 flex-col bg-background text-foreground">{children}</div>
   );
 }
 ```
@@ -336,7 +332,7 @@ function CharacterStackPage({ children }: { children: React.ReactNode }) {
 
 ```ts
 pushPage({
-  name: "alternateGreetings",
+  name: 'alternateGreetings',
   key: `${sessionKey}:alternateGreetings`,
   characterId,
   sessionKey,

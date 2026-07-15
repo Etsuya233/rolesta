@@ -55,10 +55,22 @@ export async function up(db: Kysely<Database>): Promise<void> {
     .on('presets')
     .columns(['owner_user_id', 'created_at_ms'])
     .execute();
-  await db.schema.createIndex('presets_updated_idx').on('presets').column('updated_at_ms').execute();
+  await db.schema
+    .createIndex('presets_updated_idx')
+    .on('presets')
+    .column('updated_at_ms')
+    .execute();
   await db.schema.createIndex('presets_name_idx').on('presets').column('name').execute();
-  await db.schema.createIndex('presets_last_used_idx').on('presets').column('last_used_at_ms').execute();
-  await db.schema.createIndex('presets_usage_count_idx').on('presets').column('usage_count').execute();
+  await db.schema
+    .createIndex('presets_last_used_idx')
+    .on('presets')
+    .column('last_used_at_ms')
+    .execute();
+  await db.schema
+    .createIndex('presets_usage_count_idx')
+    .on('presets')
+    .column('usage_count')
+    .execute();
   await db.schema
     .createIndex('preset_entries_preset_idx')
     .on('preset_entries')

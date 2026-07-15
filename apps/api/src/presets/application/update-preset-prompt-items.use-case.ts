@@ -27,10 +27,7 @@ export class UpdatePresetPromptItemsUseCase {
   @UseCase(translatePresetError)
   async execute(command: UpdatePresetPromptItemsCommand): Promise<Preset> {
     return this.unitOfWork.run(async () => {
-      const current = await this.store.findOwnedById(
-        command.presetId,
-        command.viewerUserId,
-      );
+      const current = await this.store.findOwnedById(command.presetId, command.viewerUserId);
 
       if (current === null) {
         throw new PresetApplicationError({
@@ -68,13 +65,11 @@ export class UpdatePresetPromptItemsUseCase {
       }
 
       const nowMs = ensureEpochMillis(this.clock.now().getTime());
-      const promptItems: PresetPromptItem[] = command.items.map(
-        (item, index) => ({
-          entryId: item.entryId,
-          enabled: item.enabled,
-          orderIndex: index,
-        }),
-      );
+      const promptItems: PresetPromptItem[] = command.items.map((item, index) => ({
+        entryId: item.entryId,
+        enabled: item.enabled,
+        orderIndex: index,
+      }));
       const updated = withPresetTokenCount({
         ...current,
         promptItems,

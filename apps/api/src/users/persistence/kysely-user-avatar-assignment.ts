@@ -7,11 +7,7 @@ import { UserAvatarPortError } from '../ports/user-avatar-port-error.js';
 export class KyselyUserAvatarAssignment implements UserAvatarAssignment {
   constructor(private readonly context: KyselyDatabaseContext) {}
 
-  async replace(input: {
-    userId: string;
-    resourceId: string;
-    nowMs: number;
-  }): Promise<boolean> {
+  async replace(input: { userId: string; resourceId: string; nowMs: number }): Promise<boolean> {
     const database = this.context.database;
     const current = await database
       .selectFrom('users')

@@ -1,8 +1,8 @@
-import { useQuery } from "@tanstack/react-query";
-import { Eye, EyeOff, KeyRound, Settings, X } from "lucide-react";
-import { useMemo, useState } from "react";
-import { useTranslation } from "react-i18next";
-import { Button } from "../../../components/ui/button";
+import { useQuery } from '@tanstack/react-query';
+import { Eye, EyeOff, KeyRound, Settings, X } from 'lucide-react';
+import { useMemo, useState } from 'react';
+import { useTranslation } from 'react-i18next';
+import { Button } from '../../../components/ui/button';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -12,18 +12,18 @@ import {
   DropdownMenuRadioItem,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "../../../components/ui/dropdown-menu";
-import { Field, FieldLabel } from "../../../components/ui/field";
+} from '../../../components/ui/dropdown-menu';
+import { Field, FieldLabel } from '../../../components/ui/field';
 import {
   InputGroup,
   InputGroupAddon,
   InputGroupButton,
   InputGroupInput,
-} from "../../../components/ui/input-group";
-import { cn } from "../../../lib/utils";
-import { listApiKeys } from "../api/model-providers-api";
-import type { ModelProviderEditorFormState } from "../model/model-provider-editor-form";
-import { sortApiKeysByName } from "../model/model-provider-api-key-sort";
+} from '../../../components/ui/input-group';
+import { cn } from '../../../lib/utils';
+import { listApiKeys } from '../api/model-providers-api';
+import type { ModelProviderEditorFormState } from '../model/model-provider-editor-form';
+import { sortApiKeysByName } from '../model/model-provider-api-key-sort';
 
 export function ModelProviderCredentialField({
   form,
@@ -39,10 +39,10 @@ export function ModelProviderCredentialField({
   const { t, i18n } = useTranslation();
   const [visible, setVisible] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
-  const selected = form.credentialMode === "vault";
+  const selected = form.credentialMode === 'vault';
   const query = useQuery({
     enabled: menuOpen,
-    queryKey: ["api-keys"],
+    queryKey: ['api-keys'],
     queryFn: listApiKeys,
   });
   const apiKeys = useMemo(
@@ -53,8 +53,8 @@ export function ModelProviderCredentialField({
   const clearCredential = () =>
     onChange({
       ...form,
-      credentialMode: "manual",
-      secret: "",
+      credentialMode: 'manual',
+      secret: '',
       apiKeyId: null,
       apiKeyName: null,
     });
@@ -62,20 +62,20 @@ export function ModelProviderCredentialField({
   return (
     <Field data-disabled={disabled}>
       <FieldLabel htmlFor="model-provider-secret">
-        {t("modelProviders.editor.fields.apiKey")}
+        {t('modelProviders.editor.fields.apiKey')}
       </FieldLabel>
       <div className="flex items-center gap-2">
         <InputGroup className="min-w-0 flex-1">
           <InputGroupInput
             autoComplete="off"
-            className={cn(!selected && !visible && "[-webkit-text-security:disc]")}
+            className={cn(!selected && !visible && '[-webkit-text-security:disc]')}
             disabled={disabled}
             id="model-provider-secret"
             readOnly={selected}
             type="text"
             value={
               selected
-                ? t("modelProviders.editor.credentials.selected", {
+                ? t('modelProviders.editor.credentials.selected', {
                     name: form.apiKeyName,
                   })
                 : form.secret
@@ -83,7 +83,7 @@ export function ModelProviderCredentialField({
             onChange={(event) =>
               onChange({
                 ...form,
-                credentialMode: "manual",
+                credentialMode: 'manual',
                 secret: event.target.value,
                 apiKeyId: null,
                 apiKeyName: null,
@@ -94,10 +94,10 @@ export function ModelProviderCredentialField({
             <InputGroupButton
               aria-label={
                 selected
-                  ? t("modelProviders.editor.credentials.clear")
+                  ? t('modelProviders.editor.credentials.clear')
                   : visible
-                    ? t("modelProviders.editor.credentials.hide")
-                    : t("modelProviders.editor.credentials.show")
+                    ? t('modelProviders.editor.credentials.hide')
+                    : t('modelProviders.editor.credentials.show')
               }
               onClick={selected ? clearCredential : () => setVisible((current) => !current)}
             >
@@ -108,7 +108,7 @@ export function ModelProviderCredentialField({
         <DropdownMenu open={menuOpen} onOpenChange={setMenuOpen}>
           <DropdownMenuTrigger asChild>
             <Button
-              aria-label={t("modelProviders.apiKeys.openVault")}
+              aria-label={t('modelProviders.apiKeys.openVault')}
               disabled={disabled}
               size="icon"
               type="button"
@@ -119,26 +119,28 @@ export function ModelProviderCredentialField({
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end" className="min-w-56">
             <DropdownMenuRadioGroup
-              value={form.apiKeyId ?? ""}
+              value={form.apiKeyId ?? ''}
               onValueChange={(apiKeyId) => {
                 const apiKey = apiKeys.find((item) => item.id === apiKeyId)!;
                 onChange({
                   ...form,
-                  credentialMode: "vault",
-                  secret: "",
+                  credentialMode: 'vault',
+                  secret: '',
                   apiKeyId: apiKey.id,
                   apiKeyName: apiKey.name,
                 });
               }}
             >
               {query.isLoading ? (
-                <DropdownMenuItem disabled>{t("modelProviders.apiKeys.loading")}</DropdownMenuItem>
+                <DropdownMenuItem disabled>{t('modelProviders.apiKeys.loading')}</DropdownMenuItem>
               ) : null}
               {query.isError ? (
-                <DropdownMenuItem disabled>{t("modelProviders.apiKeys.loadFailed")}</DropdownMenuItem>
+                <DropdownMenuItem disabled>
+                  {t('modelProviders.apiKeys.loadFailed')}
+                </DropdownMenuItem>
               ) : null}
               {query.isSuccess && apiKeys.length === 0 ? (
-                <DropdownMenuItem disabled>{t("modelProviders.apiKeys.empty")}</DropdownMenuItem>
+                <DropdownMenuItem disabled>{t('modelProviders.apiKeys.empty')}</DropdownMenuItem>
               ) : null}
               {apiKeys.map((apiKey) => (
                 <DropdownMenuRadioItem key={apiKey.id} value={apiKey.id}>
@@ -150,7 +152,7 @@ export function ModelProviderCredentialField({
             <DropdownMenuGroup>
               <DropdownMenuItem onSelect={onManageApiKeys}>
                 <Settings />
-                {t("modelProviders.apiKeys.manageAction")}
+                {t('modelProviders.apiKeys.manageAction')}
               </DropdownMenuItem>
             </DropdownMenuGroup>
           </DropdownMenuContent>

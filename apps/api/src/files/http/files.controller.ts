@@ -41,9 +41,7 @@ export class FilesController {
       response.setHeader('X-Content-Type-Options', 'nosniff');
       response.setHeader(
         'Cache-Control',
-        file.visibility === 'public'
-          ? 'public, max-age=31536000, immutable'
-          : 'private, no-store',
+        file.visibility === 'public' ? 'public, max-age=31536000, immutable' : 'private, no-store',
       );
 
       if (ifNoneMatch === file.etag) {

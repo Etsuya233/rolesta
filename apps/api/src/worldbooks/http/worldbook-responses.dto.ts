@@ -1,5 +1,5 @@
-import { ApiProperty } from "@nestjs/swagger";
-import type { PageResponse } from "@rolesta/shared";
+import { ApiProperty } from '@nestjs/swagger';
+import type { PageResponse } from '@rolesta/shared';
 import type {
   Worldbook,
   WorldbookEntryRole,
@@ -9,12 +9,12 @@ import type {
   WorldbookSourceFormat,
   WorldbookSummary,
   WorldbookVisibility,
-} from "../domain/worldbook.js";
+} from '../domain/worldbook.js';
 import {
   WORLDBOOK_ENTRY_ROLES,
   WORLDBOOK_INSERTION_POSITIONS,
   WORLDBOOK_SELECTIVE_LOGICS,
-} from "../domain/worldbook.js";
+} from '../domain/worldbook.js';
 
 export class WorldbookSummaryResponseDto {
   @ApiProperty({ type: String })
@@ -23,7 +23,7 @@ export class WorldbookSummaryResponseDto {
   @ApiProperty({ type: String })
   ownerUserId!: string;
 
-  @ApiProperty({ enum: ["private", "public"] })
+  @ApiProperty({ enum: ['private', 'public'] })
   visibility!: WorldbookVisibility;
 
   @ApiProperty({ type: String })
@@ -150,7 +150,7 @@ export class WorldbookEntryResponseDto {
 }
 
 export class WorldbookDetailResponseDto extends WorldbookSummaryResponseDto {
-  @ApiProperty({ enum: ["sillytavern_world_info", "rolesta"] })
+  @ApiProperty({ enum: ['sillytavern_world_info', 'rolesta'] })
   sourceFormat!: WorldbookSourceFormat;
 
   @ApiProperty({ type: () => [WorldbookEntryResponseDto] })
@@ -180,9 +180,7 @@ export function toWorldbookSummaryResponse(
   return worldbook;
 }
 
-export function toWorldbookDetailResponse(
-  worldbook: Worldbook,
-): WorldbookDetailResponseDto {
+export function toWorldbookDetailResponse(worldbook: Worldbook): WorldbookDetailResponseDto {
   return {
     id: worldbook.id,
     ownerUserId: worldbook.ownerUserId,
@@ -194,12 +192,8 @@ export function toWorldbookDetailResponse(
     tokenBudget: worldbook.tokenBudget,
     recursiveScan: worldbook.recursiveScan,
     entryCount: worldbook.entries.length,
-    enabledEntryCount: worldbook.entries.filter((entry) => entry.enabled)
-      .length,
-    tokenCount: worldbook.entries.reduce(
-      (total, entry) => total + entry.tokenCount,
-      0,
-    ),
+    enabledEntryCount: worldbook.entries.filter((entry) => entry.enabled).length,
+    tokenCount: worldbook.entries.reduce((total, entry) => total + entry.tokenCount, 0),
     sourceFormat: worldbook.sourceFormat,
     entries: worldbook.entries.map(toWorldbookEntryResponse),
     createdAtMs: worldbook.createdAtMs,
@@ -221,8 +215,6 @@ export function toWorldbookPageResponse(
   };
 }
 
-function toWorldbookEntryResponse(
-  entry: WorldbookEntry,
-): WorldbookEntryResponseDto {
+function toWorldbookEntryResponse(entry: WorldbookEntry): WorldbookEntryResponseDto {
   return entry;
 }

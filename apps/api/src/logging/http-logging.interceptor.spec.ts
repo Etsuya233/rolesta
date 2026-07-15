@@ -73,7 +73,9 @@ describe('HttpLoggingInterceptor', () => {
       handle: () => throwError(() => error),
     };
 
-    await expect(lastValueFrom(interceptor.intercept(httpContextFor(200), next))).rejects.toBe(error);
+    await expect(lastValueFrom(interceptor.intercept(httpContextFor(200), next))).rejects.toBe(
+      error,
+    );
 
     expect(logger.info).toHaveBeenCalledWith(
       expect.objectContaining({

@@ -1,13 +1,9 @@
-import type { ChangeEventHandler } from "react";
-import { Alert, AlertDescription } from "../../../components/ui/alert";
-import { Button } from "../../../components/ui/button";
-import {
-  Field,
-  FieldDescription,
-  FieldLabel,
-} from "../../../components/ui/field";
-import { EditorFormSection } from "../../../components/editor-form-section";
-import { Input } from "../../../components/ui/input";
+import type { ChangeEventHandler } from 'react';
+import { Alert, AlertDescription } from '../../../components/ui/alert';
+import { Button } from '../../../components/ui/button';
+import { Field, FieldDescription, FieldLabel } from '../../../components/ui/field';
+import { EditorFormSection } from '../../../components/editor-form-section';
+import { Input } from '../../../components/ui/input';
 import {
   Select,
   SelectContent,
@@ -15,8 +11,8 @@ import {
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "../../../components/ui/select";
-import { cn } from "../../../lib/utils";
+} from '../../../components/ui/select';
+import { cn } from '../../../lib/utils';
 
 export { EditorFormSection as ModelProviderFormSection };
 
@@ -28,7 +24,7 @@ export function ModelProviderTextField({
   disabled = false,
   description,
   placeholder,
-  type = "text",
+  type = 'text',
 }: {
   id: string;
   label: string;
@@ -37,7 +33,7 @@ export function ModelProviderTextField({
   disabled?: boolean;
   description?: string;
   placeholder?: string;
-  type?: "text" | "password";
+  type?: 'text' | 'password';
 }) {
   return (
     <Field data-disabled={disabled}>
@@ -77,11 +73,7 @@ export function ModelProviderSelectField<TValue extends string>({
   return (
     <Field data-disabled={disabled}>
       <FieldLabel htmlFor={id}>{label}</FieldLabel>
-      <Select
-        disabled={disabled}
-        value={value}
-        onValueChange={(next) => onChange(next as TValue)}
-      >
+      <Select disabled={disabled} value={value} onValueChange={(next) => onChange(next as TValue)}>
         <SelectTrigger className="w-full" id={id}>
           <SelectValue placeholder={placeholder} />
         </SelectTrigger>
@@ -143,7 +135,7 @@ export function FormActionButton({
 }) {
   return (
     <Button
-      className={cn("w-full", className)}
+      className={cn('w-full', className)}
       disabled={disabled}
       type="button"
       variant="outline"

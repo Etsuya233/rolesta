@@ -39,9 +39,6 @@ export interface PresetStore {
     ownerUserId: string,
     modelProviderId: string | null,
   ): Promise<void>;
-  clearModelProviderAssociations(
-    ownerUserId: string,
-    modelProviderId: string,
-  ): Promise<void>;
+  clearModelProviderAssociations(ownerUserId: string, modelProviderId: string): Promise<void>;
   deleteOwned(id: string, ownerUserId: string): Promise<boolean>;
 }

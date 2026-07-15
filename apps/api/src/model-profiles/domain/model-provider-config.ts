@@ -1,7 +1,4 @@
-import type {
-  ModelProviderKind,
-  ModelProviderSource,
-} from "./model-provider-catalog.js";
+import type { ModelProviderKind, ModelProviderSource } from './model-provider-catalog.js';
 
 export interface ModelProviderConfig {
   id: string;
@@ -38,7 +35,7 @@ export interface ModelProviderSummary {
   usageCount: number;
 }
 
-export type ModelProviderCredentialMode = "manual" | "vault";
+export type ModelProviderCredentialMode = 'manual' | 'vault';
 
 export interface ApiKey {
   id: string;

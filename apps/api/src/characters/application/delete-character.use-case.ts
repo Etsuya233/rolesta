@@ -54,11 +54,7 @@ export class DeleteCharacterUseCase {
 
       const occurredAtMs = this.clock.now().getTime();
       if (current.avatarResourceId) {
-        await this.avatars.release(
-          current.avatarResourceId,
-          current.ownerUserId,
-          occurredAtMs,
-        );
+        await this.avatars.release(current.avatarResourceId, current.ownerUserId, occurredAtMs);
       }
 
       await this.events.publish(

@@ -1,24 +1,13 @@
-import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
-import { Type } from "class-transformer";
-import {
-  IsIn,
-  IsInt,
-  IsOptional,
-  IsString,
-  Max,
-  MaxLength,
-  Min,
-} from "class-validator";
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+import { Type } from 'class-transformer';
+import { IsIn, IsInt, IsOptional, IsString, Max, MaxLength, Min } from 'class-validator';
 import {
   MODEL_PROVIDER_SORT_KEYS,
   SORT_DIRECTIONS,
   type ModelProviderSortKey,
   type SortDirection,
-} from "../ports/model-provider-store.js";
-import {
-  MODEL_PROVIDER_KINDS,
-  type ModelProviderKind,
-} from "../domain/model-provider-catalog.js";
+} from '../ports/model-provider-store.js';
+import { MODEL_PROVIDER_KINDS, type ModelProviderKind } from '../domain/model-provider-catalog.js';
 
 export class ListModelProvidersQueryDto {
   @ApiPropertyOptional({ enum: MODEL_PROVIDER_SORT_KEYS })
@@ -73,9 +62,9 @@ export class CreateModelProviderRequestDto {
   @MaxLength(255)
   defaultModelName?: string;
 
-  @ApiProperty({ enum: ["manual", "vault"] })
-  @IsIn(["manual", "vault"])
-  credentialMode!: "manual" | "vault";
+  @ApiProperty({ enum: ['manual', 'vault'] })
+  @IsIn(['manual', 'vault'])
+  credentialMode!: 'manual' | 'vault';
 
   @ApiPropertyOptional({ type: String })
   @IsOptional()
@@ -110,10 +99,10 @@ export class UpdateModelProviderRequestDto {
   @MaxLength(255)
   defaultModelName?: string;
 
-  @ApiPropertyOptional({ enum: ["manual", "vault"] })
+  @ApiPropertyOptional({ enum: ['manual', 'vault'] })
   @IsOptional()
-  @IsIn(["manual", "vault"])
-  credentialMode?: "manual" | "vault";
+  @IsIn(['manual', 'vault'])
+  credentialMode?: 'manual' | 'vault';
   @ApiPropertyOptional({ type: String })
   @IsOptional()
   @IsString()

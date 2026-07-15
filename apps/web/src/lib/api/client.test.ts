@@ -1,4 +1,9 @@
-import { API_SUCCESS_CODE, ERROR_CODES, type ApiEnvelope, type ApiErrorEnvelope } from '@rolesta/shared';
+import {
+  API_SUCCESS_CODE,
+  ERROR_CODES,
+  type ApiEnvelope,
+  type ApiErrorEnvelope,
+} from '@rolesta/shared';
 import { afterEach, describe, expect, expectTypeOf, it } from 'vitest';
 import { clearAuthToken, setAuthToken } from '../auth/auth-token';
 import { changeLocale } from '../i18n/i18n';
@@ -63,7 +68,10 @@ describe('requestApi', () => {
       kind: 'request',
       message: 'API response envelope is invalid',
     });
-    await expect(requestApi(invalidResponse)).rejects.toHaveProperty('rawResponse', expect.any(Response));
+    await expect(requestApi(invalidResponse)).rejects.toHaveProperty(
+      'rawResponse',
+      expect.any(Response),
+    );
   });
 
   it('throws request errors when the request fails before receiving a response', async () => {

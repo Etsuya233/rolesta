@@ -1,11 +1,7 @@
 import { ApplicationError } from '../../common/errors/application-error.js';
 
 export type FileApplicationErrorReason =
-  | 'file-not-found'
-  | 'invalid-crop'
-  | 'invalid-image'
-  | 'storage-unavailable'
-  | 'unsupported-image';
+  'file-not-found' | 'invalid-crop' | 'invalid-image' | 'storage-unavailable' | 'unsupported-image';
 
 export interface FileApplicationErrorOptions<TReason extends FileApplicationErrorReason> {
   reason: TReason;

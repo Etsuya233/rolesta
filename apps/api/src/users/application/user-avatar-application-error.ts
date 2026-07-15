@@ -17,7 +17,11 @@ export type UserAvatarApplicationErrorParams<
 export class UserAvatarApplicationError<
   R extends UserAvatarApplicationErrorReason = UserAvatarApplicationErrorReason,
 > extends ApplicationError<R, UserAvatarApplicationErrorParams<R>> {
-  constructor(options: { reason: R; params: UserAvatarApplicationErrorParams<R>; cause?: unknown }) {
+  constructor(options: {
+    reason: R;
+    params: UserAvatarApplicationErrorParams<R>;
+    cause?: unknown;
+  }) {
     super(options);
   }
 }

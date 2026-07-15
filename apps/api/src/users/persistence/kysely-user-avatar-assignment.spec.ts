@@ -41,9 +41,7 @@ describe('KyselyUserAvatarAssignment', () => {
         ),
       ).resolves.toBe(true);
 
-      await expect(userAvatar(database.db, 'owner')).resolves.toBe(
-        'new_avatar',
-      );
+      await expect(userAvatar(database.db, 'owner')).resolves.toBe('new_avatar');
       await expect(resourceState(database.db, 'new_avatar')).resolves.toEqual({
         status: 'active',
         orphaned_at_ms: null,
@@ -54,9 +52,7 @@ describe('KyselyUserAvatarAssignment', () => {
       });
 
       await expect(
-        unitOfWork.run(() =>
-          assignment.remove({ userId: 'owner', nowMs: 300 }),
-        ),
+        unitOfWork.run(() => assignment.remove({ userId: 'owner', nowMs: 300 })),
       ).resolves.toBe(true);
       await expect(userAvatar(database.db, 'owner')).resolves.toBeNull();
       await expect(resourceState(database.db, 'new_avatar')).resolves.toEqual({
@@ -106,9 +102,7 @@ describe('KyselyUserAvatarAssignment', () => {
         reason: 'avatar-assignment-conflict',
       });
 
-      await expect(userAvatar(database.db, 'owner')).resolves.toBe(
-        'invalid_old_avatar',
-      );
+      await expect(userAvatar(database.db, 'owner')).resolves.toBe('invalid_old_avatar');
       await expect(resourceState(database.db, 'new_avatar')).resolves.toEqual({
         status: 'pending',
         orphaned_at_ms: null,
@@ -158,10 +152,7 @@ async function seedResource(
     .execute();
 }
 
-async function userAvatar(
-  db: TestDatabase,
-  userId: string,
-): Promise<string | null> {
+async function userAvatar(db: TestDatabase, userId: string): Promise<string | null> {
   const user = await db
     .selectFrom('users')
     .select('avatar_resource_id')

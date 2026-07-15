@@ -1,0 +1,9 @@
+node_modules/
+pnpm-lock.yaml
+**/dist/
+coverage/
+.turbo/
+.data/
+tmp/
+playwright-report/
+test-results/

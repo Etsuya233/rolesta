@@ -1,7 +1,4 @@
-import type {
-  WorkspaceActivePanels,
-  WorkspaceArea,
-} from "./workspace-panels";
+import type { WorkspaceActivePanels, WorkspaceArea } from './workspace-panels';
 
 export interface PersistedWorkspaceLayout {
   activeByArea: WorkspaceActivePanels;
@@ -15,7 +12,7 @@ export interface WorkspacePanelSizes {
   rightWidth: number;
 }
 
-const STORAGE_KEY = "rolesta.workspace.layout.v1";
+const STORAGE_KEY = 'rolesta.workspace.layout.v1';
 
 export function readWorkspaceLayout(): PersistedWorkspaceLayout | null {
   const rawValue = window.localStorage.getItem(STORAGE_KEY);
@@ -34,5 +31,5 @@ export function writeWorkspaceLayout(layout: PersistedWorkspaceLayout) {
 }
 
 export function workspaceAreaKeys(): WorkspaceArea[] {
-  return ["left", "center", "right", "bottom"];
+  return ['left', 'center', 'right', 'bottom'];
 }

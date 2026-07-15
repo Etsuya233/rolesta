@@ -45,7 +45,9 @@ export interface EmptyCharacterCardDraftRequest {
   nowMs: number;
 }
 
-export function createEmptyCharacterCardDraft(request: EmptyCharacterCardDraftRequest): CharacterCard {
+export function createEmptyCharacterCardDraft(
+  request: EmptyCharacterCardDraftRequest,
+): CharacterCard {
   const nowMs = ensureEpochMillis(request.nowMs);
 
   return {

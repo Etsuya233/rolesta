@@ -22,9 +22,7 @@ test('renders the workbench shell', async ({ page }) => {
   await expect(page.getByTestId('workspace-bottom-slot')).toBeAttached();
 });
 
-test('generates toolbar buttons from the workspace panel registry', async ({
-  page,
-}) => {
+test('generates toolbar buttons from the workspace panel registry', async ({ page }) => {
   await openWorkbench(page);
 
   await expect(toolbarButton(page, 'chatContext')).toBeVisible();
@@ -35,9 +33,7 @@ test('generates toolbar buttons from the workspace panel registry', async ({
   await expect(toolbarButton(page, 'modelProviders')).toBeVisible();
 });
 
-test('toolbar buttons do not create vertical overflow while pressed', async ({
-  page,
-}) => {
+test('toolbar buttons do not create vertical overflow while pressed', async ({ page }) => {
   await openWorkbench(page);
 
   const toggleLeftButton = page.getByRole('button', {
@@ -46,27 +42,20 @@ test('toolbar buttons do not create vertical overflow while pressed', async ({
   const buttonBox = await toggleLeftButton.boundingBox();
   expect(buttonBox).not.toBeNull();
 
-  await page.mouse.move(
-    buttonBox!.x + buttonBox!.width / 2,
-    buttonBox!.y + buttonBox!.height / 2,
-  );
+  await page.mouse.move(buttonBox!.x + buttonBox!.width / 2, buttonBox!.y + buttonBox!.height / 2);
   await page.mouse.down();
 
-  const toolbarOverflow = await page
-    .getByTestId('workspace-toolbar')
-    .evaluate((element) => ({
-      clientHeight: element.clientHeight,
-      scrollHeight: element.scrollHeight,
-    }));
+  const toolbarOverflow = await page.getByTestId('workspace-toolbar').evaluate((element) => ({
+    clientHeight: element.clientHeight,
+    scrollHeight: element.scrollHeight,
+  }));
 
   await page.mouse.up();
 
   expect(toolbarOverflow.scrollHeight).toBe(toolbarOverflow.clientHeight);
 });
 
-test('toolbar hides panel labels below the desktop breakpoint', async ({
-  page,
-}) => {
+test('toolbar hides panel labels below the desktop breakpoint', async ({ page }) => {
   await page.setViewportSize({ width: 900, height: 800 });
   await openWorkbench(page);
 
@@ -89,57 +78,34 @@ test('active toolbar panel buttons close their visible panel', async ({ page }) 
   await page.setViewportSize({ width: 1280, height: 800 });
   await openWorkbench(page);
 
-  await expect(toolbarButton(page, 'chatContext')).toHaveAttribute(
-    'aria-pressed',
-    'true',
-  );
+  await expect(toolbarButton(page, 'chatContext')).toHaveAttribute('aria-pressed', 'true');
   await toolbarButton(page, 'chatContext').click();
   await expect(page.getByTestId('workspace-left-column')).toBeHidden();
-  await expect(toolbarButton(page, 'chatContext')).toHaveAttribute(
-    'aria-pressed',
-    'false',
-  );
+  await expect(toolbarButton(page, 'chatContext')).toHaveAttribute('aria-pressed', 'false');
 
   await toolbarButton(page, 'chatContext').click();
   await expect(page.getByTestId('workspace-left-column')).toBeVisible();
-  await expect(toolbarButton(page, 'chatContext')).toHaveAttribute(
-    'aria-pressed',
-    'true',
-  );
+  await expect(toolbarButton(page, 'chatContext')).toHaveAttribute('aria-pressed', 'true');
 
   await toolbarButton(page, 'worldbooks').click();
   await expect(page.getByTestId('workspace-right-column')).toBeVisible();
-  await expect(toolbarButton(page, 'worldbooks')).toHaveAttribute(
-    'aria-pressed',
-    'true',
-  );
+  await expect(toolbarButton(page, 'worldbooks')).toHaveAttribute('aria-pressed', 'true');
 
   await toolbarButton(page, 'worldbooks').click();
   await expect(page.getByTestId('workspace-right-column')).toBeHidden();
-  await expect(toolbarButton(page, 'worldbooks')).toHaveAttribute(
-    'aria-pressed',
-    'false',
-  );
+  await expect(toolbarButton(page, 'worldbooks')).toHaveAttribute('aria-pressed', 'false');
 });
 
-test('toolbar panel buttons are inactive when their area is hidden', async ({
-  page,
-}) => {
+test('toolbar panel buttons are inactive when their area is hidden', async ({ page }) => {
   await page.setViewportSize({ width: 1280, height: 800 });
   await openWorkbench(page);
 
   await toolbarButton(page, 'worldbooks').click();
-  await expect(toolbarButton(page, 'worldbooks')).toHaveAttribute(
-    'aria-pressed',
-    'true',
-  );
+  await expect(toolbarButton(page, 'worldbooks')).toHaveAttribute('aria-pressed', 'true');
 
   await page.getByRole('button', { name: 'Toggle right sidebar' }).click();
   await expect(page.getByTestId('workspace-right-column')).toBeHidden();
-  await expect(toolbarButton(page, 'worldbooks')).toHaveAttribute(
-    'aria-pressed',
-    'false',
-  );
+  await expect(toolbarButton(page, 'worldbooks')).toHaveAttribute('aria-pressed', 'false');
 });
 
 test('switching away from a right panel keeps it mounted', async ({ page }) => {
@@ -155,18 +121,13 @@ test('switching away from a right panel keeps it mounted', async ({ page }) => {
     'aria-hidden',
     'true',
   );
-  await expect(page.getByTestId('workspace-panel-right-worldbooks')).toHaveAttribute(
-    'inert',
-    '',
-  );
+  await expect(page.getByTestId('workspace-panel-right-worldbooks')).toHaveAttribute('inert', '');
 
   await toolbarButton(page, 'worldbooks').click();
   await expect(page.getByTestId('workspace-panel-right-worldbooks')).toBeVisible();
 });
 
-test('inactive right panels do not intercept visible panel clicks', async ({
-  page,
-}) => {
+test('inactive right panels do not intercept visible panel clicks', async ({ page }) => {
   await openWorkbench(page);
 
   await toolbarButton(page, 'worldbooks').click();
@@ -212,9 +173,7 @@ test('switching right panels preserves list scroll position', async ({ page }) =
   await worldbookList.evaluate((element) => {
     element.scrollTop = element.scrollHeight;
   });
-  const scrollTopBefore = await worldbookList.evaluate(
-    (element) => element.scrollTop,
-  );
+  const scrollTopBefore = await worldbookList.evaluate((element) => element.scrollTop);
   expect(scrollTopBefore).toBeGreaterThan(0);
 
   await toolbarButton(page, 'presets').click();
@@ -262,9 +221,7 @@ test('refresh restores active panels by area', async ({ page }) => {
   await expect(page.getByTestId('workspace-panel-right-worldbooks')).toBeVisible();
 });
 
-test('desktop left and right toggles collapse and expand columns', async ({
-  page,
-}) => {
+test('desktop left and right toggles collapse and expand columns', async ({ page }) => {
   await page.setViewportSize({ width: 1280, height: 800 });
   await openWorkbench(page);
 
@@ -287,9 +244,7 @@ test('desktop left and right toggles collapse and expand columns', async ({
   await expect(page.getByTestId('workspace-right-column')).toBeVisible();
 });
 
-test('desktop side panels resize horizontally and persist widths', async ({
-  page,
-}) => {
+test('desktop side panels resize horizontally and persist widths', async ({ page }) => {
   await page.setViewportSize({ width: 1600, height: 900 });
   await openWorkbench(page);
 
@@ -401,18 +356,14 @@ test('mobile panel buttons open the target sheet', async ({ page }) => {
   ).toBeVisible();
 });
 
-test('mobile right panel stays below the toolbar and uses viewport width', async ({
-  page,
-}) => {
+test('mobile right panel stays below the toolbar and uses viewport width', async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 });
   await openWorkbench(page);
 
   await toolbarButton(page, 'worldbooks').click();
 
   const toolbarBox = await page.getByTestId('workspace-toolbar').boundingBox();
-  const rightColumnBox = await page
-    .getByTestId('workspace-right-column')
-    .boundingBox();
+  const rightColumnBox = await page.getByTestId('workspace-right-column').boundingBox();
   expect(toolbarBox).not.toBeNull();
   expect(rightColumnBox).not.toBeNull();
   expect(rightColumnBox?.y).toBe(toolbarBox!.height);
@@ -436,7 +387,10 @@ test('creates a chat with visible title autofill and keeps Center unchanged', as
   await expect(page.getByLabel('Title')).toHaveValue('Custom title');
   await page.getByRole('button', { name: 'Create', exact: true }).click();
 
-  await expect(page.getByRole('tab', { name: 'Current chat' })).toHaveAttribute('data-state', 'active');
+  await expect(page.getByRole('tab', { name: 'Current chat' })).toHaveAttribute(
+    'data-state',
+    'active',
+  );
   await expect(page.getByRole('heading', { name: 'Custom title' })).toBeVisible();
   await expect(page.getByTestId('workspace-panel-center-recentWorkspace')).toBeVisible();
 });
@@ -451,7 +405,10 @@ test('mobile selection closes the left drawer and refresh clears active Chat', a
 
   await page.reload();
   await page.getByRole('button', { name: 'Toggle left sidebar' }).click();
-  await expect(page.getByRole('tab', { name: 'Chat list' })).toHaveAttribute('data-state', 'active');
+  await expect(page.getByRole('tab', { name: 'Chat list' })).toHaveAttribute(
+    'data-state',
+    'active',
+  );
 });
 
 async function mockWorkspaceAssetLists(page: Parameters<typeof mockAuthenticatedApp>[0]) {
@@ -494,11 +451,15 @@ async function mockWorkspaceAssetLists(page: Parameters<typeof mockAuthenticated
   await page.route(/\/api\/chat-preferences\/assets$/, async (route) => {
     await route.fulfill({
       contentType: 'application/json',
-      json: { code: 'SUCCESS', msg: 'ok', data: {
-        personaCharacterId: null,
-        presetId: null,
-        modelProviderId: null,
-      } },
+      json: {
+        code: 'SUCCESS',
+        msg: 'ok',
+        data: {
+          personaCharacterId: null,
+          presetId: null,
+          modelProviderId: null,
+        },
+      },
     });
   });
 
@@ -510,9 +471,7 @@ async function mockWorkspaceAssetLists(page: Parameters<typeof mockAuthenticated
   });
 }
 
-async function mockScrollableWorldbooks(
-  page: Parameters<typeof mockAuthenticatedApp>[0],
-) {
+async function mockScrollableWorldbooks(page: Parameters<typeof mockAuthenticatedApp>[0]) {
   await page.route(/\/api\/worldbooks(?:\?.*)?$/, async (route) => {
     const items = Array.from({ length: 40 }, (_, index) => ({
       id: `worldbook_scroll_${index}`,
@@ -549,12 +508,7 @@ async function mockScrollableWorldbooks(
 function toolbarButton(
   page: Parameters<typeof mockAuthenticatedApp>[0],
   panelKey:
-    | 'chatContext'
-    | 'recentWorkspace'
-    | 'worldbooks'
-    | 'characters'
-    | 'presets'
-    | 'modelProviders',
+    'chatContext' | 'recentWorkspace' | 'worldbooks' | 'characters' | 'presets' | 'modelProviders',
 ) {
   return page.getByTestId(`workspace-toolbar-panel-${panelKey}`);
 }

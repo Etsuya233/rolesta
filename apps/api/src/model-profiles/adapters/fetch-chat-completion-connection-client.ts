@@ -51,9 +51,7 @@ export class FetchChatCompletionConnectionClient implements ChatCompletionConnec
     return remoteBody.value.data.map((model) => model.id);
   }
 
-  async testChatCompletion(
-    request: TestChatCompletionRequest,
-  ): Promise<TestChatCompletionResult> {
+  async testChatCompletion(request: TestChatCompletionRequest): Promise<TestChatCompletionResult> {
     const endpoint = joinEndpoint(request.baseUrl, 'chat/completions');
     const response = await this.fetchRemote(endpoint, {
       method: 'POST',
@@ -174,10 +172,7 @@ export class FetchChatCompletionConnectionClient implements ChatCompletionConnec
   }
 }
 
-type RemoteResponseInvalidReason =
-  | 'json-parse'
-  | 'model-list-schema'
-  | 'chat-completion-schema';
+type RemoteResponseInvalidReason = 'json-parse' | 'model-list-schema' | 'chat-completion-schema';
 
 interface RemoteResponseLogContext {
   operation: 'listModels' | 'testChatCompletion';

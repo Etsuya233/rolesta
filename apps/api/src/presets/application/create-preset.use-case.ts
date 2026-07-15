@@ -4,14 +4,8 @@ import type { UnitOfWork } from '../../common/application/unit-of-work.js';
 import { ensureEpochMillis } from '../../shared/epoch-millis.js';
 import { translatePresetError } from './preset-error.mapper.js';
 import { PresetApplicationError } from './preset-application-error.js';
-import type {
-  PresetClock,
-  PresetIdGenerator,
-} from './preset-application-services.js';
-import {
-  applyPresetEditableFields,
-  type PresetEditableFields,
-} from './preset-editable-fields.js';
+import type { PresetClock, PresetIdGenerator } from './preset-application-services.js';
+import { applyPresetEditableFields, type PresetEditableFields } from './preset-editable-fields.js';
 import type { PresetStore } from '../ports/preset-store.js';
 import type { PresetModelProviderAccess } from '../ports/preset-model-provider-access.js';
 import { createDefaultPresetModelSettings } from '../domain/preset-model-settings.js';
@@ -55,10 +49,7 @@ export class CreatePresetUseCase {
     await this.unitOfWork.run(async () => {
       if (
         preset.modelProviderId !== null &&
-        !(await this.modelProviderAccess.acquireOwned(
-          preset.modelProviderId,
-          preset.ownerUserId,
-        ))
+        !(await this.modelProviderAccess.acquireOwned(preset.modelProviderId, preset.ownerUserId))
       ) {
         throw new PresetApplicationError({
           reason: 'model-provider-unavailable',

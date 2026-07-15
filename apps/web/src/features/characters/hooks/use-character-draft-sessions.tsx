@@ -1,4 +1,4 @@
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import {
   createContext,
   useCallback,
@@ -11,21 +11,21 @@ import {
   type FormEvent,
   type ReactNode,
   type SetStateAction,
-} from "react";
-import { useTranslation } from "react-i18next";
+} from 'react';
+import { useTranslation } from 'react-i18next';
 import {
   createCharacter,
   getCharacter,
   updateCharacter,
   type CharacterDetailResponse,
-} from "../api/characters-api";
+} from '../api/characters-api';
 import {
   characterEditorFormFromDetail,
   characterEditorValuesFromForm,
   emptyCharacterEditorForm,
   type CharacterEditorFormState,
   type EditableCharacterValues,
-} from "../model/character-editor-form";
+} from '../model/character-editor-form';
 
 interface CharacterDraftRecord {
   form: CharacterEditorFormState;
@@ -34,15 +34,9 @@ interface CharacterDraftRecord {
 
 interface CharacterDraftSessionsContextValue {
   sessions: Record<string, CharacterDraftRecord>;
-  setSessionForm: (
-    sessionKey: string,
-    update: SetStateAction<CharacterEditorFormState>,
-  ) => void;
+  setSessionForm: (sessionKey: string, update: SetStateAction<CharacterEditorFormState>) => void;
   setSessionError: (sessionKey: string, message: string | null) => void;
-  setSessionFromCharacter: (
-    sessionKey: string,
-    character: CharacterDetailResponse,
-  ) => void;
+  setSessionFromCharacter: (sessionKey: string, character: CharacterDetailResponse) => void;
   moveSessionToCharacter: (
     fromSessionKey: string,
     toSessionKey: string,
@@ -64,24 +58,18 @@ const emptyCharacterDraftRecord: CharacterDraftRecord = {
   errorMessage: null,
 };
 
-const CharacterDraftSessionsContext =
-  createContext<CharacterDraftSessionsContextValue | null>(null);
+const CharacterDraftSessionsContext = createContext<CharacterDraftSessionsContextValue | null>(
+  null,
+);
 
-export function CharacterDraftSessionsProvider({
-  children,
-}: {
-  children: ReactNode;
-}) {
-  const [sessions, setSessions] = useState<
-    Record<string, CharacterDraftRecord>
-  >({});
+export function CharacterDraftSessionsProvider({ children }: { children: ReactNode }) {
+  const [sessions, setSessions] = useState<Record<string, CharacterDraftRecord>>({});
 
   const setSessionForm = useCallback(
     (sessionKey: string, update: SetStateAction<CharacterEditorFormState>) => {
       setSessions((items) => {
         const current = items[sessionKey] ?? emptyCharacterDraftRecord;
-        const form =
-          typeof update === "function" ? update(current.form) : update;
+        const form = typeof update === 'function' ? update(current.form) : update;
 
         return {
           ...items,
@@ -95,22 +83,19 @@ export function CharacterDraftSessionsProvider({
     [],
   );
 
-  const setSessionError = useCallback(
-    (sessionKey: string, message: string | null) => {
-      setSessions((items) => {
-        const current = items[sessionKey] ?? emptyCharacterDraftRecord;
+  const setSessionError = useCallback((sessionKey: string, message: string | null) => {
+    setSessions((items) => {
+      const current = items[sessionKey] ?? emptyCharacterDraftRecord;
 
-        return {
-          ...items,
-          [sessionKey]: {
-            ...current,
-            errorMessage: message,
-          },
-        };
-      });
-    },
-    [],
-  );
+      return {
+        ...items,
+        [sessionKey]: {
+          ...current,
+          errorMessage: message,
+        },
+      };
+    });
+  }, []);
 
   const setSessionFromCharacter = useCallback(
     (sessionKey: string, character: CharacterDetailResponse) => {
@@ -126,11 +111,7 @@ export function CharacterDraftSessionsProvider({
   );
 
   const moveSessionToCharacter = useCallback(
-    (
-      fromSessionKey: string,
-      toSessionKey: string,
-      character: CharacterDetailResponse,
-    ) => {
+    (fromSessionKey: string, toSessionKey: string, character: CharacterDetailResponse) => {
       setSessions((items) => {
         const remainingItems = { ...items };
         delete remainingItems[fromSessionKey];
@@ -150,9 +131,7 @@ export function CharacterDraftSessionsProvider({
   const retainSessionKeys = useCallback((sessionKeys: string[]) => {
     setSessions((items) => {
       const retainedKeys = new Set(sessionKeys);
-      const entries = Object.entries(items).filter(([sessionKey]) =>
-        retainedKeys.has(sessionKey),
-      );
+      const entries = Object.entries(items).filter(([sessionKey]) => retainedKeys.has(sessionKey));
 
       if (entries.length === Object.keys(items).length) {
         return items;
@@ -203,13 +182,10 @@ export function useCharacterDraftSession({
   const context = useContext(CharacterDraftSessionsContext);
 
   if (!context) {
-    throw new Error(
-      "useCharacterDraftSession must be used inside CharacterDraftSessionsProvider",
-    );
+    throw new Error('useCharacterDraftSession must be used inside CharacterDraftSessionsProvider');
   }
 
-  const { sessions, setSessionError, setSessionForm, setSessionFromCharacter } =
-    context;
+  const { sessions, setSessionError, setSessionForm, setSessionFromCharacter } = context;
   const queryClient = useQueryClient();
   const draft = sessions[sessionKey] ?? emptyCharacterDraftRecord;
   const isEditing = Boolean(characterId);
@@ -217,7 +193,7 @@ export function useCharacterDraftSession({
 
   const characterQuery = useQuery({
     enabled: isEditing,
-    queryKey: ["character", characterId],
+    queryKey: ['character', characterId],
     queryFn: () => getCharacter(characterId!),
   });
   const form =
@@ -236,21 +212,14 @@ export function useCharacterDraftSession({
       setSessionFromCharacter(sessionKey, characterQuery.data);
       hydratedCharacterId.current = characterQuery.data.id;
     }
-  }, [
-    characterQuery.data,
-    hydrateFromQueryOnMount,
-    sessionKey,
-    setSessionFromCharacter,
-  ]);
+  }, [characterQuery.data, hydrateFromQueryOnMount, sessionKey, setSessionFromCharacter]);
 
   const saveMutation = useMutation({
     mutationFn: (values: EditableCharacterValues) =>
-      characterId
-        ? updateCharacter(characterId, values)
-        : createCharacter(values),
+      characterId ? updateCharacter(characterId, values) : createCharacter(values),
     async onSuccess(character) {
-      await queryClient.invalidateQueries({ queryKey: ["characters"] });
-      queryClient.setQueryData(["character", character.id], character);
+      await queryClient.invalidateQueries({ queryKey: ['characters'] });
+      queryClient.setQueryData(['character', character.id], character);
 
       if (!characterId) {
         onCreated?.(character);
@@ -271,7 +240,7 @@ export function useCharacterDraftSession({
       setSessionError(sessionKey, null);
 
       if (!form.name.trim()) {
-        setSessionError(sessionKey, "characters.editor.errors.nameRequired");
+        setSessionError(sessionKey, 'characters.editor.errors.nameRequired');
         return;
       }
 
@@ -285,7 +254,7 @@ export function useCharacterDraftSession({
   if (draft.errorMessage) {
     visibleError = t(draft.errorMessage);
   } else if (saveMutation.isError) {
-    visibleError = t("characters.editor.errors.saveFailed");
+    visibleError = t('characters.editor.errors.saveFailed');
   }
   const isPending = saveMutation.isPending || characterQuery.isLoading;
 
@@ -306,7 +275,7 @@ export function useRetainCharacterDraftSessions(sessionKeys: string[]) {
 
   if (!context) {
     throw new Error(
-      "useRetainCharacterDraftSessions must be used inside CharacterDraftSessionsProvider",
+      'useRetainCharacterDraftSessions must be used inside CharacterDraftSessionsProvider',
     );
   }
 
@@ -322,7 +291,7 @@ export function useCharacterDraftSessionActions() {
 
   if (!context) {
     throw new Error(
-      "useCharacterDraftSessionActions must be used inside CharacterDraftSessionsProvider",
+      'useCharacterDraftSessionActions must be used inside CharacterDraftSessionsProvider',
     );
   }
 

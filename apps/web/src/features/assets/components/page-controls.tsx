@@ -1,6 +1,6 @@
-import { ChevronFirst, ChevronLast } from "lucide-react";
-import type { ReactNode } from "react";
-import { useTranslation } from "react-i18next";
+import { ChevronFirst, ChevronLast } from 'lucide-react';
+import type { ReactNode } from 'react';
+import { useTranslation } from 'react-i18next';
 import {
   Pagination,
   PaginationContent,
@@ -8,7 +8,7 @@ import {
   PaginationLink,
   PaginationNext,
   PaginationPrevious,
-} from "../../../components/ui/pagination";
+} from '../../../components/ui/pagination';
 import {
   Select,
   SelectContent,
@@ -16,8 +16,8 @@ import {
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "../../../components/ui/select";
-import { cn } from "../../../lib/utils";
+} from '../../../components/ui/select';
+import { cn } from '../../../lib/utils';
 
 export interface PageControlsProps {
   pageIndex: number;
@@ -43,14 +43,8 @@ export function PageControls({
 
   return (
     <div className="flex items-center justify-between gap-3">
-      <Select
-        value={String(pageSize)}
-        onValueChange={(value) => onPageSizeChange(Number(value))}
-      >
-        <SelectTrigger
-          aria-label={t("assets.pagination.pageSizeLabel")}
-          className="w-18"
-        >
+      <Select value={String(pageSize)} onValueChange={(value) => onPageSizeChange(Number(value))}>
+        <SelectTrigger aria-label={t('assets.pagination.pageSizeLabel')} className="w-18">
           <SelectValue />
         </SelectTrigger>
         <SelectContent>
@@ -64,14 +58,14 @@ export function PageControls({
         </SelectContent>
       </Select>
       <Pagination
-        aria-label={t("assets.pagination.navigationLabel")}
+        aria-label={t('assets.pagination.navigationLabel')}
         className="mx-0 w-auto justify-end"
       >
         <PaginationContent>
           <PaginationItem>
             <CompactPageLink
               disabled={!canGoPrevious}
-              label={t("assets.pagination.firstPage")}
+              label={t('assets.pagination.firstPage')}
               onClick={() => onPageIndexChange(0)}
             >
               <ChevronFirst aria-hidden="true" />
@@ -79,12 +73,12 @@ export function PageControls({
           </PaginationItem>
           <PaginationItem>
             <PaginationPrevious
-              ariaLabel={t("assets.pagination.previousPage")}
+              ariaLabel={t('assets.pagination.previousPage')}
               aria-disabled={!canGoPrevious}
-              className={cn(!canGoPrevious && "pointer-events-none opacity-40")}
+              className={cn(!canGoPrevious && 'pointer-events-none opacity-40')}
               href="#"
               tabIndex={canGoPrevious ? undefined : -1}
-              text={t("assets.pagination.previousPage")}
+              text={t('assets.pagination.previousPage')}
               onClick={(event) => {
                 event.preventDefault();
                 if (canGoPrevious) {
@@ -100,12 +94,12 @@ export function PageControls({
           </PaginationItem>
           <PaginationItem>
             <PaginationNext
-              ariaLabel={t("assets.pagination.nextPage")}
+              ariaLabel={t('assets.pagination.nextPage')}
               aria-disabled={!canGoNext}
-              className={cn(!canGoNext && "pointer-events-none opacity-40")}
+              className={cn(!canGoNext && 'pointer-events-none opacity-40')}
               href="#"
               tabIndex={canGoNext ? undefined : -1}
-              text={t("assets.pagination.nextPage")}
+              text={t('assets.pagination.nextPage')}
               onClick={(event) => {
                 event.preventDefault();
                 if (canGoNext) {
@@ -117,7 +111,7 @@ export function PageControls({
           <PaginationItem>
             <CompactPageLink
               disabled={!canGoNext}
-              label={t("assets.pagination.lastPage")}
+              label={t('assets.pagination.lastPage')}
               onClick={() => onPageIndexChange(lastPageIndex)}
             >
               <ChevronLast aria-hidden="true" />
@@ -136,17 +130,12 @@ interface CompactPageLinkProps {
   onClick: () => void;
 }
 
-function CompactPageLink({
-  children,
-  disabled,
-  label,
-  onClick,
-}: CompactPageLinkProps) {
+function CompactPageLink({ children, disabled, label, onClick }: CompactPageLinkProps) {
   return (
     <PaginationLink
       aria-label={label}
       aria-disabled={disabled}
-      className={cn(disabled && "pointer-events-none opacity-40")}
+      className={cn(disabled && 'pointer-events-none opacity-40')}
       href="#"
       tabIndex={disabled ? -1 : undefined}
       onClick={(event) => {

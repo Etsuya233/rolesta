@@ -77,9 +77,9 @@ export class CharactersController {
     @Query() query: ListCharactersQueryDto,
   ): Promise<CharacterPageResponseDto> {
     const page = await this.listCharactersUseCase.execute({
-        viewerUserId: request.authUser.id,
-        ...query,
-      });
+      viewerUserId: request.authUser.id,
+      ...query,
+    });
     return toCharacterPageResponse(page, await this.avatarResponses(page.items));
   }
 
@@ -91,7 +91,9 @@ export class CharactersController {
     @Param('id') id: string,
   ): Promise<CharacterDetailResponseDto> {
     return this.withApplicationErrors(async () =>
-      this.toDetail(await this.getCharacterUseCase.execute({ id, viewerUserId: request.authUser.id })),
+      this.toDetail(
+        await this.getCharacterUseCase.execute({ id, viewerUserId: request.authUser.id }),
+      ),
     );
   }
 
@@ -103,10 +105,12 @@ export class CharactersController {
     @Body() body: CreateCharacterRequestDto,
   ): Promise<CharacterDetailResponseDto> {
     return this.withApplicationErrors(async () =>
-      this.toDetail(await this.createCharacterUseCase.execute({
+      this.toDetail(
+        await this.createCharacterUseCase.execute({
           ownerUserId: request.authUser.id,
           ...body,
-        })),
+        }),
+      ),
     );
   }
 
@@ -120,18 +124,23 @@ export class CharactersController {
     @Body() body: UpdateCharacterRequestDto,
   ): Promise<CharacterDetailResponseDto> {
     return this.withApplicationErrors(async () =>
-      this.toDetail(await this.updateCharacterUseCase.execute({
+      this.toDetail(
+        await this.updateCharacterUseCase.execute({
           id,
           viewerUserId: request.authUser.id,
           ...body,
-        })),
+        }),
+      ),
     );
   }
 
   @Delete(':id')
   @ApiParam({ name: 'id', type: String })
   @ApiEnvelopeOkResponse({ schema: { type: 'object', properties: { ok: { type: 'boolean' } } } })
-  async delete(@Req() request: AuthenticatedRequest, @Param('id') id: string): Promise<{ ok: true }> {
+  async delete(
+    @Req() request: AuthenticatedRequest,
+    @Param('id') id: string,
+  ): Promise<{ ok: true }> {
     return this.withApplicationErrors(async () => {
       await this.deleteCharacterUseCase.execute({ id, viewerUserId: request.authUser.id });
       return { ok: true };
@@ -166,11 +175,13 @@ export class CharactersController {
         });
       }
 
-      return this.toDetail(await this.importCharacterCardUseCase.execute({
+      return this.toDetail(
+        await this.importCharacterCardUseCase.execute({
           ownerUserId: request.authUser.id,
           fileName: file.originalname,
           content: file.buffer,
-        }));
+        }),
+      );
     });
   }
 
@@ -280,7 +291,10 @@ export class CharactersController {
     const objects = await this.publicFileObjects.execute(resources);
     const responses = new Map<string, AvatarResourceResponseDto>();
     for (const card of cards) {
-      const avatar = avatarResponse(card.avatarResourceId, objects.get(card.avatarResourceId ?? ''));
+      const avatar = avatarResponse(
+        card.avatarResourceId,
+        objects.get(card.avatarResourceId ?? ''),
+      );
       if (avatar) {
         responses.set(card.id, avatar);
       }

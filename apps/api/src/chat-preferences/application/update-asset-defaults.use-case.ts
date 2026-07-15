@@ -1,14 +1,14 @@
-import { UseCase } from "../../common/errors/index.js";
-import type { UnitOfWork } from "../../common/application/unit-of-work.js";
+import { UseCase } from '../../common/errors/index.js';
+import type { UnitOfWork } from '../../common/application/unit-of-work.js';
 import {
   ASSET_DEFAULT_FIELDS,
   type AssetDefaults,
   type AssetDefaultsPatch,
-} from "../domain/asset-defaults.js";
-import type { AssetDefaultsStore } from "../ports/asset-defaults-store.js";
-import type { ChatAssetOwnership } from "../ports/chat-asset-ownership.js";
-import { ChatPreferencesApplicationError } from "./chat-preferences-application-error.js";
-import { translateChatPreferencesError } from "./chat-preferences-error.mapper.js";
+} from '../domain/asset-defaults.js';
+import type { AssetDefaultsStore } from '../ports/asset-defaults-store.js';
+import type { ChatAssetOwnership } from '../ports/chat-asset-ownership.js';
+import { ChatPreferencesApplicationError } from './chat-preferences-application-error.js';
+import { translateChatPreferencesError } from './chat-preferences-error.mapper.js';
 
 export class UpdateAssetDefaultsUseCase {
   constructor(
@@ -18,31 +18,23 @@ export class UpdateAssetDefaultsUseCase {
   ) {}
 
   @UseCase(translateChatPreferencesError)
-  async execute(
-    userId: string,
-    patch: AssetDefaultsPatch,
-  ): Promise<AssetDefaults> {
-    const submittedFields = ASSET_DEFAULT_FIELDS.filter(
-      (field) => patch[field] !== undefined,
-    );
+  async execute(userId: string, patch: AssetDefaultsPatch): Promise<AssetDefaults> {
+    const submittedFields = ASSET_DEFAULT_FIELDS.filter((field) => patch[field] !== undefined);
 
     if (submittedFields.length === 0) {
       throw new ChatPreferencesApplicationError({
-        reason: "invalid-patch",
+        reason: 'invalid-patch',
         params: {},
       });
     }
 
     return this.unitOfWork.run(async () => {
       if (submittedFields.some((field) => patch[field] !== null)) {
-        const unavailableFields = await this.ownership.findUnavailableFields(
-          userId,
-          patch,
-        );
+        const unavailableFields = await this.ownership.findUnavailableFields(userId, patch);
 
         if (unavailableFields.length > 0) {
           throw new ChatPreferencesApplicationError({
-            reason: "asset-unavailable",
+            reason: 'asset-unavailable',
             params: { fields: unavailableFields },
           });
         }

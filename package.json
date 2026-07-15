@@ -17,7 +17,8 @@
     "db:migrate": "pnpm --filter @rolesta/db migrate",
     "db:seed": "pnpm --filter @rolesta/db seed",
     "openapi:generate": "pnpm --filter @rolesta/api openapi:generate && pnpm --filter @rolesta/web openapi:generate",
-    "format": "prettier --write \"**/*.{ts,tsx,js,cjs,json,md,css}\""
+    "format": "prettier --write \"**/*.{ts,tsx,js,cjs,json,md,css,yaml,yml,html}\"",
+    "format:check": "prettier --check \"**/*.{ts,tsx,js,cjs,json,md,css,yaml,yml,html}\""
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",

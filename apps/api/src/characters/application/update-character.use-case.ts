@@ -1,17 +1,17 @@
-import type { UnitOfWork } from "../../common/application/unit-of-work.js";
-import { UseCase } from "../../common/errors/index.js";
-import type { DomainEventPublisher } from "../../common/events/index.js";
-import { ensureEpochMillis } from "../../shared/epoch-millis.js";
-import type { CharacterCard } from "../domain/character-card.js";
-import { CharacterVisibilityChangedEvent } from "../events/index.js";
-import type { CharacterCardStore } from "../ports/character-card-store.js";
-import { CharacterApplicationError } from "./character-application-error.js";
+import type { UnitOfWork } from '../../common/application/unit-of-work.js';
+import { UseCase } from '../../common/errors/index.js';
+import type { DomainEventPublisher } from '../../common/events/index.js';
+import { ensureEpochMillis } from '../../shared/epoch-millis.js';
+import type { CharacterCard } from '../domain/character-card.js';
+import { CharacterVisibilityChangedEvent } from '../events/index.js';
+import type { CharacterCardStore } from '../ports/character-card-store.js';
+import { CharacterApplicationError } from './character-application-error.js';
 import {
   applyCharacterCardEditableFields,
   type CharacterCardEditableFields,
-} from "./character-card-editable-fields.js";
-import type { CharacterClock } from "./character-application-services.js";
-import { translateCharacterError } from "./character-error.mapper.js";
+} from './character-card-editable-fields.js';
+import type { CharacterClock } from './character-application-services.js';
+import { translateCharacterError } from './character-error.mapper.js';
 
 export interface UpdateCharacterCommand extends CharacterCardEditableFields {
   id: string;
@@ -29,19 +29,16 @@ export class UpdateCharacterUseCase {
   @UseCase(translateCharacterError)
   execute(command: UpdateCharacterCommand): Promise<CharacterCard> {
     return this.unitOfWork.run(async () => {
-      const current = await this.store.findVisibleById(
-        command.id,
-        command.viewerUserId,
-      );
+      const current = await this.store.findVisibleById(command.id, command.viewerUserId);
       if (current === null) {
         throw new CharacterApplicationError({
-          reason: "not-found",
+          reason: 'not-found',
           params: { characterId: command.id },
         });
       }
       if (current.ownerUserId !== command.viewerUserId) {
         throw new CharacterApplicationError({
-          reason: "forbidden",
+          reason: 'forbidden',
           params: {
             characterId: command.id,
             viewerUserId: command.viewerUserId,
@@ -56,7 +53,7 @@ export class UpdateCharacterUseCase {
       );
       await this.store.update(updated);
 
-      if (current.visibility === "public" && updated.visibility === "private") {
+      if (current.visibility === 'public' && updated.visibility === 'private') {
         await this.events.publish(
           new CharacterVisibilityChangedEvent({
             characterId: current.id,

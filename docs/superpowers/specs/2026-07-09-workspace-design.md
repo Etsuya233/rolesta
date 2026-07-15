@@ -55,15 +55,10 @@ Bottom is reserved in the first version. It keeps its layout slot but does not c
 Workspace panels are declared through a frontend-local registry. This registry is an internal extension point for Rolesta panels. It is not a plugin contract.
 
 ```ts
-export type WorkspaceArea = "left" | "center" | "right" | "bottom";
+export type WorkspaceArea = 'left' | 'center' | 'right' | 'bottom';
 
 export type WorkspacePanelKey =
-  | "chatContext"
-  | "recentWorkspace"
-  | "worldbooks"
-  | "characters"
-  | "presets"
-  | "modelProviders";
+  'chatContext' | 'recentWorkspace' | 'worldbooks' | 'characters' | 'presets' | 'modelProviders';
 
 export interface OpenWorkspacePanelOptions {
   area?: WorkspaceArea;
@@ -72,10 +67,7 @@ export interface OpenWorkspacePanelOptions {
 
 export interface WorkspacePanelRuntime {
   activeChatId?: string;
-  openPanel: (
-    panelKey: WorkspacePanelKey,
-    options?: OpenWorkspacePanelOptions,
-  ) => void;
+  openPanel: (panelKey: WorkspacePanelKey, options?: OpenWorkspacePanelOptions) => void;
   closeArea: (area: WorkspaceArea) => void;
 }
 
@@ -94,8 +86,8 @@ export interface WorkspacePanelDefinition {
 `defaultArea` is the normal placement for a panel. `openPanel(panelKey)` uses that default. Callers can override the target area:
 
 ```ts
-openPanel("worldbooks");
-openPanel("worldbooks", { area: "center" });
+openPanel('worldbooks');
+openPanel('worldbooks', { area: 'center' });
 ```
 
 The same panel key may be open in multiple areas at the same time. Each area owns its own instance, so state is independent across areas. Within a single area, the same panel key appears only once.
@@ -228,32 +220,32 @@ Initial defaults:
 ```ts
 [
   {
-    key: "chatContext",
-    defaultArea: "left",
+    key: 'chatContext',
+    defaultArea: 'left',
     defaultOpen: true,
   },
   {
-    key: "recentWorkspace",
-    defaultArea: "center",
+    key: 'recentWorkspace',
+    defaultArea: 'center',
     defaultOpen: true,
   },
   {
-    key: "worldbooks",
-    defaultArea: "right",
+    key: 'worldbooks',
+    defaultArea: 'right',
   },
   {
-    key: "characters",
-    defaultArea: "right",
+    key: 'characters',
+    defaultArea: 'right',
   },
   {
-    key: "presets",
-    defaultArea: "right",
+    key: 'presets',
+    defaultArea: 'right',
   },
   {
-    key: "modelProviders",
-    defaultArea: "right",
+    key: 'modelProviders',
+    defaultArea: 'right',
   },
-]
+];
 ```
 
 The actual registry also includes labels, icons, `toolbarOrder`, and component references.

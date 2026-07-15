@@ -1,21 +1,21 @@
-import { countPromptTokens } from "@rolesta/shared";
-import { useEffect, useId, useState, type FormEvent } from "react";
-import { useTranslation } from "react-i18next";
-import { notify } from "../../../lib/notifications/notify";
-import type { PresetEntryPosition, PresetEntryRole } from "../api/presets-api";
-import { usePresetDraftSession } from "../hooks/use-preset-draft-sessions";
+import { countPromptTokens } from '@rolesta/shared';
+import { useEffect, useId, useState, type FormEvent } from 'react';
+import { useTranslation } from 'react-i18next';
+import { notify } from '../../../lib/notifications/notify';
+import type { PresetEntryPosition, PresetEntryRole } from '../api/presets-api';
+import { usePresetDraftSession } from '../hooks/use-preset-draft-sessions';
 import {
   emptyPresetEntryEditorForm,
   presetEntryEditorFormFromEntry,
   presetEntryValuesFromForm,
   type PresetEntryEditorFormState,
-} from "../model/preset-editor-form";
+} from '../model/preset-editor-form';
 import {
   FormSubmitButton,
   PresetSelectField,
   PresetTextAreaField,
   PresetTextField,
-} from "./preset-form-fields";
+} from './preset-form-fields';
 
 export function PresetEntryEditor({
   presetId,
@@ -32,13 +32,7 @@ export function PresetEntryEditor({
 }) {
   const { t } = useTranslation();
   const fieldPrefix = useId();
-  const {
-    document,
-    setDocument,
-    isDirty,
-    isPending,
-    saveDocument,
-  } = usePresetDraftSession({
+  const { document, setDocument, isDirty, isPending, saveDocument } = usePresetDraftSession({
     presetId,
     sessionKey,
   });
@@ -47,19 +41,19 @@ export function PresetEntryEditor({
     entry ? presetEntryEditorFormFromEntry(entry) : emptyPresetEntryEditorForm,
   );
   const roleOptions: Array<{ value: PresetEntryRole; label: string }> = [
-    { value: "system", label: t("presets.entries.roles.system") },
-    { value: "user", label: t("presets.entries.roles.user") },
-    { value: "assistant", label: t("presets.entries.roles.assistant") },
+    { value: 'system', label: t('presets.entries.roles.system') },
+    { value: 'user', label: t('presets.entries.roles.user') },
+    { value: 'assistant', label: t('presets.entries.roles.assistant') },
   ];
   const positionOptions: Array<{
     value: PresetEntryPosition;
     label: string;
   }> = [
-    { value: "system", label: t("presets.entries.positions.system") },
-    { value: "chat", label: t("presets.entries.positions.chat") },
-    { value: "preHistory", label: t("presets.entries.positions.preHistory") },
-    { value: "postHistory", label: t("presets.entries.positions.postHistory") },
-    { value: "unknown", label: t("presets.entries.positions.unknown") },
+    { value: 'system', label: t('presets.entries.positions.system') },
+    { value: 'chat', label: t('presets.entries.positions.chat') },
+    { value: 'preHistory', label: t('presets.entries.positions.preHistory') },
+    { value: 'postHistory', label: t('presets.entries.positions.postHistory') },
+    { value: 'unknown', label: t('presets.entries.positions.unknown') },
   ];
   const entryValues = presetEntryValuesFromForm(form);
   const entryChanged = entry
@@ -98,7 +92,7 @@ export function PresetEntryEditor({
     event.preventDefault();
 
     if (!form.name.trim()) {
-      notify.error({ title: t("presets.entries.errors.nameRequired") });
+      notify.error({ title: t('presets.entries.errors.nameRequired') });
       return;
     }
 
@@ -126,17 +120,15 @@ export function PresetEntryEditor({
           <PresetTextField
             disabled={isPending}
             id={`${fieldPrefix}-name`}
-            label={t("presets.entries.fields.name")}
+            label={t('presets.entries.fields.name')}
             value={form.name}
-            onChange={(event) =>
-              updateForm({ ...form, name: event.target.value })
-            }
+            onChange={(event) => updateForm({ ...form, name: event.target.value })}
           />
           <div className="grid grid-cols-2 gap-3">
             <PresetSelectField
               disabled={isPending}
               id={`${fieldPrefix}-role`}
-              label={t("presets.entries.fields.role")}
+              label={t('presets.entries.fields.role')}
               options={roleOptions}
               value={form.role}
               onChange={(role) => updateForm({ ...form, role })}
@@ -144,7 +136,7 @@ export function PresetEntryEditor({
             <PresetSelectField
               disabled={isPending}
               id={`${fieldPrefix}-position`}
-              label={t("presets.entries.fields.position")}
+              label={t('presets.entries.fields.position')}
               options={positionOptions}
               value={form.position}
               onChange={(position) => updateForm({ ...form, position })}
@@ -153,17 +145,13 @@ export function PresetEntryEditor({
           <PresetTextAreaField
             disabled={isPending}
             id={`${fieldPrefix}-content`}
-            label={t("presets.entries.fields.content")}
+            label={t('presets.entries.fields.content')}
             rows={14}
             value={form.content}
-            onChange={(event) =>
-              updateForm({ ...form, content: event.target.value })
-            }
+            onChange={(event) => updateForm({ ...form, content: event.target.value })}
           />
           <div className="rounded-md border border-border px-3 py-2 text-sm">
-            <span className="text-muted-foreground">
-              {t("presets.metrics.tokenCount")}{" "}
-            </span>
+            <span className="text-muted-foreground">{t('presets.metrics.tokenCount')} </span>
             <span className="font-semibold tabular-nums">
               {countPromptTokens(form.content).toLocaleString()}
             </span>

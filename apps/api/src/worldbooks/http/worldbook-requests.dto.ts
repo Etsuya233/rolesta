@@ -1,5 +1,5 @@
-import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
-import { Type } from "class-transformer";
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+import { Type } from 'class-transformer';
 import {
   IsArray,
   IsBoolean,
@@ -11,7 +11,7 @@ import {
   MaxLength,
   Min,
   ValidateNested,
-} from "class-validator";
+} from 'class-validator';
 import {
   SORT_DIRECTIONS,
   WORLDBOOK_LIST_SCOPES,
@@ -19,7 +19,7 @@ import {
   type SortDirection,
   type WorldbookListScope,
   type WorldbookSortKey,
-} from "../ports/worldbook-store.js";
+} from '../ports/worldbook-store.js';
 import {
   WORLDBOOK_ENTRY_ROLES,
   WORLDBOOK_INSERTION_POSITIONS,
@@ -29,7 +29,7 @@ import {
   type WorldbookInsertionPosition,
   type WorldbookSelectiveLogic,
   type WorldbookVisibility,
-} from "../domain/worldbook.js";
+} from '../domain/worldbook.js';
 
 export class ListWorldbooksQueryDto {
   @ApiPropertyOptional({ enum: WORLDBOOK_LIST_SCOPES })

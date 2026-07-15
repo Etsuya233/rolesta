@@ -3,10 +3,7 @@ import { Injectable } from '@nestjs/common';
 import { PresetPortError } from '../../ports/preset-port-error.js';
 import type { PresetEntryPosition, PresetEntryRole, Preset } from '../../domain/preset.js';
 import { createDefaultPresetModelSettings } from '../../domain/preset-model-settings.js';
-import type {
-  ImportedPreset,
-  PresetCodec,
-} from '../../ports/preset-codec.js';
+import type { ImportedPreset, PresetCodec } from '../../ports/preset-codec.js';
 
 const SILLY_TAVERN_CHAT_COMPLETION_PROMPT_ORDER_ID = 100001;
 
@@ -81,7 +78,9 @@ export function fromSillyTavernPreset(input: unknown): ImportedPreset {
 }
 
 export function toSillyTavernPreset(preset: Preset): SillyTavernPresetOutput {
-  const orderedItems = [...preset.promptItems].sort((left, right) => left.orderIndex - right.orderIndex);
+  const orderedItems = [...preset.promptItems].sort(
+    (left, right) => left.orderIndex - right.orderIndex,
+  );
 
   return {
     name: preset.name,
@@ -132,8 +131,7 @@ function toImportedEntry(prompt: Record<string, unknown>): ImportedPreset['entri
     tokenCount: countPromptTokens(content),
     metadata: Object.fromEntries(
       Object.entries(prompt).filter(
-        ([key]) =>
-          !['identifier', 'name', 'role', 'content', 'injection_position'].includes(key),
+        ([key]) => !['identifier', 'name', 'role', 'content', 'injection_position'].includes(key),
       ),
     ),
   };
@@ -201,9 +199,7 @@ function promptArray(input: Record<string, unknown>): Array<Record<string, unkno
   });
 }
 
-function chatCompletionPromptOrder(
-  input: Record<string, unknown>,
-): Array<Record<string, unknown>> {
+function chatCompletionPromptOrder(input: Record<string, unknown>): Array<Record<string, unknown>> {
   const promptOrder = input.prompt_order;
 
   if (!Array.isArray(promptOrder) || !promptOrder.every(isRecord)) {
@@ -211,15 +207,10 @@ function chatCompletionPromptOrder(
   }
 
   const selected = promptOrder.find(
-    (item) =>
-      item.character_id === SILLY_TAVERN_CHAT_COMPLETION_PROMPT_ORDER_ID,
+    (item) => item.character_id === SILLY_TAVERN_CHAT_COMPLETION_PROMPT_ORDER_ID,
   );
 
-  if (
-    !isRecord(selected) ||
-    !Array.isArray(selected.order) ||
-    !selected.order.every(isRecord)
-  ) {
+  if (!isRecord(selected) || !Array.isArray(selected.order) || !selected.order.every(isRecord)) {
     return [];
   }
 

@@ -1,4 +1,4 @@
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import {
   createContext,
   useCallback,
@@ -11,23 +11,23 @@ import {
   type FormEvent,
   type ReactNode,
   type SetStateAction,
-} from "react";
-import { useTranslation } from "react-i18next";
-import { getFormErrorMessage } from "../../../lib/forms/form-error";
-import { notify } from "../../../lib/notifications/notify";
+} from 'react';
+import { useTranslation } from 'react-i18next';
+import { getFormErrorMessage } from '../../../lib/forms/form-error';
+import { notify } from '../../../lib/notifications/notify';
 import {
   createPreset,
   getPreset,
   updatePresetDocument,
   type PresetDetailResponse,
   type PresetDocument,
-} from "../api/presets-api";
+} from '../api/presets-api';
 import {
   emptyPresetEditorForm,
   presetDocumentEquals,
   presetDocumentFromDetail,
   type PresetEditorFormState,
-} from "../model/preset-editor-form";
+} from '../model/preset-editor-form';
 
 interface PresetDraftRecord {
   baseline: PresetDocument;
@@ -36,14 +36,8 @@ interface PresetDraftRecord {
 
 interface PresetDraftSessionsContextValue {
   sessions: Record<string, PresetDraftRecord>;
-  setSessionDocument: (
-    sessionKey: string,
-    update: SetStateAction<PresetDocument>,
-  ) => void;
-  setSessionFromPreset: (
-    sessionKey: string,
-    preset: PresetDetailResponse,
-  ) => void;
+  setSessionDocument: (sessionKey: string, update: SetStateAction<PresetDocument>) => void;
+  setSessionFromPreset: (sessionKey: string, preset: PresetDetailResponse) => void;
   moveSessionToPreset: (
     fromSessionKey: string,
     toSessionKey: string,
@@ -88,25 +82,17 @@ const emptyPresetDraftRecord: PresetDraftRecord = {
   document: emptyPresetDocument,
 };
 
-const PresetDraftSessionsContext =
-  createContext<PresetDraftSessionsContextValue | null>(null);
+const PresetDraftSessionsContext = createContext<PresetDraftSessionsContextValue | null>(null);
 
-export function PresetDraftSessionsProvider({
-  children,
-}: {
-  children: ReactNode;
-}) {
-  const [sessions, setSessions] = useState<Record<string, PresetDraftRecord>>(
-    {},
-  );
+export function PresetDraftSessionsProvider({ children }: { children: ReactNode }) {
+  const [sessions, setSessions] = useState<Record<string, PresetDraftRecord>>({});
   const queryClient = useQueryClient();
 
   const setSessionDocument = useCallback(
     (sessionKey: string, update: SetStateAction<PresetDocument>) => {
       setSessions((items) => {
         const current = items[sessionKey] ?? emptyPresetDraftRecord;
-        const document =
-          typeof update === "function" ? update(current.document) : update;
+        const document = typeof update === 'function' ? update(current.document) : update;
 
         return { ...items, [sessionKey]: { ...current, document } };
       });
@@ -114,26 +100,19 @@ export function PresetDraftSessionsProvider({
     [],
   );
 
-  const setSessionFromPreset = useCallback(
-    (sessionKey: string, preset: PresetDetailResponse) => {
-      const document = presetDocumentFromDetail(preset);
-      setSessions((items) => ({
-        ...items,
-        [sessionKey]: {
-          baseline: document,
-          document,
-        },
-      }));
-    },
-    [],
-  );
+  const setSessionFromPreset = useCallback((sessionKey: string, preset: PresetDetailResponse) => {
+    const document = presetDocumentFromDetail(preset);
+    setSessions((items) => ({
+      ...items,
+      [sessionKey]: {
+        baseline: document,
+        document,
+      },
+    }));
+  }, []);
 
   const moveSessionToPreset = useCallback(
-    (
-      fromSessionKey: string,
-      toSessionKey: string,
-      preset: PresetDetailResponse,
-    ) => {
+    (fromSessionKey: string, toSessionKey: string, preset: PresetDetailResponse) => {
       const document = presetDocumentFromDetail(preset);
       setSessions((items) => {
         const remainingItems = { ...items };
@@ -154,9 +133,7 @@ export function PresetDraftSessionsProvider({
   const retainSessionKeys = useCallback((sessionKeys: string[]) => {
     setSessions((items) => {
       const retainedKeys = new Set(sessionKeys);
-      const entries = Object.entries(items).filter(([key]) =>
-        retainedKeys.has(key),
-      );
+      const entries = Object.entries(items).filter(([key]) => retainedKeys.has(key));
 
       if (entries.length === Object.keys(items).length) {
         return items;
@@ -175,8 +152,8 @@ export function PresetDraftSessionsProvider({
       document: PresetDocument;
     }) => updatePresetDocument(presetId, document),
     async onSuccess(preset, variables) {
-      await queryClient.invalidateQueries({ queryKey: ["presets"] });
-      queryClient.setQueryData(["preset", preset.id], preset);
+      await queryClient.invalidateQueries({ queryKey: ['presets'] });
+      queryClient.setQueryData(['preset', preset.id], preset);
       setSessionFromPreset(variables.sessionKey, preset);
     },
     onError(error) {
@@ -234,25 +211,18 @@ export function usePresetDraftSession({
 }): PresetDraftSession {
   const { t } = useTranslation();
   const context = usePresetDraftSessionsContext();
-  const {
-    sessions,
-    setSessionDocument,
-    setSessionFromPreset,
-    saveSession,
-    savingSessionKey,
-  } = context;
+  const { sessions, setSessionDocument, setSessionFromPreset, saveSession, savingSessionKey } =
+    context;
   const queryClient = useQueryClient();
   const draft = sessions[sessionKey] ?? emptyPresetDraftRecord;
   const hydratedPresetId = useRef<string | null>(null);
   const presetQuery = useQuery({
     enabled: Boolean(presetId),
-    queryKey: ["preset", presetId],
+    queryKey: ['preset', presetId],
     queryFn: () => getPreset(presetId!),
   });
   const queriedDocument =
-    hydrateFromQueryOnMount &&
-    presetQuery.data &&
-    hydratedPresetId.current !== presetQuery.data.id
+    hydrateFromQueryOnMount && presetQuery.data && hydratedPresetId.current !== presetQuery.data.id
       ? presetDocumentFromDetail(presetQuery.data)
       : null;
   const document = queriedDocument ?? draft.document;
@@ -267,12 +237,7 @@ export function usePresetDraftSession({
       setSessionFromPreset(sessionKey, presetQuery.data);
       hydratedPresetId.current = presetQuery.data.id;
     }
-  }, [
-    presetQuery.data,
-    hydrateFromQueryOnMount,
-    sessionKey,
-    setSessionFromPreset,
-  ]);
+  }, [presetQuery.data, hydrateFromQueryOnMount, sessionKey, setSessionFromPreset]);
 
   const saveMutation = useMutation({
     mutationFn: (document: PresetDocument) =>
@@ -283,8 +248,8 @@ export function usePresetDraftSession({
         modelSettings: document.modelSettings,
       }),
     async onSuccess(preset) {
-      await queryClient.invalidateQueries({ queryKey: ["presets"] });
-      queryClient.setQueryData(["preset", preset.id], preset);
+      await queryClient.invalidateQueries({ queryKey: ['presets'] });
+      queryClient.setQueryData(['preset', preset.id], preset);
       setSessionFromPreset(sessionKey, preset);
       onCreated?.(preset);
     },
@@ -306,12 +271,7 @@ export function usePresetDraftSession({
       modelProviderId: document.modelProviderId,
       modelSettings: document.modelSettings,
     }),
-    [
-      document.modelProviderId,
-      document.modelSettings,
-      document.name,
-      document.visibility,
-    ],
+    [document.modelProviderId, document.modelSettings, document.name, document.visibility],
   );
   const setForm = useCallback(
     (update: SetStateAction<PresetEditorFormState>) => {
@@ -322,8 +282,7 @@ export function usePresetDraftSession({
           modelProviderId: current.modelProviderId,
           modelSettings: current.modelSettings,
         };
-        const nextForm =
-          typeof update === "function" ? update(currentForm) : update;
+        const nextForm = typeof update === 'function' ? update(currentForm) : update;
 
         return {
           ...current,
@@ -338,12 +297,9 @@ export function usePresetDraftSession({
   );
   const isDirty = !presetDocumentEquals(document, baseline);
   const saveDocument = useCallback(
-    (
-      documentToSave = document,
-      onSaved?: (preset: PresetDetailResponse) => void,
-    ) => {
+    (documentToSave = document, onSaved?: (preset: PresetDetailResponse) => void) => {
       if (!documentToSave.name.trim()) {
-        notify.error({ title: t("presets.editor.errors.nameRequired") });
+        notify.error({ title: t('presets.editor.errors.nameRequired') });
         return;
       }
 
@@ -362,15 +318,7 @@ export function usePresetDraftSession({
 
       saveMutation.mutate(normalizedDocument);
     },
-    [
-      document,
-      presetId,
-      saveMutation,
-      saveSession,
-      sessionKey,
-      setSessionDocument,
-      t,
-    ],
+    [document, presetId, saveMutation, saveSession, sessionKey, setSessionDocument, t],
   );
   const submit = useCallback(
     (event: FormEvent<HTMLFormElement>) => {
@@ -387,10 +335,7 @@ export function usePresetDraftSession({
       form,
       setForm,
       isDirty,
-      isPending:
-        saveMutation.isPending ||
-        savingSessionKey === sessionKey ||
-        presetQuery.isLoading,
+      isPending: saveMutation.isPending || savingSessionKey === sessionKey || presetQuery.isLoading,
       loadError: presetQuery.isError ? presetQuery.error : null,
       preset: presetQuery.data,
       saveDocument,
@@ -432,7 +377,7 @@ function usePresetDraftSessionsContext(): PresetDraftSessionsContextValue {
   const context = useContext(PresetDraftSessionsContext);
 
   if (!context) {
-    throw new Error("Preset draft hooks must be used inside provider");
+    throw new Error('Preset draft hooks must be used inside provider');
   }
 
   return context;

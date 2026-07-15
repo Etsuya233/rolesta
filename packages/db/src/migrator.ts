@@ -8,7 +8,9 @@ import { createDatabase } from './dialects/index.js';
 import { toMigrationError } from './migration-error.js';
 import { createMigrationProvider } from './migrations/index.js';
 
-export async function migrateToLatest(config: DatabaseConfig = loadDatabaseConfig()): Promise<void> {
+export async function migrateToLatest(
+  config: DatabaseConfig = loadDatabaseConfig(),
+): Promise<void> {
   const db = createDatabase(config);
 
   try {
@@ -33,7 +35,10 @@ export async function migrateToLatest(config: DatabaseConfig = loadDatabaseConfi
   }
 }
 
-if (process.argv[1] !== undefined && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
+if (
+  process.argv[1] !== undefined &&
+  path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)
+) {
   loadLocalEnvFile();
   await migrateToLatest();
 }

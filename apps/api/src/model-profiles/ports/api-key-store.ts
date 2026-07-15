@@ -1,6 +1,6 @@
-import type { ApiKey } from "../domain/model-provider-config.js";
+import type { ApiKey } from '../domain/model-provider-config.js';
 
-export const API_KEY_STORE = Symbol("ApiKeyStore");
+export const API_KEY_STORE = Symbol('ApiKeyStore');
 
 export interface ApiKeyStore {
   listOwned(ownerUserId: string): Promise<ApiKey[]>;

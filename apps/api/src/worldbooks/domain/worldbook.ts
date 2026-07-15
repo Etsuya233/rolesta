@@ -1,37 +1,27 @@
-export const WORLDBOOK_VISIBILITIES = ["private", "public"] as const;
+export const WORLDBOOK_VISIBILITIES = ['private', 'public'] as const;
 export type WorldbookVisibility = (typeof WORLDBOOK_VISIBILITIES)[number];
 
-export const WORLDBOOK_SOURCE_FORMATS = [
-  "sillytavern_world_info",
-  "rolesta",
-] as const;
+export const WORLDBOOK_SOURCE_FORMATS = ['sillytavern_world_info', 'rolesta'] as const;
 export type WorldbookSourceFormat = (typeof WORLDBOOK_SOURCE_FORMATS)[number];
 
 export const WORLDBOOK_INSERTION_POSITIONS = [
-  "beforeCharacterDefinition",
-  "afterCharacterDefinition",
-  "beforeAuthorsNote",
-  "afterAuthorsNote",
-  "atDepth",
-  "beforeExampleMessages",
-  "afterExampleMessages",
-  "atAnchor",
-  "unknown",
+  'beforeCharacterDefinition',
+  'afterCharacterDefinition',
+  'beforeAuthorsNote',
+  'afterAuthorsNote',
+  'atDepth',
+  'beforeExampleMessages',
+  'afterExampleMessages',
+  'atAnchor',
+  'unknown',
 ] as const;
-export type WorldbookInsertionPosition =
-  (typeof WORLDBOOK_INSERTION_POSITIONS)[number];
+export type WorldbookInsertionPosition = (typeof WORLDBOOK_INSERTION_POSITIONS)[number];
 
-export const WORLDBOOK_ENTRY_ROLES = ["system", "user", "assistant"] as const;
+export const WORLDBOOK_ENTRY_ROLES = ['system', 'user', 'assistant'] as const;
 export type WorldbookEntryRole = (typeof WORLDBOOK_ENTRY_ROLES)[number];
 
-export const WORLDBOOK_SELECTIVE_LOGICS = [
-  "andAny",
-  "notAll",
-  "notAny",
-  "andAll",
-] as const;
-export type WorldbookSelectiveLogic =
-  (typeof WORLDBOOK_SELECTIVE_LOGICS)[number];
+export const WORLDBOOK_SELECTIVE_LOGICS = ['andAny', 'notAll', 'notAny', 'andAll'] as const;
+export type WorldbookSelectiveLogic = (typeof WORLDBOOK_SELECTIVE_LOGICS)[number];
 
 export interface Worldbook {
   id: string;
@@ -113,12 +103,8 @@ export function toWorldbookSummary(worldbook: Worldbook): WorldbookSummary {
     tokenBudget: worldbook.tokenBudget,
     recursiveScan: worldbook.recursiveScan,
     entryCount: worldbook.entries.length,
-    enabledEntryCount: worldbook.entries.filter((entry) => entry.enabled)
-      .length,
-    tokenCount: worldbook.entries.reduce(
-      (total, entry) => total + entry.tokenCount,
-      0,
-    ),
+    enabledEntryCount: worldbook.entries.filter((entry) => entry.enabled).length,
+    tokenCount: worldbook.entries.reduce((total, entry) => total + entry.tokenCount, 0),
     createdAtMs: worldbook.createdAtMs,
     updatedAtMs: worldbook.updatedAtMs,
     lastUsedAtMs: worldbook.lastUsedAtMs,

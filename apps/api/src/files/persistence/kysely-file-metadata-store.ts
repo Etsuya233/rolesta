@@ -4,10 +4,7 @@ import type { Insertable, Selectable } from 'kysely';
 import { KyselyDatabaseContext } from '../../database/kysely-database-context.js';
 import type { FileObject, FileResource } from '../domain/file-resource.js';
 import type { FilePurpose } from '../domain/file-purpose.js';
-import type {
-  FileMetadataStore,
-  ReadableFileObject,
-} from '../ports/file-metadata-store.js';
+import type { FileMetadataStore, ReadableFileObject } from '../ports/file-metadata-store.js';
 
 @Injectable()
 export class KyselyFileMetadataStore implements FileMetadataStore {
@@ -15,14 +12,8 @@ export class KyselyFileMetadataStore implements FileMetadataStore {
 
   async createPending(resource: FileResource): Promise<void> {
     const database = this.context.database;
-    await database
-      .insertInto('file_resources')
-      .values(toResourceRow(resource))
-      .execute();
-    await database
-      .insertInto('file_objects')
-      .values(resource.objects.map(toObjectRow))
-      .execute();
+    await database.insertInto('file_resources').values(toResourceRow(resource)).execute();
+    await database.insertInto('file_objects').values(resource.objects.map(toObjectRow)).execute();
   }
 
   async activatePending(
@@ -63,20 +54,14 @@ export class KyselyFileMetadataStore implements FileMetadataStore {
   async findReadableObject(fileId: string): Promise<ReadableFileObject | null> {
     const row = await this.context.database
       .selectFrom('file_objects')
-      .innerJoin(
-        'file_resources',
-        'file_resources.id',
-        'file_objects.resource_id',
-      )
+      .innerJoin('file_resources', 'file_resources.id', 'file_objects.resource_id')
       .selectAll('file_objects')
       .select('file_resources.owner_user_id')
       .where('file_objects.id', '=', fileId)
       .where('file_resources.status', '=', 'active')
       .executeTakeFirst();
 
-    return row
-      ? { ...toFileObject(row), ownerUserId: row.owner_user_id }
-      : null;
+    return row ? { ...toFileObject(row), ownerUserId: row.owner_user_id } : null;
   }
 
   async findObjectsByResourceIds(resourceIds: string[]): Promise<FileObject[]> {
@@ -92,10 +77,7 @@ export class KyselyFileMetadataStore implements FileMetadataStore {
     return rows.map(toFileObject);
   }
 
-  async findExpiredResourceIds(
-    cutoffMs: number,
-    limit: number,
-  ): Promise<string[]> {
+  async findExpiredResourceIds(cutoffMs: number, limit: number): Promise<string[]> {
     const rows = await this.context.database
       .selectFrom('file_resources')
       .select('id')
@@ -127,10 +109,7 @@ export class KyselyFileMetadataStore implements FileMetadataStore {
   }
 
   async deleteResource(resourceId: string): Promise<void> {
-    await this.context.database
-      .deleteFrom('file_resources')
-      .where('id', '=', resourceId)
-      .execute();
+    await this.context.database.deleteFrom('file_resources').where('id', '=', resourceId).execute();
   }
 }
 

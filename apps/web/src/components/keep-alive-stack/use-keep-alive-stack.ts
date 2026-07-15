@@ -1,12 +1,10 @@
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useMemo, useState } from 'react';
 
 export interface KeepAliveStackPage {
   key: string;
 }
 
-export function useKeepAliveStack<TPage extends KeepAliveStackPage>(
-  rootPage: TPage,
-) {
+export function useKeepAliveStack<TPage extends KeepAliveStackPage>(rootPage: TPage) {
   const [pages, setPages] = useState<TPage[]>([rootPage]);
   const activePage = pages[pages.length - 1]!;
 

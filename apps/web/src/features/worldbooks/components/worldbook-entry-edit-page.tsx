@@ -1,17 +1,17 @@
-import { Trash2 } from "lucide-react";
-import { useTranslation } from "react-i18next";
-import { Button } from "../../../components/ui/button";
-import { MobileTopBar } from "../../assets/components/mobile-top-bar";
-import { useWorldbookDraftSession } from "../hooks/use-worldbook-draft-sessions";
-import { WorldbookEntryEditor } from "./worldbook-entry-editor";
-import type { WorldbookPage } from "./worldbook-pages";
-import { WorldbookStackPage } from "./worldbook-stack-page";
+import { Trash2 } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
+import { Button } from '../../../components/ui/button';
+import { MobileTopBar } from '../../assets/components/mobile-top-bar';
+import { useWorldbookDraftSession } from '../hooks/use-worldbook-draft-sessions';
+import { WorldbookEntryEditor } from './worldbook-entry-editor';
+import type { WorldbookPage } from './worldbook-pages';
+import { WorldbookStackPage } from './worldbook-stack-page';
 
 export function WorldbookEntryEditPage({
   page,
   onBack,
 }: {
-  page: Extract<WorldbookPage, { name: "entryEdit" }>;
+  page: Extract<WorldbookPage, { name: 'entryEdit' }>;
   onBack: () => void;
 }) {
   const { t } = useTranslation();
@@ -24,9 +24,7 @@ export function WorldbookEntryEditPage({
     saveDocument(
       {
         ...document,
-        entries: document.entries.filter(
-          (candidate) => candidate.id !== page.entryId,
-        ),
+        entries: document.entries.filter((candidate) => candidate.id !== page.entryId),
       },
       onBack,
     );
@@ -37,7 +35,7 @@ export function WorldbookEntryEditPage({
       <MobileTopBar
         actions={
           <Button
-            aria-label={t("worldbooks.entries.deleteAction")}
+            aria-label={t('worldbooks.entries.deleteAction')}
             className="size-10"
             disabled={isPending}
             size="icon-lg"
@@ -48,7 +46,7 @@ export function WorldbookEntryEditPage({
             <Trash2 aria-hidden="true" />
           </Button>
         }
-        title={t("worldbooks.entries.editTitle")}
+        title={t('worldbooks.entries.editTitle')}
         onBack={onBack}
       />
       <WorldbookEntryEditor

@@ -1,21 +1,17 @@
-import type { INestApplication } from "@nestjs/common";
-import { Test } from "@nestjs/testing";
-import type { Database } from "@rolesta/db";
-import {
-  ERROR_CODES,
-  I18N_MESSAGE_PREFIX,
-  type API_SUCCESS_CODE,
-} from "@rolesta/shared";
-import type { Kysely } from "kysely";
-import request from "supertest";
-import type { App } from "supertest/types.js";
-import { afterEach, beforeEach, describe, expect, it } from "vitest";
-import { createTestDatabase } from "../../../packages/db/src/test-utils/create-test-database.js";
-import { AppModule } from "../src/app.module.js";
-import { ChatPreferencesApplicationError } from "../src/chat-preferences/application/chat-preferences-application-error.js";
-import { UpdateAssetDefaultsUseCase } from "../src/chat-preferences/application/update-asset-defaults.use-case.js";
-import { configureApp } from "../src/configure-app.js";
-import { KYSELY_DB } from "../src/database/database.provider.js";
+import type { INestApplication } from '@nestjs/common';
+import { Test } from '@nestjs/testing';
+import type { Database } from '@rolesta/db';
+import { ERROR_CODES, I18N_MESSAGE_PREFIX, type API_SUCCESS_CODE } from '@rolesta/shared';
+import type { Kysely } from 'kysely';
+import request from 'supertest';
+import type { App } from 'supertest/types.js';
+import { afterEach, beforeEach, describe, expect, it } from 'vitest';
+import { createTestDatabase } from '../../../packages/db/src/test-utils/create-test-database.js';
+import { AppModule } from '../src/app.module.js';
+import { ChatPreferencesApplicationError } from '../src/chat-preferences/application/chat-preferences-application-error.js';
+import { UpdateAssetDefaultsUseCase } from '../src/chat-preferences/application/update-asset-defaults.use-case.js';
+import { configureApp } from '../src/configure-app.js';
+import { KYSELY_DB } from '../src/database/database.provider.js';
 
 type SuccessEnvelope<TData> = {
   code: typeof API_SUCCESS_CODE;
@@ -29,7 +25,7 @@ type AssetDefaultsBody = SuccessEnvelope<{
   modelProviderId: string | null;
 }>;
 
-describe("Chat preferences API", () => {
+describe('Chat preferences API', () => {
   let app: INestApplication | undefined;
   let testDatabase: Awaited<ReturnType<typeof createTestDatabase>> | undefined;
   let originalDatabasePath: string | undefined;
@@ -44,8 +40,8 @@ describe("Chat preferences API", () => {
       imports: [AppModule],
     }).compile();
     app = configureApp(moduleRef.createNestApplication(), {
-      corsAllowedOrigins: ["http://localhost:5173"],
-      requestBodyLimit: "1mb",
+      corsAllowedOrigins: ['http://localhost:5173'],
+      requestBodyLimit: '1mb',
     });
     await app.init();
   });
@@ -63,15 +59,15 @@ describe("Chat preferences API", () => {
     }
   });
 
-  it("requires authentication and returns null defaults before configuration", async () => {
+  it('requires authentication and returns null defaults before configuration', async () => {
     await request(app!.getHttpServer() as App)
-      .get("/chat-preferences/assets")
+      .get('/chat-preferences/assets')
       .expect(401);
     const auth = await setupAdmin(app!);
 
     await request(app!.getHttpServer() as App)
-      .get("/chat-preferences/assets")
-      .set("Authorization", `Bearer ${auth.token}`)
+      .get('/chat-preferences/assets')
+      .set('Authorization', `Bearer ${auth.token}`)
       .expect(200)
       .expect((response) => {
         expect(responseBody<AssetDefaultsBody>(response).data).toEqual({
@@ -82,82 +78,82 @@ describe("Chat preferences API", () => {
       });
   });
 
-  it("patches independently owned defaults and returns the complete preference", async () => {
+  it('patches independently owned defaults and returns the complete preference', async () => {
     const auth = await setupAdmin(app!);
     const db = app!.get<Kysely<Database>>(KYSELY_DB, { strict: false });
     await seedAssets(db, auth.userId);
 
     await request(app!.getHttpServer() as App)
-      .patch("/chat-preferences/assets")
-      .set("Authorization", `Bearer ${auth.token}`)
-      .send({ personaCharacterId: "character", presetId: "preset" })
+      .patch('/chat-preferences/assets')
+      .set('Authorization', `Bearer ${auth.token}`)
+      .send({ personaCharacterId: 'character', presetId: 'preset' })
       .expect(200)
       .expect((response) => {
         expect(responseBody<AssetDefaultsBody>(response).data).toEqual({
-          personaCharacterId: "character",
-          presetId: "preset",
+          personaCharacterId: 'character',
+          presetId: 'preset',
           modelProviderId: null,
         });
       });
 
     await request(app!.getHttpServer() as App)
-      .patch("/chat-preferences/assets")
-      .set("Authorization", `Bearer ${auth.token}`)
-      .send({ modelProviderId: "provider", presetId: null })
+      .patch('/chat-preferences/assets')
+      .set('Authorization', `Bearer ${auth.token}`)
+      .send({ modelProviderId: 'provider', presetId: null })
       .expect(200)
       .expect((response) => {
         expect(responseBody<AssetDefaultsBody>(response).data).toEqual({
-          personaCharacterId: "character",
+          personaCharacterId: 'character',
           presetId: null,
-          modelProviderId: "provider",
+          modelProviderId: 'provider',
         });
       });
   });
 
-  it("clears defaults and orphans the avatar when owned assets are deleted", async () => {
+  it('clears defaults and orphans the avatar when owned assets are deleted', async () => {
     const auth = await setupAdmin(app!);
     const db = app!.get<Kysely<Database>>(KYSELY_DB, { strict: false });
     await seedAssets(db, auth.userId);
-    await seedCharacterAvatar(db, auth.userId, "avatar", "active");
+    await seedCharacterAvatar(db, auth.userId, 'avatar', 'active');
     await db
-      .updateTable("characters")
-      .set({ avatar_resource_id: "avatar" })
-      .where("id", "=", "character")
+      .updateTable('characters')
+      .set({ avatar_resource_id: 'avatar' })
+      .where('id', '=', 'character')
       .execute();
     await request(app!.getHttpServer() as App)
-      .patch("/chat-preferences/assets")
-      .set("Authorization", `Bearer ${auth.token}`)
+      .patch('/chat-preferences/assets')
+      .set('Authorization', `Bearer ${auth.token}`)
       .send({
-        personaCharacterId: "character",
-        presetId: "preset",
-        modelProviderId: "provider",
+        personaCharacterId: 'character',
+        presetId: 'preset',
+        modelProviderId: 'provider',
       })
       .expect(200);
 
     await request(app!.getHttpServer() as App)
-      .delete("/characters/character")
-      .set("Authorization", `Bearer ${auth.token}`)
+      .delete('/characters/character')
+      .set('Authorization', `Bearer ${auth.token}`)
       .expect(200);
     await expect(
       db
-        .selectFrom("file_resources")
-        .select(["status", "orphaned_at_ms"])
-        .where("id", "=", "avatar")
+        .selectFrom('file_resources')
+        .select(['status', 'orphaned_at_ms'])
+        .where('id', '=', 'avatar')
         .executeTakeFirst(),
-    ).resolves.toMatchObject({ status: "orphaned" });
+    ).resolves.toMatchObject({ status: 'orphaned' });
     await expectAssetDefaults(app!, auth.token, {
       personaCharacterId: null,
-      presetId: "preset",
-      modelProviderId: "provider",
+      presetId: 'preset',
+      modelProviderId: 'provider',
     });
 
     await request(app!.getHttpServer() as App)
-      .delete("/presets/preset")
-      .set("Authorization", `Bearer ${auth.token}`)
+      .delete('/presets/preset')
+      .set('Authorization', `Bearer ${auth.token}`)
       .expect(200);
     await request(app!.getHttpServer() as App)
-      .delete("/model-providers/provider")
-      .set("Authorization", `Bearer ${auth.token}`)
+      .delete('/model-providers/provider')
+      .set('Authorization', `Bearer ${auth.token}`)
       .expect(200);
     await expectAssetDefaults(app!, auth.token, {
       personaCharacterId: null,
@@ -166,63 +162,63 @@ describe("Chat preferences API", () => {
     });
   }, 15_000);
 
-  it("rolls back avatar removal when the file lifecycle rejects its state", async () => {
+  it('rolls back avatar removal when the file lifecycle rejects its state', async () => {
     const auth = await setupAdmin(app!);
     const db = app!.get<Kysely<Database>>(KYSELY_DB, { strict: false });
     await seedAssets(db, auth.userId);
-    await seedCharacterAvatar(db, auth.userId, "pending-avatar", "pending");
+    await seedCharacterAvatar(db, auth.userId, 'pending-avatar', 'pending');
     await db
-      .updateTable("characters")
-      .set({ avatar_resource_id: "pending-avatar" })
-      .where("id", "=", "character")
+      .updateTable('characters')
+      .set({ avatar_resource_id: 'pending-avatar' })
+      .where('id', '=', 'character')
       .execute();
 
     await request(app!.getHttpServer() as App)
-      .delete("/characters/character/avatar")
-      .set("Authorization", `Bearer ${auth.token}`)
+      .delete('/characters/character/avatar')
+      .set('Authorization', `Bearer ${auth.token}`)
       .expect(409);
 
     await expect(
       db
-        .selectFrom("characters")
-        .select("avatar_resource_id")
-        .where("id", "=", "character")
+        .selectFrom('characters')
+        .select('avatar_resource_id')
+        .where('id', '=', 'character')
         .executeTakeFirst(),
-    ).resolves.toEqual({ avatar_resource_id: "pending-avatar" });
+    ).resolves.toEqual({ avatar_resource_id: 'pending-avatar' });
     await expect(
       db
-        .selectFrom("file_resources")
-        .select(["status", "orphaned_at_ms"])
-        .where("id", "=", "pending-avatar")
+        .selectFrom('file_resources')
+        .select(['status', 'orphaned_at_ms'])
+        .where('id', '=', 'pending-avatar')
         .executeTakeFirst(),
-    ).resolves.toEqual({ status: "pending", orphaned_at_ms: null });
+    ).resolves.toEqual({ status: 'pending', orphaned_at_ms: null });
   });
 
-  it("rejects empty and malformed patches", async () => {
+  it('rejects empty and malformed patches', async () => {
     const auth = await setupAdmin(app!);
 
     await request(app!.getHttpServer() as App)
-      .patch("/chat-preferences/assets")
-      .set("Authorization", `Bearer ${auth.token}`)
+      .patch('/chat-preferences/assets')
+      .set('Authorization', `Bearer ${auth.token}`)
       .send({})
       .expect(400);
     await request(app!.getHttpServer() as App)
-      .patch("/chat-preferences/assets")
-      .set("Authorization", `Bearer ${auth.token}`)
+      .patch('/chat-preferences/assets')
+      .set('Authorization', `Bearer ${auth.token}`)
       .send({ presetId: 123 })
       .expect(400);
   });
 
-  it("reports all unavailable fields without returning asset IDs", async () => {
+  it('reports all unavailable fields without returning asset IDs', async () => {
     const owner = await setupAdmin(app!);
     const db = app!.get<Kysely<Database>>(KYSELY_DB, { strict: false });
-    await seedUser(db, "other");
-    await seedAssets(db, "other", "other-");
-    const submittedIds = ["other-character", "other-preset", "other-provider"];
+    await seedUser(db, 'other');
+    await seedAssets(db, 'other', 'other-');
+    const submittedIds = ['other-character', 'other-preset', 'other-provider'];
 
     const response = await request(app!.getHttpServer() as App)
-      .patch("/chat-preferences/assets")
-      .set("Authorization", `Bearer ${owner.token}`)
+      .patch('/chat-preferences/assets')
+      .set('Authorization', `Bearer ${owner.token}`)
       .send({
         personaCharacterId: submittedIds[0],
         presetId: submittedIds[1],
@@ -234,7 +230,7 @@ describe("Chat preferences API", () => {
       code: ERROR_CODES.NOT_FOUND,
       msg: `${I18N_MESSAGE_PREFIX}errors.assetUnavailable`,
       data: {
-        fields: ["personaCharacterId", "presetId", "modelProviderId"],
+        fields: ['personaCharacterId', 'presetId', 'modelProviderId'],
       },
     });
     for (const id of submittedIds) {
@@ -243,8 +239,8 @@ describe("Chat preferences API", () => {
   });
 });
 
-describe("Chat preferences conflict HTTP mapping", () => {
-  it("returns a 409 error envelope for an upsert conflict", async () => {
+describe('Chat preferences conflict HTTP mapping', () => {
+  it('returns a 409 error envelope for an upsert conflict', async () => {
     const testDatabase = await createTestDatabase();
     const originalDatabasePath = process.env.SQLITE_DATABASE_PATH;
     process.env.SQLITE_DATABASE_PATH = testDatabase.databasePath;
@@ -254,24 +250,24 @@ describe("Chat preferences conflict HTTP mapping", () => {
       .useValue({
         execute: () => {
           throw new ChatPreferencesApplicationError({
-            reason: "asset-defaults-conflict",
+            reason: 'asset-defaults-conflict',
             params: {},
           });
         },
       })
       .compile();
     const app = configureApp(moduleRef.createNestApplication(), {
-      corsAllowedOrigins: ["http://localhost:5173"],
-      requestBodyLimit: "1mb",
+      corsAllowedOrigins: ['http://localhost:5173'],
+      requestBodyLimit: '1mb',
     });
     await app.init();
 
     try {
       const auth = await setupAdmin(app);
       await request(app.getHttpServer())
-        .patch("/chat-preferences/assets")
-        .set("Authorization", `Bearer ${auth.token}`)
-        .send({ presetId: "preset" })
+        .patch('/chat-preferences/assets')
+        .set('Authorization', `Bearer ${auth.token}`)
+        .send({ presetId: 'preset' })
         .expect(409)
         .expect({
           code: ERROR_CODES.VALIDATION_FAILED,
@@ -292,17 +288,12 @@ describe("Chat preferences conflict HTTP mapping", () => {
   });
 });
 
-async function setupAdmin(
-  app: INestApplication,
-): Promise<{ token: string; userId: string }> {
+async function setupAdmin(app: INestApplication): Promise<{ token: string; userId: string }> {
   const response = await request(app.getHttpServer() as App)
-    .post("/auth/setup-admin")
-    .send({ username: "admin", password: "very-secure-password" })
+    .post('/auth/setup-admin')
+    .send({ username: 'admin', password: 'very-secure-password' })
     .expect(201);
-  const body =
-    responseBody<SuccessEnvelope<{ token: string; user: { id: string } }>>(
-      response,
-    );
+  const body = responseBody<SuccessEnvelope<{ token: string; user: { id: string } }>>(response);
   return { token: body.data.token, userId: body.data.user.id };
 }
 
@@ -310,54 +301,50 @@ type TestDatabase = Kysely<Database>;
 
 async function seedUser(db: TestDatabase, id: string): Promise<void> {
   await db
-    .insertInto("users")
+    .insertInto('users')
     .values({
       id,
       username: id,
-      password_hash: "unused",
+      password_hash: 'unused',
       display_name: id,
-      role: "user",
+      role: 'user',
       created_at: new Date(0).toISOString(),
       updated_at: new Date(0).toISOString(),
     })
     .execute();
 }
 
-async function seedAssets(
-  db: TestDatabase,
-  ownerUserId: string,
-  prefix = "",
-): Promise<void> {
+async function seedAssets(db: TestDatabase, ownerUserId: string, prefix = ''): Promise<void> {
   await db
-    .insertInto("characters")
+    .insertInto('characters')
     .values({
       id: `${prefix}character`,
       owner_user_id: ownerUserId,
       avatar_resource_id: null,
-      visibility: prefix ? "public" : "private",
-      name: "Character",
+      visibility: prefix ? 'public' : 'private',
+      name: 'Character',
       nickname: null,
-      comment: "",
-      tags_json: "[]",
-      version: "",
+      comment: '',
+      tags_json: '[]',
+      version: '',
       creator: null,
-      description: "",
-      personality: "",
-      scenario: "",
-      first_message: "",
-      alternate_greetings_json: "[]",
-      group_only_greetings_json: "[]",
-      message_example: "",
-      creator_notes: "",
-      creator_notes_multilingual_json: "{}",
-      system_prompt: "",
-      post_history_instructions: "",
+      description: '',
+      personality: '',
+      scenario: '',
+      first_message: '',
+      alternate_greetings_json: '[]',
+      group_only_greetings_json: '[]',
+      message_example: '',
+      creator_notes: '',
+      creator_notes_multilingual_json: '{}',
+      system_prompt: '',
+      post_history_instructions: '',
       character_book_json: null,
-      assets_json: "[]",
-      source_json: "[]",
-      metadata_json: "{}",
-      source_format: "sillytavern_v3",
-      source_snapshot_json: "{}",
+      assets_json: '[]',
+      source_json: '[]',
+      metadata_json: '{}',
+      source_format: 'sillytavern_v3',
+      source_snapshot_json: '{}',
       created_at_ms: 1,
       updated_at_ms: 1,
       creation_date_ms: null,
@@ -367,17 +354,17 @@ async function seedAssets(
     })
     .execute();
   await db
-    .insertInto("presets")
+    .insertInto('presets')
     .values({
       id: `${prefix}preset`,
       owner_user_id: ownerUserId,
-      visibility: prefix ? "public" : "private",
-      name: "Preset",
+      visibility: prefix ? 'public' : 'private',
+      name: 'Preset',
       model_provider_id: null,
-      model_settings_json: "{}",
-      tokenizer: "cl100k_base",
-      source_format: "rolesta",
-      source_snapshot_json: "{}",
+      model_settings_json: '{}',
+      tokenizer: 'cl100k_base',
+      source_format: 'rolesta',
+      source_snapshot_json: '{}',
       created_at_ms: 1,
       updated_at_ms: 1,
       last_used_at_ms: null,
@@ -385,17 +372,17 @@ async function seedAssets(
     })
     .execute();
   await db
-    .insertInto("model_provider_configs")
+    .insertInto('model_provider_configs')
     .values({
       id: `${prefix}provider`,
       owner_user_id: ownerUserId,
-      name: "Provider",
-      provider_kind: "openai-compatible",
-      provider_source: "custom",
-      base_url: "https://example.com/v1",
-      default_model_name: "",
-      credential_mode: "manual",
-      secret: "",
+      name: 'Provider',
+      provider_kind: 'openai-compatible',
+      provider_source: 'custom',
+      base_url: 'https://example.com/v1',
+      default_model_name: '',
+      credential_mode: 'manual',
+      secret: '',
       api_key_id: null,
       created_at_ms: 1,
       updated_at_ms: 1,
@@ -409,14 +396,14 @@ async function seedCharacterAvatar(
   db: TestDatabase,
   ownerUserId: string,
   id: string,
-  status: "pending" | "active",
+  status: 'pending' | 'active',
 ): Promise<void> {
   await db
-    .insertInto("file_resources")
+    .insertInto('file_resources')
     .values({
       id,
       owner_user_id: ownerUserId,
-      purpose: "character-avatar",
+      purpose: 'character-avatar',
       status,
       orphaned_at_ms: null,
       created_at_ms: 1,
@@ -427,11 +414,11 @@ async function seedCharacterAvatar(
 async function expectAssetDefaults(
   app: INestApplication,
   token: string,
-  expected: AssetDefaultsBody["data"],
+  expected: AssetDefaultsBody['data'],
 ): Promise<void> {
   await request(app.getHttpServer() as App)
-    .get("/chat-preferences/assets")
-    .set("Authorization", `Bearer ${token}`)
+    .get('/chat-preferences/assets')
+    .set('Authorization', `Bearer ${token}`)
     .expect(200)
     .expect((response) => {
       expect(responseBody<AssetDefaultsBody>(response).data).toEqual(expected);

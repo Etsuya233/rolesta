@@ -1,16 +1,13 @@
-import { describe, expect, it } from "vitest";
-import { createTestDatabase } from "../../../../../packages/db/src/test-utils/create-test-database.js";
-import { KyselyDatabaseContext } from "../../database/kysely-database-context.js";
-import { KyselyUnitOfWork } from "../../database/kysely-unit-of-work.js";
-import type {
-  ApiKey,
-  ModelProviderConfig,
-} from "../domain/model-provider-config.js";
-import { KyselyApiKeyStore } from "./kysely-api-key-store.js";
-import { KyselyModelProviderStore } from "./kysely-model-provider-store.js";
+import { describe, expect, it } from 'vitest';
+import { createTestDatabase } from '../../../../../packages/db/src/test-utils/create-test-database.js';
+import { KyselyDatabaseContext } from '../../database/kysely-database-context.js';
+import { KyselyUnitOfWork } from '../../database/kysely-unit-of-work.js';
+import type { ApiKey, ModelProviderConfig } from '../domain/model-provider-config.js';
+import { KyselyApiKeyStore } from './kysely-api-key-store.js';
+import { KyselyModelProviderStore } from './kysely-model-provider-store.js';
 
-describe("KyselyApiKeyStore", () => {
-  it("lists providers joined to global API keys without ambiguous filters", async () => {
+describe('KyselyApiKeyStore', () => {
+  it('lists providers joined to global API keys without ambiguous filters', async () => {
     const database = await createTestDatabase();
     const context = new KyselyDatabaseContext(database.db);
     const apiKeys = new KyselyApiKeyStore(context);
@@ -19,19 +16,19 @@ describe("KyselyApiKeyStore", () => {
     try {
       await seedUser(database.db);
       await apiKeys.save(apiKey());
-      await providers.save(provider("provider-1"));
+      await providers.save(provider('provider-1'));
 
       await expect(
         providers.list({
-          viewerUserId: "owner",
-          sort: "createdAt",
-          direction: "desc",
+          viewerUserId: 'owner',
+          sort: 'createdAt',
+          direction: 'desc',
           pageIndex: 0,
           pageSize: 20,
-          q: "provider",
+          q: 'provider',
         }),
       ).resolves.toMatchObject({
-        items: [{ id: "provider-1", apiKeyId: "key", apiKeyName: "Shared" }],
+        items: [{ id: 'provider-1', apiKeyId: 'key', apiKeyName: 'Shared' }],
         totalItems: 1,
       });
     } finally {
@@ -39,7 +36,7 @@ describe("KyselyApiKeyStore", () => {
     }
   });
 
-  it("deletes a key and clears all provider references in one operation", async () => {
+  it('deletes a key and clears all provider references in one operation', async () => {
     const database = await createTestDatabase();
     const context = new KyselyDatabaseContext(database.db);
     const unitOfWork = new KyselyUnitOfWork(database.db, context);
@@ -49,29 +46,23 @@ describe("KyselyApiKeyStore", () => {
     try {
       await seedUser(database.db);
       await apiKeys.save(apiKey());
-      await providers.save(provider("provider-1"));
-      await providers.save(provider("provider-2"));
+      await providers.save(provider('provider-1'));
+      await providers.save(provider('provider-2'));
 
       await expect(
-        unitOfWork.run(() =>
-          apiKeys.deleteOwnedAndClearProviderReferences("key", "owner", 200),
-        ),
+        unitOfWork.run(() => apiKeys.deleteOwnedAndClearProviderReferences('key', 'owner', 200)),
       ).resolves.toBe(2);
-      await expect(apiKeys.findOwnedById("key", "owner")).resolves.toBeNull();
-      await expect(
-        providers.findOwnedById("provider-1", "owner"),
-      ).resolves.toMatchObject({
-        credentialMode: "manual",
-        secret: "",
+      await expect(apiKeys.findOwnedById('key', 'owner')).resolves.toBeNull();
+      await expect(providers.findOwnedById('provider-1', 'owner')).resolves.toMatchObject({
+        credentialMode: 'manual',
+        secret: '',
         apiKeyId: null,
         apiKeyName: null,
         updatedAtMs: 200,
       });
-      await expect(
-        providers.findOwnedById("provider-2", "owner"),
-      ).resolves.toMatchObject({
-        credentialMode: "manual",
-        secret: "",
+      await expect(providers.findOwnedById('provider-2', 'owner')).resolves.toMatchObject({
+        credentialMode: 'manual',
+        secret: '',
         apiKeyId: null,
         apiKeyName: null,
         updatedAtMs: 200,
@@ -82,17 +73,17 @@ describe("KyselyApiKeyStore", () => {
   });
 });
 
-type TestDatabase = Awaited<ReturnType<typeof createTestDatabase>>["db"];
+type TestDatabase = Awaited<ReturnType<typeof createTestDatabase>>['db'];
 
 async function seedUser(db: TestDatabase): Promise<void> {
   await db
-    .insertInto("users")
+    .insertInto('users')
     .values({
-      id: "owner",
-      username: "owner",
-      password_hash: "unused",
-      display_name: "Owner",
-      role: "user",
+      id: 'owner',
+      username: 'owner',
+      password_hash: 'unused',
+      display_name: 'Owner',
+      role: 'user',
       created_at: new Date(0).toISOString(),
       updated_at: new Date(0).toISOString(),
     })
@@ -101,10 +92,10 @@ async function seedUser(db: TestDatabase): Promise<void> {
 
 function apiKey(): ApiKey {
   return {
-    id: "key",
-    ownerUserId: "owner",
-    name: "Shared",
-    secret: "secret",
+    id: 'key',
+    ownerUserId: 'owner',
+    name: 'Shared',
+    secret: 'secret',
     createdAtMs: 100,
     updatedAtMs: 100,
   };
@@ -113,16 +104,16 @@ function apiKey(): ApiKey {
 function provider(id: string): ModelProviderConfig {
   return {
     id,
-    ownerUserId: "owner",
+    ownerUserId: 'owner',
     name: id,
-    providerKind: "openai-compatible",
-    providerSource: "custom",
-    baseUrl: "https://example.com/v1",
-    defaultModelName: "",
-    credentialMode: "vault",
-    secret: "",
-    apiKeyId: "key",
-    apiKeyName: "Shared",
+    providerKind: 'openai-compatible',
+    providerSource: 'custom',
+    baseUrl: 'https://example.com/v1',
+    defaultModelName: '',
+    credentialMode: 'vault',
+    secret: '',
+    apiKeyId: 'key',
+    apiKeyName: 'Shared',
     createdAtMs: 100,
     updatedAtMs: 100,
     lastUsedAtMs: null,

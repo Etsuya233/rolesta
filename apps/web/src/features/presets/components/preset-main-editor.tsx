@@ -1,12 +1,12 @@
-import type { TFunction } from "i18next";
-import { countPromptTokens } from "@rolesta/shared";
-import { useQuery } from "@tanstack/react-query";
-import { BadgeInfo, SlidersHorizontal, XIcon } from "lucide-react";
-import { useId, useState } from "react";
-import { useTranslation } from "react-i18next";
-import { Accordion } from "../../../components/ui/accordion";
-import { Button } from "../../../components/ui/button";
-import { Field, FieldError, FieldLabel } from "../../../components/ui/field";
+import type { TFunction } from 'i18next';
+import { countPromptTokens } from '@rolesta/shared';
+import { useQuery } from '@tanstack/react-query';
+import { BadgeInfo, SlidersHorizontal, XIcon } from 'lucide-react';
+import { useId, useState } from 'react';
+import { useTranslation } from 'react-i18next';
+import { Accordion } from '../../../components/ui/accordion';
+import { Button } from '../../../components/ui/button';
+import { Field, FieldError, FieldLabel } from '../../../components/ui/field';
 import {
   Select,
   SelectContent,
@@ -14,19 +14,16 @@ import {
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "../../../components/ui/select";
+} from '../../../components/ui/select';
 import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
-} from "../../../components/ui/tooltip";
-import { listAllModelProviders } from "../../model-providers/api/model-providers-api";
-import { usePresetDraftSession } from "../hooks/use-preset-draft-sessions";
-import type {
-  PresetDetailResponse,
-  PresetModelSettings,
-} from "../api/presets-api";
+} from '../../../components/ui/tooltip';
+import { listAllModelProviders } from '../../model-providers/api/model-providers-api';
+import { usePresetDraftSession } from '../hooks/use-preset-draft-sessions';
+import type { PresetDetailResponse, PresetModelSettings } from '../api/presets-api';
 import {
   FormActionButton,
   FormSubmitButton,
@@ -35,7 +32,7 @@ import {
   PresetNumberField,
   PresetSelectField,
   PresetTextField,
-} from "./preset-form-fields";
+} from './preset-form-fields';
 
 export interface PresetMainEditorProps {
   sessionKey: string;
@@ -54,24 +51,18 @@ export function PresetMainEditor({
 }: PresetMainEditorProps) {
   const { t } = useTranslation();
   const fieldPrefix = useId();
-  const [openSections, setOpenSections] = useState<string[]>([
-    "basic",
-    "model",
-  ]);
-  const { document, form, setForm, isDirty, isPending, submit } =
-    usePresetDraftSession({
-      sessionKey,
-      ...(presetId ? { presetId } : {}),
-      hydrateFromQueryOnMount: true,
-      ...(onCreated ? { onCreated } : {}),
-    });
+  const [openSections, setOpenSections] = useState<string[]>(['basic', 'model']);
+  const { document, form, setForm, isDirty, isPending, submit } = usePresetDraftSession({
+    sessionKey,
+    ...(presetId ? { presetId } : {}),
+    hydrateFromQueryOnMount: true,
+    ...(onCreated ? { onCreated } : {}),
+  });
   const settings = form.modelSettings;
   const entryById = new Map(document.entries.map((entry) => [entry.id, entry]));
   const tokenCount = document.promptItems.reduce((total, item) => {
     const entry = entryById.get(item.entryId);
-    return (
-      total + (item.enabled && entry ? countPromptTokens(entry.content) : 0)
-    );
+    return total + (item.enabled && entry ? countPromptTokens(entry.content) : 0);
   }, 0);
 
   return (
@@ -94,30 +85,28 @@ export function PresetMainEditor({
               entryCount: document.entries.length,
               t,
             })}
-            title={t("presets.editor.sections.basic.title")}
+            title={t('presets.editor.sections.basic.title')}
             value="basic"
           >
             <PresetTextField
               disabled={isPending}
               id={`${fieldPrefix}-name`}
-              label={t("presets.editor.fields.name")}
+              label={t('presets.editor.fields.name')}
               value={form.name}
-              onChange={(event) =>
-                setForm({ ...form, name: event.target.value })
-              }
+              onChange={(event) => setForm({ ...form, name: event.target.value })}
             />
             <PresetSelectField
               disabled={isPending}
               id={`${fieldPrefix}-visibility`}
-              label={t("presets.editor.fields.visibility")}
+              label={t('presets.editor.fields.visibility')}
               options={[
                 {
-                  value: "private",
-                  label: t("presets.list.privateVisibility"),
+                  value: 'private',
+                  label: t('presets.list.privateVisibility'),
                 },
                 {
-                  value: "public",
-                  label: t("presets.list.publicVisibility"),
+                  value: 'public',
+                  label: t('presets.list.publicVisibility'),
                 },
               ]}
               value={form.visibility}
@@ -127,23 +116,18 @@ export function PresetMainEditor({
               disabled={isPending}
               id={`${fieldPrefix}-model-provider`}
               value={form.modelProviderId}
-              onChange={(modelProviderId) =>
-                setForm({ ...form, modelProviderId })
-              }
+              onChange={(modelProviderId) => setForm({ ...form, modelProviderId })}
             />
             <div className="grid grid-cols-2 gap-2 text-sm">
+              <Metric label={t('presets.metrics.totalTokens')} value={String(tokenCount)} />
               <Metric
-                label={t("presets.metrics.totalTokens")}
-                value={String(tokenCount)}
-              />
-              <Metric
-                label={t("presets.metrics.entryCount")}
+                label={t('presets.metrics.entryCount')}
                 value={String(document.entries.length)}
               />
             </div>
             {onOpenPromptList ? (
               <FormActionButton disabled={isPending} onClick={onOpenPromptList}>
-                {t("presets.promptList.title")}
+                {t('presets.promptList.title')}
               </FormActionButton>
             ) : null}
           </PresetFormSection>
@@ -151,13 +135,13 @@ export function PresetMainEditor({
           <PresetFormSection
             icon={SlidersHorizontal}
             summary={presetModelSummary({ settings, t })}
-            title={t("presets.editor.sections.model.title")}
+            title={t('presets.editor.sections.model.title')}
             value="model"
           >
             <PresetNumberField
               disabled={isPending}
               id={`${fieldPrefix}-context`}
-              label={t("presets.editor.fields.contextLength")}
+              label={t('presets.editor.fields.contextLength')}
               value={settings.contextLength}
               onChange={(contextLength) =>
                 setForm({
@@ -169,7 +153,7 @@ export function PresetMainEditor({
             <PresetNumberField
               disabled={isPending}
               id={`${fieldPrefix}-max-response`}
-              label={t("presets.editor.fields.maxResponseLength")}
+              label={t('presets.editor.fields.maxResponseLength')}
               value={settings.maxResponseLength}
               onChange={(maxResponseLength) =>
                 setForm({
@@ -182,10 +166,8 @@ export function PresetMainEditor({
               checked={settings.stream}
               disabled={isPending}
               id={`${fieldPrefix}-stream`}
-              label={t("presets.editor.fields.stream")}
-              onChange={(stream) =>
-                setForm({ ...form, modelSettings: { ...settings, stream } })
-              }
+              label={t('presets.editor.fields.stream')}
+              onChange={(stream) => setForm({ ...form, modelSettings: { ...settings, stream } })}
             />
             <div className="grid grid-cols-2 gap-3">
               {modelNumberFields.map((field) => (
@@ -207,7 +189,7 @@ export function PresetMainEditor({
             <PresetTextField
               disabled={isPending}
               id={`${fieldPrefix}-reasoning`}
-              label={t("presets.editor.fields.reasoningEffort")}
+              label={t('presets.editor.fields.reasoningEffort')}
               value={settings.reasoningEffort}
               onChange={(event) =>
                 setForm({
@@ -222,7 +204,7 @@ export function PresetMainEditor({
             <PresetTextField
               disabled={isPending}
               id={`${fieldPrefix}-verbosity`}
-              label={t("presets.editor.fields.verbosity")}
+              label={t('presets.editor.fields.verbosity')}
               value={settings.verbosity}
               onChange={(event) =>
                 setForm({
@@ -235,7 +217,7 @@ export function PresetMainEditor({
               checked={settings.showThoughts}
               disabled={isPending}
               id={`${fieldPrefix}-thoughts`}
-              label={t("presets.editor.fields.showThoughts")}
+              label={t('presets.editor.fields.showThoughts')}
               onChange={(showThoughts) =>
                 setForm({
                   ...form,
@@ -249,9 +231,7 @@ export function PresetMainEditor({
 
       {submitLabel ? (
         <div className="flex shrink-0 flex-col gap-3 border-t border-border bg-background px-4 py-3">
-          <FormSubmitButton disabled={isPending || !isDirty}>
-            {submitLabel}
-          </FormSubmitButton>
+          <FormSubmitButton disabled={isPending || !isDirty}>{submitLabel}</FormSubmitButton>
         </div>
       ) : null}
     </form>
@@ -271,7 +251,7 @@ function PresetModelProviderField({
 }) {
   const { t } = useTranslation();
   const providersQuery = useQuery({
-    queryKey: ["model-providers", "preset-options"],
+    queryKey: ['model-providers', 'preset-options'],
     queryFn: listAllModelProviders,
   });
   const providers = providersQuery.data ?? [];
@@ -280,42 +260,27 @@ function PresetModelProviderField({
     providersQuery.isSuccess &&
     !providers.some((provider) => provider.id === value);
   const invalid = providersQuery.isError || selectedProviderUnavailable;
-  const selectDisabled =
-    disabled || providersQuery.isLoading || providers.length === 0;
+  const selectDisabled = disabled || providersQuery.isLoading || providers.length === 0;
   const placeholder = providersQuery.isLoading
-    ? t("presets.editor.modelProviderLoading")
+    ? t('presets.editor.modelProviderLoading')
     : providers.length === 0
-      ? t("presets.editor.noModelProviders")
-      : t("presets.editor.unlinkedProvider");
+      ? t('presets.editor.noModelProviders')
+      : t('presets.editor.unlinkedProvider');
 
   return (
-    <Field
-      data-disabled={disabled || providersQuery.isLoading}
-      data-invalid={invalid}
-    >
-      <FieldLabel htmlFor={id}>
-        {t("presets.editor.fields.modelProvider")}
-      </FieldLabel>
+    <Field data-disabled={disabled || providersQuery.isLoading} data-invalid={invalid}>
+      <FieldLabel htmlFor={id}>{t('presets.editor.fields.modelProvider')}</FieldLabel>
       <div className="flex min-w-0 items-center gap-2">
-        <Select
-          disabled={selectDisabled}
-          value={value ?? ""}
-          onValueChange={onChange}
-        >
-          <SelectTrigger
-            aria-invalid={invalid}
-            className="min-w-0 flex-1"
-            id={id}
-          >
+        <Select disabled={selectDisabled} value={value ?? ''} onValueChange={onChange}>
+          <SelectTrigger aria-invalid={invalid} className="min-w-0 flex-1" id={id}>
             <SelectValue placeholder={placeholder} />
           </SelectTrigger>
           <SelectContent position="popper">
             <SelectGroup>
               {providers.map((provider) => (
                 <SelectItem key={provider.id} value={provider.id}>
-                  {provider.name} · {provider.providerKind} ·{" "}
-                  {provider.defaultModelName ||
-                    t("presets.editor.noDefaultModel")}
+                  {provider.name} · {provider.providerKind} ·{' '}
+                  {provider.defaultModelName || t('presets.editor.noDefaultModel')}
                 </SelectItem>
               ))}
             </SelectGroup>
@@ -325,7 +290,7 @@ function PresetModelProviderField({
           <Tooltip>
             <TooltipTrigger asChild>
               <Button
-                aria-label={t("presets.editor.clearModelProvider")}
+                aria-label={t('presets.editor.clearModelProvider')}
                 disabled={disabled || value === null}
                 size="icon"
                 type="button"
@@ -335,18 +300,14 @@ function PresetModelProviderField({
                 <XIcon />
               </Button>
             </TooltipTrigger>
-            <TooltipContent>
-              {t("presets.editor.clearModelProvider")}
-            </TooltipContent>
+            <TooltipContent>{t('presets.editor.clearModelProvider')}</TooltipContent>
           </Tooltip>
         </TooltipProvider>
       </div>
       {providersQuery.isError ? (
-        <FieldError>{t("presets.editor.modelProvidersLoadFailed")}</FieldError>
+        <FieldError>{t('presets.editor.modelProvidersLoadFailed')}</FieldError>
       ) : selectedProviderUnavailable ? (
-        <FieldError>
-          {t("presets.editor.selectedModelProviderUnavailable")}
-        </FieldError>
+        <FieldError>{t('presets.editor.selectedModelProviderUnavailable')}</FieldError>
       ) : null}
     </Field>
   );
@@ -363,11 +324,11 @@ function presetBasicSummary({
   entryCount: number;
   t: TFunction;
 }): string {
-  const title = name.trim() || t("presets.editor.summaries.unnamed");
+  const title = name.trim() || t('presets.editor.summaries.unnamed');
 
-  return `${title} · ${t("presets.editor.summaries.tokens", {
+  return `${title} · ${t('presets.editor.summaries.tokens', {
     value: tokenCount,
-  })} · ${t("presets.editor.summaries.entries", { value: entryCount })}`;
+  })} · ${t('presets.editor.summaries.entries', { value: entryCount })}`;
 }
 
 function presetModelSummary({
@@ -379,19 +340,19 @@ function presetModelSummary({
 }): string {
   const contextLength =
     settings.contextLength === null
-      ? t("presets.editor.summaries.noContext")
-      : t("presets.editor.summaries.contextLength", {
+      ? t('presets.editor.summaries.noContext')
+      : t('presets.editor.summaries.contextLength', {
           value: settings.contextLength,
         });
   const maxResponseLength =
     settings.maxResponseLength === null
-      ? t("presets.editor.summaries.noMaxResponse")
-      : t("presets.editor.summaries.maxResponseLength", {
+      ? t('presets.editor.summaries.noMaxResponse')
+      : t('presets.editor.summaries.maxResponseLength', {
           value: settings.maxResponseLength,
         });
   const stream = settings.stream
-    ? t("presets.editor.summaries.streamEnabled")
-    : t("presets.editor.summaries.streamDisabled");
+    ? t('presets.editor.summaries.streamEnabled')
+    : t('presets.editor.summaries.streamDisabled');
 
   return `${contextLength} · ${maxResponseLength} · ${stream}`;
 }
@@ -400,28 +361,26 @@ function Metric({ label, value }: { label: string; value: string }) {
   return (
     <div className="rounded-md border border-border px-3 py-2">
       <div className="text-xs text-muted-foreground">{label}</div>
-      <div className="truncate text-base font-semibold tabular-nums">
-        {value}
-      </div>
+      <div className="truncate text-base font-semibold tabular-nums">{value}</div>
     </div>
   );
 }
 
 const modelNumberFields = [
-  { key: "temperature", labelKey: "presets.editor.fields.temperature" },
-  { key: "presencePenalty", labelKey: "presets.editor.fields.presencePenalty" },
+  { key: 'temperature', labelKey: 'presets.editor.fields.temperature' },
+  { key: 'presencePenalty', labelKey: 'presets.editor.fields.presencePenalty' },
   {
-    key: "frequencyPenalty",
-    labelKey: "presets.editor.fields.frequencyPenalty",
+    key: 'frequencyPenalty',
+    labelKey: 'presets.editor.fields.frequencyPenalty',
   },
   {
-    key: "repetitionPenalty",
-    labelKey: "presets.editor.fields.repetitionPenalty",
+    key: 'repetitionPenalty',
+    labelKey: 'presets.editor.fields.repetitionPenalty',
   },
-  { key: "topP", labelKey: "presets.editor.fields.topP" },
-  { key: "topK", labelKey: "presets.editor.fields.topK" },
-  { key: "minP", labelKey: "presets.editor.fields.minP" },
-  { key: "topA", labelKey: "presets.editor.fields.topA" },
-  { key: "seed", labelKey: "presets.editor.fields.seed" },
-  { key: "n", labelKey: "presets.editor.fields.n" },
+  { key: 'topP', labelKey: 'presets.editor.fields.topP' },
+  { key: 'topK', labelKey: 'presets.editor.fields.topK' },
+  { key: 'minP', labelKey: 'presets.editor.fields.minP' },
+  { key: 'topA', labelKey: 'presets.editor.fields.topA' },
+  { key: 'seed', labelKey: 'presets.editor.fields.seed' },
+  { key: 'n', labelKey: 'presets.editor.fields.n' },
 ] as const;

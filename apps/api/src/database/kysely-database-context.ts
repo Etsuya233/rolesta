@@ -11,13 +11,9 @@ export type KyselyQueryExecutor = Omit<
 
 @Injectable()
 export class KyselyDatabaseContext {
-  private readonly transactions = new AsyncLocalStorage<
-    Transaction<Database>
-  >();
+  private readonly transactions = new AsyncLocalStorage<Transaction<Database>>();
 
-  constructor(
-    @Inject(KYSELY_DB) private readonly rootDatabase: Kysely<Database>,
-  ) {}
+  constructor(@Inject(KYSELY_DB) private readonly rootDatabase: Kysely<Database>) {}
 
   get database(): KyselyQueryExecutor {
     return this.transactions.getStore() ?? this.rootDatabase;

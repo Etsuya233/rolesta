@@ -1,14 +1,14 @@
-import { CharacterCreatePage } from "./character-create-page";
-import { CharacterEditPage } from "./character-edit-page";
-import { CharacterGreetingsPage } from "./character-greetings-page";
-import { CharacterImportPage } from "./character-import-page";
-import { CharacterListPage } from "./character-list-page";
+import { CharacterCreatePage } from './character-create-page';
+import { CharacterEditPage } from './character-edit-page';
+import { CharacterGreetingsPage } from './character-greetings-page';
+import { CharacterImportPage } from './character-import-page';
+import { CharacterListPage } from './character-list-page';
 import {
   createCharacterPage,
   editCharacterPage,
   importCharacterPage,
   type CharacterPage,
-} from "./character-pages";
+} from './character-pages';
 
 export interface CharacterPageRendererProps {
   page: CharacterPage;
@@ -25,36 +25,26 @@ export function CharacterPageRenderer({
   pushPage,
   replacePage,
 }: CharacterPageRendererProps) {
-  if (page.name === "list") {
+  if (page.name === 'list') {
     return (
       <CharacterListPage
         onBack={onRootBack}
         onCreate={() => pushPage(createCharacterPage())}
         onImport={() => pushPage(importCharacterPage())}
-        onSelectCharacter={(characterId) =>
-          pushPage(editCharacterPage(characterId))
-        }
+        onSelectCharacter={(characterId) => pushPage(editCharacterPage(characterId))}
       />
     );
   }
 
-  if (page.name === "create") {
-    return (
-      <CharacterCreatePage
-        page={page}
-        replacePage={replacePage}
-        onBack={popPage}
-      />
-    );
+  if (page.name === 'create') {
+    return <CharacterCreatePage page={page} replacePage={replacePage} onBack={popPage} />;
   }
 
-  if (page.name === "editMain") {
-    return (
-      <CharacterEditPage page={page} pushPage={pushPage} onBack={popPage} />
-    );
+  if (page.name === 'editMain') {
+    return <CharacterEditPage page={page} pushPage={pushPage} onBack={popPage} />;
   }
 
-  if (page.name === "alternateGreetings") {
+  if (page.name === 'alternateGreetings') {
     return <CharacterGreetingsPage page={page} onBack={popPage} />;
   }
 

@@ -50,10 +50,22 @@ export async function up(db: Kysely<Database>): Promise<void> {
     .on('characters')
     .columns(['visibility', 'created_at_ms'])
     .execute();
-  await db.schema.createIndex('characters_updated_idx').on('characters').column('updated_at_ms').execute();
+  await db.schema
+    .createIndex('characters_updated_idx')
+    .on('characters')
+    .column('updated_at_ms')
+    .execute();
   await db.schema.createIndex('characters_name_idx').on('characters').column('name').execute();
-  await db.schema.createIndex('characters_last_used_idx').on('characters').column('last_used_at_ms').execute();
-  await db.schema.createIndex('characters_usage_count_idx').on('characters').column('usage_count').execute();
+  await db.schema
+    .createIndex('characters_last_used_idx')
+    .on('characters')
+    .column('last_used_at_ms')
+    .execute();
+  await db.schema
+    .createIndex('characters_usage_count_idx')
+    .on('characters')
+    .column('usage_count')
+    .execute();
 }
 
 export async function down(db: Kysely<Database>): Promise<void> {

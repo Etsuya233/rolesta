@@ -1,139 +1,124 @@
-import { expect, test } from "@playwright/test";
+import { expect, test } from '@playwright/test';
 import {
   mockAuthenticatedApp,
   mockCharacterDetail,
   mockCharacterList,
   mockCharacterUpdate,
-} from "./api-mocks";
+} from './api-mocks';
 
 test.beforeEach(async ({ page }) => {
   await page.addInitScript(() => {
-    window.localStorage.setItem("rolesta.locale", "zh-CN");
+    window.localStorage.setItem('rolesta.locale', 'zh-CN');
   });
 });
 
-test("renders character manager controls", async ({ page }) => {
+test('renders character manager controls', async ({ page }) => {
   await mockAuthenticatedApp(page);
   await mockCharacterList(page);
 
-  await page.goto("/app/characters");
+  await page.goto('/app/characters');
 
-  await expect(page.getByRole("heading", { name: "角色卡" })).toBeVisible();
-  await expect(page.getByLabel("搜索角色卡")).toBeVisible();
-  await expect(page.getByLabel("第一页")).toBeVisible();
-  await expect(page.getByLabel("上一页")).toBeVisible();
-  await expect(page.getByLabel("下一页")).toBeVisible();
-  await expect(page.getByLabel("最后一页")).toBeVisible();
+  await expect(page.getByRole('heading', { name: '角色卡' })).toBeVisible();
+  await expect(page.getByLabel('搜索角色卡')).toBeVisible();
+  await expect(page.getByLabel('第一页')).toBeVisible();
+  await expect(page.getByLabel('上一页')).toBeVisible();
+  await expect(page.getByLabel('下一页')).toBeVisible();
+  await expect(page.getByLabel('最后一页')).toBeVisible();
 });
 
-test("filters character cards by permission from the search toolbar", async ({
-  page,
-}) => {
+test('filters character cards by permission from the search toolbar', async ({ page }) => {
   await mockAuthenticatedApp(page);
   await mockCharacterList(page);
 
-  await page.goto("/app/characters");
+  await page.goto('/app/characters');
 
-  const filterButton = page.getByRole("button", { name: "筛选角色卡" });
+  const filterButton = page.getByRole('button', { name: '筛选角色卡' });
   await filterButton.click();
 
-  await expect(page.getByText("权限", { exact: true })).toBeVisible();
+  await expect(page.getByText('权限', { exact: true })).toBeVisible();
 
   const publicRequest = page.waitForRequest((request) => {
     const url = new URL(request.url());
-    return (
-      url.pathname.endsWith("/api/characters") &&
-      url.searchParams.get("scope") === "public"
-    );
+    return url.pathname.endsWith('/api/characters') && url.searchParams.get('scope') === 'public';
   });
 
-  await page.getByRole("radio", { name: "公开", exact: true }).click();
+  await page.getByRole('radio', { name: '公开', exact: true }).click();
   await publicRequest;
 
-  await expect(filterButton).toHaveAttribute("aria-pressed", "true");
-  await expect(filterButton).toHaveAttribute("data-variant", "secondary");
+  await expect(filterButton).toHaveAttribute('aria-pressed', 'true');
+  await expect(filterButton).toHaveAttribute('data-variant', 'secondary');
 });
 
-test("renders character editor sections without advanced page entry", async ({
-  page,
-}) => {
+test('renders character editor sections without advanced page entry', async ({ page }) => {
   await mockAuthenticatedApp(page);
   await mockCharacterList(page);
   await mockCharacterDetail(page);
 
-  await page.goto("/app/characters");
-  await page.getByRole("button", { name: "Seraphina" }).click();
+  await page.goto('/app/characters');
+  await page.getByRole('button', { name: 'Seraphina' }).click();
 
-  await expect(page.getByRole("heading", { name: "编辑角色卡" })).toBeVisible();
+  await expect(page.getByRole('heading', { name: '编辑角色卡' })).toBeVisible();
   await expect(
-    page.getByRole("button", {
+    page.getByRole('button', {
       name: /^基础信息/,
     }),
   ).toBeVisible();
   await expect(
-    page.getByRole("button", {
+    page.getByRole('button', {
       name: /^角色内容/,
     }),
   ).toBeVisible();
   await expect(
-    page.getByRole("button", {
+    page.getByRole('button', {
       name: /^提示词覆盖/,
     }),
   ).toBeVisible();
-  await expect(
-    page.getByRole("button", { name: /^元数据/ }),
-  ).toBeVisible();
-  await expect(page.getByRole("button", { name: "其他开场" })).toBeVisible();
-  const saveButton = page.getByRole("button", { name: "保存" });
+  await expect(page.getByRole('button', { name: /^元数据/ })).toBeVisible();
+  await expect(page.getByRole('button', { name: '其他开场' })).toBeVisible();
+  const saveButton = page.getByRole('button', { name: '保存' });
   const saveBoxBefore = await saveButton.boundingBox();
   expect(saveBoxBefore).not.toBeNull();
-  await page.getByLabel("角色卡主编辑").evaluate((element) => {
+  await page.getByLabel('角色卡主编辑').evaluate((element) => {
     element.scrollTop = element.scrollHeight;
   });
   const saveBoxAfter = await saveButton.boundingBox();
   expect(saveBoxAfter).not.toBeNull();
   const viewportHeight = await page.evaluate(() => window.innerHeight);
   expect(saveBoxAfter!.y).toBeCloseTo(saveBoxBefore!.y, 0);
-  expect(saveBoxAfter!.y + saveBoxAfter!.height).toBeLessThanOrEqual(
-    viewportHeight,
-  );
-  await expect(page.getByLabel("来源 JSON")).toHaveCount(0);
-  await expect(page.getByLabel("素材 JSON")).toHaveCount(0);
-  await expect(page.getByLabel("多语言备注 JSON")).toHaveCount(0);
-  await expect(page.getByRole("button", { name: "高级定义" })).toHaveCount(0);
+  expect(saveBoxAfter!.y + saveBoxAfter!.height).toBeLessThanOrEqual(viewportHeight);
+  await expect(page.getByLabel('来源 JSON')).toHaveCount(0);
+  await expect(page.getByLabel('素材 JSON')).toHaveCount(0);
+  await expect(page.getByLabel('多语言备注 JSON')).toHaveCount(0);
+  await expect(page.getByRole('button', { name: '高级定义' })).toHaveCount(0);
 });
 
-test("keeps public visibility selected after reopening the character editor", async ({
-  page,
-}) => {
+test('keeps public visibility selected after reopening the character editor', async ({ page }) => {
   await mockAuthenticatedApp(page);
   await mockCharacterList(page);
-  await mockCharacterDetail(page, { visibility: "public" });
+  await mockCharacterDetail(page, { visibility: 'public' });
 
-  await page.goto("/app/characters");
-  await page.getByRole("button", { name: "Seraphina" }).click();
+  await page.goto('/app/characters');
+  await page.getByRole('button', { name: 'Seraphina' }).click();
 
-  const visibilitySelect = page.getByRole("combobox", { name: "权限" });
-  await expect(visibilitySelect).toHaveText("公开");
+  const visibilitySelect = page.getByRole('combobox', { name: '权限' });
+  await expect(visibilitySelect).toHaveText('公开');
 
-  await page.getByRole("button", { name: "返回" }).last().click();
-  await expect(page.getByRole("heading", { name: "角色卡" })).toBeVisible();
-  await page.getByRole("button", { name: "Seraphina" }).click();
+  await page.getByRole('button', { name: '返回' }).last().click();
+  await expect(page.getByRole('heading', { name: '角色卡' })).toBeVisible();
+  await page.getByRole('button', { name: 'Seraphina' }).click();
 
-  await expect(visibilitySelect).toHaveText("公开");
+  await expect(visibilitySelect).toHaveText('公开');
 });
 
-test("keeps long character textareas partially visible by default", async ({
-  page,
-}) => {
+test('keeps long character textareas partially visible by default', async ({ page }) => {
   const longDescription = Array.from(
     { length: 12 },
     (_, index) => `Forest memory line ${index + 1}.`,
-  ).join("\n");
+  ).join('\n');
   const longGreeting = Array.from(
     { length: 10 },
     (_, index) => `Greeting branch ${index + 1}.`,
-  ).join("\n");
+  ).join('\n');
 
   await mockAuthenticatedApp(page);
   await mockCharacterList(page);
@@ -142,22 +127,20 @@ test("keeps long character textareas partially visible by default", async ({
     description: longDescription,
   });
 
-  await page.goto("/app/characters");
-  await page.getByRole("button", { name: "Seraphina" }).click();
+  await page.goto('/app/characters');
+  await page.getByRole('button', { name: 'Seraphina' }).click();
 
-  const descriptionField = page.getByRole("textbox", { name: "角色描述" });
+  const descriptionField = page.getByRole('textbox', { name: '角色描述' });
   await expect(descriptionField).toHaveValue(longDescription);
   const descriptionSize = await descriptionField.evaluate((element) => ({
     clientHeight: element.clientHeight,
     scrollHeight: element.scrollHeight,
   }));
-  expect(descriptionSize.clientHeight).toBeLessThan(
-    descriptionSize.scrollHeight,
-  );
+  expect(descriptionSize.clientHeight).toBeLessThan(descriptionSize.scrollHeight);
 
-  await page.getByRole("button", { name: "其他开场" }).click();
+  await page.getByRole('button', { name: '其他开场' }).click();
 
-  const greetingField = page.getByRole("textbox", { name: "开场 1" });
+  const greetingField = page.getByRole('textbox', { name: '开场 1' });
   await expect(greetingField).toHaveValue(longGreeting);
   const greetingSize = await greetingField.evaluate((element) => ({
     clientHeight: element.clientHeight,
@@ -166,9 +149,7 @@ test("keeps long character textareas partially visible by default", async ({
   expect(greetingSize.clientHeight).toBeLessThan(greetingSize.scrollHeight);
 });
 
-test("keeps character views alive while editing alternate greetings", async ({
-  page,
-}) => {
+test('keeps character views alive while editing alternate greetings', async ({ page }) => {
   let updatedValues: Record<string, unknown> | null = null;
 
   await mockAuthenticatedApp(page);
@@ -178,102 +159,90 @@ test("keeps character views alive while editing alternate greetings", async ({
     updatedValues = values;
   });
 
-  await page.goto("/app/characters");
-  await page.getByLabel("搜索角色卡").fill("Sera");
-  await page.getByRole("button", { name: "Seraphina" }).click();
+  await page.goto('/app/characters');
+  await page.getByLabel('搜索角色卡').fill('Sera');
+  await page.getByRole('button', { name: 'Seraphina' }).click();
 
-  const mainEditorScreen = page.getByLabel("角色卡主编辑");
-  const contentTrigger = page.getByRole("button", {
+  const mainEditorScreen = page.getByLabel('角色卡主编辑');
+  const contentTrigger = page.getByRole('button', {
     name: /^角色内容/,
   });
-  await expect(contentTrigger).toHaveAttribute("aria-expanded", "true");
+  await expect(contentTrigger).toHaveAttribute('aria-expanded', 'true');
 
   await mainEditorScreen.evaluate((element) => {
     element.scrollTop = element.scrollHeight;
   });
-  const bottomScroll = await mainEditorScreen.evaluate(
-    (element) => element.scrollTop,
-  );
+  const bottomScroll = await mainEditorScreen.evaluate((element) => element.scrollTop);
   expect(bottomScroll).toBeGreaterThan(0);
 
-  await page.getByRole("button", { name: "其他开场" }).click();
-  const scrollBefore = await mainEditorScreen.evaluate(
-    (element) => element.scrollTop,
-  );
+  await page.getByRole('button', { name: '其他开场' }).click();
+  const scrollBefore = await mainEditorScreen.evaluate((element) => element.scrollTop);
   expect(scrollBefore).toBeGreaterThan(0);
-  await expect(page.getByRole("heading", { name: "开场消息" })).toBeVisible();
-  await page.getByRole("button", { name: "添加开场" }).click();
-  await page
-    .getByRole("textbox", { name: "开场 1" })
-    .fill("The wind carries a second hello.");
+  await expect(page.getByRole('heading', { name: '开场消息' })).toBeVisible();
+  await page.getByRole('button', { name: '添加开场' }).click();
+  await page.getByRole('textbox', { name: '开场 1' }).fill('The wind carries a second hello.');
 
-  await page.getByRole("button", { name: "返回" }).last().click();
-  await expect(page.getByRole("heading", { name: "编辑角色卡" })).toBeVisible();
-  await expect(page.getByLabel("搜索角色卡")).toHaveValue("Sera");
-  await expect(contentTrigger).toHaveAttribute("aria-expanded", "true");
+  await page.getByRole('button', { name: '返回' }).last().click();
+  await expect(page.getByRole('heading', { name: '编辑角色卡' })).toBeVisible();
+  await expect(page.getByLabel('搜索角色卡')).toHaveValue('Sera');
+  await expect(contentTrigger).toHaveAttribute('aria-expanded', 'true');
   await expect
     .poll(() => mainEditorScreen.evaluate((element) => element.scrollTop))
     .toBe(scrollBefore);
 
-  await page.getByRole("button", { name: "保存" }).click();
+  await page.getByRole('button', { name: '保存' }).click();
   await expect
     .poll(() => updatedValues?.alternateGreetings)
-    .toEqual(["The wind carries a second hello."]);
+    .toEqual(['The wind carries a second hello.']);
 });
 
-test("keeps list filters alive after visiting character import", async ({
-  page,
-}) => {
+test('keeps list filters alive after visiting character import', async ({ page }) => {
   await mockAuthenticatedApp(page);
   await mockCharacterList(page);
 
-  await page.goto("/app/characters");
-  await page.getByLabel("搜索角色卡").fill("Sera");
-  await page.getByLabel("导入角色卡").click();
+  await page.goto('/app/characters');
+  await page.getByLabel('搜索角色卡').fill('Sera');
+  await page.getByLabel('导入角色卡').click();
 
-  await expect(page.getByRole("heading", { name: "导入角色卡" })).toBeVisible();
+  await expect(page.getByRole('heading', { name: '导入角色卡' })).toBeVisible();
 
-  await page.getByRole("button", { name: "返回" }).last().click();
+  await page.getByRole('button', { name: '返回' }).last().click();
 
-  await expect(page.getByRole("heading", { name: "角色卡" })).toBeVisible();
-  await expect(page.getByLabel("搜索角色卡")).toHaveValue("Sera");
+  await expect(page.getByRole('heading', { name: '角色卡' })).toBeVisible();
+  await expect(page.getByLabel('搜索角色卡')).toHaveValue('Sera');
 });
 
-test("discards an unsaved edit draft after leaving the editor page", async ({
-  page,
-}) => {
+test('discards an unsaved edit draft after leaving the editor page', async ({ page }) => {
   await mockAuthenticatedApp(page);
   await mockCharacterList(page);
   await mockCharacterDetail(page);
 
-  await page.goto("/app/characters");
-  await page.getByRole("button", { name: "Seraphina" }).click();
-  await page.getByRole("textbox", { name: "角色描述" }).fill("Unsaved draft");
-  await page.getByRole("button", { name: "返回" }).last().click();
+  await page.goto('/app/characters');
+  await page.getByRole('button', { name: 'Seraphina' }).click();
+  await page.getByRole('textbox', { name: '角色描述' }).fill('Unsaved draft');
+  await page.getByRole('button', { name: '返回' }).last().click();
 
-  await expect(page.getByRole("heading", { name: "角色卡" })).toBeVisible();
+  await expect(page.getByRole('heading', { name: '角色卡' })).toBeVisible();
 
-  await page.getByRole("button", { name: "Seraphina" }).click();
+  await page.getByRole('button', { name: 'Seraphina' }).click();
 
-  await expect(page.getByRole("textbox", { name: "角色描述" })).toHaveValue(
-    "A guardian of the old forest.",
+  await expect(page.getByRole('textbox', { name: '角色描述' })).toHaveValue(
+    'A guardian of the old forest.',
   );
 });
 
-test("discards an unsaved create draft after leaving the create page", async ({
-  page,
-}) => {
+test('discards an unsaved create draft after leaving the create page', async ({ page }) => {
   await mockAuthenticatedApp(page);
   await mockCharacterList(page);
 
-  await page.goto("/app/characters");
-  await page.getByLabel("新增角色卡").click();
-  await page.getByRole("textbox", { name: "名称" }).fill("Draft name");
-  await page.getByRole("button", { name: "返回" }).last().click();
+  await page.goto('/app/characters');
+  await page.getByLabel('新增角色卡').click();
+  await page.getByRole('textbox', { name: '名称' }).fill('Draft name');
+  await page.getByRole('button', { name: '返回' }).last().click();
 
-  await expect(page.getByRole("heading", { name: "角色卡" })).toBeVisible();
+  await expect(page.getByRole('heading', { name: '角色卡' })).toBeVisible();
 
-  await page.getByLabel("新增角色卡").click();
+  await page.getByLabel('新增角色卡').click();
 
-  await expect(page.getByRole("textbox", { name: "名称" })).toHaveValue("");
+  await expect(page.getByRole('textbox', { name: '名称' })).toHaveValue('');
 });

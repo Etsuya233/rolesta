@@ -1,11 +1,7 @@
-import type { ReactNode } from "react";
-import type { LucideIcon } from "lucide-react";
-import {
-  AccordionContent,
-  AccordionItem,
-  AccordionTrigger,
-} from "./ui/accordion";
-import { FieldGroup } from "./ui/field";
+import type { ReactNode } from 'react';
+import type { LucideIcon } from 'lucide-react';
+import { AccordionContent, AccordionItem, AccordionTrigger } from './ui/accordion';
+import { FieldGroup } from './ui/field';
 
 export function EditorFormSection({
   title,
@@ -32,9 +28,7 @@ export function EditorFormSection({
           </span>
           <span className="grid min-w-0 flex-1 gap-1">
             <span className="truncate text-base font-semibold">{title}</span>
-            <span className="truncate text-sm font-normal text-muted-foreground">
-              {summary}
-            </span>
+            <span className="truncate text-sm font-normal text-muted-foreground">{summary}</span>
           </span>
         </span>
       </AccordionTrigger>

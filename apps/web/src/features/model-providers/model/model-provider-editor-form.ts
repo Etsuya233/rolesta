@@ -3,26 +3,26 @@ import type {
   ModelProviderDetailResponse,
   ModelProviderKind,
   ModelProviderSaveValues,
-} from "../api/model-providers-api";
+} from '../api/model-providers-api';
 
 export interface ModelProviderEditorFormState {
   name: string;
   providerKind: ModelProviderKind;
   baseUrl: string;
   defaultModelName: string;
-  credentialMode: "manual" | "vault";
+  credentialMode: 'manual' | 'vault';
   secret: string;
   apiKeyId: string | null;
   apiKeyName: string | null;
 }
 
 export const emptyModelProviderEditorForm: ModelProviderEditorFormState = {
-  name: "",
-  providerKind: "openai-compatible",
-  baseUrl: "",
-  defaultModelName: "",
-  credentialMode: "manual",
-  secret: "",
+  name: '',
+  providerKind: 'openai-compatible',
+  baseUrl: '',
+  defaultModelName: '',
+  credentialMode: 'manual',
+  secret: '',
   apiKeyId: null,
   apiKeyName: null,
 };
@@ -51,8 +51,8 @@ export function modelProviderCreateValuesFromForm(
     baseUrl: form.baseUrl,
     defaultModelName: form.defaultModelName,
     credentialMode: form.credentialMode,
-    secret: form.credentialMode === "manual" ? form.secret : "",
-    apiKeyId: form.credentialMode === "vault" ? form.apiKeyId : null,
+    secret: form.credentialMode === 'manual' ? form.secret : '',
+    apiKeyId: form.credentialMode === 'vault' ? form.apiKeyId : null,
   };
 }
 
@@ -65,18 +65,18 @@ export function modelProviderSaveValuesFromForm(
     baseUrl: form.baseUrl,
     defaultModelName: form.defaultModelName,
     credentialMode: form.credentialMode,
-    secret: form.credentialMode === "manual" ? form.secret : "",
-    apiKeyId: form.credentialMode === "vault" ? form.apiKeyId : null,
+    secret: form.credentialMode === 'manual' ? form.secret : '',
+    apiKeyId: form.credentialMode === 'vault' ? form.apiKeyId : null,
   };
 }
 
 export function asModelProviderKind(value: string): ModelProviderKind {
   if (
-    value === "openai-compatible" ||
-    value === "openai" ||
-    value === "claude" ||
-    value === "z-ai" ||
-    value === "deepseek"
+    value === 'openai-compatible' ||
+    value === 'openai' ||
+    value === 'claude' ||
+    value === 'z-ai' ||
+    value === 'deepseek'
   ) {
     return value;
   }

@@ -1,6 +1,6 @@
-import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
-import { IsString, ValidateIf } from "class-validator";
-import type { AssetDefaults } from "../domain/asset-defaults.js";
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+import { IsString, ValidateIf } from 'class-validator';
+import type { AssetDefaults } from '../domain/asset-defaults.js';
 
 export class UpdateAssetDefaultsRequestDto {
   @ApiPropertyOptional({ nullable: true, type: String })

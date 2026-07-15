@@ -127,11 +127,7 @@ export class FileCharacterAvatarService implements CharacterAvatarService {
     }
   }
 
-  async release(
-    resourceId: string,
-    ownerUserId: string,
-    releasedAtMs: number,
-  ): Promise<void> {
+  async release(resourceId: string, ownerUserId: string, releasedAtMs: number): Promise<void> {
     try {
       await this.lifecycle.markOrphaned({
         resourceId,

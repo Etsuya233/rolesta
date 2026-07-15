@@ -9,18 +9,13 @@ export interface PresetEditableFields {
   modelSettings?: Partial<PresetModelSettings>;
 }
 
-export function applyPresetEditableFields(
-  preset: Preset,
-  fields: PresetEditableFields,
-): Preset {
+export function applyPresetEditableFields(preset: Preset, fields: PresetEditableFields): Preset {
   return {
     ...preset,
     visibility: fields.visibility ?? preset.visibility,
     name: fields.name ?? preset.name,
     modelProviderId:
-      fields.modelProviderId === undefined
-        ? preset.modelProviderId
-        : fields.modelProviderId,
+      fields.modelProviderId === undefined ? preset.modelProviderId : fields.modelProviderId,
     modelSettings:
       fields.modelSettings === undefined
         ? preset.modelSettings

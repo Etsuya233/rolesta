@@ -6,34 +6,21 @@ import {
   useSensor,
   useSensors,
   type DragEndEvent,
-} from "@dnd-kit/core";
+} from '@dnd-kit/core';
 import {
   SortableContext,
   arrayMove,
   useSortable,
   verticalListSortingStrategy,
-} from "@dnd-kit/sortable";
-import { CSS } from "@dnd-kit/utilities";
-import { countPromptTokens } from "@rolesta/shared";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import {
-  Copy,
-  GripVertical,
-  MoreVertical,
-  Plus,
-  Search,
-  Trash2,
-} from "lucide-react";
-import {
-  useEffect,
-  useMemo,
-  useState,
-  type KeyboardEvent,
-  type MouseEvent,
-} from "react";
-import { useTranslation } from "react-i18next";
-import { Button } from "../../../components/ui/button";
-import { Input } from "../../../components/ui/input";
+} from '@dnd-kit/sortable';
+import { CSS } from '@dnd-kit/utilities';
+import { countPromptTokens } from '@rolesta/shared';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { Copy, GripVertical, MoreVertical, Plus, Search, Trash2 } from 'lucide-react';
+import { useEffect, useMemo, useState, type KeyboardEvent, type MouseEvent } from 'react';
+import { useTranslation } from 'react-i18next';
+import { Button } from '../../../components/ui/button';
+import { Input } from '../../../components/ui/input';
 import {
   Select,
   SelectContent,
@@ -41,11 +28,11 @@ import {
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "../../../components/ui/select";
-import { getFormErrorMessage } from "../../../lib/forms/form-error";
-import { notify } from "../../../lib/notifications/notify";
-import { cn } from "../../../lib/utils";
-import { MobileTopBar } from "../../assets/components/mobile-top-bar";
+} from '../../../components/ui/select';
+import { getFormErrorMessage } from '../../../lib/forms/form-error';
+import { notify } from '../../../lib/notifications/notify';
+import { cn } from '../../../lib/utils';
+import { MobileTopBar } from '../../assets/components/mobile-top-bar';
 import {
   getWorldbook,
   listWorldbooks,
@@ -53,24 +40,24 @@ import {
   type WorldbookDocument,
   type WorldbookInsertionPosition,
   type WorldbookSummaryResponse,
-} from "../api/worldbooks-api";
-import { useWorldbookDraftSession } from "../hooks/use-worldbook-draft-sessions";
-import { worldbookDocumentFromDetail } from "../model/worldbook-editor-form";
+} from '../api/worldbooks-api';
+import { useWorldbookDraftSession } from '../hooks/use-worldbook-draft-sessions';
+import { worldbookDocumentFromDetail } from '../model/worldbook-editor-form';
 import {
   type WorldbookPage,
   worldbookEntryCreatePage,
   worldbookEntryEditPage,
-} from "./worldbook-pages";
-import { WorldbookStackPage } from "./worldbook-stack-page";
+} from './worldbook-pages';
+import { WorldbookStackPage } from './worldbook-stack-page';
 
-type TranslationFunction = ReturnType<typeof useTranslation>["t"];
+type TranslationFunction = ReturnType<typeof useTranslation>['t'];
 
 export function WorldbookEntryListPage({
   page,
   pushPage,
   onBack,
 }: {
-  page: Extract<WorldbookPage, { name: "entryList" }>;
+  page: Extract<WorldbookPage, { name: 'entryList' }>;
   pushPage: (page: WorldbookPage) => void;
   onBack: () => void;
 }) {
@@ -78,17 +65,13 @@ export function WorldbookEntryListPage({
 
   return (
     <WorldbookStackPage>
-      <MobileTopBar title={t("worldbooks.entries.title")} onBack={onBack} />
+      <MobileTopBar title={t('worldbooks.entries.title')} onBack={onBack} />
       <WorldbookEntryListEditor
         sessionKey={page.sessionKey}
         worldbookId={page.worldbookId}
-        onCreateEntry={() =>
-          pushPage(worldbookEntryCreatePage(page.worldbookId, page.sessionKey))
-        }
+        onCreateEntry={() => pushPage(worldbookEntryCreatePage(page.worldbookId, page.sessionKey))}
         onEditEntry={(entryId) =>
-          pushPage(
-            worldbookEntryEditPage(page.worldbookId, entryId, page.sessionKey),
-          )
+          pushPage(worldbookEntryEditPage(page.worldbookId, entryId, page.sessionKey))
         }
       />
     </WorldbookStackPage>
@@ -108,26 +91,20 @@ function WorldbookEntryListEditor({
 }) {
   const { t } = useTranslation();
   const queryClient = useQueryClient();
-  const {
-    document,
-    setDocument,
-    isPending,
-    worldbook,
-    acceptSavedWorldbook,
-    saveDocument,
-  } = useWorldbookDraftSession({ worldbookId, sessionKey });
+  const { document, setDocument, isPending, worldbook, acceptSavedWorldbook, saveDocument } =
+    useWorldbookDraftSession({ worldbookId, sessionKey });
   const worldbooksQuery = useQuery({
-    queryKey: ["worldbooks", "entry-move-targets"],
+    queryKey: ['worldbooks', 'entry-move-targets'],
     queryFn: () =>
       listWorldbooks({
-        direction: "asc",
+        direction: 'asc',
         pageIndex: 0,
         pageSize: 100,
-        q: "",
-        sort: "name",
+        q: '',
+        sort: 'name',
       }),
   });
-  const [q, setQ] = useState("");
+  const [q, setQ] = useState('');
   const debouncedQ = useDebouncedValue(q, 200);
   const items = document.entries.map((entry) => ({
     entryId: entry.id,
@@ -138,37 +115,26 @@ function WorldbookEntryListEditor({
       entry,
       targetWorldbookId,
     }: {
-      entry: WorldbookDocument["entries"][number];
+      entry: WorldbookDocument['entries'][number];
       targetWorldbookId: string;
     }) {
       const targetCurrent = await getWorldbook(targetWorldbookId);
       const targetDocument = worldbookDocumentFromDetail(targetCurrent);
       const targetWorldbook = await updateWorldbookDocument(targetWorldbookId, {
         ...targetDocument,
-        entries: [
-          ...targetDocument.entries,
-          { ...entry, id: crypto.randomUUID() },
-        ],
+        entries: [...targetDocument.entries, { ...entry, id: crypto.randomUUID() }],
       });
       const sourceWorldbook = await updateWorldbookDocument(worldbookId, {
         ...document,
-        entries: document.entries.filter(
-          (candidate) => candidate.id !== entry.id,
-        ),
+        entries: document.entries.filter((candidate) => candidate.id !== entry.id),
       });
 
       return { sourceWorldbook, targetWorldbook };
     },
     async onSuccess({ sourceWorldbook, targetWorldbook }) {
-      await queryClient.invalidateQueries({ queryKey: ["worldbooks"] });
-      queryClient.setQueryData(
-        ["worldbook", sourceWorldbook.id],
-        sourceWorldbook,
-      );
-      queryClient.setQueryData(
-        ["worldbook", targetWorldbook.id],
-        targetWorldbook,
-      );
+      await queryClient.invalidateQueries({ queryKey: ['worldbooks'] });
+      queryClient.setQueryData(['worldbook', sourceWorldbook.id], sourceWorldbook);
+      queryClient.setQueryData(['worldbook', targetWorldbook.id], targetWorldbook);
       acceptSavedWorldbook(sourceWorldbook);
     },
     onError(error) {
@@ -187,8 +153,7 @@ function WorldbookEntryListEditor({
   const ownerUserId = worldbook?.ownerUserId;
   const moveTargetWorldbooks =
     worldbooksQuery.data?.items.filter(
-      (candidate) =>
-        candidate.id !== worldbookId && candidate.ownerUserId === ownerUserId,
+      (candidate) => candidate.id !== worldbookId && candidate.ownerUserId === ownerUserId,
     ) ?? [];
   const keyword = debouncedQ.trim().toLocaleLowerCase();
   const visibleItems = items.filter((item) => {
@@ -200,12 +165,8 @@ function WorldbookEntryListEditor({
     return (
       entry.name.toLocaleLowerCase().includes(keyword) ||
       entry.content.toLocaleLowerCase().includes(keyword) ||
-      entry.primaryKeys.some((key) =>
-        key.toLocaleLowerCase().includes(keyword),
-      ) ||
-      entry.secondaryKeys.some((key) =>
-        key.toLocaleLowerCase().includes(keyword),
-      )
+      entry.primaryKeys.some((key) => key.toLocaleLowerCase().includes(keyword)) ||
+      entry.secondaryKeys.some((key) => key.toLocaleLowerCase().includes(keyword))
     );
   });
   const sensors = useSensors(
@@ -216,11 +177,7 @@ function WorldbookEntryListEditor({
   );
 
   if (isPending && !worldbook) {
-    return (
-      <p className="p-4 text-sm text-muted-foreground">
-        {t("worldbooks.entries.loading")}
-      </p>
-    );
+    return <p className="p-4 text-sm text-muted-foreground">{t('worldbooks.entries.loading')}</p>;
   }
 
   if (!worldbook) {
@@ -237,25 +194,23 @@ function WorldbookEntryListEditor({
               className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground"
             />
             <Input
-              aria-label={t("worldbooks.entries.searchLabel")}
+              aria-label={t('worldbooks.entries.searchLabel')}
               className="pl-9"
-              placeholder={t("worldbooks.entries.searchPlaceholder")}
+              placeholder={t('worldbooks.entries.searchPlaceholder')}
               value={q}
               onChange={(event) => setQ(event.target.value)}
             />
           </div>
           <Button type="button" onClick={onCreateEntry}>
             <Plus aria-hidden="true" />
-            {t("worldbooks.entries.createAction")}
+            {t('worldbooks.entries.createAction')}
           </Button>
         </div>
       </div>
 
       <div className="min-h-0 flex-1 overflow-y-auto pb-24">
         {items.length === 0 ? (
-          <p className="p-4 text-sm text-muted-foreground">
-            {t("worldbooks.entries.empty")}
-          </p>
+          <p className="p-4 text-sm text-muted-foreground">{t('worldbooks.entries.empty')}</p>
         ) : null}
         <DndContext
           autoScroll
@@ -287,24 +242,17 @@ function WorldbookEntryListEditor({
                   onDelete={() =>
                     saveDocument({
                       ...document,
-                      entries: document.entries.filter(
-                        (candidate) => candidate.id !== entry.id,
-                      ),
+                      entries: document.entries.filter((candidate) => candidate.id !== entry.id),
                     })
                   }
                   onEdit={() => onEditEntry(entry.id)}
                   onCopy={() =>
                     saveDocument({
                       ...document,
-                      entries: [
-                        ...document.entries,
-                        { ...entry, id: crypto.randomUUID() },
-                      ],
+                      entries: [...document.entries, { ...entry, id: crypto.randomUUID() }],
                     })
                   }
-                  onMove={(targetWorldbookId) =>
-                    moveMutation.mutate({ entry, targetWorldbookId })
-                  }
+                  onMove={(targetWorldbookId) => moveMutation.mutate({ entry, targetWorldbookId })}
                   onToggleTriggerMode={() =>
                     setDocument((current) => ({
                       ...current,
@@ -323,9 +271,7 @@ function WorldbookEntryListEditor({
                     setDocument((current) => ({
                       ...current,
                       entries: current.entries.map((candidate) =>
-                        candidate.id === item.entryId
-                          ? { ...candidate, enabled }
-                          : candidate,
+                        candidate.id === item.entryId ? { ...candidate, enabled } : candidate,
                       ),
                     }))
                   }
@@ -355,7 +301,7 @@ function WorldbookEntryRow({
   moveTargetWorldbooks,
 }: {
   id: string;
-  entry: WorldbookDocument["entries"][number];
+  entry: WorldbookDocument['entries'][number];
   enabled: boolean;
   onToggle: (enabled: boolean) => void;
   onEdit: () => void;
@@ -369,38 +315,28 @@ function WorldbookEntryRow({
   const { t } = useTranslation();
   const [isConfirmingDelete, setIsConfirmingDelete] = useState(false);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const [targetWorldbookId, setTargetWorldbookId] = useState("");
-  const {
-    attributes,
-    listeners,
-    setNodeRef,
-    transform,
-    transition,
-    isDragging,
-  } = useSortable({ id });
+  const [targetWorldbookId, setTargetWorldbookId] = useState('');
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
+    id,
+  });
   const insertionSummary = worldbookEntryInsertionSummary(entry, t);
-  const triggerMode = entry.constant ? "green" : "blue";
+  const triggerMode = entry.constant ? 'green' : 'blue';
 
   useEffect(() => {
     if (!isConfirmingDelete) {
       return;
     }
 
-    const timeoutId = window.setTimeout(
-      () => setIsConfirmingDelete(false),
-      2500,
-    );
+    const timeoutId = window.setTimeout(() => setIsConfirmingDelete(false), 2500);
     return () => window.clearTimeout(timeoutId);
   }, [isConfirmingDelete]);
 
   useEffect(() => {
     if (
       targetWorldbookId.length > 0 &&
-      !moveTargetWorldbooks.some(
-        (worldbook) => worldbook.id === targetWorldbookId,
-      )
+      !moveTargetWorldbooks.some((worldbook) => worldbook.id === targetWorldbookId)
     ) {
-      setTargetWorldbookId("");
+      setTargetWorldbookId('');
     }
   }, [moveTargetWorldbooks, targetWorldbookId]);
 
@@ -417,7 +353,7 @@ function WorldbookEntryRow({
   }
 
   function handleRowKeyDown(event: KeyboardEvent<HTMLDivElement>) {
-    if (event.key !== "Enter" && event.key !== " ") {
+    if (event.key !== 'Enter' && event.key !== ' ') {
       return;
     }
 
@@ -428,10 +364,7 @@ function WorldbookEntryRow({
   return (
     <div
       ref={setNodeRef}
-      className={cn(
-        "border-b border-border",
-        isDragging && "relative z-10 bg-muted shadow-sm",
-      )}
+      className={cn('border-b border-border', isDragging && 'relative z-10 bg-muted shadow-sm')}
       style={{ transform: CSS.Transform.toString(transform), transition }}
     >
       <div
@@ -442,7 +375,7 @@ function WorldbookEntryRow({
         onKeyDown={handleRowKeyDown}
       >
         <Button
-          aria-label={t("worldbooks.entries.dragLabel")}
+          aria-label={t('worldbooks.entries.dragLabel')}
           className="size-8 touch-none"
           size="icon"
           type="button"
@@ -458,7 +391,7 @@ function WorldbookEntryRow({
           <div className="mt-1 flex flex-wrap gap-x-3 gap-y-1 text-xs text-muted-foreground">
             <span>{countPromptTokens(entry.content).toLocaleString()}</span>
             <span>{insertionSummary}</span>
-            <span>{entry.primaryKeys.slice(0, 3).join(", ")}</span>
+            <span>{entry.primaryKeys.slice(0, 3).join(', ')}</span>
           </div>
         </div>
         <Button
@@ -474,7 +407,7 @@ function WorldbookEntryRow({
           }}
         >
           <span aria-hidden="true" className="text-base leading-none">
-            {triggerMode === "green" ? "🟢" : "🔵"}
+            {triggerMode === 'green' ? '🟢' : '🔵'}
           </span>
         </Button>
         <label
@@ -485,12 +418,12 @@ function WorldbookEntryRow({
             checked={enabled}
             className="size-4 accent-primary"
             type="checkbox"
-            aria-label={t("worldbooks.entries.enableLabel")}
+            aria-label={t('worldbooks.entries.enableLabel')}
             onChange={(event) => onToggle(event.target.checked)}
           />
         </label>
         <Button
-          aria-label={t("worldbooks.entries.menuAction")}
+          aria-label={t('worldbooks.entries.menuAction')}
           aria-expanded={isMenuOpen}
           className="size-10"
           size="icon"
@@ -506,14 +439,14 @@ function WorldbookEntryRow({
         <Button
           aria-label={t(
             isConfirmingDelete
-              ? "worldbooks.entries.confirmDeleteAction"
-              : "worldbooks.entries.deleteAction",
+              ? 'worldbooks.entries.confirmDeleteAction'
+              : 'worldbooks.entries.deleteAction',
           )}
           className="size-10"
           disabled={pending}
           size="icon"
           type="button"
-          variant={isConfirmingDelete ? "destructive" : "ghost"}
+          variant={isConfirmingDelete ? 'destructive' : 'ghost'}
           onClick={deleteAfterConfirmation}
         >
           <Trash2 aria-hidden="true" />
@@ -529,20 +462,15 @@ function WorldbookEntryRow({
             onClick={onCopy}
           >
             <Copy aria-hidden="true" />
-            {t("worldbooks.entries.copyAction")}
+            {t('worldbooks.entries.copyAction')}
           </Button>
           <div className="grid grid-cols-[minmax(0,1fr)_auto] gap-2">
-            <Select
-              value={targetWorldbookId}
-              onValueChange={setTargetWorldbookId}
-            >
+            <Select value={targetWorldbookId} onValueChange={setTargetWorldbookId}>
               <SelectTrigger
-                aria-label={t("worldbooks.entries.moveTargetLabel")}
+                aria-label={t('worldbooks.entries.moveTargetLabel')}
                 className="w-full"
               >
-                <SelectValue
-                  placeholder={t("worldbooks.entries.moveTargetPlaceholder")}
-                />
+                <SelectValue placeholder={t('worldbooks.entries.moveTargetPlaceholder')} />
               </SelectTrigger>
               <SelectContent>
                 <SelectGroup>
@@ -560,7 +488,7 @@ function WorldbookEntryRow({
               variant="outline"
               onClick={() => onMove(targetWorldbookId)}
             >
-              {t("worldbooks.entries.moveAction")}
+              {t('worldbooks.entries.moveAction')}
             </Button>
           </div>
         </div>
@@ -570,22 +498,22 @@ function WorldbookEntryRow({
 }
 
 function worldbookEntryInsertionSummary(
-  entry: WorldbookDocument["entries"][number],
+  entry: WorldbookDocument['entries'][number],
   t: TranslationFunction,
 ): string {
   const position: WorldbookInsertionPosition = entry.insertionPosition;
   const positionLabel = t(`worldbooks.entries.positions.${position}`);
 
-  if (entry.insertionPosition === "atDepth") {
-    return t("worldbooks.entries.insertionSummary.atDepth", {
+  if (entry.insertionPosition === 'atDepth') {
+    return t('worldbooks.entries.insertionSummary.atDepth', {
       position: positionLabel,
       depth: entry.depth,
       role: t(`worldbooks.entries.roles.${entry.insertionRole}`),
     });
   }
 
-  if (entry.insertionPosition === "atAnchor" && entry.anchorName.length > 0) {
-    return t("worldbooks.entries.insertionSummary.atAnchor", {
+  if (entry.insertionPosition === 'atAnchor' && entry.anchorName.length > 0) {
+    return t('worldbooks.entries.insertionSummary.atAnchor', {
       position: positionLabel,
       anchor: entry.anchorName,
     });
@@ -596,8 +524,8 @@ function worldbookEntryInsertionSummary(
 
 function setEntriesAfterDrag(
   event: DragEndEvent,
-  entries: WorldbookDocument["entries"],
-  setEntries: (entries: WorldbookDocument["entries"]) => void,
+  entries: WorldbookDocument['entries'],
+  setEntries: (entries: WorldbookDocument['entries']) => void,
 ) {
   const { active, over } = event;
 
@@ -617,10 +545,7 @@ function useDebouncedValue(value: string, delayMs: number): string {
   const [debouncedValue, setDebouncedValue] = useState(value);
 
   useEffect(() => {
-    const timeoutId = window.setTimeout(
-      () => setDebouncedValue(value),
-      delayMs,
-    );
+    const timeoutId = window.setTimeout(() => setDebouncedValue(value), delayMs);
     return () => window.clearTimeout(timeoutId);
   }, [delayMs, value]);
 

@@ -40,14 +40,9 @@ Rolesta 当前已有角色卡和预设管理能力，预设领域模型中已经
 API 连接配置作为聚合根。Provider 是配置内字段，切换配置时会同时切换 Provider、Base URL、默认模型和配置内密钥库。
 
 ```ts
-export type ModelProviderKind =
-  | "openai-compatible"
-  | "openai"
-  | "claude"
-  | "z-ai"
-  | "deepseek";
+export type ModelProviderKind = 'openai-compatible' | 'openai' | 'claude' | 'z-ai' | 'deepseek';
 
-export type ModelProviderSource = "custom" | "official";
+export type ModelProviderSource = 'custom' | 'official';
 
 export interface ModelProviderConfig {
   id: string;
@@ -95,13 +90,13 @@ interface ModelProviderCatalogItem {
 
 首批注册：
 
-| Provider | Source | Base URLs | 说明 |
-| --- | --- | --- | --- |
-| `openai-compatible` | custom | 用户手写 | 自定义兼容配置，允许手写 Base URL。 |
-| `openai` | official | `https://api.openai.com/v1` | OpenAI Chat Completions 标准端点前缀。 |
-| `claude` | official | `https://api.anthropic.com/v1` | Claude OpenAI SDK compatibility 端点，协议走 Chat Completions。 |
-| `z-ai` | official | `https://api.z.ai/api/paas/v4`, `https://api.z.ai/api/coding/paas/v4` | Z.AI OpenAI 兼容通用端点和 Coding Plan 端点。 |
-| `deepseek` | official | `https://api.deepseek.com` | DeepSeek OpenAI 兼容端点。 |
+| Provider            | Source   | Base URLs                                                             | 说明                                                            |
+| ------------------- | -------- | --------------------------------------------------------------------- | --------------------------------------------------------------- |
+| `openai-compatible` | custom   | 用户手写                                                              | 自定义兼容配置，允许手写 Base URL。                             |
+| `openai`            | official | `https://api.openai.com/v1`                                           | OpenAI Chat Completions 标准端点前缀。                          |
+| `claude`            | official | `https://api.anthropic.com/v1`                                        | Claude OpenAI SDK compatibility 端点，协议走 Chat Completions。 |
+| `z-ai`              | official | `https://api.z.ai/api/paas/v4`, `https://api.z.ai/api/coding/paas/v4` | Z.AI OpenAI 兼容通用端点和 Coding Plan 端点。                   |
+| `deepseek`          | official | `https://api.deepseek.com`                                            | DeepSeek OpenAI 兼容端点。                                      |
 
 这些地址来自各提供商公开文档，后续实现时写入注册表常量。后端保存时校验官方配置的 `baseUrl` 必须命中对应注册项；自定义兼容配置必须提供非空 `baseUrl`。
 
@@ -273,10 +268,10 @@ export interface ChatCompletionConnectionClient {
 
 ```ts
 type ModelProviderPage =
-  | { name: "list"; key: string }
-  | { name: "create"; key: string; sessionKey: string }
-  | { name: "edit"; key: string; configId: string; sessionKey: string }
-  | { name: "apiKeys"; key: string; configId: string; sessionKey: string };
+  | { name: 'list'; key: string }
+  | { name: 'create'; key: string; sessionKey: string }
+  | { name: 'edit'; key: string; configId: string; sessionKey: string }
+  | { name: 'apiKeys'; key: string; configId: string; sessionKey: string };
 ```
 
 列表页显示配置名称、Provider、Base URL 摘要、默认模型、更新时间，支持搜索、分页、排序和新建入口。

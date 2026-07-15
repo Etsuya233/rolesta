@@ -126,6 +126,7 @@ packages/shared/src/time.test.ts
 ## Task 1: Root Workspace and Shared Tooling
 
 **Files:**
+
 - Create: `package.json`
 - Create: `pnpm-workspace.yaml`
 - Create: `turbo.json`
@@ -192,8 +193,8 @@ Create `pnpm-workspace.yaml`:
 
 ```yaml
 packages:
-  - "apps/*"
-  - "packages/*"
+  - 'apps/*'
+  - 'packages/*'
 ```
 
 Create `turbo.json`:
@@ -342,15 +343,15 @@ module.exports = tseslint.config(
     languageOptions: {
       parserOptions: {
         projectService: true,
-        tsconfigRootDir: process.cwd()
-      }
+        tsconfigRootDir: process.cwd(),
+      },
     },
     rules: {
       '@typescript-eslint/no-floating-promises': 'error',
       '@typescript-eslint/no-misused-promises': 'error',
-      '@typescript-eslint/consistent-type-imports': 'error'
-    }
-  }
+      '@typescript-eslint/consistent-type-imports': 'error',
+    },
+  },
 );
 ```
 
@@ -361,7 +362,7 @@ module.exports = {
   singleQuote: true,
   semi: true,
   trailingComma: 'all',
-  printWidth: 100
+  printWidth: 100,
 };
 ```
 
@@ -399,6 +400,7 @@ Expected: commit succeeds.
 ## Task 2: Shared Package Foundation
 
 **Files:**
+
 - Create: `packages/shared/package.json`
 - Create: `packages/shared/tsconfig.json`
 - Create: `packages/shared/vitest.config.ts`
@@ -597,6 +599,7 @@ Expected: commit succeeds.
 ## Task 3: Database Package with SQLite Migration
 
 **Files:**
+
 - Create: `packages/db/package.json`
 - Create: `packages/db/tsconfig.json`
 - Create: `packages/db/vitest.config.ts`
@@ -806,7 +809,9 @@ export async function up(db: Kysely<Database>): Promise<void> {
     .createTable('sessions')
     .ifNotExists()
     .addColumn('id', 'text', (column) => column.primaryKey())
-    .addColumn('user_id', 'text', (column) => column.notNull().references('users.id').onDelete('cascade'))
+    .addColumn('user_id', 'text', (column) =>
+      column.notNull().references('users.id').onDelete('cascade'),
+    )
     .addColumn('expires_at', 'text', (column) => column.notNull())
     .addColumn('created_at', 'text', (column) => column.notNull())
     .execute();
@@ -946,6 +951,7 @@ Expected: commit succeeds.
 ## Task 4: NestJS API Skeleton
 
 **Files:**
+
 - Create: `apps/api/package.json`
 - Create: `apps/api/nest-cli.json`
 - Create: `apps/api/tsconfig.json`
@@ -1376,6 +1382,7 @@ Expected: commit succeeds.
 ## Task 5: API Auth and Business Module Scaffolding
 
 **Files:**
+
 - Create: `apps/api/src/auth/auth.controller.ts`
 - Create: `apps/api/src/auth/auth.module.ts`
 - Create: `apps/api/src/auth/auth.service.ts`
@@ -1710,6 +1717,7 @@ Expected: commit succeeds.
 ## Task 6: OpenAPI Export Path
 
 **Files:**
+
 - Create: `apps/api/src/openapi/create-openapi-document.ts`
 - Create: `apps/api/src/openapi/generate-openapi.ts`
 - Create: `apps/api/test/openapi.e2e-spec.ts`
@@ -1839,6 +1847,7 @@ Expected: commit succeeds.
 ## Task 7: React Vite App Foundation
 
 **Files:**
+
 - Create: `apps/web/package.json`
 - Create: `apps/web/components.json`
 - Create: `apps/web/index.html`
@@ -1995,8 +2004,8 @@ Create `apps/web/postcss.config.js`:
 export default {
   plugins: {
     tailwindcss: {},
-    autoprefixer: {}
-  }
+    autoprefixer: {},
+  },
 };
 ```
 
@@ -2086,7 +2095,13 @@ body {
   background: hsl(var(--background));
   color: hsl(var(--foreground));
   font-family:
-    Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    Inter,
+    ui-sans-serif,
+    system-ui,
+    -apple-system,
+    BlinkMacSystemFont,
+    'Segoe UI',
+    sans-serif;
 }
 ```
 
@@ -2217,6 +2232,7 @@ Do not commit in this task. Task 8 creates the route components needed for typec
 ## Task 8: Frontend UI Primitives and Workbench Shell
 
 **Files:**
+
 - Create through shadcn CLI: `apps/web/src/components/ui/button.tsx`
 - Create through shadcn CLI: `apps/web/src/components/ui/card.tsx`
 - Create through shadcn CLI: `apps/web/src/components/ui/field.tsx`
@@ -2284,7 +2300,9 @@ export function WorkbenchLayout({ children }: PropsWithChildren) {
               <CardTitle>Generation context</CardTitle>
               <CardDescription>Debug and model context will appear here.</CardDescription>
             </CardHeader>
-            <CardContent className="text-sm text-muted-foreground">No generation is running.</CardContent>
+            <CardContent className="text-sm text-muted-foreground">
+              No generation is running.
+            </CardContent>
           </Card>
         </aside>
       ) : null}
@@ -2425,6 +2443,7 @@ Expected: commit succeeds.
 ## Task 9: Typed API Client and Auth Hooks
 
 **Files:**
+
 - Create: `apps/web/src/lib/api/generated/schema.ts`
 - Create: `apps/web/src/lib/api/openapi-types.ts`
 - Create: `apps/web/src/lib/api/client.ts`
@@ -2564,6 +2583,7 @@ Expected: commit succeeds.
 ## Task 10: SSE Client Skeleton
 
 **Files:**
+
 - Create: `apps/web/src/lib/api/sse-client.ts`
 - Create: `apps/web/src/lib/api/sse-client.test.ts`
 
@@ -2646,6 +2666,7 @@ Expected: commit succeeds.
 ## Task 11: Playwright Smoke Test and CI
 
 **Files:**
+
 - Create: `apps/web/playwright.config.ts`
 - Create: `apps/web/tests/workbench.spec.ts`
 - Create: `.github/workflows/ci.yml`
@@ -2776,6 +2797,7 @@ Expected: commit succeeds.
 ## Task 12: Documentation and Final Skeleton Verification
 
 **Files:**
+
 - Modify: `README.md`
 - Create: `docs/development.md`
 
@@ -2783,7 +2805,7 @@ Expected: commit succeeds.
 
 Modify `README.md` by appending this section:
 
-```md
+````md
 ## Development
 
 Rolesta uses a TypeScript monorepo with a separated API and web app.
@@ -2800,6 +2822,7 @@ pnpm install
 Copy-Item .env.example .env
 pnpm db:migrate
 ```
+````
 
 ### Run
 
@@ -2820,7 +2843,8 @@ pnpm typecheck
 pnpm test
 pnpm build
 ```
-```
+
+````
 
 - [ ] **Step 2: Add development notes**
 
@@ -2847,7 +2871,7 @@ SQLite is the default database for the first skeleton. Keep queryable data in no
 ## OpenAPI
 
 The API exports `apps/api/openapi.json`. The web app generates TypeScript API types from that document into `apps/web/src/lib/api/generated/schema.ts`.
-```
+````
 
 - [ ] **Step 3: Run final verification**
 

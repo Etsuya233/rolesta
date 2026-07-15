@@ -1,8 +1,8 @@
-import { ChevronRight } from "lucide-react";
-import { useTranslation } from "react-i18next";
-import { Button } from "../../../components/ui/button";
-import type { ModelProviderSummaryResponse } from "../api/model-providers-api";
-import { AssetDefaultBadge } from "../../chat-preferences/components/asset-default-badge";
+import { ChevronRight } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
+import { Button } from '../../../components/ui/button';
+import type { ModelProviderSummaryResponse } from '../api/model-providers-api';
+import { AssetDefaultBadge } from '../../chat-preferences/components/asset-default-badge';
 
 export function ModelProviderListItem({
   config,
@@ -30,35 +30,30 @@ export function ModelProviderListItem({
         <span className="flex flex-wrap gap-x-3 gap-y-1 text-xs text-muted-foreground">
           <span>{providerLabel(config.providerKind)}</span>
           <span className="max-w-full truncate">{config.baseUrl}</span>
+          <span>{config.defaultModelName || t('modelProviders.list.noDefaultModel')}</span>
           <span>
-            {config.defaultModelName || t("modelProviders.list.noDefaultModel")}
-          </span>
-          <span>
-            {config.credentialMode === "vault"
+            {config.credentialMode === 'vault'
               ? config.apiKeyName
-              : t("modelProviders.editor.credentials.manual")}
+              : t('modelProviders.editor.credentials.manual')}
           </span>
         </span>
       </span>
-      <ChevronRight
-        aria-hidden="true"
-        className="size-4 shrink-0 text-muted-foreground"
-      />
+      <ChevronRight aria-hidden="true" className="size-4 shrink-0 text-muted-foreground" />
     </Button>
   );
 }
 
 function providerLabel(providerKind: string): string {
-  if (providerKind === "openai-compatible") {
-    return "OpenAI Compatible";
+  if (providerKind === 'openai-compatible') {
+    return 'OpenAI Compatible';
   }
 
-  if (providerKind === "z-ai") {
-    return "Z.AI";
+  if (providerKind === 'z-ai') {
+    return 'Z.AI';
   }
 
   return providerKind
-    .split("-")
+    .split('-')
     .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
-    .join(" ");
+    .join(' ');
 }

@@ -1,6 +1,11 @@
 import { UseCase } from '../../common/errors/index.js';
 import { translateAuthError } from './auth-error.mapper.js';
-import type { Clock, SessionStore, SessionTokenIssuer, UserAccountStore } from '../ports/auth-ports.js';
+import type {
+  Clock,
+  SessionStore,
+  SessionTokenIssuer,
+  UserAccountStore,
+} from '../ports/auth-ports.js';
 import type { CurrentUserResult } from './auth-results.js';
 
 export class AuthenticateTokenUseCase {

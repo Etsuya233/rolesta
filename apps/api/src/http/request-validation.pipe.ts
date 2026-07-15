@@ -3,11 +3,11 @@ import {
   ValidationPipe,
   type ArgumentMetadata,
   type PipeTransform,
-} from "@nestjs/common";
-import { ERROR_CODES, validationIssuesFromZodError } from "@rolesta/shared";
-import { isZodDto } from "nestjs-zod/dto";
-import { ZodError } from "zod";
-import { ApiFailure } from "./api-failure.js";
+} from '@nestjs/common';
+import { ERROR_CODES, validationIssuesFromZodError } from '@rolesta/shared';
+import { isZodDto } from 'nestjs-zod/dto';
+import { ZodError } from 'zod';
+import { ApiFailure } from './api-failure.js';
 
 export class RequestValidationPipe implements PipeTransform {
   private readonly legacy = new ValidationPipe({
@@ -17,10 +17,7 @@ export class RequestValidationPipe implements PipeTransform {
     exceptionFactory: () => validationFailure(),
   });
 
-  async transform(
-    value: unknown,
-    metadata: ArgumentMetadata,
-  ): Promise<unknown> {
+  async transform(value: unknown, metadata: ArgumentMetadata): Promise<unknown> {
     if (!isZodDto(metadata.metatype)) {
       return this.legacy.transform(value, metadata);
     }
@@ -36,9 +33,7 @@ export class RequestValidationPipe implements PipeTransform {
   }
 }
 
-function validationFailure(
-  issues?: ReturnType<typeof validationIssuesFromZodError>,
-): ApiFailure {
+function validationFailure(issues?: ReturnType<typeof validationIssuesFromZodError>): ApiFailure {
   return new ApiFailure({
     status: HttpStatus.BAD_REQUEST,
     code: ERROR_CODES.VALIDATION_FAILED,

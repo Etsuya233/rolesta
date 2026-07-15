@@ -1,8 +1,8 @@
 import {
   WorldbookPortError,
   type WorldbookPortErrorReason,
-} from "../ports/worldbook-port-error.js";
-import { WorldbookApplicationError } from "./worldbook-application-error.js";
+} from '../ports/worldbook-port-error.js';
+import { WorldbookApplicationError } from './worldbook-application-error.js';
 
 export function translateWorldbookError(error: unknown): unknown {
   if (error instanceof WorldbookApplicationError) {

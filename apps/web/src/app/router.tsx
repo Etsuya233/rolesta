@@ -1,56 +1,54 @@
-import { lazy } from "react";
-import { createBrowserRouter, Navigate } from "react-router-dom";
+import { lazy } from 'react';
+import { createBrowserRouter, Navigate } from 'react-router-dom';
 import {
   AppRouteGuard,
   LoginRouteGuard,
   SetupRouteGuard,
-} from "../features/auth/routes/auth-route-guards";
+} from '../features/auth/routes/auth-route-guards';
 
 const LoginPage = lazy(() =>
-  import("../features/auth/routes/login-page").then((module) => ({
+  import('../features/auth/routes/login-page').then((module) => ({
     default: module.LoginPage,
   })),
 );
 const SetupPage = lazy(() =>
-  import("../features/auth/routes/setup-page").then((module) => ({
+  import('../features/auth/routes/setup-page').then((module) => ({
     default: module.SetupPage,
   })),
 );
 const WorkbenchPage = lazy(() =>
-  import("../features/chats/routes/workbench-page").then((module) => ({
+  import('../features/chats/routes/workbench-page').then((module) => ({
     default: module.WorkbenchPage,
   })),
 );
 const CharactersPage = lazy(() =>
-  import("../features/characters/routes/characters-page").then((module) => ({
+  import('../features/characters/routes/characters-page').then((module) => ({
     default: module.CharactersPage,
   })),
 );
 const PresetsPage = lazy(() =>
-  import("../features/presets/routes/presets-page").then((module) => ({
+  import('../features/presets/routes/presets-page').then((module) => ({
     default: module.PresetsPage,
   })),
 );
 const WorldbooksPage = lazy(() =>
-  import("../features/worldbooks/routes/worldbooks-page").then((module) => ({
+  import('../features/worldbooks/routes/worldbooks-page').then((module) => ({
     default: module.WorldbooksPage,
   })),
 );
 const ModelProvidersPage = lazy(() =>
-  import("../features/model-providers/routes/model-providers-page").then(
-    (module) => ({
-      default: module.ModelProvidersPage,
-    }),
-  ),
+  import('../features/model-providers/routes/model-providers-page').then((module) => ({
+    default: module.ModelProvidersPage,
+  })),
 );
 
 export const router = createBrowserRouter([
   {
-    path: "/",
+    path: '/',
     element: <Navigate to="/app" replace />,
   },
   {
-    path: "/setup",
+    path: '/setup',
     element: (
       <SetupRouteGuard>
         <SetupPage />
@@ -58,7 +56,7 @@ export const router = createBrowserRouter([
     ),
   },
   {
-    path: "/login",
+    path: '/login',
     element: (
       <LoginRouteGuard>
         <LoginPage />
@@ -66,7 +64,7 @@ export const router = createBrowserRouter([
     ),
   },
   {
-    path: "/app",
+    path: '/app',
     element: (
       <AppRouteGuard>
         <WorkbenchPage />
@@ -74,7 +72,7 @@ export const router = createBrowserRouter([
     ),
   },
   {
-    path: "/app/characters",
+    path: '/app/characters',
     element: (
       <AppRouteGuard>
         <CharactersPage />
@@ -82,7 +80,7 @@ export const router = createBrowserRouter([
     ),
   },
   {
-    path: "/app/presets",
+    path: '/app/presets',
     element: (
       <AppRouteGuard>
         <PresetsPage />
@@ -90,7 +88,7 @@ export const router = createBrowserRouter([
     ),
   },
   {
-    path: "/app/worldbooks",
+    path: '/app/worldbooks',
     element: (
       <AppRouteGuard>
         <WorldbooksPage />
@@ -98,7 +96,7 @@ export const router = createBrowserRouter([
     ),
   },
   {
-    path: "/app/model-providers",
+    path: '/app/model-providers',
     element: (
       <AppRouteGuard>
         <ModelProvidersPage />

@@ -7,7 +7,9 @@ describe('character card domain', () => {
     expect(() => ensureEpochMillis(Number.MAX_SAFE_INTEGER + 1)).toThrow(
       'Epoch millis must be a non-negative safe integer.',
     );
-    expect(() => ensureEpochMillis(-1)).toThrow('Epoch millis must be a non-negative safe integer.');
+    expect(() => ensureEpochMillis(-1)).toThrow(
+      'Epoch millis must be a non-negative safe integer.',
+    );
   });
 
   it('creates an empty private draft with caller-provided timestamps', () => {

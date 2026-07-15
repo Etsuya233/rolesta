@@ -51,11 +51,7 @@ export class UploadCharacterAvatarUseCase {
       if (result && result.previousResourceId !== avatar.resourceId) {
         await this.avatars.activate(avatar.resourceId, command.ownerUserId);
         if (result.previousResourceId) {
-          await this.avatars.release(
-            result.previousResourceId,
-            command.ownerUserId,
-            nowMs,
-          );
+          await this.avatars.release(result.previousResourceId, command.ownerUserId, nowMs);
         }
         await this.events.publish(
           new CharacterAvatarChangedEvent({

@@ -53,8 +53,7 @@ export type KyselyQueryExecutor = Omit<
 
 @Injectable()
 export class KyselyDatabaseContext {
-  private readonly transactions =
-    new AsyncLocalStorage<Transaction<Database>>();
+  private readonly transactions = new AsyncLocalStorage<Transaction<Database>>();
 
   constructor(
     @Inject(KYSELY_DB)
@@ -100,9 +99,9 @@ export class KyselyUnitOfWork implements UnitOfWork {
       return operation();
     }
 
-    return this.database.transaction().execute((transaction) =>
-      this.context.withinTransaction(transaction, operation),
-    );
+    return this.database
+      .transaction()
+      .execute((transaction) => this.context.withinTransaction(transaction, operation));
   }
 }
 ```

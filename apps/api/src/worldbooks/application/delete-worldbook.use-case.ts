@@ -1,7 +1,7 @@
-import { UseCase } from "../../common/errors/index.js";
-import type { WorldbookStore } from "../ports/worldbook-store.js";
-import { translateWorldbookError } from "./worldbook-error.mapper.js";
-import { WorldbookApplicationError } from "./worldbook-application-error.js";
+import { UseCase } from '../../common/errors/index.js';
+import type { WorldbookStore } from '../ports/worldbook-store.js';
+import { translateWorldbookError } from './worldbook-error.mapper.js';
+import { WorldbookApplicationError } from './worldbook-application-error.js';
 
 export interface DeleteWorldbookCommand {
   id: string;
@@ -13,21 +13,18 @@ export class DeleteWorldbookUseCase {
 
   @UseCase(translateWorldbookError)
   async execute(command: DeleteWorldbookCommand): Promise<void> {
-    const current = await this.store.findVisibleById(
-      command.id,
-      command.viewerUserId,
-    );
+    const current = await this.store.findVisibleById(command.id, command.viewerUserId);
 
     if (current === null) {
       throw new WorldbookApplicationError({
-        reason: "not-found",
+        reason: 'not-found',
         params: { worldbookId: command.id },
       });
     }
 
     if (current.ownerUserId !== command.viewerUserId) {
       throw new WorldbookApplicationError({
-        reason: "forbidden",
+        reason: 'forbidden',
         params: {
           worldbookId: command.id,
           viewerUserId: command.viewerUserId,

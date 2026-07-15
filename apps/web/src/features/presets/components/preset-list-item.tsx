@@ -1,9 +1,9 @@
-import { ChevronRight } from "lucide-react";
-import { useTranslation } from "react-i18next";
-import { Button } from "../../../components/ui/button";
-import { Badge } from "../../../components/ui/badge";
-import type { PresetSummaryResponse } from "../api/presets-api";
-import { AssetDefaultBadge } from "../../chat-preferences/components/asset-default-badge";
+import { ChevronRight } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
+import { Button } from '../../../components/ui/button';
+import { Badge } from '../../../components/ui/badge';
+import type { PresetSummaryResponse } from '../api/presets-api';
+import { AssetDefaultBadge } from '../../chat-preferences/components/asset-default-badge';
 
 export function PresetListItem({
   preset,
@@ -28,36 +28,33 @@ export function PresetListItem({
           <span className="truncate text-sm font-medium">{preset.name}</span>
           {isDefault ? <AssetDefaultBadge kind="preset" /> : null}
           <Badge className="shrink-0" variant="outline">
-            {preset.visibility === "public"
-              ? t("presets.list.publicVisibility")
-              : t("presets.list.privateVisibility")}
+            {preset.visibility === 'public'
+              ? t('presets.list.publicVisibility')
+              : t('presets.list.privateVisibility')}
           </Badge>
         </span>
         <span className="flex flex-wrap gap-x-3 gap-y-1 text-xs text-muted-foreground">
           <span>
-            {t("presets.list.tokenCount", {
+            {t('presets.list.tokenCount', {
               count: preset.tokenCount,
               value: preset.tokenCount.toLocaleString(),
             })}
           </span>
           <span>
-            {t("presets.list.entryCount", {
+            {t('presets.list.entryCount', {
               count: preset.entryCount,
               value: preset.entryCount.toLocaleString(),
             })}
           </span>
           <span>
-            {t("presets.list.usageCount", {
+            {t('presets.list.usageCount', {
               count: preset.usageCount,
               value: preset.usageCount.toLocaleString(),
             })}
           </span>
         </span>
       </span>
-      <ChevronRight
-        aria-hidden="true"
-        className="size-4 shrink-0 text-muted-foreground"
-      />
+      <ChevronRight aria-hidden="true" className="size-4 shrink-0 text-muted-foreground" />
     </Button>
   );
 }

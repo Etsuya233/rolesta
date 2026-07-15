@@ -18,7 +18,9 @@ export async function up(db: Kysely<Database>): Promise<void> {
     .createTable('sessions')
     .ifNotExists()
     .addColumn('id', 'varchar(255)', (column) => column.primaryKey())
-    .addColumn('user_id', 'varchar(255)', (column) => column.notNull().references('users.id').onDelete('cascade'))
+    .addColumn('user_id', 'varchar(255)', (column) =>
+      column.notNull().references('users.id').onDelete('cascade'),
+    )
     .addColumn('expires_at', 'varchar(255)', (column) => column.notNull())
     .addColumn('created_at', 'varchar(255)', (column) => column.notNull())
     .execute();

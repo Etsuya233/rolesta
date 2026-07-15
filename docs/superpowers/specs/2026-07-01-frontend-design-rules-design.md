@@ -127,7 +127,7 @@ State may also use semantic `data-*` attributes when the value is dynamic or sha
 <button
   className="rl-button rl-button--primary"
   data-size="sm"
-  data-loading={isLoading ? "true" : undefined}
+  data-loading={isLoading ? 'true' : undefined}
 >
   Save
 </button>

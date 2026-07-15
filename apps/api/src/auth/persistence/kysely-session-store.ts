@@ -52,10 +52,7 @@ export class KyselySessionStore implements SessionStore {
 
   async deleteByTokenHash(tokenHash: string): Promise<void> {
     try {
-      await this.context.database
-        .deleteFrom('sessions')
-        .where('id', '=', tokenHash)
-        .execute();
+      await this.context.database.deleteFrom('sessions').where('id', '=', tokenHash).execute();
     } catch (error) {
       throw new AuthPortError({
         reason: 'session-store-failed',

@@ -1,10 +1,6 @@
 import { UseCase } from '../../common/errors/use-case.decorator.js';
 import type { UnitOfWork } from '../../common/application/unit-of-work.js';
-import type {
-  FileObject,
-  FileResource,
-  FileVisibility,
-} from '../domain/file-resource.js';
+import type { FileObject, FileResource, FileVisibility } from '../domain/file-resource.js';
 import type { FilePurpose } from '../domain/file-purpose.js';
 import type { FileContentStore } from '../ports/file-content-store.js';
 import type {
@@ -46,14 +42,10 @@ export class CreateFileResourceUseCase {
   ) {}
 
   @UseCase(toFileApplicationError)
-  async execute(
-    command: CreateFileResourceCommand,
-  ): Promise<CreatedFileResource> {
+  async execute(command: CreateFileResourceCommand): Promise<CreatedFileResource> {
     const resourceId = this.ids.createId();
     const nowMs = this.clock.nowMs();
-    const objects = command.objects.map((object) =>
-      this.fileObject(resourceId, nowMs, object),
-    );
+    const objects = command.objects.map((object) => this.fileObject(resourceId, nowMs, object));
     const resource: FileResource = {
       id: resourceId,
       ownerUserId: command.ownerUserId,
@@ -74,11 +66,7 @@ export class CreateFileResourceUseCase {
     return { resource };
   }
 
-  private fileObject(
-    resourceId: string,
-    nowMs: number,
-    input: NewFileObject,
-  ): FileObject {
+  private fileObject(resourceId: string, nowMs: number, input: NewFileObject): FileObject {
     const id = this.ids.createId();
 
     return {

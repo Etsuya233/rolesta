@@ -11,6 +11,7 @@
 ### Task 1: Add startup configuration and extension points
 
 **Files:**
+
 - Create: `.env.example`
 - Create: `.pre_startup_task/startup.sh`
 - Create: `.pre_startup_task/startup.ps1`
@@ -23,6 +24,7 @@
 ### Task 2: Implement the Bash startup entry point
 
 **Files:**
+
 - Create: `start.sh`
 
 - [ ] Resolve and enter the repository root from `BASH_SOURCE`.
@@ -37,6 +39,7 @@
 ### Task 3: Implement the PowerShell startup entry point
 
 **Files:**
+
 - Create: `start.ps1`
 
 - [ ] Resolve and enter the repository root from `$PSScriptRoot` and enable terminating error behavior.
@@ -49,6 +52,7 @@
 ### Task 4: Rewire package commands and CI
 
 **Files:**
+
 - Modify: `package.json`
 - Modify: `apps/web/playwright.config.ts`
 - Modify: `.github/workflows/ci.yml`
@@ -62,6 +66,7 @@
 ### Task 5: Update development documentation
 
 **Files:**
+
 - Modify: `README.md`
 
 - [ ] Update the pnpm requirement to version 11 or newer.
@@ -73,6 +78,7 @@
 ### Task 6: Verify both startup paths
 
 **Files:**
+
 - Verify: `start.sh`
 - Verify: `start.ps1`
 - Verify: `.pre_startup_task/startup.sh`

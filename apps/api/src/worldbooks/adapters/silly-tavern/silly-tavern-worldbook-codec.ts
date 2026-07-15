@@ -1,18 +1,18 @@
-import { Injectable } from "@nestjs/common";
-import { countPromptTokens } from "@rolesta/shared";
+import { Injectable } from '@nestjs/common';
+import { countPromptTokens } from '@rolesta/shared';
 import type {
   Worldbook,
   WorldbookEntryRole,
   WorldbookInsertionPosition,
   WorldbookSelectiveLogic,
-} from "../../domain/worldbook.js";
+} from '../../domain/worldbook.js';
 import type {
   ImportedWorldbook,
   ImportedWorldbookEntry,
   ImportWorldbookFile,
   WorldbookCodec,
-} from "../../ports/worldbook-codec.js";
-import { WorldbookPortError } from "../../ports/worldbook-port-error.js";
+} from '../../ports/worldbook-codec.js';
+import { WorldbookPortError } from '../../ports/worldbook-port-error.js';
 
 export interface SillyTavernWorldInfoOutput {
   name: string;
@@ -55,34 +55,29 @@ export class SillyTavernWorldbookCodec implements WorldbookCodec {
   }
 }
 
-export function fromSillyTavernWorldInfo(
-  input: unknown,
-  fileName: string,
-): ImportedWorldbook {
+export function fromSillyTavernWorldInfo(input: unknown, fileName: string): ImportedWorldbook {
   if (!isRecord(input)) {
     throw new WorldbookPortError({
-      reason: "invalid-worldbook",
-      params: { fileName, field: "input" },
+      reason: 'invalid-worldbook',
+      params: { fileName, field: 'input' },
     });
   }
 
   const entries = entriesArray(input).map(toImportedEntry);
 
   return {
-    name: stringField(input, "name") || worldbookNameFromFileName(fileName),
-    description: stringField(input, "description"),
-    tags: stringArrayField(input, "tags"),
-    scanDepth: optionalNumberField(input, "scanDepth") ?? 3,
-    tokenBudget: optionalNumberField(input, "tokenBudget") ?? 1024,
-    recursiveScan: optionalBooleanField(input, "recursiveScan") ?? false,
+    name: stringField(input, 'name') || worldbookNameFromFileName(fileName),
+    description: stringField(input, 'description'),
+    tags: stringArrayField(input, 'tags'),
+    scanDepth: optionalNumberField(input, 'scanDepth') ?? 3,
+    tokenBudget: optionalNumberField(input, 'tokenBudget') ?? 1024,
+    recursiveScan: optionalBooleanField(input, 'recursiveScan') ?? false,
     entries,
     sourceSnapshot: input,
   };
 }
 
-export function toSillyTavernWorldInfo(
-  worldbook: Worldbook,
-): SillyTavernWorldInfoOutput {
+export function toSillyTavernWorldInfo(worldbook: Worldbook): SillyTavernWorldInfoOutput {
   const entries = [...worldbook.entries].sort(
     (left, right) => left.insertionOrder - right.insertionOrder,
   );
@@ -121,74 +116,45 @@ export function toSillyTavernWorldInfo(
   };
 }
 
-function toImportedEntry(
-  entry: Record<string, unknown>,
-  index: number,
-): ImportedWorldbookEntry {
-  const content = stringField(entry, "content");
-  const name =
-    stringField(entry, "name") ||
-    stringField(entry, "comment") ||
-    `Entry ${index + 1}`;
+function toImportedEntry(entry: Record<string, unknown>, index: number): ImportedWorldbookEntry {
+  const content = stringField(entry, 'content');
+  const name = stringField(entry, 'name') || stringField(entry, 'comment') || `Entry ${index + 1}`;
 
   return {
-    enabled: !(optionalBooleanField(entry, "disable") ?? false),
+    enabled: !(optionalBooleanField(entry, 'disable') ?? false),
     name,
-    comment: stringField(entry, "comment"),
+    comment: stringField(entry, 'comment'),
     content,
-    primaryKeys: keysField(entry, ["key", "keys"]),
-    secondaryKeys: keysField(entry, ["keysecondary", "secondaryKeys"]),
-    selective: optionalBooleanField(entry, "selective") ?? false,
+    primaryKeys: keysField(entry, ['key', 'keys']),
+    secondaryKeys: keysField(entry, ['keysecondary', 'secondaryKeys']),
+    selective: optionalBooleanField(entry, 'selective') ?? false,
     selectiveLogic: worldbookSelectiveLogic(
-      compatibleField(entry, "selectiveLogic", "selectiveLogic"),
+      compatibleField(entry, 'selectiveLogic', 'selectiveLogic'),
     ),
-    constant: optionalBooleanField(entry, "constant") ?? false,
-    vectorized:
-      optionalBooleanCompatibleField(entry, "vectorized", "vectorized") ??
-      false,
-    caseSensitive: optionalBooleanField(entry, "caseSensitive") ?? false,
-    matchWholeWords: optionalBooleanField(entry, "matchWholeWords") ?? false,
-    insertionPosition: worldbookInsertionPosition(
-      compatibleField(entry, "position", "position"),
-    ),
+    constant: optionalBooleanField(entry, 'constant') ?? false,
+    vectorized: optionalBooleanCompatibleField(entry, 'vectorized', 'vectorized') ?? false,
+    caseSensitive: optionalBooleanField(entry, 'caseSensitive') ?? false,
+    matchWholeWords: optionalBooleanField(entry, 'matchWholeWords') ?? false,
+    insertionPosition: worldbookInsertionPosition(compatibleField(entry, 'position', 'position')),
     insertionOrder:
-      optionalNumberField(entry, "displayIndex") ??
-      optionalNumberField(entry, "order") ??
-      index,
-    depth:
-      optionalNumberField(entry, "depth") ??
-      optionalNumberField(entry, "scanDepth") ??
-      3,
-    insertionRole: worldbookEntryRole(compatibleField(entry, "role", "role")),
-    anchorName: stringCompatibleField(entry, "outletName", "outlet_name"),
-    scanDepth:
-      optionalNumberCompatibleField(entry, "scanDepth", "scan_depth") ?? null,
+      optionalNumberField(entry, 'displayIndex') ?? optionalNumberField(entry, 'order') ?? index,
+    depth: optionalNumberField(entry, 'depth') ?? optionalNumberField(entry, 'scanDepth') ?? 3,
+    insertionRole: worldbookEntryRole(compatibleField(entry, 'role', 'role')),
+    anchorName: stringCompatibleField(entry, 'outletName', 'outlet_name'),
+    scanDepth: optionalNumberCompatibleField(entry, 'scanDepth', 'scan_depth') ?? null,
     excludeRecursion:
-      optionalBooleanCompatibleField(
-        entry,
-        "excludeRecursion",
-        "exclude_recursion",
-      ) ?? false,
+      optionalBooleanCompatibleField(entry, 'excludeRecursion', 'exclude_recursion') ?? false,
     preventRecursion:
-      optionalBooleanCompatibleField(
-        entry,
-        "preventRecursion",
-        "prevent_recursion",
-      ) ?? false,
+      optionalBooleanCompatibleField(entry, 'preventRecursion', 'prevent_recursion') ?? false,
     delayUntilRecursion:
-      optionalBooleanCompatibleField(
-        entry,
-        "delayUntilRecursion",
-        "delay_until_recursion",
-      ) ?? false,
-    probability: optionalNumberField(entry, "probability") ?? 100,
+      optionalBooleanCompatibleField(entry, 'delayUntilRecursion', 'delay_until_recursion') ??
+      false,
+    probability: optionalNumberField(entry, 'probability') ?? 100,
     tokenCount: countPromptTokens(content),
   };
 }
 
-function entriesArray(
-  input: Record<string, unknown>,
-): Array<Record<string, unknown>> {
+function entriesArray(input: Record<string, unknown>): Array<Record<string, unknown>> {
   const entries = input.entries;
 
   if (Array.isArray(entries) && entries.every(isRecord)) {
@@ -200,8 +166,8 @@ function entriesArray(
 
     if (!entryValues.every(isRecord)) {
       throw new WorldbookPortError({
-        reason: "invalid-worldbook",
-        params: { field: "entries" },
+        reason: 'invalid-worldbook',
+        params: { field: 'entries' },
       });
     }
 
@@ -209,8 +175,8 @@ function entriesArray(
   }
 
   throw new WorldbookPortError({
-    reason: "invalid-worldbook",
-    params: { field: "entries" },
+    reason: 'invalid-worldbook',
+    params: { field: 'entries' },
   });
 }
 
@@ -222,15 +188,12 @@ function keysField(input: Record<string, unknown>, keys: string[]): string[] {
       continue;
     }
 
-    if (
-      Array.isArray(value) &&
-      value.every((item) => typeof item === "string")
-    ) {
+    if (Array.isArray(value) && value.every((item) => typeof item === 'string')) {
       return value;
     }
 
     throw new WorldbookPortError({
-      reason: "invalid-worldbook",
+      reason: 'invalid-worldbook',
       params: { field: key },
     });
   }
@@ -238,129 +201,115 @@ function keysField(input: Record<string, unknown>, keys: string[]): string[] {
   return [];
 }
 
-function worldbookInsertionPosition(
-  value: unknown,
-): WorldbookInsertionPosition {
+function worldbookInsertionPosition(value: unknown): WorldbookInsertionPosition {
   if (
-    value === "beforeCharacterDefinition" ||
-    value === "afterCharacterDefinition" ||
-    value === "beforeAuthorsNote" ||
-    value === "afterAuthorsNote" ||
-    value === "atDepth" ||
-    value === "beforeExampleMessages" ||
-    value === "afterExampleMessages" ||
-    value === "atAnchor" ||
-    value === "unknown"
+    value === 'beforeCharacterDefinition' ||
+    value === 'afterCharacterDefinition' ||
+    value === 'beforeAuthorsNote' ||
+    value === 'afterAuthorsNote' ||
+    value === 'atDepth' ||
+    value === 'beforeExampleMessages' ||
+    value === 'afterExampleMessages' ||
+    value === 'atAnchor' ||
+    value === 'unknown'
   ) {
     return value;
   }
 
-  if (value === "beforeChar") {
-    return "beforeCharacterDefinition";
+  if (value === 'beforeChar') {
+    return 'beforeCharacterDefinition';
   }
 
-  if (value === "afterChar") {
-    return "afterCharacterDefinition";
+  if (value === 'afterChar') {
+    return 'afterCharacterDefinition';
   }
 
-  if (value === "beforeHistory") {
-    return "beforeAuthorsNote";
+  if (value === 'beforeHistory') {
+    return 'beforeAuthorsNote';
   }
 
-  if (value === "afterHistory") {
-    return "afterAuthorsNote";
+  if (value === 'afterHistory') {
+    return 'afterAuthorsNote';
   }
 
   if (value === undefined || value === null || value === 0) {
-    return "beforeCharacterDefinition";
+    return 'beforeCharacterDefinition';
   }
 
   if (value === 1) {
-    return "afterCharacterDefinition";
+    return 'afterCharacterDefinition';
   }
 
   if (value === 2) {
-    return "beforeAuthorsNote";
+    return 'beforeAuthorsNote';
   }
 
   if (value === 3) {
-    return "afterAuthorsNote";
+    return 'afterAuthorsNote';
   }
 
   if (value === 4) {
-    return "atDepth";
+    return 'atDepth';
   }
 
   if (value === 5) {
-    return "beforeExampleMessages";
+    return 'beforeExampleMessages';
   }
 
   if (value === 6) {
-    return "afterExampleMessages";
+    return 'afterExampleMessages';
   }
 
   if (value === 7) {
-    return "atAnchor";
+    return 'atAnchor';
   }
 
-  return "unknown";
+  return 'unknown';
 }
 
 function worldbookEntryRole(value: unknown): WorldbookEntryRole {
-  if (
-    value === "system" ||
-    value === undefined ||
-    value === null ||
-    value === 0
-  ) {
-    return "system";
+  if (value === 'system' || value === undefined || value === null || value === 0) {
+    return 'system';
   }
 
-  if (value === "user" || value === 1) {
-    return "user";
+  if (value === 'user' || value === 1) {
+    return 'user';
   }
 
-  if (value === "assistant" || value === 2) {
-    return "assistant";
+  if (value === 'assistant' || value === 2) {
+    return 'assistant';
   }
 
   throw new WorldbookPortError({
-    reason: "invalid-worldbook",
-    params: { field: "role" },
+    reason: 'invalid-worldbook',
+    params: { field: 'role' },
   });
 }
 
 function worldbookSelectiveLogic(value: unknown): WorldbookSelectiveLogic {
-  if (
-    value === "andAny" ||
-    value === undefined ||
-    value === null ||
-    value === 0
-  ) {
-    return "andAny";
+  if (value === 'andAny' || value === undefined || value === null || value === 0) {
+    return 'andAny';
   }
 
-  if (value === "notAll" || value === 1) {
-    return "notAll";
+  if (value === 'notAll' || value === 1) {
+    return 'notAll';
   }
 
-  if (value === "notAny" || value === 2) {
-    return "notAny";
+  if (value === 'notAny' || value === 2) {
+    return 'notAny';
   }
 
-  if (value === "andAll" || value === 3) {
-    return "andAll";
+  if (value === 'andAll' || value === 3) {
+    return 'andAll';
   }
 
   throw new WorldbookPortError({
-    reason: "invalid-worldbook",
-    params: { field: "selectiveLogic" },
+    reason: 'invalid-worldbook',
+    params: { field: 'selectiveLogic' },
   });
 }
 
-function sillyTavernPosition(
-  position: WorldbookInsertionPosition,
-): number | string {
+function sillyTavernPosition(position: WorldbookInsertionPosition): number | string {
   const positions: Record<WorldbookInsertionPosition, number | string> = {
     beforeCharacterDefinition: 0,
     afterCharacterDefinition: 1,
@@ -370,7 +319,7 @@ function sillyTavernPosition(
     beforeExampleMessages: 5,
     afterExampleMessages: 6,
     atAnchor: 7,
-    unknown: "unknown",
+    unknown: 'unknown',
   };
 
   return positions[position];
@@ -425,15 +374,15 @@ function stringCompatibleField(
   const value = compatibleField(input, directKey, extensionKey);
 
   if (value === undefined || value === null) {
-    return "";
+    return '';
   }
 
-  if (typeof value === "string") {
+  if (typeof value === 'string') {
     return value;
   }
 
   throw new WorldbookPortError({
-    reason: "invalid-worldbook",
+    reason: 'invalid-worldbook',
     params: { field: directKey },
   });
 }
@@ -449,12 +398,12 @@ function optionalBooleanCompatibleField(
     return undefined;
   }
 
-  if (typeof value === "boolean") {
+  if (typeof value === 'boolean') {
     return value;
   }
 
   throw new WorldbookPortError({
-    reason: "invalid-worldbook",
+    reason: 'invalid-worldbook',
     params: { field: directKey },
   });
 }
@@ -466,16 +415,16 @@ function optionalNumberCompatibleField(
 ): number | undefined {
   const value = compatibleField(input, directKey, extensionKey);
 
-  if (value === undefined || value === null || value === "") {
+  if (value === undefined || value === null || value === '') {
     return undefined;
   }
 
-  if (typeof value === "number" && Number.isFinite(value)) {
+  if (typeof value === 'number' && Number.isFinite(value)) {
     return value;
   }
 
   throw new WorldbookPortError({
-    reason: "invalid-worldbook",
+    reason: 'invalid-worldbook',
     params: { field: directKey },
   });
 }
@@ -484,102 +433,93 @@ function stringField(input: Record<string, unknown>, key: string): string {
   const value = input[key];
 
   if (value === undefined || value === null) {
-    return "";
+    return '';
   }
 
-  if (typeof value === "string") {
+  if (typeof value === 'string') {
     return value;
   }
 
   throw new WorldbookPortError({
-    reason: "invalid-worldbook",
+    reason: 'invalid-worldbook',
     params: { field: key },
   });
 }
 
-function stringArrayField(
-  input: Record<string, unknown>,
-  key: string,
-): string[] {
+function stringArrayField(input: Record<string, unknown>, key: string): string[] {
   const value = input[key];
 
   if (value === undefined || value === null) {
     return [];
   }
 
-  if (Array.isArray(value) && value.every((item) => typeof item === "string")) {
+  if (Array.isArray(value) && value.every((item) => typeof item === 'string')) {
     return value;
   }
 
   throw new WorldbookPortError({
-    reason: "invalid-worldbook",
+    reason: 'invalid-worldbook',
     params: { field: key },
   });
 }
 
-function optionalBooleanField(
-  input: Record<string, unknown>,
-  key: string,
-): boolean | undefined {
+function optionalBooleanField(input: Record<string, unknown>, key: string): boolean | undefined {
   const value = input[key];
 
   if (value === undefined || value === null) {
     return undefined;
   }
 
-  if (typeof value === "boolean") {
+  if (typeof value === 'boolean') {
     return value;
   }
 
   throw new WorldbookPortError({
-    reason: "invalid-worldbook",
+    reason: 'invalid-worldbook',
     params: { field: key },
   });
 }
 
-function optionalNumberField(
-  input: Record<string, unknown>,
-  key: string,
-): number | undefined {
+function optionalNumberField(input: Record<string, unknown>, key: string): number | undefined {
   const value = input[key];
 
-  if (value === undefined || value === null || value === "") {
+  if (value === undefined || value === null || value === '') {
     return undefined;
   }
 
-  if (typeof value === "number" && Number.isFinite(value)) {
+  if (typeof value === 'number' && Number.isFinite(value)) {
     return value;
   }
 
   throw new WorldbookPortError({
-    reason: "invalid-worldbook",
+    reason: 'invalid-worldbook',
     params: { field: key },
   });
 }
 
 function importFileContent(file: ImportWorldbookFile): unknown {
   try {
-    return JSON.parse(file.content.toString("utf8")) as unknown;
+    return JSON.parse(file.content.toString('utf8')) as unknown;
   } catch (error) {
     throw new WorldbookPortError({
-      reason: "invalid-import-file",
-      params: { fileName: file.fileName, field: "content" },
+      reason: 'invalid-import-file',
+      params: { fileName: file.fileName, field: 'content' },
       cause: error,
     });
   }
 }
 
 function worldbookNameFromFileName(fileName: string): string {
-  const lastSegment = fileName.split(/[\\/]/).at(-1) ?? "";
-  const extensionIndex = lastSegment.lastIndexOf(".");
+  const lastSegment = fileName.split(/[\\/]/).at(-1) ?? '';
+  const extensionIndex = lastSegment.lastIndexOf('.');
 
   if (extensionIndex > 0) {
-    return lastSegment.slice(0, extensionIndex) || "Untitled worldbook";
+    return lastSegment.slice(0, extensionIndex) || 'Untitled worldbook';
   }
 
-  return lastSegment || "Untitled worldbook";
+  return lastSegment || 'Untitled worldbook';
 }
 
 function isRecord(value: unknown): value is Record<string, unknown> {
-  return typeof value === "object" && value !== null && !Array.isArray(value);
+  return typeof value === 'object' && value !== null && !Array.isArray(value);
 }

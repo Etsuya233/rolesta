@@ -1,7 +1,7 @@
-import type { CharacterReferenceAccess } from "../../characters/contracts/character-reference-access.js";
-import type { ModelProviderReferenceAccess } from "../../model-profiles/contracts/model-provider-reference-access.js";
-import type { PresetReferenceAccess } from "../../presets/contracts/preset-reference-access.js";
-import type { ChatAssetAccess } from "../ports/chat-asset-access.js";
+import type { CharacterReferenceAccess } from '../../characters/contracts/character-reference-access.js';
+import type { ModelProviderReferenceAccess } from '../../model-profiles/contracts/model-provider-reference-access.js';
+import type { PresetReferenceAccess } from '../../presets/contracts/preset-reference-access.js';
+import type { ChatAssetAccess } from '../ports/chat-asset-access.js';
 
 export class ModuleChatAssetAccess implements ChatAssetAccess {
   constructor(
@@ -10,24 +10,15 @@ export class ModuleChatAssetAccess implements ChatAssetAccess {
     private readonly modelProviders: ModelProviderReferenceAccess,
   ) {}
 
-  acquireVisibleCharacter(
-    characterId: string,
-    viewerUserId: string,
-  ): Promise<boolean> {
+  acquireVisibleCharacter(characterId: string, viewerUserId: string): Promise<boolean> {
     return this.characters.acquireVisible(characterId, viewerUserId);
   }
 
-  acquireVisiblePreset(
-    presetId: string,
-    viewerUserId: string,
-  ): Promise<boolean> {
+  acquireVisiblePreset(presetId: string, viewerUserId: string): Promise<boolean> {
     return this.presets.acquireVisible(presetId, viewerUserId);
   }
 
-  acquireOwnedModelProvider(
-    modelProviderId: string,
-    ownerUserId: string,
-  ): Promise<boolean> {
+  acquireOwnedModelProvider(modelProviderId: string, ownerUserId: string): Promise<boolean> {
     return this.modelProviders.acquireOwned(modelProviderId, ownerUserId);
   }
 }

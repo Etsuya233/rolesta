@@ -36,7 +36,10 @@ export class ScryptPasswordHashing implements PasswordHashing {
       const expectedBuffer = Buffer.from(expected, 'base64url');
       const actualBuffer = (await scryptAsync(password, salt, expectedBuffer.length)) as Buffer;
 
-      return expectedBuffer.length === actualBuffer.length && timingSafeEqual(expectedBuffer, actualBuffer);
+      return (
+        expectedBuffer.length === actualBuffer.length &&
+        timingSafeEqual(expectedBuffer, actualBuffer)
+      );
     } catch (error) {
       throw new AuthPortError({
         reason: 'password-hashing-failed',

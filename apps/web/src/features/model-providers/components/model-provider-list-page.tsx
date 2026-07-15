@@ -1,10 +1,10 @@
-import { KeyRound, Plus } from "lucide-react";
-import type { ReactNode } from "react";
-import { useTranslation } from "react-i18next";
-import { Button } from "../../../components/ui/button";
-import { MobileTopBar } from "../../assets/components/mobile-top-bar";
-import { ModelProviderListPanel } from "./model-provider-list-panel";
-import { ModelProviderStackPage } from "./model-provider-stack-page";
+import { KeyRound, Plus } from 'lucide-react';
+import type { ReactNode } from 'react';
+import { useTranslation } from 'react-i18next';
+import { Button } from '../../../components/ui/button';
+import { MobileTopBar } from '../../assets/components/mobile-top-bar';
+import { ModelProviderListPanel } from './model-provider-list-panel';
+import { ModelProviderStackPage } from './model-provider-stack-page';
 
 export function ModelProviderListPage({
   onBack,
@@ -24,18 +24,15 @@ export function ModelProviderListPage({
       <MobileTopBar
         actions={
           <>
-            <IconAction
-              label={t("modelProviders.apiKeys.manageAction")}
-              onClick={onManageApiKeys}
-            >
+            <IconAction label={t('modelProviders.apiKeys.manageAction')} onClick={onManageApiKeys}>
               <KeyRound aria-hidden="true" />
             </IconAction>
-            <IconAction label={t("modelProviders.list.createAction")} onClick={onCreate}>
+            <IconAction label={t('modelProviders.list.createAction')} onClick={onCreate}>
               <Plus aria-hidden="true" />
             </IconAction>
           </>
         }
-        title={t("modelProviders.list.title")}
+        title={t('modelProviders.list.title')}
         onBack={onBack}
       />
       <ModelProviderListPanel onSelectConfig={onSelectConfig} />

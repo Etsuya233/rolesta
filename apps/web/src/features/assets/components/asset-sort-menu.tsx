@@ -1,4 +1,4 @@
-import { useTranslation } from "react-i18next";
+import { useTranslation } from 'react-i18next';
 import {
   Select,
   SelectContent,
@@ -6,7 +6,7 @@ import {
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "../../../components/ui/select";
+} from '../../../components/ui/select';
 
 export interface AssetSortOption<TValue extends string = string> {
   value: TValue;
@@ -15,10 +15,10 @@ export interface AssetSortOption<TValue extends string = string> {
 
 export interface AssetSortMenuProps<TSort extends string = string> {
   sort: TSort;
-  direction: "asc" | "desc";
+  direction: 'asc' | 'desc';
   options: Array<AssetSortOption<TSort>>;
   onSortChange: (value: TSort) => void;
-  onDirectionChange: (value: "asc" | "desc") => void;
+  onDirectionChange: (value: 'asc' | 'desc') => void;
 }
 
 export function AssetSortMenu<TSort extends string = string>({
@@ -32,14 +32,8 @@ export function AssetSortMenu<TSort extends string = string>({
 
   return (
     <div className="grid grid-cols-[minmax(0,1fr)_7.5rem] gap-2">
-      <Select
-        value={sort}
-        onValueChange={(value) => onSortChange(value as TSort)}
-      >
-        <SelectTrigger
-          aria-label={t("assets.sort.fieldLabel")}
-          className="w-full"
-        >
+      <Select value={sort} onValueChange={(value) => onSortChange(value as TSort)}>
+        <SelectTrigger aria-label={t('assets.sort.fieldLabel')} className="w-full">
           <SelectValue />
         </SelectTrigger>
         <SelectContent>
@@ -54,18 +48,15 @@ export function AssetSortMenu<TSort extends string = string>({
       </Select>
       <Select
         value={direction}
-        onValueChange={(value) => onDirectionChange(value as "asc" | "desc")}
+        onValueChange={(value) => onDirectionChange(value as 'asc' | 'desc')}
       >
-        <SelectTrigger
-          aria-label={t("assets.sort.directionLabel")}
-          className="w-full"
-        >
+        <SelectTrigger aria-label={t('assets.sort.directionLabel')} className="w-full">
           <SelectValue />
         </SelectTrigger>
         <SelectContent>
           <SelectGroup>
-            <SelectItem value="desc">{t("assets.sort.descending")}</SelectItem>
-            <SelectItem value="asc">{t("assets.sort.ascending")}</SelectItem>
+            <SelectItem value="desc">{t('assets.sort.descending')}</SelectItem>
+            <SelectItem value="asc">{t('assets.sort.ascending')}</SelectItem>
           </SelectGroup>
         </SelectContent>
       </Select>

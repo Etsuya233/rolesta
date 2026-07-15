@@ -22,14 +22,7 @@ export interface CreateChatFields {
 }
 
 export type ChatEditableFields = Partial<
-  Pick<
-    Chat,
-    | "title"
-    | "chatCharacterId"
-    | "personaCharacterId"
-    | "presetId"
-    | "modelProviderId"
-  >
+  Pick<Chat, 'title' | 'chatCharacterId' | 'personaCharacterId' | 'presetId' | 'modelProviderId'>
 >;
 
 export function createChat(fields: CreateChatFields): Chat {
@@ -46,11 +39,7 @@ export function createChat(fields: CreateChatFields): Chat {
   };
 }
 
-export function updateChat(
-  chat: Chat,
-  fields: ChatEditableFields,
-  nowMs: number,
-): Chat {
+export function updateChat(chat: Chat, fields: ChatEditableFields, nowMs: number): Chat {
   return {
     ...chat,
     ...fields,

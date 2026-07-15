@@ -43,8 +43,12 @@ export function applyCharacterCardEditableFields(
     ...(fields.personality !== undefined ? { personality: fields.personality } : {}),
     ...(fields.scenario !== undefined ? { scenario: fields.scenario } : {}),
     ...(fields.firstMessage !== undefined ? { firstMessage: fields.firstMessage } : {}),
-    ...(fields.alternateGreetings !== undefined ? { alternateGreetings: fields.alternateGreetings } : {}),
-    ...(fields.groupOnlyGreetings !== undefined ? { groupOnlyGreetings: fields.groupOnlyGreetings } : {}),
+    ...(fields.alternateGreetings !== undefined
+      ? { alternateGreetings: fields.alternateGreetings }
+      : {}),
+    ...(fields.groupOnlyGreetings !== undefined
+      ? { groupOnlyGreetings: fields.groupOnlyGreetings }
+      : {}),
     ...(fields.messageExample !== undefined ? { messageExample: fields.messageExample } : {}),
     ...(fields.creatorNotes !== undefined ? { creatorNotes: fields.creatorNotes } : {}),
     ...(fields.creatorNotesMultilingual !== undefined

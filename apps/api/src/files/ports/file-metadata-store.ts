@@ -9,11 +9,7 @@ export interface ReadableFileObject extends FileObject {
 
 export interface FileMetadataStore {
   createPending(resource: FileResource): Promise<void>;
-  activatePending(
-    resourceId: string,
-    ownerUserId: string,
-    purpose: FilePurpose,
-  ): Promise<boolean>;
+  activatePending(resourceId: string, ownerUserId: string, purpose: FilePurpose): Promise<boolean>;
   markOrphaned(
     resourceId: string,
     ownerUserId: string,

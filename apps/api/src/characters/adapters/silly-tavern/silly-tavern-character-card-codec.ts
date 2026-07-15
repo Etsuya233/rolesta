@@ -18,7 +18,10 @@ export interface SillyTavernCharacterCardOutput {
 @Injectable()
 export class SillyTavernCharacterCardCodec implements CharacterCardCodec {
   importFile(file: ImportCharacterCardFile): ImportedCharacterCard {
-    return fromSillyTavernCharacterCard(importFileContent(file.fileName, file.content), file.fileName);
+    return fromSillyTavernCharacterCard(
+      importFileContent(file.fileName, file.content),
+      file.fileName,
+    );
   }
 
   exportCard(card: CharacterCard, options: { version: CharacterCardExportVersion }): object {
@@ -26,7 +29,10 @@ export class SillyTavernCharacterCardCodec implements CharacterCardCodec {
   }
 }
 
-export function fromSillyTavernCharacterCard(input: unknown, fileName?: string): ImportedCharacterCard {
+export function fromSillyTavernCharacterCard(
+  input: unknown,
+  fileName?: string,
+): ImportedCharacterCard {
   const envelope = characterCardEnvelope(input, fileName);
 
   return {
@@ -293,7 +299,10 @@ function unknownRecordField(input: Record<string, unknown>, key: string): Record
   });
 }
 
-function objectOrNullField(input: Record<string, unknown>, key: string): Record<string, unknown> | null {
+function objectOrNullField(
+  input: Record<string, unknown>,
+  key: string,
+): Record<string, unknown> | null {
   const value = input[key];
 
   if (value === undefined || value === null) {
@@ -319,13 +328,21 @@ function epochMillisField(input: Record<string, unknown>, key: string): number |
   return typeof value === 'number' && Number.isSafeInteger(value) && value >= 0 ? value : null;
 }
 
-function assignNonEmptyString(data: Record<string, unknown>, key: string, value: string | null): void {
+function assignNonEmptyString(
+  data: Record<string, unknown>,
+  key: string,
+  value: string | null,
+): void {
   if (value !== null && value !== '') {
     data[key] = value;
   }
 }
 
-function assignNonEmptyRecord(data: Record<string, unknown>, key: string, value: Record<string, unknown>): void {
+function assignNonEmptyRecord(
+  data: Record<string, unknown>,
+  key: string,
+  value: Record<string, unknown>,
+): void {
   if (Object.keys(value).length > 0) {
     data[key] = value;
   }

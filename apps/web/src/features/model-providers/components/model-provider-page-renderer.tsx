@@ -1,13 +1,13 @@
-import { ModelProviderCreatePage } from "./model-provider-create-page";
-import { ModelProviderEditPage } from "./model-provider-edit-page";
-import { ModelProviderListPage } from "./model-provider-list-page";
-import { ModelProviderApiKeyManagementPage } from "./model-provider-api-key-management-page";
+import { ModelProviderCreatePage } from './model-provider-create-page';
+import { ModelProviderEditPage } from './model-provider-edit-page';
+import { ModelProviderListPage } from './model-provider-list-page';
+import { ModelProviderApiKeyManagementPage } from './model-provider-api-key-management-page';
 import {
   createModelProviderPage,
   editModelProviderPage,
   modelProviderApiKeysPage,
   type ModelProviderPage,
-} from "./model-provider-pages";
+} from './model-provider-pages';
 
 export function ModelProviderPageRenderer({
   page,
@@ -22,7 +22,7 @@ export function ModelProviderPageRenderer({
   pushPage: (page: ModelProviderPage) => void;
   replacePage: (page: ModelProviderPage) => void;
 }) {
-  if (page.name === "list") {
+  if (page.name === 'list') {
     return (
       <ModelProviderListPage
         onBack={onRootBack}
@@ -33,11 +33,11 @@ export function ModelProviderPageRenderer({
     );
   }
 
-  if (page.name === "api-keys") {
+  if (page.name === 'api-keys') {
     return <ModelProviderApiKeyManagementPage onBack={popPage} />;
   }
 
-  if (page.name === "create") {
+  if (page.name === 'create') {
     return (
       <ModelProviderCreatePage
         page={page}
@@ -48,7 +48,7 @@ export function ModelProviderPageRenderer({
     );
   }
 
-  if (page.name === "edit") {
+  if (page.name === 'edit') {
     return (
       <ModelProviderEditPage
         page={page}

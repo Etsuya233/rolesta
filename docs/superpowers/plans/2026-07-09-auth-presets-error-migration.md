@@ -13,6 +13,7 @@
 ### Task 1: Auth error model
 
 **Files:**
+
 - Create: `apps/api/src/auth/domain/auth-domain-error.ts`
 - Create: `apps/api/src/auth/ports/auth-port-error.ts`
 - Modify: `apps/api/src/auth/application/auth-application-error.ts`
@@ -35,6 +36,7 @@
 ### Task 2: Presets error model
 
 **Files:**
+
 - Create: `apps/api/src/presets/domain/preset-domain-error.ts`
 - Create: `apps/api/src/presets/ports/preset-port-error.ts`
 - Modify: `apps/api/src/presets/application/preset-application-error.ts`
@@ -61,6 +63,7 @@
 ### Task 3: Tests and verification
 
 **Files:**
+
 - Create: `apps/api/src/auth/application/auth-use-cases.spec.ts`
 - Create: `apps/api/src/presets/application/preset-use-cases.spec.ts`
 - Modify: `apps/api/src/presets/adapters/silly-tavern/silly-tavern-preset-codec.spec.ts`

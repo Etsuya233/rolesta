@@ -1,13 +1,13 @@
-import { ApplicationError } from "../../common/errors/index.js";
+import { ApplicationError } from '../../common/errors/index.js';
 
 export type ChatAssetField =
-  "chatCharacterId" | "personaCharacterId" | "presetId" | "modelProviderId";
+  'chatCharacterId' | 'personaCharacterId' | 'presetId' | 'modelProviderId';
 
-export type ChatApplicationErrorReason = "not-found" | "asset-unavailable";
+export type ChatApplicationErrorReason = 'not-found' | 'asset-unavailable';
 
 export type ChatApplicationErrorParamsMap = {
-  "not-found": Record<string, never>;
-  "asset-unavailable": { field: ChatAssetField };
+  'not-found': Record<string, never>;
+  'asset-unavailable': { field: ChatAssetField };
 };
 
 export class ChatApplicationError<

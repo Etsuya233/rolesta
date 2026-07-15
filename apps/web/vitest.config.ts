@@ -8,10 +8,7 @@ export default defineConfig({
   resolve: {
     alias: {
       '@': path.resolve(import.meta.dirname, './src'),
-      '@rolesta/shared': path.resolve(
-        import.meta.dirname,
-        '../../packages/shared/src/index.ts',
-      ),
+      '@rolesta/shared': path.resolve(import.meta.dirname, '../../packages/shared/src/index.ts'),
     },
   },
   test: {

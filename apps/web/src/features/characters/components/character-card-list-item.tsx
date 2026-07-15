@@ -1,10 +1,10 @@
-import { useTranslation } from "react-i18next";
-import { Avatar, AvatarFallback, AvatarImage } from "../../../components/ui/avatar";
-import { Badge } from "../../../components/ui/badge";
-import { cn } from "../../../lib/utils";
-import { AssetTagList } from "../../assets/components/asset-tag-list";
-import { AssetDefaultBadge } from "../../chat-preferences/components/asset-default-badge";
-import type { CharacterSummaryResponse } from "../api/characters-api";
+import { useTranslation } from 'react-i18next';
+import { Avatar, AvatarFallback, AvatarImage } from '../../../components/ui/avatar';
+import { Badge } from '../../../components/ui/badge';
+import { cn } from '../../../lib/utils';
+import { AssetTagList } from '../../assets/components/asset-tag-list';
+import { AssetDefaultBadge } from '../../chat-preferences/components/asset-default-badge';
+import type { CharacterSummaryResponse } from '../api/characters-api';
 
 export interface CharacterCardListItemProps {
   character: CharacterSummaryResponse;
@@ -30,14 +30,14 @@ export function CharacterCardListItem({
           <AvatarImage
             alt={character.name}
             sizes="40px"
-            src={character.avatar.sources["64"] ?? character.avatar.sources["128"]}
+            src={character.avatar.sources['64'] ?? character.avatar.sources['128']}
             srcSet={[
-              character.avatar.sources["64"] ? `${character.avatar.sources["64"]} 64w` : null,
-              character.avatar.sources["128"] ? `${character.avatar.sources["128"]} 128w` : null,
-              character.avatar.sources["256"] ? `${character.avatar.sources["256"]} 256w` : null,
+              character.avatar.sources['64'] ? `${character.avatar.sources['64']} 64w` : null,
+              character.avatar.sources['128'] ? `${character.avatar.sources['128']} 128w` : null,
+              character.avatar.sources['256'] ? `${character.avatar.sources['256']} 256w` : null,
             ]
               .filter(Boolean)
-              .join(", ")}
+              .join(', ')}
           />
         ) : null}
         <AvatarFallback className="bg-primary/10 font-semibold text-primary">
@@ -61,15 +61,14 @@ export function CharacterCardListItem({
             {isDefault ? <AssetDefaultBadge kind="persona" /> : null}
             <Badge
               className={cn(
-                "shrink-0",
-                character.visibility === "public" &&
-                  "border-primary/30 text-primary",
+                'shrink-0',
+                character.visibility === 'public' && 'border-primary/30 text-primary',
               )}
               variant="outline"
             >
-              {character.visibility === "public"
-                ? t("characters.list.publicVisibility")
-                : t("characters.list.privateVisibility")}
+              {character.visibility === 'public'
+                ? t('characters.list.publicVisibility')
+                : t('characters.list.privateVisibility')}
             </Badge>
           </div>
         </div>
@@ -80,10 +79,10 @@ export function CharacterCardListItem({
             <span>v{character.version}</span>
             <span>
               {character.usageCount > 0
-                ? t("characters.list.usageCount", {
+                ? t('characters.list.usageCount', {
                     count: character.usageCount,
                   })
-                : t("characters.list.unused")}
+                : t('characters.list.unused')}
             </span>
           </div>
         </div>

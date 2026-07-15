@@ -11,10 +11,7 @@ export class KyselyPresetModelProviderAccess implements PresetModelProviderAcces
     @Inject(APP_CONFIG) private readonly config: AppConfig,
   ) {}
 
-  async acquireOwned(
-    modelProviderId: string,
-    ownerUserId: string,
-  ): Promise<boolean> {
+  async acquireOwned(modelProviderId: string, ownerUserId: string): Promise<boolean> {
     let query = this.context.database
       .selectFrom('model_provider_configs')
       .select('id')

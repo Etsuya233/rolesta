@@ -5,7 +5,7 @@ import type {
   PresetEntryRole,
   PresetModelSettings,
   PresetVisibility,
-} from "../api/presets-api";
+} from '../api/presets-api';
 
 export interface PresetEditorFormState {
   name: string;
@@ -35,30 +35,27 @@ export const emptyPresetModelSettings: PresetModelSettings = {
   topA: null,
   seed: null,
   n: null,
-  reasoningEffort: "",
-  verbosity: "",
+  reasoningEffort: '',
+  verbosity: '',
   showThoughts: false,
 };
 
 export const emptyPresetEditorForm: PresetEditorFormState = {
-  name: "",
-  visibility: "private",
+  name: '',
+  visibility: 'private',
   modelProviderId: null,
   modelSettings: emptyPresetModelSettings,
 };
 
 export const emptyPresetEntryEditorForm: PresetEntryEditorFormState = {
-  name: "",
-  role: "system",
-  position: "system",
-  content: "",
+  name: '',
+  role: 'system',
+  position: 'system',
+  content: '',
 };
 
 export function presetEntryEditorFormFromEntry(
-  entry: Pick<
-    PresetDocument["entries"][number],
-    "name" | "role" | "position" | "content"
-  >,
+  entry: Pick<PresetDocument['entries'][number], 'name' | 'role' | 'position' | 'content'>,
 ): PresetEntryEditorFormState {
   return {
     name: entry.name,
@@ -77,9 +74,7 @@ export function presetEntryValuesFromForm(form: PresetEntryEditorFormState) {
   };
 }
 
-export function presetDocumentFromDetail(
-  preset: PresetDetailResponse,
-): PresetDocument {
+export function presetDocumentFromDetail(preset: PresetDetailResponse): PresetDocument {
   return {
     name: preset.name,
     visibility: preset.visibility,
@@ -101,9 +96,6 @@ export function presetDocumentFromDetail(
   };
 }
 
-export function presetDocumentEquals(
-  left: PresetDocument,
-  right: PresetDocument,
-): boolean {
+export function presetDocumentEquals(left: PresetDocument, right: PresetDocument): boolean {
   return JSON.stringify(left) === JSON.stringify(right);
 }

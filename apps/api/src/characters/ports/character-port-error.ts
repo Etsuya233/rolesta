@@ -37,8 +37,9 @@ export interface CharacterPortErrorParamsMap {
   };
 }
 
-export type CharacterPortErrorParams<R extends CharacterPortErrorReason = CharacterPortErrorReason> =
-  CharacterPortErrorParamsMap[R];
+export type CharacterPortErrorParams<
+  R extends CharacterPortErrorReason = CharacterPortErrorReason,
+> = CharacterPortErrorParamsMap[R];
 
 export interface CharacterPortErrorOptions<R extends CharacterPortErrorReason> {
   reason: R;
@@ -46,10 +47,9 @@ export interface CharacterPortErrorOptions<R extends CharacterPortErrorReason> {
   cause?: unknown;
 }
 
-export class CharacterPortError<R extends CharacterPortErrorReason = CharacterPortErrorReason> extends PortError<
-  R,
-  CharacterPortErrorParams<R>
-> {
+export class CharacterPortError<
+  R extends CharacterPortErrorReason = CharacterPortErrorReason,
+> extends PortError<R, CharacterPortErrorParams<R>> {
   constructor(options: CharacterPortErrorOptions<R>) {
     super(options);
   }

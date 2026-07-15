@@ -12,9 +12,6 @@ export class ModelProviderDeletedEventsListener {
 
   @OnEvent(MODEL_PROVIDER_DELETED, { suppressErrors: false })
   onModelProviderDeleted(event: ModelProviderDeletedEvent): Promise<void> {
-    return this.store.clearModelProviderAssociations(
-      event.ownerUserId,
-      event.modelProviderId,
-    );
+    return this.store.clearModelProviderAssociations(event.ownerUserId, event.modelProviderId);
   }
 }

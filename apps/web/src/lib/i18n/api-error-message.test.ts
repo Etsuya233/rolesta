@@ -7,9 +7,9 @@ describe('formatApiMessage', () => {
   it('translates marked i18n keys with params', async () => {
     await changeLocale('en-US');
 
-    expect(
-      formatApiMessage(`${I18N_MESSAGE_PREFIX}errors.passwordTooShort`, { min: 8 }),
-    ).toBe('Password must be at least 8 characters.');
+    expect(formatApiMessage(`${I18N_MESSAGE_PREFIX}errors.passwordTooShort`, { min: 8 })).toBe(
+      'Password must be at least 8 characters.',
+    );
   });
 
   it('displays plain messages directly', () => {

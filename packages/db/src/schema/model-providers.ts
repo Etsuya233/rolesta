@@ -2,12 +2,11 @@ export interface ModelProviderConfigsTable {
   id: string;
   owner_user_id: string;
   name: string;
-  provider_kind:
-    "openai-compatible" | "openai" | "claude" | "z-ai" | "deepseek";
-  provider_source: "custom" | "official";
+  provider_kind: 'openai-compatible' | 'openai' | 'claude' | 'z-ai' | 'deepseek';
+  provider_source: 'custom' | 'official';
   base_url: string;
   default_model_name: string;
-  credential_mode: "manual" | "vault";
+  credential_mode: 'manual' | 'vault';
   secret: string;
   api_key_id: string | null;
   created_at_ms: number;

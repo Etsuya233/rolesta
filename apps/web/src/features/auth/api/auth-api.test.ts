@@ -19,6 +19,8 @@ describe('auth API types', () => {
     type AuthenticatedUserResponse = components['schemas']['AuthenticatedUserResponseDto'];
 
     expectTypeOf<Awaited<ReturnType<typeof login>>>().toEqualTypeOf<AuthenticatedUserResponse>();
-    expectTypeOf<Awaited<ReturnType<typeof setupAdmin>>>().toEqualTypeOf<AuthenticatedUserResponse>();
+    expectTypeOf<
+      Awaited<ReturnType<typeof setupAdmin>>
+    >().toEqualTypeOf<AuthenticatedUserResponse>();
   });
 });

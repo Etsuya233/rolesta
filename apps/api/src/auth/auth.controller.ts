@@ -75,4 +75,3 @@ export class AuthController {
     return this.logoutUseCase.execute(readBearerToken(request));
   }
 }
-

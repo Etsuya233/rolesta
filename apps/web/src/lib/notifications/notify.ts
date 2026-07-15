@@ -1,7 +1,7 @@
-import type { ApiErrorEnvelope } from "@rolesta/shared";
-import { toast, type ExternalToast } from "sonner";
-import type { ApiError } from "../api/client";
-import { formatApiMessage } from "../i18n/api-error-message";
+import type { ApiErrorEnvelope } from '@rolesta/shared';
+import { toast, type ExternalToast } from 'sonner';
+import type { ApiError } from '../api/client';
+import { formatApiMessage } from '../i18n/api-error-message';
 
 export type NotificationAction = {
   label: string;
@@ -17,16 +17,11 @@ export type NotificationContent = {
 };
 
 export type ApiResponseError = ApiError & {
-  kind: "response";
+  kind: 'response';
   envelope: ApiErrorEnvelope;
 };
 
-function toToastOptions({
-  description,
-  duration,
-  action,
-  id,
-}: NotificationContent): ExternalToast {
+function toToastOptions({ description, duration, action, id }: NotificationContent): ExternalToast {
   return {
     ...(description === undefined ? {} : { description }),
     ...(duration === undefined ? {} : { duration }),
@@ -53,8 +48,6 @@ export const notify = {
   },
 
   apiError(error: ApiResponseError) {
-    return toast.error(
-      formatApiMessage(error.envelope.msg, error.envelope.data),
-    );
+    return toast.error(formatApiMessage(error.envelope.msg, error.envelope.data));
   },
 };

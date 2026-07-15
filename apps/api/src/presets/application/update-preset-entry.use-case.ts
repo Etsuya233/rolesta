@@ -6,11 +6,7 @@ import { PresetApplicationError } from './preset-application-error.js';
 import { translatePresetError } from './preset-error.mapper.js';
 import type { PresetClock } from './preset-application-services.js';
 import type { PresetStore } from '../ports/preset-store.js';
-import type {
-  Preset,
-  PresetEntryPosition,
-  PresetEntryRole,
-} from '../domain/preset.js';
+import type { Preset, PresetEntryPosition, PresetEntryRole } from '../domain/preset.js';
 import { withPresetTokenCount } from '../domain/preset.js';
 
 export interface UpdatePresetEntryCommand {
@@ -33,10 +29,7 @@ export class UpdatePresetEntryUseCase {
   @UseCase(translatePresetError)
   async execute(command: UpdatePresetEntryCommand): Promise<Preset> {
     return this.unitOfWork.run(async () => {
-      const current = await this.store.findOwnedById(
-        command.presetId,
-        command.viewerUserId,
-      );
+      const current = await this.store.findOwnedById(command.presetId, command.viewerUserId);
 
       if (current === null) {
         throw new PresetApplicationError({

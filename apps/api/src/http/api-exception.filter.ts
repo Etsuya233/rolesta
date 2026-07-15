@@ -1,4 +1,10 @@
-import { ArgumentsHost, Catch, HttpException, HttpStatus, type ExceptionFilter } from '@nestjs/common';
+import {
+  ArgumentsHost,
+  Catch,
+  HttpException,
+  HttpStatus,
+  type ExceptionFilter,
+} from '@nestjs/common';
 import { ERROR_CODES, I18N_MESSAGE_PREFIX, type ApiErrorEnvelope } from '@rolesta/shared';
 import type { Request, Response } from 'express';
 import { InjectPinoLogger, PinoLogger } from 'nestjs-pino';
@@ -45,7 +51,12 @@ export class ApiExceptionFilter implements ExceptionFilter {
     host.switchToHttp().getResponse<Response>().status(httpStatus).json(envelope);
   }
 
-  private logException(exception: unknown, apiFailure: ApiFailure, httpStatus: number, request: Request): void {
+  private logException(
+    exception: unknown,
+    apiFailure: ApiFailure,
+    httpStatus: number,
+    request: Request,
+  ): void {
     const fields = {
       code: apiFailure.code,
       statusCode: httpStatus,

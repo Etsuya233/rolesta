@@ -43,9 +43,7 @@ export type PresetApplicationErrorParams<
   R extends PresetApplicationErrorReason = PresetApplicationErrorReason,
 > = PresetApplicationErrorParamsMap[R];
 
-export interface PresetApplicationErrorOptions<
-  R extends PresetApplicationErrorReason,
-> {
+export interface PresetApplicationErrorOptions<R extends PresetApplicationErrorReason> {
   reason: R;
   params: PresetApplicationErrorParams<R>;
   cause?: unknown;

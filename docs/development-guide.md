@@ -80,12 +80,21 @@ pnpm dev
 常用验证命令：
 
 ```powershell
+pnpm format:check
 pnpm lint
 pnpm typecheck
 pnpm test
 pnpm test:e2e
 pnpm build
 ```
+
+格式化源码：
+
+```powershell
+pnpm format
+```
+
+提交代码前运行 `pnpm format:check`；命令会在发现未按 Prettier 格式化的文件时返回失败。
 
 只修改单个 workspace 时，优先使用过滤命令缩短反馈时间：
 

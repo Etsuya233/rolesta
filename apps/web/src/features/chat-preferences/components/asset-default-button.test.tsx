@@ -1,9 +1,9 @@
-import "@testing-library/jest-dom/vitest";
-import { cleanup, fireEvent, render, screen } from "@testing-library/react";
-import { I18nextProvider } from "react-i18next";
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { i18n } from "../../../lib/i18n/i18n";
-import { AssetDefaultButton } from "./asset-default-button";
+import '@testing-library/jest-dom/vitest';
+import { cleanup, fireEvent, render, screen } from '@testing-library/react';
+import { I18nextProvider } from 'react-i18next';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { i18n } from '../../../lib/i18n/i18n';
+import { AssetDefaultButton } from './asset-default-button';
 
 const hookState = vi.hoisted(() => ({
   query: {
@@ -23,16 +23,16 @@ const hookState = vi.hoisted(() => ({
   },
 }));
 
-vi.mock("../hooks/use-asset-defaults", () => ({
+vi.mock('../hooks/use-asset-defaults', () => ({
   useAssetDefaults: () => hookState.query,
   useUpdateAssetDefaults: () => hookState.mutation,
 }));
 
-describe("AssetDefaultButton", () => {
+describe('AssetDefaultButton', () => {
   afterEach(cleanup);
 
   beforeEach(async () => {
-    await i18n.changeLanguage("en-US");
+    await i18n.changeLanguage('en-US');
     hookState.query.data = undefined;
     hookState.query.isError = false;
     hookState.query.isLoading = false;
@@ -40,64 +40,58 @@ describe("AssetDefaultButton", () => {
     hookState.mutation.mutate.mockReset();
   });
 
-  it("shows a disabled spinner while preferences load", () => {
+  it('shows a disabled spinner while preferences load', () => {
     hookState.query.isLoading = true;
     const { container } = renderButton();
 
-    expect(
-      screen.getByRole("button", { name: "Loading default state" }),
-    ).toBeDisabled();
-    expect(
-      container.querySelector(".lucide-loader-circle"),
-    ).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Loading default state' })).toBeDisabled();
+    expect(container.querySelector('.lucide-loader-circle')).toBeInTheDocument();
   });
 
-  it("shows a clickable empty circle after a read failure and sets the default", () => {
+  it('shows a clickable empty circle after a read failure and sets the default', () => {
     hookState.query.isError = true;
     const { container } = renderButton();
-    const button = screen.getByRole("button", {
-      name: "Set as default Persona",
+    const button = screen.getByRole('button', {
+      name: 'Set as default Persona',
     });
 
     expect(button).toBeEnabled();
-    expect(container.querySelector(".lucide-circle")).toBeInTheDocument();
+    expect(container.querySelector('.lucide-circle')).toBeInTheDocument();
     fireEvent.click(button);
     expect(hookState.mutation.mutate).toHaveBeenCalledWith({
-      personaCharacterId: "character",
+      personaCharacterId: 'character',
     });
   });
 
-  it("shows the checked circle and clears the current default", () => {
+  it('shows the checked circle and clears the current default', () => {
     hookState.query.data = {
-      personaCharacterId: "character",
+      personaCharacterId: 'character',
       presetId: null,
       modelProviderId: null,
     };
     const { container } = renderButton();
-    const button = screen.getByRole("button", {
-      name: "Remove default Persona",
+    const button = screen.getByRole('button', {
+      name: 'Remove default Persona',
     });
 
-    expect(container.querySelector(".lucide-circle-check")).toBeInTheDocument();
+    expect(container.querySelector('.lucide-circle-check')).toBeInTheDocument();
     fireEvent.click(button);
     expect(hookState.mutation.mutate).toHaveBeenCalledWith({
       personaCharacterId: null,
     });
   });
 
-  it("disables only while its preference patch is pending", () => {
+  it('disables only while its preference patch is pending', () => {
     hookState.mutation.isPending = true;
     renderButton();
 
-    expect(
-      screen.getByRole("button", { name: "Set as default Persona" }),
-    ).toBeDisabled();
+    expect(screen.getByRole('button', { name: 'Set as default Persona' })).toBeDisabled();
   });
 
-  it("does not render for an asset owned by another user", () => {
-    renderButton({ ownerUserId: "other" });
+  it('does not render for an asset owned by another user', () => {
+    renderButton({ ownerUserId: 'other' });
 
-    expect(screen.queryByRole("button")).not.toBeInTheDocument();
+    expect(screen.queryByRole('button')).not.toBeInTheDocument();
   });
 });
 
@@ -108,7 +102,7 @@ function renderButton(overrides: { ownerUserId?: string } = {}) {
         assetId="character"
         currentUserId="owner"
         kind="persona"
-        ownerUserId={overrides.ownerUserId ?? "owner"}
+        ownerUserId={overrides.ownerUserId ?? 'owner'}
       />
     </I18nextProvider>,
   );

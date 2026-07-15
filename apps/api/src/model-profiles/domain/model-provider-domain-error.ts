@@ -19,11 +19,7 @@ export type ModelProviderDomainErrorParams<
 export class ModelProviderDomainError<
   R extends ModelProviderDomainErrorReason = ModelProviderDomainErrorReason,
 > extends DomainError<R, ModelProviderDomainErrorParams<R>> {
-  constructor(
-    reason: R,
-    params: ModelProviderDomainErrorParams<R>,
-    cause?: unknown,
-  ) {
+  constructor(reason: R, params: ModelProviderDomainErrorParams<R>, cause?: unknown) {
     super({ reason, params, cause });
   }
 }

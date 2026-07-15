@@ -1,15 +1,14 @@
-import { PortError } from "../../common/errors/index.js";
+import { PortError } from '../../common/errors/index.js';
 
-export type WorldbookPortErrorReason =
-  "invalid-import-file" | "invalid-worldbook";
+export type WorldbookPortErrorReason = 'invalid-import-file' | 'invalid-worldbook';
 
 export interface WorldbookPortErrorParamsMap {
-  "invalid-import-file": {
+  'invalid-import-file': {
     fileName?: string;
     field?: string;
     detail?: string;
   };
-  "invalid-worldbook": {
+  'invalid-worldbook': {
     fileName?: string;
     field?: string;
     value?: string;

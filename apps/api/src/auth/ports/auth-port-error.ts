@@ -30,9 +30,10 @@ export interface AuthPortErrorOptions<R extends AuthPortErrorReason> {
   cause?: unknown;
 }
 
-export class AuthPortError<
-  R extends AuthPortErrorReason = AuthPortErrorReason,
-> extends PortError<R, AuthPortErrorParams<R>> {
+export class AuthPortError<R extends AuthPortErrorReason = AuthPortErrorReason> extends PortError<
+  R,
+  AuthPortErrorParams<R>
+> {
   constructor(options: AuthPortErrorOptions<R>) {
     super(options);
   }

@@ -19,8 +19,6 @@ export class KyselyUnitOfWork implements UnitOfWork {
 
     return this.database
       .transaction()
-      .execute((transaction) =>
-        this.context.withinTransaction(transaction, operation),
-      );
+      .execute((transaction) => this.context.withinTransaction(transaction, operation));
   }
 }

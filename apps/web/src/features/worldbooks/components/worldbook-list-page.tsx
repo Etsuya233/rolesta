@@ -1,10 +1,10 @@
-import { Import, Plus } from "lucide-react";
-import type { ReactNode } from "react";
-import { useTranslation } from "react-i18next";
-import { Button } from "../../../components/ui/button";
-import { MobileTopBar } from "../../assets/components/mobile-top-bar";
-import { WorldbookListPanel } from "./worldbook-list-panel";
-import { WorldbookStackPage } from "./worldbook-stack-page";
+import { Import, Plus } from 'lucide-react';
+import type { ReactNode } from 'react';
+import { useTranslation } from 'react-i18next';
+import { Button } from '../../../components/ui/button';
+import { MobileTopBar } from '../../assets/components/mobile-top-bar';
+import { WorldbookListPanel } from './worldbook-list-panel';
+import { WorldbookStackPage } from './worldbook-stack-page';
 
 export function WorldbookListPage({
   onBack,
@@ -24,21 +24,15 @@ export function WorldbookListPage({
       <MobileTopBar
         actions={
           <>
-            <IconAction
-              label={t("worldbooks.list.importAction")}
-              onClick={onImport}
-            >
+            <IconAction label={t('worldbooks.list.importAction')} onClick={onImport}>
               <Import aria-hidden="true" />
             </IconAction>
-            <IconAction
-              label={t("worldbooks.list.createAction")}
-              onClick={onCreate}
-            >
+            <IconAction label={t('worldbooks.list.createAction')} onClick={onCreate}>
               <Plus aria-hidden="true" />
             </IconAction>
           </>
         }
-        title={t("worldbooks.list.title")}
+        title={t('worldbooks.list.title')}
         onBack={onBack}
       />
       <WorldbookListPanel onSelectWorldbook={onSelectWorldbook} />

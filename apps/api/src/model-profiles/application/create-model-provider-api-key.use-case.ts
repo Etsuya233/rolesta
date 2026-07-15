@@ -1,11 +1,11 @@
-import { UseCase } from "../../common/errors/index.js";
-import type { ApiKey } from "../domain/model-provider-config.js";
-import type { ApiKeyStore } from "../ports/api-key-store.js";
-import { translateModelProviderError } from "./model-provider-error.mapper.js";
+import { UseCase } from '../../common/errors/index.js';
+import type { ApiKey } from '../domain/model-provider-config.js';
+import type { ApiKeyStore } from '../ports/api-key-store.js';
+import { translateModelProviderError } from './model-provider-error.mapper.js';
 import type {
   ModelProviderClock,
   ModelProviderIdGenerator,
-} from "./model-provider-application-services.js";
+} from './model-provider-application-services.js';
 
 export class CreateModelProviderApiKeyUseCase {
   constructor(
@@ -15,11 +15,7 @@ export class CreateModelProviderApiKeyUseCase {
   ) {}
 
   @UseCase(translateModelProviderError)
-  async execute(command: {
-    ownerUserId: string;
-    name: string;
-    secret: string;
-  }): Promise<ApiKey> {
+  async execute(command: { ownerUserId: string; name: string; secret: string }): Promise<ApiKey> {
     const now = this.clock.now().getTime();
     const apiKey: ApiKey = {
       id: this.idGenerator.createId(),

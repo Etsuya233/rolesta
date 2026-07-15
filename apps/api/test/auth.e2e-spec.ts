@@ -190,9 +190,8 @@ describe('Auth API', () => {
       .set('Authorization', `Bearer ${token}`)
       .expect(200)
       .expect((response) => {
-        const body = responseBody<SuccessEnvelope<{ user: AuthenticatedUserBody['data']['user'] }>>(
-          response,
-        );
+        const body =
+          responseBody<SuccessEnvelope<{ user: AuthenticatedUserBody['data']['user'] }>>(response);
         expect(body.data.user).toMatchObject({ username: 'admin', role: 'admin' });
       });
   });

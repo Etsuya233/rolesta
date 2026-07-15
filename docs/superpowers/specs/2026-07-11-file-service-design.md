@@ -65,32 +65,32 @@ Rolesta 需要统一保存和读取文件，第一批调用方是用户头像与
 
 一个记录表示一个逻辑文件资源。
 
-| 字段 | 含义 |
-| --- | --- |
-| `id` | 资源 ID |
-| `owner_user_id` | 所有者用户 ID |
-| `purpose` | 调用方提供的用途标识，如 `user-avatar`、`character-avatar` |
-| `status` | `pending`、`active` 或 `orphaned` |
-| `orphaned_at_ms` | 进入孤立状态的时间，其他状态为空 |
-| `created_at_ms` | 创建时间 |
+| 字段             | 含义                                                       |
+| ---------------- | ---------------------------------------------------------- |
+| `id`             | 资源 ID                                                    |
+| `owner_user_id`  | 所有者用户 ID                                              |
+| `purpose`        | 调用方提供的用途标识，如 `user-avatar`、`character-avatar` |
+| `status`         | `pending`、`active` 或 `orphaned`                          |
+| `orphaned_at_ms` | 进入孤立状态的时间，其他状态为空                           |
+| `created_at_ms`  | 创建时间                                                   |
 
 ### `file_objects`
 
 一个记录表示逻辑资源下的一个不可变二进制对象。
 
-| 字段 | 含义 |
-| --- | --- |
-| `id` | 公开 URL 使用的文件 ID |
-| `resource_id` | 所属逻辑资源 |
-| `role` | 调用方定义的对象角色，如 `original`、`64`、`128`、`256` |
-| `visibility` | `private` 或 `public` |
-| `media_type` | 服务端识别的媒体类型 |
-| `byte_size` | 内容长度 |
-| `width`、`height` | 图片尺寸，非图片允许为空 |
-| `content_hash` | 内容哈希，用于 ETag 与完整性检查 |
-| `storage_key` | 存储适配器使用的不透明键 |
-| `original_file_name` | 可选的原始文件名，仅作为元数据 |
-| `created_at_ms` | 创建时间 |
+| 字段                 | 含义                                                    |
+| -------------------- | ------------------------------------------------------- |
+| `id`                 | 公开 URL 使用的文件 ID                                  |
+| `resource_id`        | 所属逻辑资源                                            |
+| `role`               | 调用方定义的对象角色，如 `original`、`64`、`128`、`256` |
+| `visibility`         | `private` 或 `public`                                   |
+| `media_type`         | 服务端识别的媒体类型                                    |
+| `byte_size`          | 内容长度                                                |
+| `width`、`height`    | 图片尺寸，非图片允许为空                                |
+| `content_hash`       | 内容哈希，用于 ETag 与完整性检查                        |
+| `storage_key`        | 存储适配器使用的不透明键                                |
+| `original_file_name` | 可选的原始文件名，仅作为元数据                          |
+| `created_at_ms`      | 创建时间                                                |
 
 `storage_key` 和文件 ID 均由服务端生成。用户提供的文件名不参与路径构造。
 
@@ -98,10 +98,10 @@ Rolesta 需要统一保存和读取文件，第一批调用方是用户头像与
 
 该表供数据库内容适配器使用。
 
-| 字段 | 含义 |
-| --- | --- |
+| 字段          | 含义                   |
+| ------------- | ---------------------- |
 | `storage_key` | 与文件对象对应的存储键 |
-| `content` | 二进制内容 |
+| `content`     | 二进制内容             |
 
 ### 业务引用
 

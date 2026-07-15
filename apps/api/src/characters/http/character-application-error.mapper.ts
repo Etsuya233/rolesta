@@ -6,7 +6,9 @@ import type {
   CharacterApplicationErrorReason,
 } from '../application/character-application-error.js';
 
-export function toApiFailure(error: CharacterApplicationError<CharacterApplicationErrorReason>): ApiFailure {
+export function toApiFailure(
+  error: CharacterApplicationError<CharacterApplicationErrorReason>,
+): ApiFailure {
   switch (error.reason) {
     case 'not-found':
       return new ApiFailure({

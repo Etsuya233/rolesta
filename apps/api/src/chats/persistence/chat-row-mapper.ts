@@ -1,7 +1,7 @@
-import type { Insertable, Selectable, Updateable } from "kysely";
-import type { ChatsTable } from "@rolesta/db";
-import { ensureEpochMillis } from "../../shared/epoch-millis.js";
-import type { Chat } from "../domain/chat.js";
+import type { Insertable, Selectable, Updateable } from 'kysely';
+import type { ChatsTable } from '@rolesta/db';
+import { ensureEpochMillis } from '../../shared/epoch-millis.js';
+import type { Chat } from '../domain/chat.js';
 
 export type ChatRow = Selectable<ChatsTable>;
 

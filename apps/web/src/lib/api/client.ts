@@ -12,9 +12,7 @@ import { getActiveLocale } from '../i18n/i18n';
 import type { paths } from './generated/schema';
 
 export const API_BASE_URL =
-  typeof import.meta.env.API_BASE_URL === 'string'
-    ? import.meta.env.API_BASE_URL
-    : '/api';
+  typeof import.meta.env.API_BASE_URL === 'string' ? import.meta.env.API_BASE_URL : '/api';
 
 const ERROR_CODE_VALUES: readonly string[] = Object.values(ERROR_CODES);
 
@@ -32,7 +30,9 @@ type EnvelopeData<TEnvelope> = TEnvelope extends { code: SuccessCode; data: infe
   ? TData
   : never;
 
-type RequestData<TRequest extends Promise<OpenApiResponse>> = EnvelopeData<SuccessEnvelope<TRequest>>;
+type RequestData<TRequest extends Promise<OpenApiResponse>> = EnvelopeData<
+  SuccessEnvelope<TRequest>
+>;
 
 export type ApiResult<TData> = {
   data: TData;
@@ -106,7 +106,10 @@ export async function requestApi<TRequest extends Promise<OpenApiResponse>>(
   try {
     response = await request;
   } catch (cause) {
-    throw new ApiError('API request failed before receiving a response', { kind: 'request', cause });
+    throw new ApiError('API request failed before receiving a response', {
+      kind: 'request',
+      cause,
+    });
   }
 
   // openapi-fetch puts 2xx JSON in data and non-2xx JSON in error; both are API envelopes here.

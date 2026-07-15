@@ -4,16 +4,9 @@ import type { UnitOfWork } from '../../common/application/unit-of-work.js';
 import { ensureEpochMillis } from '../../shared/epoch-millis.js';
 import { PresetApplicationError } from './preset-application-error.js';
 import { translatePresetError } from './preset-error.mapper.js';
-import type {
-  PresetClock,
-  PresetIdGenerator,
-} from './preset-application-services.js';
+import type { PresetClock, PresetIdGenerator } from './preset-application-services.js';
 import type { PresetStore } from '../ports/preset-store.js';
-import type {
-  Preset,
-  PresetEntryPosition,
-  PresetEntryRole,
-} from '../domain/preset.js';
+import type { Preset, PresetEntryPosition, PresetEntryRole } from '../domain/preset.js';
 import { withPresetTokenCount } from '../domain/preset.js';
 
 export interface CreatePresetEntryCommand {
@@ -36,10 +29,7 @@ export class CreatePresetEntryUseCase {
   @UseCase(translatePresetError)
   async execute(command: CreatePresetEntryCommand): Promise<Preset> {
     return this.unitOfWork.run(async () => {
-      const current = await this.store.findOwnedById(
-        command.presetId,
-        command.viewerUserId,
-      );
+      const current = await this.store.findOwnedById(command.presetId, command.viewerUserId);
 
       if (current === null) {
         throw new PresetApplicationError({

@@ -1,4 +1,7 @@
-import { UserAvatarPortError, type UserAvatarPortErrorReason } from '../ports/user-avatar-port-error.js';
+import {
+  UserAvatarPortError,
+  type UserAvatarPortErrorReason,
+} from '../ports/user-avatar-port-error.js';
 import { UserAvatarApplicationError } from './user-avatar-application-error.js';
 
 export function translateUserAvatarError(error: unknown): unknown {

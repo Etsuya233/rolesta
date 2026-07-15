@@ -26,11 +26,15 @@ export function toCharacterCard(row: CharacterRow): CharacterCard {
     groupOnlyGreetings: jsonColumn<string[]>(row.group_only_greetings_json),
     messageExample: row.message_example,
     creatorNotes: row.creator_notes,
-    creatorNotesMultilingual: jsonColumn<Record<string, string>>(row.creator_notes_multilingual_json),
+    creatorNotesMultilingual: jsonColumn<Record<string, string>>(
+      row.creator_notes_multilingual_json,
+    ),
     systemPrompt: row.system_prompt,
     postHistoryInstructions: row.post_history_instructions,
     characterBook:
-      row.character_book_json === null ? null : jsonColumn<Record<string, unknown>>(row.character_book_json),
+      row.character_book_json === null
+        ? null
+        : jsonColumn<Record<string, unknown>>(row.character_book_json),
     assets: jsonColumn<unknown[]>(row.assets_json),
     source: jsonColumn<string[]>(row.source_json),
     metadata: jsonColumn<Record<string, unknown>>(row.metadata_json),
@@ -77,7 +81,8 @@ export function toCharacterRow(card: CharacterCard): CharacterInsert {
     created_at_ms: ensureEpochMillis(card.createdAtMs),
     updated_at_ms: ensureEpochMillis(card.updatedAtMs),
     creation_date_ms: card.creationDateMs === null ? null : ensureEpochMillis(card.creationDateMs),
-    modification_date_ms: card.modificationDateMs === null ? null : ensureEpochMillis(card.modificationDateMs),
+    modification_date_ms:
+      card.modificationDateMs === null ? null : ensureEpochMillis(card.modificationDateMs),
     last_used_at_ms: card.lastUsedAtMs === null ? null : ensureEpochMillis(card.lastUsedAtMs),
     usage_count: card.usageCount,
   };

@@ -2,7 +2,8 @@ export type UseCaseErrorMapper = (error: unknown) => unknown;
 
 export function UseCase(errorMapper: UseCaseErrorMapper): MethodDecorator {
   return (_target, _propertyKey, descriptor: PropertyDescriptor) => {
-    const original = descriptor.value as ((this: unknown, ...args: unknown[]) => unknown) | undefined;
+    const original = descriptor.value as
+      ((this: unknown, ...args: unknown[]) => unknown) | undefined;
 
     if (typeof original !== 'function') {
       return descriptor;

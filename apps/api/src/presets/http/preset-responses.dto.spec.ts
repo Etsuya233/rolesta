@@ -7,9 +7,7 @@ describe('preset response mapping', () => {
   it('shows model provider associations only to the preset owner', () => {
     const preset = linkedPreset();
 
-    expect(toPresetDetailResponse(preset, 'owner').modelProviderId).toBe(
-      'provider_1',
-    );
+    expect(toPresetDetailResponse(preset, 'owner').modelProviderId).toBe('provider_1');
     expect(toPresetDetailResponse(preset, 'reader').modelProviderId).toBeNull();
   });
 });

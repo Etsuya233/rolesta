@@ -1,4 +1,4 @@
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import {
   createChat,
   deleteChat,
@@ -8,13 +8,13 @@ import {
   type CreateChatValues,
   type ListChatsQuery,
   type UpdateChatValues,
-} from "../api/chats-api";
+} from '../api/chats-api';
 
 export const chatKeys = {
-  all: ["chats"] as const,
-  lists: ["chats", "list"] as const,
-  list: (query: ListChatsQuery) => ["chats", "list", query] as const,
-  detail: (id: string) => ["chats", "detail", id] as const,
+  all: ['chats'] as const,
+  lists: ['chats', 'list'] as const,
+  list: (query: ListChatsQuery) => ['chats', 'list', query] as const,
+  detail: (id: string) => ['chats', 'detail', id] as const,
 };
 
 export function useChats(query: ListChatsQuery) {
@@ -23,7 +23,7 @@ export function useChats(query: ListChatsQuery) {
 
 export function useChat(id: string | null) {
   return useQuery({
-    queryKey: chatKeys.detail(id ?? ""),
+    queryKey: chatKeys.detail(id ?? ''),
     queryFn: () => getChat(id!),
     enabled: id !== null,
   });

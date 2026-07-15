@@ -1,8 +1,4 @@
-export const ASSET_DEFAULT_FIELDS = [
-  "personaCharacterId",
-  "presetId",
-  "modelProviderId",
-] as const;
+export const ASSET_DEFAULT_FIELDS = ['personaCharacterId', 'presetId', 'modelProviderId'] as const;
 
 export type AssetDefaultField = (typeof ASSET_DEFAULT_FIELDS)[number];
 

@@ -29,12 +29,12 @@ Persona 继续使用现有角色卡表达。本次仅记录作为用户身份使
 
 新增 `asset_defaults` 表，每个用户最多对应一行：
 
-| 列名 | 类型 | 约束 | 含义 |
-| --- | --- | --- | --- |
-| `user_id` | string | 主键，引用 `users.id`，删除用户时级联删除 | 偏好所属用户 |
-| `persona_character_id` | string / null | 引用 `characters.id`，删除角色卡时设为 null | 默认 Persona 角色卡 |
-| `preset_id` | string / null | 引用 `presets.id`，删除预设时设为 null | 默认预设 |
-| `model_provider_id` | string / null | 引用 `model_provider_configs.id`，删除模型连接时设为 null | 默认模型连接 |
+| 列名                   | 类型          | 约束                                                      | 含义                |
+| ---------------------- | ------------- | --------------------------------------------------------- | ------------------- |
+| `user_id`              | string        | 主键，引用 `users.id`，删除用户时级联删除                 | 偏好所属用户        |
+| `persona_character_id` | string / null | 引用 `characters.id`，删除角色卡时设为 null               | 默认 Persona 角色卡 |
+| `preset_id`            | string / null | 引用 `presets.id`，删除预设时设为 null                    | 默认预设            |
+| `model_provider_id`    | string / null | 引用 `model_provider_configs.id`，删除模型连接时设为 null | 默认模型连接        |
 
 表记录在用户第一次修改默认值时通过 upsert 创建。尚无记录表示三个默认值均未配置。数据库外键负责在资产删除后清空对应列，读取流程不再额外探测资产是否存在。
 

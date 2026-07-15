@@ -1,4 +1,4 @@
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import {
   createContext,
   useCallback,
@@ -10,21 +10,21 @@ import {
   type FormEvent,
   type ReactNode,
   type SetStateAction,
-} from "react";
-import { useTranslation } from "react-i18next";
+} from 'react';
+import { useTranslation } from 'react-i18next';
 import {
   createModelProvider,
   getModelProvider,
   updateModelProvider,
   type ModelProviderDetailResponse,
-} from "../api/model-providers-api";
+} from '../api/model-providers-api';
 import {
   emptyModelProviderEditorForm,
   modelProviderCreateValuesFromForm,
   modelProviderEditorFormFromDetail,
   modelProviderSaveValuesFromForm,
   type ModelProviderEditorFormState,
-} from "../model/model-provider-editor-form";
+} from '../model/model-provider-editor-form';
 
 interface ModelProviderDraftRecord {
   form: ModelProviderEditorFormState;
@@ -39,10 +39,7 @@ interface ModelProviderDraftSessionsContextValue {
     update: SetStateAction<ModelProviderEditorFormState>,
   ) => void;
   setSessionError: (sessionKey: string, message: string | null) => void;
-  setSessionFromConfig: (
-    sessionKey: string,
-    config: ModelProviderDetailResponse,
-  ) => void;
+  setSessionFromConfig: (sessionKey: string, config: ModelProviderDetailResponse) => void;
   moveSessionToConfig: (
     fromSessionKey: string,
     toSessionKey: string,
@@ -70,24 +67,14 @@ const emptyDraftRecord: ModelProviderDraftRecord = {
 const ModelProviderDraftSessionsContext =
   createContext<ModelProviderDraftSessionsContextValue | null>(null);
 
-export function ModelProviderDraftSessionsProvider({
-  children,
-}: {
-  children: ReactNode;
-}) {
-  const [sessions, setSessions] = useState<Record<string, ModelProviderDraftRecord>>(
-    {},
-  );
+export function ModelProviderDraftSessionsProvider({ children }: { children: ReactNode }) {
+  const [sessions, setSessions] = useState<Record<string, ModelProviderDraftRecord>>({});
 
   const setSessionForm = useCallback(
-    (
-      sessionKey: string,
-      update: SetStateAction<ModelProviderEditorFormState>,
-    ) => {
+    (sessionKey: string, update: SetStateAction<ModelProviderEditorFormState>) => {
       setSessions((items) => {
         const current = items[sessionKey] ?? emptyDraftRecord;
-        const form =
-          typeof update === "function" ? update(current.form) : update;
+        const form = typeof update === 'function' ? update(current.form) : update;
 
         return { ...items, [sessionKey]: { ...current, form } };
       });
@@ -95,15 +82,12 @@ export function ModelProviderDraftSessionsProvider({
     [],
   );
 
-  const setSessionError = useCallback(
-    (sessionKey: string, message: string | null) => {
-      setSessions((items) => {
-        const current = items[sessionKey] ?? emptyDraftRecord;
-        return { ...items, [sessionKey]: { ...current, errorMessage: message } };
-      });
-    },
-    [],
-  );
+  const setSessionError = useCallback((sessionKey: string, message: string | null) => {
+    setSessions((items) => {
+      const current = items[sessionKey] ?? emptyDraftRecord;
+      return { ...items, [sessionKey]: { ...current, errorMessage: message } };
+    });
+  }, []);
 
   const setSessionFromConfig = useCallback(
     (sessionKey: string, config: ModelProviderDetailResponse) => {
@@ -120,11 +104,7 @@ export function ModelProviderDraftSessionsProvider({
   );
 
   const moveSessionToConfig = useCallback(
-    (
-      fromSessionKey: string,
-      toSessionKey: string,
-      config: ModelProviderDetailResponse,
-    ) => {
+    (fromSessionKey: string, toSessionKey: string, config: ModelProviderDetailResponse) => {
       setSessions((items) => {
         const remainingItems = { ...items };
         delete remainingItems[fromSessionKey];
@@ -145,9 +125,7 @@ export function ModelProviderDraftSessionsProvider({
   const retainSessionKeys = useCallback((sessionKeys: string[]) => {
     setSessions((items) => {
       const retainedKeys = new Set(sessionKeys);
-      return Object.fromEntries(
-        Object.entries(items).filter(([key]) => retainedKeys.has(key)),
-      );
+      return Object.fromEntries(Object.entries(items).filter(([key]) => retainedKeys.has(key)));
     });
   }, []);
 
@@ -161,8 +139,8 @@ export function ModelProviderDraftSessionsProvider({
                 ...record,
                 form: {
                   ...record.form,
-                  credentialMode: "manual",
-                  secret: "",
+                  credentialMode: 'manual',
+                  secret: '',
                   apiKeyId: null,
                   apiKeyName: null,
                 },
@@ -214,16 +192,15 @@ export function useModelProviderDraftSession({
   const context = useContext(ModelProviderDraftSessionsContext);
 
   if (!context) {
-    throw new Error("useModelProviderDraftSession must be used inside provider");
+    throw new Error('useModelProviderDraftSession must be used inside provider');
   }
 
-  const { sessions, setSessionError, setSessionForm, setSessionFromConfig } =
-    context;
+  const { sessions, setSessionError, setSessionForm, setSessionFromConfig } = context;
   const queryClient = useQueryClient();
   const draft = sessions[sessionKey] ?? emptyDraftRecord;
   const configQuery = useQuery({
     enabled: Boolean(configId),
-    queryKey: ["model-provider", configId],
+    queryKey: ['model-provider', configId],
     queryFn: () => getModelProvider(configId!),
   });
 
@@ -231,12 +208,7 @@ export function useModelProviderDraftSession({
     if (configQuery.data && draft.loadedConfigId !== configQuery.data.id) {
       setSessionFromConfig(sessionKey, configQuery.data);
     }
-  }, [
-    configQuery.data,
-    draft.loadedConfigId,
-    sessionKey,
-    setSessionFromConfig,
-  ]);
+  }, [configQuery.data, draft.loadedConfigId, sessionKey, setSessionFromConfig]);
 
   const saveMutation = useMutation({
     mutationFn: (values: ReturnType<typeof modelProviderSaveValuesFromForm>) =>
@@ -244,8 +216,8 @@ export function useModelProviderDraftSession({
         ? updateModelProvider(configId, values)
         : createModelProvider(modelProviderCreateValuesFromForm(draft.form)),
     async onSuccess(config) {
-      await queryClient.invalidateQueries({ queryKey: ["model-providers"] });
-      queryClient.setQueryData(["model-provider", config.id], config);
+      await queryClient.invalidateQueries({ queryKey: ['model-providers'] });
+      queryClient.setQueryData(['model-provider', config.id], config);
       onCreated?.(config);
     },
   });
@@ -263,12 +235,12 @@ export function useModelProviderDraftSession({
       setSessionError(sessionKey, null);
 
       if (!draft.form.name.trim()) {
-        setSessionError(sessionKey, t("modelProviders.editor.errors.nameRequired"));
+        setSessionError(sessionKey, t('modelProviders.editor.errors.nameRequired'));
         return;
       }
 
       if (!draft.form.baseUrl.trim()) {
-        setSessionError(sessionKey, t("modelProviders.editor.errors.baseUrlRequired"));
+        setSessionError(sessionKey, t('modelProviders.editor.errors.baseUrlRequired'));
         return;
       }
 
@@ -282,7 +254,7 @@ export function useModelProviderDraftSession({
   if (draft.errorMessage) {
     visibleError = draft.errorMessage;
   } else if (saveMutation.isError) {
-    visibleError = t("modelProviders.editor.errors.saveFailed");
+    visibleError = t('modelProviders.editor.errors.saveFailed');
   }
 
   return useMemo(
@@ -310,7 +282,7 @@ export function useRetainModelProviderDraftSessions(sessionKeys: string[]) {
   const context = useContext(ModelProviderDraftSessionsContext);
 
   if (!context) {
-    throw new Error("useRetainModelProviderDraftSessions must be used inside provider");
+    throw new Error('useRetainModelProviderDraftSessions must be used inside provider');
   }
 
   const { retainSessionKeys } = context;
@@ -324,7 +296,7 @@ export function useModelProviderDraftSessionActions() {
   const context = useContext(ModelProviderDraftSessionsContext);
 
   if (!context) {
-    throw new Error("useModelProviderDraftSessionActions must be used inside provider");
+    throw new Error('useModelProviderDraftSessionActions must be used inside provider');
   }
 
   return useMemo(

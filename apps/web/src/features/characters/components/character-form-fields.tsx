@@ -1,13 +1,9 @@
-import type { ChangeEventHandler } from "react";
-import { EditorFormSection } from "../../../components/editor-form-section";
-import { Alert, AlertDescription } from "../../../components/ui/alert";
-import { Button } from "../../../components/ui/button";
-import {
-  Field,
-  FieldDescription,
-  FieldLabel,
-} from "../../../components/ui/field";
-import { Input } from "../../../components/ui/input";
+import type { ChangeEventHandler } from 'react';
+import { EditorFormSection } from '../../../components/editor-form-section';
+import { Alert, AlertDescription } from '../../../components/ui/alert';
+import { Button } from '../../../components/ui/button';
+import { Field, FieldDescription, FieldLabel } from '../../../components/ui/field';
+import { Input } from '../../../components/ui/input';
 import {
   Select,
   SelectContent,
@@ -15,9 +11,9 @@ import {
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "../../../components/ui/select";
-import { Textarea } from "../../../components/ui/textarea";
-import { cn } from "../../../lib/utils";
+} from '../../../components/ui/select';
+import { Textarea } from '../../../components/ui/textarea';
+import { cn } from '../../../lib/utils';
 
 export { EditorFormSection as CharacterFormSection };
 
@@ -89,7 +85,7 @@ export function CharacterTextAreaField({
         id={id}
         placeholder={placeholder}
         rows={rows}
-        style={{ fieldSizing: "fixed" }}
+        style={{ fieldSizing: 'fixed' }}
         value={value}
         onChange={onChange}
       />
@@ -120,11 +116,7 @@ export function CharacterSelectField<TValue extends string = string>({
   return (
     <Field data-disabled={disabled}>
       <FieldLabel htmlFor={id}>{label}</FieldLabel>
-      <Select
-        disabled={disabled}
-        value={value}
-        onValueChange={(next) => onChange(next as TValue)}
-      >
+      <Select disabled={disabled} value={value} onValueChange={(next) => onChange(next as TValue)}>
         <SelectTrigger id={id}>
           <SelectValue />
         </SelectTrigger>
@@ -178,7 +170,7 @@ export function FormActionButton({
 }) {
   return (
     <Button
-      className={cn("w-full", className)}
+      className={cn('w-full', className)}
       disabled={disabled}
       type="button"
       variant="outline"

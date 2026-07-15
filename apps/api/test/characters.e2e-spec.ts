@@ -156,7 +156,11 @@ describe('Characters API', () => {
       .expect(200)
       .expect((response) => {
         const body = responseBody<
-          SuccessEnvelope<{ items: Array<{ name: string }>; totalItems: number; totalPages: number }>
+          SuccessEnvelope<{
+            items: Array<{ name: string }>;
+            totalItems: number;
+            totalPages: number;
+          }>
         >(response);
         expect(body.data.items).toHaveLength(1);
         expect(body.data.items[0]?.name).toBe('C');
@@ -206,8 +210,7 @@ async function createUserToken(app: INestApplication, username: string): Promise
     .values({
       id: `user_${username}`,
       username,
-      password_hash:
-        'scrypt:16384:8:1:placeholder-salt:placeholder-hash-created-for-character-e2e',
+      password_hash: 'scrypt:16384:8:1:placeholder-salt:placeholder-hash-created-for-character-e2e',
       display_name: username,
       role: 'user',
       created_at: new Date(0).toISOString(),

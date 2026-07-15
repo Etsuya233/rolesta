@@ -1,13 +1,10 @@
-import type { UnitOfWork } from "../../common/application/unit-of-work.js";
-import { ensureEpochMillis } from "../../shared/epoch-millis.js";
-import { createChat } from "../domain/chat.js";
-import type { ChatAssetAccess } from "../ports/chat-asset-access.js";
-import type { ChatDetail, ChatStore } from "../ports/chat-store.js";
-import { acquireSubmittedChatAssets } from "./acquire-chat-assets.js";
-import type {
-  ChatClock,
-  ChatIdGenerator,
-} from "./chat-application-services.js";
+import type { UnitOfWork } from '../../common/application/unit-of-work.js';
+import { ensureEpochMillis } from '../../shared/epoch-millis.js';
+import { createChat } from '../domain/chat.js';
+import type { ChatAssetAccess } from '../ports/chat-asset-access.js';
+import type { ChatDetail, ChatStore } from '../ports/chat-store.js';
+import { acquireSubmittedChatAssets } from './acquire-chat-assets.js';
+import type { ChatClock, ChatIdGenerator } from './chat-application-services.js';
 
 export interface CreateChatCommand {
   ownerUserId: string;
@@ -29,11 +26,7 @@ export class CreateChatUseCase {
 
   execute(command: CreateChatCommand): Promise<ChatDetail> {
     return this.unitOfWork.run(async () => {
-      await acquireSubmittedChatAssets(
-        this.assets,
-        command.ownerUserId,
-        command,
-      );
+      await acquireSubmittedChatAssets(this.assets, command.ownerUserId, command);
       return this.store.save(
         createChat({
           id: this.ids.createId(),

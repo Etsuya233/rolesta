@@ -3,7 +3,10 @@ import { readSillyTavernPngMetadata } from './silly-tavern-png-metadata-reader.j
 
 describe('readSillyTavernPngMetadata', () => {
   it('reads base64 character metadata from a PNG tEXt chunk', () => {
-    const json = Buffer.from(JSON.stringify({ name: 'PNG Card', first_mes: 'Hello' }), 'utf8').toString('base64');
+    const json = Buffer.from(
+      JSON.stringify({ name: 'PNG Card', first_mes: 'Hello' }),
+      'utf8',
+    ).toString('base64');
     const png = createPngWithTextChunk('chara', json);
 
     expect(readSillyTavernPngMetadata(png)).toEqual({ name: 'PNG Card', first_mes: 'Hello' });
@@ -15,7 +18,12 @@ function createPngWithTextChunk(key: string, value: string): Buffer {
   const ihdr = Buffer.from([0, 0, 0, 1, 0, 0, 0, 1, 8, 6, 0, 0, 0]);
   const text = Buffer.from(`${key}\0${value}`, 'latin1');
 
-  return Buffer.concat([signature, pngChunk('IHDR', ihdr), pngChunk('tEXt', text), pngChunk('IEND', Buffer.alloc(0))]);
+  return Buffer.concat([
+    signature,
+    pngChunk('IHDR', ihdr),
+    pngChunk('tEXt', text),
+    pngChunk('IEND', Buffer.alloc(0)),
+  ]);
 }
 
 function pngChunk(type: string, data: Buffer): Buffer {

@@ -38,10 +38,7 @@ export async function createCharacter(values: CharacterCreateValues) {
   return result.data;
 }
 
-export async function updateCharacter(
-  id: string,
-  values: CharacterFormValues,
-) {
+export async function updateCharacter(id: string, values: CharacterFormValues) {
   const result = await requestApi(
     openApiClient.PATCH('/characters/{id}', { body: values, params: { path: { id } } }),
   );

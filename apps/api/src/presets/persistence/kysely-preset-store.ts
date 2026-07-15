@@ -9,11 +9,7 @@ import { getTotalPages, type PageResponse } from '@rolesta/shared';
 import type { Insertable, Selectable, SelectQueryBuilder } from 'kysely';
 import { KyselyDatabaseContext } from '../../database/kysely-database-context.js';
 import { ensureEpochMillis } from '../../shared/epoch-millis.js';
-import type {
-  ListPresetsRequest,
-  PresetSortKey,
-  PresetStore,
-} from '../ports/preset-store.js';
+import type { ListPresetsRequest, PresetSortKey, PresetStore } from '../ports/preset-store.js';
 import type { PresetModelSettings } from '../domain/preset-model-settings.js';
 import {
   withPresetTokenCount,
@@ -26,17 +22,9 @@ import {
 export class KyselyPresetStore implements PresetStore {
   constructor(private readonly context: KyselyDatabaseContext) {}
 
-  async list(
-    request: ListPresetsRequest,
-  ): Promise<PageResponse<PresetSummary>> {
-    const filteredRows = withListFilters(
-      this.context.database.selectFrom('presets'),
-      request,
-    );
-    const countRow = await withListFilters(
-      this.context.database.selectFrom('presets'),
-      request,
-    )
+  async list(request: ListPresetsRequest): Promise<PageResponse<PresetSummary>> {
+    const filteredRows = withListFilters(this.context.database.selectFrom('presets'), request);
+    const countRow = await withListFilters(this.context.database.selectFrom('presets'), request)
       .select((builder) => builder.fn.countAll<number>().as('count'))
       .executeTakeFirstOrThrow();
     const rows = await filteredRows
@@ -79,10 +67,7 @@ export class KyselyPresetStore implements PresetStore {
     return row ? this.aggregate(row) : null;
   }
 
-  async findVisibleById(
-    id: string,
-    viewerUserId: string,
-  ): Promise<Preset | null> {
+  async findVisibleById(id: string, viewerUserId: string): Promise<Preset | null> {
     const row = await this.context.database
       .selectFrom('presets')
       .selectAll()
@@ -103,18 +88,13 @@ export class KyselyPresetStore implements PresetStore {
     await database.insertInto('presets').values(toPresetRow(preset)).execute();
 
     if (preset.entries.length > 0) {
-      await database
-        .insertInto('preset_entries')
-        .values(preset.entries.map(toEntryRow))
-        .execute();
+      await database.insertInto('preset_entries').values(preset.entries.map(toEntryRow)).execute();
     }
 
     if (preset.promptItems.length > 0) {
       await database
         .insertInto('preset_prompt_items')
-        .values(
-          preset.promptItems.map((item) => toPromptItemRow(preset.id, item)),
-        )
+        .values(preset.promptItems.map((item) => toPromptItemRow(preset.id, item)))
         .execute();
     }
   }
@@ -127,28 +107,17 @@ export class KyselyPresetStore implements PresetStore {
       .where('id', '=', preset.id)
       .where('owner_user_id', '=', preset.ownerUserId)
       .execute();
-    await database
-      .deleteFrom('preset_prompt_items')
-      .where('preset_id', '=', preset.id)
-      .execute();
-    await database
-      .deleteFrom('preset_entries')
-      .where('preset_id', '=', preset.id)
-      .execute();
+    await database.deleteFrom('preset_prompt_items').where('preset_id', '=', preset.id).execute();
+    await database.deleteFrom('preset_entries').where('preset_id', '=', preset.id).execute();
 
     if (preset.entries.length > 0) {
-      await database
-        .insertInto('preset_entries')
-        .values(preset.entries.map(toEntryRow))
-        .execute();
+      await database.insertInto('preset_entries').values(preset.entries.map(toEntryRow)).execute();
     }
 
     if (preset.promptItems.length > 0) {
       await database
         .insertInto('preset_prompt_items')
-        .values(
-          preset.promptItems.map((item) => toPromptItemRow(preset.id, item)),
-        )
+        .values(preset.promptItems.map((item) => toPromptItemRow(preset.id, item)))
         .execute();
     }
   }
@@ -222,14 +191,9 @@ export class KyselyPresetStore implements PresetStore {
     });
   }
 
-  private async summaryStats(
-    presetIds: string[],
-  ): Promise<Map<string, PresetSummaryStats>> {
+  private async summaryStats(presetIds: string[]): Promise<Map<string, PresetSummaryStats>> {
     const stats = new Map<string, PresetSummaryStats>(
-      presetIds.map((id) => [
-        id,
-        { entryCount: 0, promptItemCount: 0, tokenCount: 0 },
-      ]),
+      presetIds.map((id) => [id, { entryCount: 0, promptItemCount: 0, tokenCount: 0 }]),
     );
 
     if (presetIds.length === 0) {
@@ -291,15 +255,8 @@ type PresetEntryRow = Selectable<PresetEntriesTable>;
 type PresetEntryInsert = Insertable<PresetEntriesTable>;
 type PresetPromptItemRow = Selectable<PresetPromptItemsTable>;
 type PresetPromptItemInsert = Insertable<PresetPromptItemsTable>;
-type PresetSelectQuery = SelectQueryBuilder<
-  Database,
-  'presets',
-  Record<string, never>
->;
-type PresetSummaryStats = Pick<
-  PresetSummary,
-  'entryCount' | 'promptItemCount' | 'tokenCount'
->;
+type PresetSelectQuery = SelectQueryBuilder<Database, 'presets', Record<string, never>>;
+type PresetSummaryStats = Pick<PresetSummary, 'entryCount' | 'promptItemCount' | 'tokenCount'>;
 
 const sortColumns = {
   createdAt: 'created_at_ms',
@@ -309,10 +266,7 @@ const sortColumns = {
   usageCount: 'usage_count',
 } satisfies Record<PresetSortKey, keyof PresetsTable>;
 
-function withListFilters(
-  query: PresetSelectQuery,
-  request: ListPresetsRequest,
-): PresetSelectQuery {
+function withListFilters(query: PresetSelectQuery, request: ListPresetsRequest): PresetSelectQuery {
   let nextQuery = query;
 
   if (request.scope === 'mine') {
@@ -352,17 +306,12 @@ function toPresetRow(preset: Preset): PresetInsert {
     source_snapshot_json: JSON.stringify(preset.sourceSnapshot),
     created_at_ms: ensureEpochMillis(preset.createdAtMs),
     updated_at_ms: ensureEpochMillis(preset.updatedAtMs),
-    last_used_at_ms:
-      preset.lastUsedAtMs === null
-        ? null
-        : ensureEpochMillis(preset.lastUsedAtMs),
+    last_used_at_ms: preset.lastUsedAtMs === null ? null : ensureEpochMillis(preset.lastUsedAtMs),
     usage_count: preset.usageCount,
   };
 }
 
-function toPresetUpdateRow(
-  preset: Preset,
-): Omit<PresetInsert, 'model_provider_id'> {
+function toPresetUpdateRow(preset: Preset): Omit<PresetInsert, 'model_provider_id'> {
   return {
     id: preset.id,
     owner_user_id: preset.ownerUserId,
@@ -374,18 +323,12 @@ function toPresetUpdateRow(
     source_snapshot_json: JSON.stringify(preset.sourceSnapshot),
     created_at_ms: ensureEpochMillis(preset.createdAtMs),
     updated_at_ms: ensureEpochMillis(preset.updatedAtMs),
-    last_used_at_ms:
-      preset.lastUsedAtMs === null
-        ? null
-        : ensureEpochMillis(preset.lastUsedAtMs),
+    last_used_at_ms: preset.lastUsedAtMs === null ? null : ensureEpochMillis(preset.lastUsedAtMs),
     usage_count: preset.usageCount,
   };
 }
 
-function toPresetSummary(
-  row: PresetListRow,
-  stats: PresetSummaryStats | undefined,
-): PresetSummary {
+function toPresetSummary(row: PresetListRow, stats: PresetSummaryStats | undefined): PresetSummary {
   return {
     id: row.id,
     ownerUserId: row.owner_user_id,
@@ -478,7 +421,5 @@ function numberColumn(value: unknown): number {
     return Number(value);
   }
 
-  throw new Error(
-    'Database number column must be a number, bigint, or string.',
-  );
+  throw new Error('Database number column must be a number, bigint, or string.');
 }

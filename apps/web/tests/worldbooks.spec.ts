@@ -1,69 +1,54 @@
-import {
-  expect,
-  test,
-  type Locator,
-  type Page,
-  type Route,
-} from "@playwright/test";
-import { mockAuthenticatedApp } from "./api-mocks";
+import { expect, test, type Locator, type Page, type Route } from '@playwright/test';
+import { mockAuthenticatedApp } from './api-mocks';
 
-test("filters worldbooks by permission from the search toolbar", async ({
-  page,
-}) => {
+test('filters worldbooks by permission from the search toolbar', async ({ page }) => {
   await mockAuthenticatedApp(page);
   await mockWorldbookList(page);
-  await page.goto("/app/worldbooks");
+  await page.goto('/app/worldbooks');
 
-  const filterButton = page.getByRole("button", {
-    name: "Filter worldbooks",
+  const filterButton = page.getByRole('button', {
+    name: 'Filter worldbooks',
   });
   await filterButton.click();
 
   const publicRequest = page.waitForRequest((request) => {
     const url = new URL(request.url());
-    return (
-      url.pathname.endsWith("/api/worldbooks") &&
-      url.searchParams.get("scope") === "public"
-    );
+    return url.pathname.endsWith('/api/worldbooks') && url.searchParams.get('scope') === 'public';
   });
 
-  await page.getByRole("radio", { name: "Public", exact: true }).click();
+  await page.getByRole('radio', { name: 'Public', exact: true }).click();
   await publicRequest;
-  await expect(filterButton).toHaveAttribute("aria-pressed", "true");
+  await expect(filterButton).toHaveAttribute('aria-pressed', 'true');
 });
 
-test("keeps public visibility selected after reopening the worldbook editor", async ({
-  page,
-}) => {
+test('keeps public visibility selected after reopening the worldbook editor', async ({ page }) => {
   await mockAuthenticatedApp(page);
   await mockWorldbookList(page);
   await page.route(/\/api\/worldbooks\/worldbook_e2e$/, async (route) => {
-    await fulfillWorldbookDetail(route, { visibility: "public" });
+    await fulfillWorldbookDetail(route, { visibility: 'public' });
   });
 
-  await page.goto("/app/worldbooks");
-  await page.getByRole("button", { name: /Complete worldbook/ }).click();
+  await page.goto('/app/worldbooks');
+  await page.getByRole('button', { name: /Complete worldbook/ }).click();
 
-  const visibilitySelect = page.getByRole("combobox", { name: "Visibility" });
-  await expect(visibilitySelect).toHaveText("Public");
+  const visibilitySelect = page.getByRole('combobox', { name: 'Visibility' });
+  await expect(visibilitySelect).toHaveText('Public');
 
-  await page.getByRole("button", { name: "Back" }).click();
-  await expect(page.getByRole("heading", { name: "Worldbooks" })).toBeVisible();
-  await page.getByRole("button", { name: /Complete worldbook/ }).click();
+  await page.getByRole('button', { name: 'Back' }).click();
+  await expect(page.getByRole('heading', { name: 'Worldbooks' })).toBeVisible();
+  await page.getByRole('button', { name: /Complete worldbook/ }).click();
 
-  await expect(visibilitySelect).toHaveText("Public");
+  await expect(visibilitySelect).toHaveText('Public');
 });
 
-test("keeps worldbook entry changes in one draft until save", async ({
-  page,
-}) => {
+test('keeps worldbook entry changes in one draft until save', async ({ page }) => {
   let savedDocument: Record<string, unknown> | null = null;
   let updateRequestCount = 0;
 
   await mockAuthenticatedApp(page);
   await mockWorldbookList(page);
   await page.route(/\/api\/worldbooks\/worldbook_e2e$/, async (route) => {
-    if (route.request().method() === "PUT") {
+    if (route.request().method() === 'PUT') {
       updateRequestCount += 1;
       savedDocument = route.request().postDataJSON() as Record<string, unknown>;
       await fulfillWorldbookDetail(route, savedDocument);
@@ -73,66 +58,61 @@ test("keeps worldbook entry changes in one draft until save", async ({
     await fulfillWorldbookDetail(route);
   });
 
-  await page.goto("/app/worldbooks");
-  await page.getByRole("button", { name: /Complete worldbook/ }).click();
-  const floatingSave = page.getByTestId("worldbook-floating-save");
+  await page.goto('/app/worldbooks');
+  await page.getByRole('button', { name: /Complete worldbook/ }).click();
+  const floatingSave = page.getByTestId('worldbook-floating-save');
   await expect(floatingSave).toHaveCount(1);
-  await expect(floatingSave).toHaveText("Save preset");
-  await page.getByRole("button", { name: "Entries", exact: true }).click();
+  await expect(floatingSave).toHaveText('Save preset');
+  await page.getByRole('button', { name: 'Entries', exact: true }).click();
 
   const saveEntries = floatingSave;
   await expect(saveEntries).toBeDisabled();
 
-  await page.getByText("Second", { exact: true }).click();
+  await page.getByText('Second', { exact: true }).click();
   const saveEntry = floatingSave;
-  await expect(
-    page.getByRole("button", { name: "Delete entry" }),
-  ).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Delete entry' })).toBeVisible();
   await expect(saveEntry).toBeDisabled();
-  await page.getByRole("textbox", { name: "Name" }).fill("Second updated");
+  await page.getByRole('textbox', { name: 'Name' }).fill('Second updated');
   await expect(saveEntry).toBeEnabled();
-  await page.getByRole("button", { name: "Back" }).click();
+  await page.getByRole('button', { name: 'Back' }).click();
 
-  await expect(page.getByRole("heading", { name: "Entries" })).toBeVisible();
-  await expect(page.getByText("Second updated", { exact: true })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Entries' })).toBeVisible();
+  await expect(page.getByText('Second updated', { exact: true })).toBeVisible();
   await expect(saveEntries).toBeEnabled();
 
-  const enabledToggles = page.getByRole("checkbox", { name: "Enable entry" });
+  const enabledToggles = page.getByRole('checkbox', { name: 'Enable entry' });
   await enabledToggles.first().uncheck();
-  await page
-    .getByRole("button", { name: "Blue trigger", exact: true })
-    .first()
-    .click();
+  await page.getByRole('button', { name: 'Blue trigger', exact: true }).first().click();
   await expect.poll(() => updateRequestCount).toBe(0);
 
   await expect(enabledToggles.first()).not.toBeChecked();
   await expect(saveEntries).toBeEnabled();
 
-  await page.getByText("Second updated", { exact: true }).click();
+  await page.getByText('Second updated', { exact: true }).click();
   await saveEntry.click();
 
-  await expect(page.getByRole("heading", { name: "Edit entry" })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Edit entry' })).toBeVisible();
   await expect(saveEntry).toBeDisabled();
   await expect
     .poll(() => savedDocument)
     .toMatchObject({
-      name: "Complete worldbook",
-      visibility: "private",
+      name: 'Complete worldbook',
+      visibility: 'private',
       entries: [
         {
-          id: "entry_1",
-          name: "First",
+          id: 'entry_1',
+          name: 'First',
           enabled: false,
           constant: true,
         },
-        { id: "entry_2", name: "Second updated", enabled: true },
+        { id: 'entry_2', name: 'Second updated', enabled: true },
       ],
     });
   await expect.poll(() => updateRequestCount).toBe(1);
 
   await page.setViewportSize({ width: 390, height: 844 });
-  const lastEntryControl = page.getByRole("checkbox", {
-    name: "Delay until recursion",
+  const lastEntryControl = page.getByRole('checkbox', {
+    name: 'Delay until recursion',
   });
   await lastEntryControl.scrollIntoViewIfNeeded();
   await expectElementAbove(lastEntryControl, floatingSave);
@@ -151,26 +131,24 @@ async function expectElementAbove(element: Locator, floatingAction: Locator) {
 
   expect(elementBox).not.toBeNull();
   expect(floatingActionBox).not.toBeNull();
-  expect(elementBox!.y + elementBox!.height).toBeLessThanOrEqual(
-    floatingActionBox!.y,
-  );
+  expect(elementBox!.y + elementBox!.height).toBeLessThanOrEqual(floatingActionBox!.y);
 }
 
 async function mockWorldbookList(page: Page) {
   await page.route(/\/api\/worldbooks(?:\?.*)?$/, async (route) => {
     await route.fulfill({
-      contentType: "application/json",
+      contentType: 'application/json',
       json: {
-        code: "SUCCESS",
-        msg: "ok",
+        code: 'SUCCESS',
+        msg: 'ok',
         data: {
           items: [
             {
-              id: "worldbook_e2e",
-              ownerUserId: "user_e2e",
-              visibility: "private",
-              name: "Complete worldbook",
-              description: "",
+              id: 'worldbook_e2e',
+              ownerUserId: 'user_e2e',
+              visibility: 'private',
+              name: 'Complete worldbook',
+              description: '',
               tags: [],
               scanDepth: 3,
               tokenBudget: 1024,
@@ -194,27 +172,23 @@ async function mockWorldbookList(page: Page) {
   });
 }
 
-async function fulfillWorldbookDetail(
-  route: Route,
-  document: Record<string, unknown> = {},
-) {
-  const entries = (document.entries as
-    Array<Record<string, unknown>> | undefined) ?? [
-    worldbookEntry("entry_1", "First"),
-    worldbookEntry("entry_2", "Second"),
+async function fulfillWorldbookDetail(route: Route, document: Record<string, unknown> = {}) {
+  const entries = (document.entries as Array<Record<string, unknown>> | undefined) ?? [
+    worldbookEntry('entry_1', 'First'),
+    worldbookEntry('entry_2', 'Second'),
   ];
 
   await route.fulfill({
-    contentType: "application/json",
+    contentType: 'application/json',
     json: {
-      code: "SUCCESS",
-      msg: "ok",
+      code: 'SUCCESS',
+      msg: 'ok',
       data: {
-        id: "worldbook_e2e",
-        ownerUserId: "user_e2e",
-        visibility: document.visibility ?? "private",
-        name: document.name ?? "Complete worldbook",
-        description: document.description ?? "",
+        id: 'worldbook_e2e',
+        ownerUserId: 'user_e2e',
+        visibility: document.visibility ?? 'private',
+        name: document.name ?? 'Complete worldbook',
+        description: document.description ?? '',
         tags: document.tags ?? [],
         scanDepth: document.scanDepth ?? 3,
         tokenBudget: document.tokenBudget ?? 1024,
@@ -222,13 +196,13 @@ async function fulfillWorldbookDetail(
         entryCount: entries.length,
         enabledEntryCount: entries.filter((entry) => entry.enabled).length,
         tokenCount: 4,
-        sourceFormat: "rolesta",
+        sourceFormat: 'rolesta',
         createdAtMs: 1783090000000,
         updatedAtMs: 1783090001000,
         lastUsedAtMs: null,
         usageCount: 0,
         entries: entries.map((entry, insertionOrder) => ({
-          worldbookId: "worldbook_e2e",
+          worldbookId: 'worldbook_e2e',
           insertionOrder,
           tokenCount: 2,
           createdAtMs: 1783090000000 + insertionOrder,
@@ -245,20 +219,20 @@ function worldbookEntry(id: string, name: string) {
     id,
     enabled: true,
     name,
-    comment: "",
+    comment: '',
     content: `${name.toLowerCase()} content`,
     primaryKeys: [],
     secondaryKeys: [],
     selective: false,
-    selectiveLogic: "andAny",
+    selectiveLogic: 'andAny',
     constant: false,
     vectorized: false,
     caseSensitive: false,
     matchWholeWords: false,
-    insertionPosition: "beforeCharacterDefinition",
+    insertionPosition: 'beforeCharacterDefinition',
     depth: 3,
-    insertionRole: "system",
-    anchorName: "",
+    insertionRole: 'system',
+    anchorName: '',
     scanDepth: null,
     excludeRecursion: false,
     preventRecursion: false,

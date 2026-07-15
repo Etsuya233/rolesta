@@ -1,5 +1,5 @@
-import type { ApiKey } from "../domain/model-provider-config.js";
-import type { ApiKeyStore } from "../ports/api-key-store.js";
+import type { ApiKey } from '../domain/model-provider-config.js';
+import type { ApiKeyStore } from '../ports/api-key-store.js';
 
 export class ListApiKeysUseCase {
   constructor(private readonly store: ApiKeyStore) {}

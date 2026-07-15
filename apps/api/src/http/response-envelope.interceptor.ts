@@ -1,4 +1,9 @@
-import { Injectable, type CallHandler, type ExecutionContext, type NestInterceptor } from '@nestjs/common';
+import {
+  Injectable,
+  type CallHandler,
+  type ExecutionContext,
+  type NestInterceptor,
+} from '@nestjs/common';
 import { API_SUCCESS_CODE, type ApiEnvelope } from '@rolesta/shared';
 import { map, type Observable } from 'rxjs';
 

@@ -1,10 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import sharp, { type Metadata } from 'sharp';
-import type {
-  ImageInfo,
-  ImageProcessor,
-  ImageTransformRequest,
-} from '../ports/image-processor.js';
+import type { ImageInfo, ImageProcessor, ImageTransformRequest } from '../ports/image-processor.js';
 import { FilePortError } from '../ports/file-port-error.js';
 
 const MEDIA_TYPES = {
@@ -24,7 +20,7 @@ export class SharpImageProcessor implements ImageProcessor {
       throw new FilePortError({ reason: 'invalid-image', params: {}, cause });
     }
 
-    if (!(metadata.format in MEDIA_TYPES) || metadata.pages !== undefined && metadata.pages > 1) {
+    if (!(metadata.format in MEDIA_TYPES) || (metadata.pages !== undefined && metadata.pages > 1)) {
       throw new FilePortError({
         reason: 'unsupported-image',
         params: { format: metadata.format ?? 'unknown' },
@@ -58,11 +54,7 @@ export class SharpImageProcessor implements ImageProcessor {
   }
 }
 
-function pixelCrop(
-  imageWidth: number,
-  imageHeight: number,
-  crop: ImageTransformRequest['crop'],
-) {
+function pixelCrop(imageWidth: number, imageHeight: number, crop: ImageTransformRequest['crop']) {
   const left = Math.floor(crop.x * imageWidth);
   const top = Math.floor(crop.y * imageHeight);
 

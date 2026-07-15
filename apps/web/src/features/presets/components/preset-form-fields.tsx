@@ -1,12 +1,8 @@
-import type { ChangeEventHandler } from "react";
-import { EditorFormSection } from "../../../components/editor-form-section";
-import { Button } from "../../../components/ui/button";
-import {
-  Field,
-  FieldDescription,
-  FieldLabel,
-} from "../../../components/ui/field";
-import { Input } from "../../../components/ui/input";
+import type { ChangeEventHandler } from 'react';
+import { EditorFormSection } from '../../../components/editor-form-section';
+import { Button } from '../../../components/ui/button';
+import { Field, FieldDescription, FieldLabel } from '../../../components/ui/field';
+import { Input } from '../../../components/ui/input';
 import {
   Select,
   SelectContent,
@@ -14,9 +10,9 @@ import {
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "../../../components/ui/select";
-import { Textarea } from "../../../components/ui/textarea";
-import { cn } from "../../../lib/utils";
+} from '../../../components/ui/select';
+import { Textarea } from '../../../components/ui/textarea';
+import { cn } from '../../../lib/utils';
 
 export { EditorFormSection as PresetFormSection };
 
@@ -74,11 +70,9 @@ export function PresetNumberField({
         id={id}
         inputMode="decimal"
         type="number"
-        value={value ?? ""}
+        value={value ?? ''}
         onChange={(event) =>
-          onChange(
-            event.target.value === "" ? null : Number(event.target.value),
-          )
+          onChange(event.target.value === '' ? null : Number(event.target.value))
         }
       />
     </Field>
@@ -106,14 +100,11 @@ export function PresetTextAreaField({
     <Field data-disabled={disabled}>
       <FieldLabel htmlFor={id}>{label}</FieldLabel>
       <Textarea
-        className={cn(
-          "min-h-40 resize-y overflow-auto [field-sizing:fixed]",
-          className,
-        )}
+        className={cn('min-h-40 resize-y overflow-auto [field-sizing:fixed]', className)}
         disabled={disabled}
         id={id}
         rows={rows}
-        style={{ fieldSizing: "fixed" }}
+        style={{ fieldSizing: 'fixed' }}
         value={value}
         onChange={onChange}
       />
@@ -139,11 +130,7 @@ export function PresetSelectField<TValue extends string>({
   return (
     <Field data-disabled={disabled}>
       <FieldLabel htmlFor={id}>{label}</FieldLabel>
-      <Select
-        disabled={disabled}
-        value={value}
-        onValueChange={(next) => onChange(next as TValue)}
-      >
+      <Select disabled={disabled} value={value} onValueChange={(next) => onChange(next as TValue)}>
         <SelectTrigger id={id}>
           <SelectValue />
         </SelectTrigger>
@@ -177,8 +164,8 @@ export function PresetCheckboxField({
   return (
     <label
       className={cn(
-        "flex min-h-10 items-center justify-between gap-3 rounded-md border border-border px-3 py-2 text-sm",
-        disabled && "opacity-60",
+        'flex min-h-10 items-center justify-between gap-3 rounded-md border border-border px-3 py-2 text-sm',
+        disabled && 'opacity-60',
       )}
       htmlFor={id}
     >
@@ -222,7 +209,7 @@ export function FormActionButton({
 }) {
   return (
     <Button
-      className={cn("w-full", className)}
+      className={cn('w-full', className)}
       disabled={disabled}
       type="button"
       variant="outline"

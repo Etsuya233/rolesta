@@ -1,43 +1,37 @@
-import { useQuery } from "@tanstack/react-query";
-import { useState } from "react";
-import { useTranslation } from "react-i18next";
-import { Input } from "../../../components/ui/input";
-import { AssetPermissionFilterMenu } from "../../assets/components/asset-permission-filter-menu";
-import { AssetSortMenu } from "../../assets/components/asset-sort-menu";
-import { PageControls } from "../../assets/components/page-controls";
+import { useQuery } from '@tanstack/react-query';
+import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
+import { Input } from '../../../components/ui/input';
+import { AssetPermissionFilterMenu } from '../../assets/components/asset-permission-filter-menu';
+import { AssetSortMenu } from '../../assets/components/asset-sort-menu';
+import { PageControls } from '../../assets/components/page-controls';
 import type {
   CharacterListScope,
   CharacterSortKey,
   CharacterSummaryResponse,
   SortDirection,
-} from "../api/characters-api";
-import { listCharacters } from "../api/characters-api";
-import { CharacterCardListItem } from "./character-card-list-item";
-import { useAssetDefaults } from "../../chat-preferences/hooks/use-asset-defaults";
+} from '../api/characters-api';
+import { listCharacters } from '../api/characters-api';
+import { CharacterCardListItem } from './character-card-list-item';
+import { useAssetDefaults } from '../../chat-preferences/hooks/use-asset-defaults';
 
 export interface CharacterCardListPanelProps {
   onSelectCharacter: (characterId: string) => void;
 }
 
-export function CharacterCardListPanel({
-  onSelectCharacter,
-}: CharacterCardListPanelProps) {
+export function CharacterCardListPanel({ onSelectCharacter }: CharacterCardListPanelProps) {
   const { t } = useTranslation();
-  const [scope, setScope] = useState<CharacterListScope>("all");
-  const [sort, setSort] = useState<CharacterSortKey>("createdAt");
-  const [direction, setDirection] = useState<SortDirection>("desc");
-  const [q, setQ] = useState("");
+  const [scope, setScope] = useState<CharacterListScope>('all');
+  const [sort, setSort] = useState<CharacterSortKey>('createdAt');
+  const [direction, setDirection] = useState<SortDirection>('desc');
+  const [q, setQ] = useState('');
   const [pageIndex, setPageIndex] = useState(0);
   const [pageSize, setPageSize] = useState(20);
   const assetDefaultsQuery = useAssetDefaults();
 
   const charactersQuery = useQuery({
-    queryKey: [
-      "characters",
-      { scope, sort, direction, pageIndex, pageSize, q },
-    ],
-    queryFn: () =>
-      listCharacters({ scope, sort, direction, pageIndex, pageSize, q }),
+    queryKey: ['characters', { scope, sort, direction, pageIndex, pageSize, q }],
+    queryFn: () => listCharacters({ scope, sort, direction, pageIndex, pageSize, q }),
   });
 
   const page = charactersQuery.data;
@@ -45,11 +39,11 @@ export function CharacterCardListPanel({
     value: CharacterSortKey;
     label: string;
   }> = [
-    { value: "createdAt", label: t("characters.list.sort.createdAt") },
-    { value: "updatedAt", label: t("characters.list.sort.updatedAt") },
-    { value: "name", label: t("characters.list.sort.name") },
-    { value: "lastUsedAt", label: t("characters.list.sort.lastUsedAt") },
-    { value: "usageCount", label: t("characters.list.sort.usageCount") },
+    { value: 'createdAt', label: t('characters.list.sort.createdAt') },
+    { value: 'updatedAt', label: t('characters.list.sort.updatedAt') },
+    { value: 'name', label: t('characters.list.sort.name') },
+    { value: 'lastUsedAt', label: t('characters.list.sort.lastUsedAt') },
+    { value: 'usageCount', label: t('characters.list.sort.usageCount') },
   ];
 
   function resetPageIndex() {
@@ -62,9 +56,9 @@ export function CharacterCardListPanel({
         <div className="flex flex-col gap-3 border-b border-border px-4 py-3">
           <div className="flex items-center gap-2">
             <Input
-              aria-label={t("characters.list.searchLabel")}
+              aria-label={t('characters.list.searchLabel')}
               className="min-w-0 flex-1"
-              placeholder={t("characters.list.searchPlaceholder")}
+              placeholder={t('characters.list.searchPlaceholder')}
               value={q}
               onChange={(event) => {
                 setQ(event.target.value);
@@ -72,7 +66,7 @@ export function CharacterCardListPanel({
               }}
             />
             <AssetPermissionFilterMenu
-              buttonLabel={t("characters.list.filterButton")}
+              buttonLabel={t('characters.list.filterButton')}
               scope={scope}
               onScopeChange={(value) => {
                 setScope(value);
@@ -108,9 +102,7 @@ export function CharacterCardListPanel({
         <CharacterListContent
           characters={page?.items ?? []}
           defaultPersonaId={
-            assetDefaultsQuery.isError
-              ? undefined
-              : assetDefaultsQuery.data?.personaCharacterId
+            assetDefaultsQuery.isError ? undefined : assetDefaultsQuery.data?.personaCharacterId
           }
           isError={charactersQuery.isError}
           isLoading={charactersQuery.isLoading}
@@ -137,15 +129,15 @@ function CharacterListContent({
   const { t } = useTranslation();
 
   if (isLoading) {
-    return <StatusMessage>{t("characters.list.loading")}</StatusMessage>;
+    return <StatusMessage>{t('characters.list.loading')}</StatusMessage>;
   }
 
   if (isError) {
-    return <StatusMessage>{t("characters.list.loadFailed")}</StatusMessage>;
+    return <StatusMessage>{t('characters.list.loadFailed')}</StatusMessage>;
   }
 
   if (characters.length === 0) {
-    return <StatusMessage>{t("characters.list.empty")}</StatusMessage>;
+    return <StatusMessage>{t('characters.list.empty')}</StatusMessage>;
   }
 
   return (

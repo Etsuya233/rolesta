@@ -173,7 +173,7 @@ characters
 权限字段：
 
 ```ts
-visibility: 'private' | 'public'
+visibility: 'private' | 'public';
 ```
 
 规则：

@@ -1,19 +1,16 @@
-import { Circle, CircleCheck, LoaderCircle } from "lucide-react";
-import { useTranslation } from "react-i18next";
-import { Button } from "../../../components/ui/button";
+import { Circle, CircleCheck, LoaderCircle } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
+import { Button } from '../../../components/ui/button';
 import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
-} from "../../../components/ui/tooltip";
-import type { AssetDefaultsPatch } from "../api/chat-preferences-api";
-import {
-  useAssetDefaults,
-  useUpdateAssetDefaults,
-} from "../hooks/use-asset-defaults";
+} from '../../../components/ui/tooltip';
+import type { AssetDefaultsPatch } from '../api/chat-preferences-api';
+import { useAssetDefaults, useUpdateAssetDefaults } from '../hooks/use-asset-defaults';
 
-export type AssetDefaultKind = "persona" | "preset" | "modelProvider";
+export type AssetDefaultKind = 'persona' | 'preset' | 'modelProvider';
 
 export function AssetDefaultButton({
   assetId,
@@ -37,18 +34,14 @@ export function AssetDefaultButton({
   if (query.isLoading) {
     return (
       <Button
-        aria-label={t("chatPreferences.loadingDefault")}
+        aria-label={t('chatPreferences.loadingDefault')}
         className="size-10"
         disabled
         size="icon-lg"
         type="button"
         variant="ghost"
       >
-        <LoaderCircle
-          aria-hidden="true"
-          className="animate-spin"
-          data-icon="inline-start"
-        />
+        <LoaderCircle aria-hidden="true" className="animate-spin" data-icon="inline-start" />
       </Button>
     );
   }
@@ -68,9 +61,7 @@ export function AssetDefaultButton({
             size="icon-lg"
             type="button"
             variant="ghost"
-            onClick={() =>
-              mutation.mutate({ [field]: isDefault ? null : assetId })
-            }
+            onClick={() => mutation.mutate({ [field]: isDefault ? null : assetId })}
           >
             {isDefault ? (
               <CircleCheck aria-hidden="true" data-icon="inline-start" />
@@ -87,37 +78,33 @@ export function AssetDefaultButton({
 
 function defaultField(kind: AssetDefaultKind): keyof AssetDefaultsPatch {
   switch (kind) {
-    case "persona":
-      return "personaCharacterId";
-    case "preset":
-      return "presetId";
-    case "modelProvider":
-      return "modelProviderId";
+    case 'persona':
+      return 'personaCharacterId';
+    case 'preset':
+      return 'presetId';
+    case 'modelProvider':
+      return 'modelProviderId';
   }
 }
 
 function actionLabel(
   kind: AssetDefaultKind,
   isDefault: boolean,
-  t: ReturnType<typeof useTranslation>["t"],
+  t: ReturnType<typeof useTranslation>['t'],
 ): string {
-  if (kind === "persona") {
+  if (kind === 'persona') {
     return t(
-      isDefault
-        ? "chatPreferences.actions.removePersona"
-        : "chatPreferences.actions.setPersona",
+      isDefault ? 'chatPreferences.actions.removePersona' : 'chatPreferences.actions.setPersona',
     );
   }
-  if (kind === "preset") {
+  if (kind === 'preset') {
     return t(
-      isDefault
-        ? "chatPreferences.actions.removePreset"
-        : "chatPreferences.actions.setPreset",
+      isDefault ? 'chatPreferences.actions.removePreset' : 'chatPreferences.actions.setPreset',
     );
   }
   return t(
     isDefault
-      ? "chatPreferences.actions.removeConnection"
-      : "chatPreferences.actions.setConnection",
+      ? 'chatPreferences.actions.removeConnection'
+      : 'chatPreferences.actions.setConnection',
   );
 }

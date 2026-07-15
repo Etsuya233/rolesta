@@ -2,10 +2,10 @@ import type {
   CharacterCreateValues,
   CharacterDetailResponse,
   CharacterFormValues,
-} from "../api/characters-api";
+} from '../api/characters-api';
 
 export interface CharacterEditorFormState {
-  visibility: "private" | "public";
+  visibility: 'private' | 'public';
   name: string;
   comment: string;
   tagsText: string;
@@ -23,26 +23,25 @@ export interface CharacterEditorFormState {
   nickname: string;
 }
 
-export type EditableCharacterValues = CharacterCreateValues &
-  CharacterFormValues;
+export type EditableCharacterValues = CharacterCreateValues & CharacterFormValues;
 
 export const emptyCharacterEditorForm: CharacterEditorFormState = {
-  visibility: "private",
-  name: "",
-  comment: "",
-  tagsText: "",
-  version: "",
-  description: "",
-  firstMessage: "",
-  personality: "",
-  scenario: "",
-  creatorNotes: "",
-  messageExample: "",
+  visibility: 'private',
+  name: '',
+  comment: '',
+  tagsText: '',
+  version: '',
+  description: '',
+  firstMessage: '',
+  personality: '',
+  scenario: '',
+  creatorNotes: '',
+  messageExample: '',
   alternateGreetings: [],
-  systemPrompt: "",
-  postHistoryInstructions: "",
-  creator: "",
-  nickname: "",
+  systemPrompt: '',
+  postHistoryInstructions: '',
+  creator: '',
+  nickname: '',
 };
 
 export function characterEditorFormFromDetail(
@@ -52,7 +51,7 @@ export function characterEditorFormFromDetail(
     visibility: character.visibility,
     name: character.name,
     comment: character.comment,
-    tagsText: character.tags.join(", "),
+    tagsText: character.tags.join(', '),
     version: character.version,
     description: character.description,
     firstMessage: character.firstMessage,
@@ -63,8 +62,8 @@ export function characterEditorFormFromDetail(
     alternateGreetings: character.alternateGreetings,
     systemPrompt: character.systemPrompt,
     postHistoryInstructions: character.postHistoryInstructions,
-    creator: character.creator ?? "",
-    nickname: character.nickname ?? "",
+    creator: character.creator ?? '',
+    nickname: character.nickname ?? '',
   };
 }
 
@@ -93,7 +92,7 @@ export function characterEditorValuesFromForm(
 
 function characterTagsFromText(value: string): string[] {
   return value
-    .split(",")
+    .split(',')
     .map((tag) => tag.trim())
     .filter(Boolean);
 }

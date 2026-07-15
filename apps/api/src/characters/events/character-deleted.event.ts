@@ -8,11 +8,7 @@ export class CharacterDeletedEvent implements DomainEvent<typeof CHARACTER_DELET
   readonly ownerUserId: string;
   readonly occurredAtMs: number;
 
-  constructor(options: {
-    characterId: string;
-    ownerUserId: string;
-    occurredAtMs: number;
-  }) {
+  constructor(options: { characterId: string; ownerUserId: string; occurredAtMs: number }) {
     this.characterId = options.characterId;
     this.ownerUserId = options.ownerUserId;
     this.occurredAtMs = options.occurredAtMs;

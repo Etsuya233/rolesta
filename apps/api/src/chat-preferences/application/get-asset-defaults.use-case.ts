@@ -1,5 +1,5 @@
-import type { AssetDefaults } from "../domain/asset-defaults.js";
-import type { AssetDefaultsStore } from "../ports/asset-defaults-store.js";
+import type { AssetDefaults } from '../domain/asset-defaults.js';
+import type { AssetDefaultsStore } from '../ports/asset-defaults-store.js';
 
 export class GetAssetDefaultsUseCase {
   constructor(private readonly store: AssetDefaultsStore) {}

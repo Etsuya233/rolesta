@@ -1,7 +1,7 @@
-import type { PageResponse } from "@rolesta/shared";
-import type { Chat } from "../domain/chat.js";
+import type { PageResponse } from '@rolesta/shared';
+import type { Chat } from '../domain/chat.js';
 
-export const CHAT_STORE = Symbol("ChatStore");
+export const CHAT_STORE = Symbol('ChatStore');
 
 export interface ChatCharacterSummary {
   id: string;
@@ -17,7 +17,7 @@ export interface ChatPresetSummary {
 export interface ChatModelProviderSummary {
   id: string;
   name: string;
-  providerKind: "openai-compatible" | "openai" | "claude" | "z-ai" | "deepseek";
+  providerKind: 'openai-compatible' | 'openai' | 'claude' | 'z-ai' | 'deepseek';
   defaultModelName: string;
 }
 
@@ -39,8 +39,8 @@ export interface ListChatsRequest {
   ownerUserId: string;
   q: string;
   role: string;
-  sort: "createdAt" | "updatedAt" | "title";
-  direction: "asc" | "desc";
+  sort: 'createdAt' | 'updatedAt' | 'title';
+  direction: 'asc' | 'desc';
   pageIndex: number;
   pageSize: number;
 }
@@ -51,16 +51,7 @@ export interface ChatStore {
   save(chat: Chat): Promise<ChatDetail>;
   update(chat: Chat): Promise<ChatDetail>;
   deleteOwned(id: string, ownerUserId: string): Promise<boolean>;
-  clearCharacterAssociations(
-    characterId: string,
-    exceptOwnerUserId?: string,
-  ): Promise<void>;
-  clearPresetAssociations(
-    presetId: string,
-    exceptOwnerUserId?: string,
-  ): Promise<void>;
-  clearModelProviderAssociations(
-    modelProviderId: string,
-    ownerUserId: string,
-  ): Promise<void>;
+  clearCharacterAssociations(characterId: string, exceptOwnerUserId?: string): Promise<void>;
+  clearPresetAssociations(presetId: string, exceptOwnerUserId?: string): Promise<void>;
+  clearModelProviderAssociations(modelProviderId: string, ownerUserId: string): Promise<void>;
 }

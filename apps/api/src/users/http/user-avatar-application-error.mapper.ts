@@ -6,7 +6,9 @@ import type {
   UserAvatarApplicationErrorReason,
 } from '../application/user-avatar-application-error.js';
 
-export function toApiFailure(error: UserAvatarApplicationError<UserAvatarApplicationErrorReason>): ApiFailure {
+export function toApiFailure(
+  error: UserAvatarApplicationError<UserAvatarApplicationErrorReason>,
+): ApiFailure {
   switch (error.reason) {
     case 'not-found':
       return new ApiFailure({

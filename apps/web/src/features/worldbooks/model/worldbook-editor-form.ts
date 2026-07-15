@@ -5,7 +5,7 @@ import type {
   WorldbookInsertionPosition,
   WorldbookSelectiveLogic,
   WorldbookVisibility,
-} from "../api/worldbooks-api";
+} from '../api/worldbooks-api';
 
 export interface WorldbookEditorFormState {
   name: string;
@@ -43,10 +43,10 @@ export interface WorldbookEntryEditorFormState {
 }
 
 export const emptyWorldbookEditorForm: WorldbookEditorFormState = {
-  name: "",
-  description: "",
-  tagsText: "",
-  visibility: "private",
+  name: '',
+  description: '',
+  tagsText: '',
+  visibility: 'private',
   scanDepth: 3,
   tokenBudget: 1024,
   recursiveScan: false,
@@ -54,22 +54,22 @@ export const emptyWorldbookEditorForm: WorldbookEditorFormState = {
 
 export const emptyWorldbookEntryEditorForm: WorldbookEntryEditorFormState = {
   enabled: true,
-  name: "",
-  comment: "",
-  content: "",
-  primaryKeysText: "",
-  secondaryKeysText: "",
+  name: '',
+  comment: '',
+  content: '',
+  primaryKeysText: '',
+  secondaryKeysText: '',
   selective: false,
-  selectiveLogic: "andAny",
+  selectiveLogic: 'andAny',
   constant: false,
   vectorized: false,
   caseSensitive: false,
   matchWholeWords: false,
-  insertionPosition: "beforeCharacterDefinition",
+  insertionPosition: 'beforeCharacterDefinition',
   insertionOrder: 0,
   depth: 3,
-  insertionRole: "system",
-  anchorName: "",
+  insertionRole: 'system',
+  anchorName: '',
   scanDepth: null,
   excludeRecursion: false,
   preventRecursion: false,
@@ -83,7 +83,7 @@ export function worldbookEditorFormFromDetail(
   return {
     name: worldbook.name,
     description: worldbook.description,
-    tagsText: worldbook.tags.join(", "),
+    tagsText: worldbook.tags.join(', '),
     visibility: worldbook.visibility,
     scanDepth: worldbook.scanDepth,
     tokenBudget: worldbook.tokenBudget,
@@ -92,7 +92,7 @@ export function worldbookEditorFormFromDetail(
 }
 
 export function worldbookEntryEditorFormFromEntry(
-  entry: WorldbookDocument["entries"][number],
+  entry: WorldbookDocument['entries'][number],
   insertionOrder: number,
 ): WorldbookEntryEditorFormState {
   return {
@@ -100,8 +100,8 @@ export function worldbookEntryEditorFormFromEntry(
     name: entry.name,
     comment: entry.comment,
     content: entry.content,
-    primaryKeysText: entry.primaryKeys.join(", "),
-    secondaryKeysText: entry.secondaryKeys.join(", "),
+    primaryKeysText: entry.primaryKeys.join(', '),
+    secondaryKeysText: entry.secondaryKeys.join(', '),
     selective: entry.selective,
     selectiveLogic: entry.selectiveLogic,
     constant: entry.constant,
@@ -133,9 +133,7 @@ export function worldbookValuesFromForm(form: WorldbookEditorFormState) {
   };
 }
 
-export function worldbookEntryValuesFromForm(
-  form: WorldbookEntryEditorFormState,
-) {
+export function worldbookEntryValuesFromForm(form: WorldbookEntryEditorFormState) {
   return {
     enabled: form.enabled,
     name: form.name.trim(),
@@ -161,9 +159,7 @@ export function worldbookEntryValuesFromForm(
   };
 }
 
-export function worldbookDocumentFromDetail(
-  worldbook: WorldbookDetailResponse,
-): WorldbookDocument {
+export function worldbookDocumentFromDetail(worldbook: WorldbookDetailResponse): WorldbookDocument {
   return {
     visibility: worldbook.visibility,
     name: worldbook.name,

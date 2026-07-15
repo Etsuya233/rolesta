@@ -51,9 +51,7 @@ export class SetupAdminUseCase {
 
       await this.sessions.deleteExpired(this.clock.now());
       await this.users.save(user);
-      await this.sessions.save(
-        createSessionForUser({ token, userId: user.id, clock: this.clock }),
-      );
+      await this.sessions.save(createSessionForUser({ token, userId: user.id, clock: this.clock }));
 
       return { token: token.value, user: user.toCurrentUser() };
     });

@@ -183,9 +183,7 @@ export class PresetPageResponseDto {
   totalPages!: number;
 }
 
-export function toPresetSummaryResponse(
-  preset: PresetSummary,
-): PresetSummaryResponseDto {
+export function toPresetSummaryResponse(preset: PresetSummary): PresetSummaryResponseDto {
   return {
     id: preset.id,
     ownerUserId: preset.ownerUserId,
@@ -207,8 +205,7 @@ export function toPresetDetailResponse(
 ): PresetDetailResponseDto {
   return {
     ...toPresetAggregateSummaryResponse(preset),
-    modelProviderId:
-      preset.ownerUserId === viewerUserId ? preset.modelProviderId : null,
+    modelProviderId: preset.ownerUserId === viewerUserId ? preset.modelProviderId : null,
     modelSettings: preset.modelSettings,
     tokenizer: preset.tokenizer,
     sourceFormat: preset.sourceFormat,
@@ -217,9 +214,7 @@ export function toPresetDetailResponse(
   };
 }
 
-function toPresetAggregateSummaryResponse(
-  preset: Preset,
-): PresetSummaryResponseDto {
+function toPresetAggregateSummaryResponse(preset: Preset): PresetSummaryResponseDto {
   return {
     id: preset.id,
     ownerUserId: preset.ownerUserId,
@@ -235,9 +230,7 @@ function toPresetAggregateSummaryResponse(
   };
 }
 
-export function toPresetPageResponse(
-  page: PageResponse<PresetSummary>,
-): PresetPageResponseDto {
+export function toPresetPageResponse(page: PageResponse<PresetSummary>): PresetPageResponseDto {
   return {
     items: page.items.map(toPresetSummaryResponse),
     pageIndex: page.pageIndex,
@@ -263,9 +256,7 @@ function toPresetEntryResponse(entry: PresetEntry): PresetEntryResponseDto {
   };
 }
 
-function toPresetPromptItemResponse(
-  item: PresetPromptItem,
-): PresetPromptItemResponseDto {
+function toPresetPromptItemResponse(item: PresetPromptItem): PresetPromptItemResponseDto {
   return {
     entryId: item.entryId,
     enabled: item.enabled,

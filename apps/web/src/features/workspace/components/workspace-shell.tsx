@@ -8,28 +8,20 @@ import {
   type KeyboardEvent,
   type PointerEvent,
   type ReactNode,
-} from "react";
-import { useTranslation } from "react-i18next";
-import {
-  Empty,
-  EmptyDescription,
-  EmptyHeader,
-  EmptyTitle,
-} from "../../../components/ui/empty";
-import { cn } from "../../../lib/utils";
-import {
-  type WorkspaceResizableSide,
-  useWorkspaceLayout,
-} from "../model/use-workspace-layout";
+} from 'react';
+import { useTranslation } from 'react-i18next';
+import { Empty, EmptyDescription, EmptyHeader, EmptyTitle } from '../../../components/ui/empty';
+import { cn } from '../../../lib/utils';
+import { type WorkspaceResizableSide, useWorkspaceLayout } from '../model/use-workspace-layout';
 import type {
   WorkspaceArea,
   WorkspacePanelKey,
   WorkspacePanelRuntime,
-} from "../model/workspace-panels";
-import { WorkspacePanelHost } from "./workspace-panel-host";
-import { WorkspaceToolbar } from "./workspace-toolbar";
+} from '../model/workspace-panels';
+import { WorkspacePanelHost } from './workspace-panel-host';
+import { WorkspaceToolbar } from './workspace-toolbar';
 
-const workspaceAreas: WorkspaceArea[] = ["left", "center", "right", "bottom"];
+const workspaceAreas: WorkspaceArea[] = ['left', 'center', 'right', 'bottom'];
 const workspaceCenterMinWidth = 360;
 const workspacePanelSizeLimits = {
   left: {
@@ -48,14 +40,13 @@ export function WorkspaceShell() {
   const [activeChatId, setActiveChatId] = useState<string | null>(null);
   const desktopLayout = useDesktopWorkspaceLayout();
   const workspaceGridRef = useRef<HTMLDivElement>(null);
-  const [resizingSide, setResizingSide] =
-    useState<WorkspaceResizableSide | null>(null);
+  const [resizingSide, setResizingSide] = useState<WorkspaceResizableSide | null>(null);
   const visibleByArea = useMemo<Record<WorkspaceArea, boolean>>(
     () => ({
-      left: desktopLayout ? layout.leftVisible : layout.mobileArea === "left",
+      left: desktopLayout ? layout.leftVisible : layout.mobileArea === 'left',
       center: true,
-      right: desktopLayout ? layout.rightVisible : layout.mobileArea === "right",
-      bottom: layout.mobileArea === "bottom",
+      right: desktopLayout ? layout.rightVisible : layout.mobileArea === 'right',
+      bottom: layout.mobileArea === 'bottom',
     }),
     [desktopLayout, layout.leftVisible, layout.mobileArea, layout.rightVisible],
   );
@@ -98,21 +89,17 @@ export function WorkspaceShell() {
     [layout.activeByArea, layout.closeArea, layout.openPanel, visibleByArea],
   );
   const workspaceGridStyle = {
-    "--workspace-left-column": visibleByArea.left
-      ? `${layout.panelSizes.leftWidth}px`
-      : "0px",
-    "--workspace-right-column": visibleByArea.right
-      ? `${layout.panelSizes.rightWidth}px`
-      : "0px",
+    '--workspace-left-column': visibleByArea.left ? `${layout.panelSizes.leftWidth}px` : '0px',
+    '--workspace-right-column': visibleByArea.right ? `${layout.panelSizes.rightWidth}px` : '0px',
   } as CSSProperties;
   const panelBounds = useCallback(
     (side: WorkspaceResizableSide) => {
       const gridBox = workspaceGridRef.current?.getBoundingClientRect();
       const workspaceWidth = gridBox?.width ?? window.innerWidth;
       const oppositeWidth =
-        side === "left" && visibleByArea.right
+        side === 'left' && visibleByArea.right
           ? layout.panelSizes.rightWidth
-          : side === "right" && visibleByArea.left
+          : side === 'right' && visibleByArea.left
             ? layout.panelSizes.leftWidth
             : 0;
       const configured = workspacePanelSizeLimits[side];
@@ -131,10 +118,10 @@ export function WorkspaceShell() {
       const gridBox = workspaceGridRef.current?.getBoundingClientRect();
 
       if (!gridBox) {
-        return layout.panelSizes[side === "left" ? "leftWidth" : "rightWidth"];
+        return layout.panelSizes[side === 'left' ? 'leftWidth' : 'rightWidth'];
       }
 
-      return side === "left" ? clientX - gridBox.left : gridBox.right - clientX;
+      return side === 'left' ? clientX - gridBox.left : gridBox.right - clientX;
     },
     [layout.panelSizes],
   );
@@ -174,26 +161,26 @@ export function WorkspaceShell() {
         <WorkspaceSideArea
           area="left"
           visible={layout.leftVisible}
-          mobileOpen={layout.mobileArea === "left"}
+          mobileOpen={layout.mobileArea === 'left'}
           desktopLayout={desktopLayout}
           side="left"
           className="border-r bg-background lg:col-start-1 lg:bg-sidebar"
           panelWidth={layout.panelSizes.leftWidth}
           panelMinWidth={workspacePanelSizeLimits.left.min}
-          panelMaxWidth={panelBounds("left").max}
-          resizing={resizingSide === "left"}
+          panelMaxWidth={panelBounds('left').max}
+          resizing={resizingSide === 'left'}
           onResizeStart={(event) => {
-            setResizingSide("left");
+            setResizingSide('left');
             event.currentTarget.setPointerCapture(event.pointerId);
-            resizePanelFromPointer("left", event.clientX);
+            resizePanelFromPointer('left', event.clientX);
           }}
           onResizeMove={(event) => {
-            if (resizingSide === "left") {
-              resizePanelFromPointer("left", event.clientX);
+            if (resizingSide === 'left') {
+              resizePanelFromPointer('left', event.clientX);
             }
           }}
           onResizeEnd={(event) => {
-            if (resizingSide === "left") {
+            if (resizingSide === 'left') {
               setResizingSide(null);
               if (event.currentTarget.hasPointerCapture(event.pointerId)) {
                 event.currentTarget.releasePointerCapture(event.pointerId);
@@ -201,8 +188,8 @@ export function WorkspaceShell() {
             }
           }}
           onResizeKeyDown={(event) => {
-            resizePanelFromKeyboard("left", event, layout.panelSizes.leftWidth, (width) => {
-              setPanelWidthWithinBounds("left", width);
+            resizePanelFromKeyboard('left', event, layout.panelSizes.leftWidth, (width) => {
+              setPanelWidthWithinBounds('left', width);
             });
           }}
         >
@@ -233,26 +220,26 @@ export function WorkspaceShell() {
         <WorkspaceSideArea
           area="right"
           visible={layout.rightVisible}
-          mobileOpen={layout.mobileArea === "right"}
+          mobileOpen={layout.mobileArea === 'right'}
           desktopLayout={desktopLayout}
           side="right"
           className="border-l bg-background lg:col-start-3"
           panelWidth={layout.panelSizes.rightWidth}
           panelMinWidth={workspacePanelSizeLimits.right.min}
-          panelMaxWidth={panelBounds("right").max}
-          resizing={resizingSide === "right"}
+          panelMaxWidth={panelBounds('right').max}
+          resizing={resizingSide === 'right'}
           onResizeStart={(event) => {
-            setResizingSide("right");
+            setResizingSide('right');
             event.currentTarget.setPointerCapture(event.pointerId);
-            resizePanelFromPointer("right", event.clientX);
+            resizePanelFromPointer('right', event.clientX);
           }}
           onResizeMove={(event) => {
-            if (resizingSide === "right") {
-              resizePanelFromPointer("right", event.clientX);
+            if (resizingSide === 'right') {
+              resizePanelFromPointer('right', event.clientX);
             }
           }}
           onResizeEnd={(event) => {
-            if (resizingSide === "right") {
+            if (resizingSide === 'right') {
               setResizingSide(null);
               if (event.currentTarget.hasPointerCapture(event.pointerId)) {
                 event.currentTarget.releasePointerCapture(event.pointerId);
@@ -260,8 +247,8 @@ export function WorkspaceShell() {
             }
           }}
           onResizeKeyDown={(event) => {
-            resizePanelFromKeyboard("right", event, layout.panelSizes.rightWidth, (width) => {
-              setPanelWidthWithinBounds("right", width);
+            resizePanelFromKeyboard('right', event, layout.panelSizes.rightWidth, (width) => {
+              setPanelWidthWithinBounds('right', width);
             });
           }}
         >
@@ -299,7 +286,7 @@ function WorkspaceSideArea({
   visible: boolean;
   mobileOpen: boolean;
   desktopLayout: boolean;
-  side: "left" | "right";
+  side: 'left' | 'right';
   className?: string;
   panelWidth: number;
   panelMinWidth: number;
@@ -319,16 +306,16 @@ function WorkspaceSideArea({
       aria-hidden={desktopLayout ? !visible : !mobileOpen}
       inert={desktopLayout ? !visible : !mobileOpen}
       className={cn(
-        "fixed bottom-0 top-12 z-40 flex w-screen min-h-0 flex-col overflow-hidden shadow-lg transition-transform lg:visible lg:static lg:top-auto lg:bottom-auto lg:z-auto lg:w-auto lg:translate-x-0 lg:overflow-visible lg:shadow-none lg:transition-none lg:pointer-events-auto lg:relative",
-        side === "left" &&
+        'fixed bottom-0 top-12 z-40 flex w-screen min-h-0 flex-col overflow-hidden shadow-lg transition-transform lg:visible lg:static lg:top-auto lg:bottom-auto lg:z-auto lg:w-auto lg:translate-x-0 lg:overflow-visible lg:shadow-none lg:transition-none lg:pointer-events-auto lg:relative',
+        side === 'left' &&
           (mobileOpen
-            ? "left-0 visible translate-x-0"
-            : "left-0 invisible -translate-x-full pointer-events-none"),
-        side === "right" &&
+            ? 'left-0 visible translate-x-0'
+            : 'left-0 invisible -translate-x-full pointer-events-none'),
+        side === 'right' &&
           (mobileOpen
-            ? "right-0 visible translate-x-0"
-            : "right-0 invisible translate-x-full pointer-events-none"),
-        !visible && "lg:hidden",
+            ? 'right-0 visible translate-x-0'
+            : 'right-0 invisible translate-x-full pointer-events-none'),
+        !visible && 'lg:hidden',
         className,
       )}
     >
@@ -386,8 +373,8 @@ function WorkspaceResizeHandle({
       onLostPointerCapture={onResizeEnd}
       onKeyDown={onResizeKeyDown}
       className={cn(
-        "absolute inset-y-0 z-20 hidden w-2 cursor-col-resize touch-none outline-none after:absolute after:inset-y-0 after:left-1/2 after:w-px after:-translate-x-1/2 after:bg-ring/60 after:opacity-0 after:transition-[background-color,opacity] after:duration-150 hover:after:bg-ring/70 hover:after:opacity-100 focus-visible:ring-2 focus-visible:ring-ring focus-visible:after:bg-ring/70 focus-visible:after:opacity-100 data-[resizing=true]:after:bg-ring/70 data-[resizing=true]:after:opacity-100 lg:block",
-        side === "left" ? "-right-1" : "-left-1",
+        'absolute inset-y-0 z-20 hidden w-2 cursor-col-resize touch-none outline-none after:absolute after:inset-y-0 after:left-1/2 after:w-px after:-translate-x-1/2 after:bg-ring/60 after:opacity-0 after:transition-[background-color,opacity] after:duration-150 hover:after:bg-ring/70 hover:after:opacity-100 focus-visible:ring-2 focus-visible:ring-ring focus-visible:after:bg-ring/70 focus-visible:after:opacity-100 data-[resizing=true]:after:bg-ring/70 data-[resizing=true]:after:opacity-100 lg:block',
+        side === 'left' ? '-right-1' : '-left-1',
       )}
     />
   );
@@ -399,37 +386,37 @@ function resizePanelFromKeyboard(
   currentWidth: number,
   setPanelWidth: (width: number) => void,
 ) {
-  if (event.key === "Home") {
+  if (event.key === 'Home') {
     event.preventDefault();
     setPanelWidth(0);
     return;
   }
 
-  if (event.key === "End") {
+  if (event.key === 'End') {
     event.preventDefault();
     setPanelWidth(Number.MAX_SAFE_INTEGER);
     return;
   }
 
-  if (event.key !== "ArrowLeft" && event.key !== "ArrowRight") {
+  if (event.key !== 'ArrowLeft' && event.key !== 'ArrowRight') {
     return;
   }
 
   event.preventDefault();
 
-  const direction = event.key === "ArrowRight" ? 1 : -1;
-  const sideDirection = side === "left" ? direction : -direction;
+  const direction = event.key === 'ArrowRight' ? 1 : -1;
+  const sideDirection = side === 'left' ? direction : -direction;
 
   setPanelWidth(currentWidth + sideDirection * workspacePanelResizeStep);
 }
 
 function useDesktopWorkspaceLayout() {
-  const [desktopLayout, setDesktopLayout] = useState(() =>
-    window.matchMedia("(min-width: 1024px)").matches,
+  const [desktopLayout, setDesktopLayout] = useState(
+    () => window.matchMedia('(min-width: 1024px)').matches,
   );
 
   useEffect(() => {
-    const query = window.matchMedia("(min-width: 1024px)");
+    const query = window.matchMedia('(min-width: 1024px)');
 
     setDesktopLayout(query.matches);
 
@@ -437,10 +424,10 @@ function useDesktopWorkspaceLayout() {
       setDesktopLayout(event.matches);
     };
 
-    query.addEventListener("change", syncLayout);
+    query.addEventListener('change', syncLayout);
 
     return () => {
-      query.removeEventListener("change", syncLayout);
+      query.removeEventListener('change', syncLayout);
     };
   }, []);
 
@@ -454,12 +441,8 @@ function RightPlaceholder() {
     <div className="flex h-full items-center justify-center p-6">
       <Empty>
         <EmptyHeader>
-          <EmptyTitle>
-            {t("chats.workbench.rightPlaceholder.title")}
-          </EmptyTitle>
-          <EmptyDescription>
-            {t("chats.workbench.rightPlaceholder.description")}
-          </EmptyDescription>
+          <EmptyTitle>{t('chats.workbench.rightPlaceholder.title')}</EmptyTitle>
+          <EmptyDescription>{t('chats.workbench.rightPlaceholder.description')}</EmptyDescription>
         </EmptyHeader>
       </Empty>
     </div>

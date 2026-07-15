@@ -83,6 +83,7 @@ apps/web/tests/characters.spec.ts
 ## Task 1: Shared Pagination and Character Table
 
 **Files:**
+
 - Modify: `packages/shared/src/pagination.ts`
 - Create: `packages/shared/src/pagination.test.ts`
 - Create: `packages/db/src/schema/characters.ts`
@@ -277,12 +278,32 @@ export async function up(db: Kysely<Database>): Promise<void> {
     .addColumn('usage_count', 'integer', (column) => column.notNull())
     .execute();
 
-  await db.schema.createIndex('characters_owner_created_idx').on('characters').columns(['owner_user_id', 'created_at_ms']).execute();
-  await db.schema.createIndex('characters_visibility_created_idx').on('characters').columns(['visibility', 'created_at_ms']).execute();
-  await db.schema.createIndex('characters_updated_idx').on('characters').column('updated_at_ms').execute();
+  await db.schema
+    .createIndex('characters_owner_created_idx')
+    .on('characters')
+    .columns(['owner_user_id', 'created_at_ms'])
+    .execute();
+  await db.schema
+    .createIndex('characters_visibility_created_idx')
+    .on('characters')
+    .columns(['visibility', 'created_at_ms'])
+    .execute();
+  await db.schema
+    .createIndex('characters_updated_idx')
+    .on('characters')
+    .column('updated_at_ms')
+    .execute();
   await db.schema.createIndex('characters_name_idx').on('characters').column('name').execute();
-  await db.schema.createIndex('characters_last_used_idx').on('characters').column('last_used_at_ms').execute();
-  await db.schema.createIndex('characters_usage_count_idx').on('characters').column('usage_count').execute();
+  await db.schema
+    .createIndex('characters_last_used_idx')
+    .on('characters')
+    .column('last_used_at_ms')
+    .execute();
+  await db.schema
+    .createIndex('characters_usage_count_idx')
+    .on('characters')
+    .column('usage_count')
+    .execute();
 }
 
 export async function down(db: Kysely<Database>): Promise<void> {
@@ -325,6 +346,7 @@ Expected: commit succeeds.
 ## Task 2: Character Domain, Errors, and Store Contract
 
 **Files:**
+
 - Create: `apps/api/src/characters/domain/epoch-millis.ts`
 - Create: `apps/api/src/characters/domain/character-visibility.ts`
 - Create: `apps/api/src/characters/domain/character-card.ts`
@@ -436,6 +458,7 @@ Expected: commit succeeds.
 ## Task 3: SillyTavern Mapper and PNG Metadata Reader
 
 **Files:**
+
 - Create: `apps/api/src/characters/infrastructure/silly-tavern-character-card.mapper.ts`
 - Create: `apps/api/src/characters/infrastructure/silly-tavern-character-card.mapper.spec.ts`
 - Create: `apps/api/src/characters/infrastructure/silly-tavern-png-metadata.reader.ts`
@@ -546,9 +569,23 @@ Create `silly-tavern-character-card.mapper.ts` with these exported functions:
 ```ts
 export type SillyTavernExportVersion = 'v2' | 'v3';
 
-export function fromSillyTavernCharacterCard(input: unknown): Omit<CharacterCard, 'id' | 'ownerUserId' | 'visibility' | 'createdAtMs' | 'updatedAtMs' | 'lastUsedAtMs' | 'usageCount'>;
+export function fromSillyTavernCharacterCard(
+  input: unknown,
+): Omit<
+  CharacterCard,
+  | 'id'
+  | 'ownerUserId'
+  | 'visibility'
+  | 'createdAtMs'
+  | 'updatedAtMs'
+  | 'lastUsedAtMs'
+  | 'usageCount'
+>;
 
-export function toSillyTavernCharacterCard(card: CharacterCard, version: SillyTavernExportVersion): Record<string, unknown>;
+export function toSillyTavernCharacterCard(
+  card: CharacterCard,
+  version: SillyTavernExportVersion,
+): Record<string, unknown>;
 ```
 
 Implementation requirements:
@@ -571,7 +608,10 @@ import { readSillyTavernPngMetadata } from './silly-tavern-png-metadata.reader.j
 
 describe('readSillyTavernPngMetadata', () => {
   it('reads base64 character metadata from a PNG tEXt chunk', () => {
-    const json = Buffer.from(JSON.stringify({ name: 'PNG Card', first_mes: 'Hello' }), 'utf8').toString('base64');
+    const json = Buffer.from(
+      JSON.stringify({ name: 'PNG Card', first_mes: 'Hello' }),
+      'utf8',
+    ).toString('base64');
     const png = createPngWithTextChunk('chara', json);
 
     expect(readSillyTavernPngMetadata(png)).toEqual({ name: 'PNG Card', first_mes: 'Hello' });
@@ -623,6 +663,7 @@ Expected: commit succeeds.
 ## Task 4: Kysely Store and Use Cases
 
 **Files:**
+
 - Create: `apps/api/src/characters/infrastructure/kysely-character-card-store.ts`
 - Create: `apps/api/src/characters/application/list-characters.use-case.ts`
 - Create: `apps/api/src/characters/application/get-character.use-case.ts`
@@ -700,13 +741,13 @@ async deleteOwned(id: string, ownerUserId: string): Promise<boolean>
 Implement use cases with these constructors and rules:
 
 ```ts
-new ListCharactersUseCase(store)
-new GetCharacterUseCase(store)
-new CreateCharacterUseCase(store, idGenerator, clock)
-new UpdateCharacterUseCase(store, clock)
-new DeleteCharacterUseCase(store)
-new ImportCharacterCardUseCase(store, idGenerator, clock)
-new ExportCharacterCardUseCase(store)
+new ListCharactersUseCase(store);
+new GetCharacterUseCase(store);
+new CreateCharacterUseCase(store, idGenerator, clock);
+new UpdateCharacterUseCase(store, clock);
+new DeleteCharacterUseCase(store);
+new ImportCharacterCardUseCase(store, idGenerator, clock);
+new ExportCharacterCardUseCase(store);
 ```
 
 Rules:
@@ -741,6 +782,7 @@ Expected: commit succeeds.
 ## Task 5: HTTP API, E2E Tests, and OpenAPI
 
 **Files:**
+
 - Modify: `apps/api/package.json`
 - Modify: `apps/api/src/characters/characters.module.ts`
 - Create: `apps/api/src/characters/http/character-application-error.mapper.ts`
@@ -784,8 +826,7 @@ async function createUserToken(app: INestApplication, username: string): Promise
     .values({
       id: `user_${username}`,
       username,
-      password_hash:
-        'scrypt:16384:8:1:placeholder-salt:placeholder-hash-created-for-character-e2e',
+      password_hash: 'scrypt:16384:8:1:placeholder-salt:placeholder-hash-created-for-character-e2e',
       display_name: username,
       role: 'user',
       created_at: new Date(0).toISOString(),
@@ -908,7 +949,13 @@ it('paginates with pageIndex and pageSize', async () => {
     .set('Authorization', `Bearer ${token}`)
     .expect(200)
     .expect((response) => {
-      const body = responseBody<SuccessEnvelope<{ items: Array<{ name: string }>; totalItems: number; totalPages: number }>>(response);
+      const body = responseBody<
+        SuccessEnvelope<{
+          items: Array<{ name: string }>;
+          totalItems: number;
+          totalPages: number;
+        }>
+      >(response);
       expect(body.data.items).toHaveLength(1);
       expect(body.data.items[0]?.name).toBe('C');
       expect(body.data.totalItems).toBe(3);
@@ -955,10 +1002,10 @@ Create request DTOs for list, create, update, and import metadata in `character-
 Create response DTOs:
 
 ```ts
-CharacterSummaryResponseDto
-CharacterDetailResponseDto
-CharacterPageResponseDto
-CharacterImportPreviewResponseDto
+CharacterSummaryResponseDto;
+CharacterDetailResponseDto;
+CharacterPageResponseDto;
+CharacterImportPreviewResponseDto;
 ```
 
 Create `character-application-error.mapper.ts` mapping:
@@ -1028,6 +1075,7 @@ Expected: commit succeeds.
 ## Task 6: Web API Layer and Reusable Asset Components
 
 **Files:**
+
 - Modify: `apps/web/package.json`
 - Create: `apps/web/src/features/characters/api/characters-api.ts`
 - Create: `apps/web/src/features/assets/components/mobile-top-bar.tsx`
@@ -1056,8 +1104,13 @@ Create `characters-api.ts` with typed functions:
 ```ts
 export async function listCharacters(query: ListCharactersQuery): Promise<CharacterPageResponse>;
 export async function getCharacter(id: string): Promise<CharacterDetailResponse>;
-export async function createCharacter(values: CharacterFormValues): Promise<CharacterDetailResponse>;
-export async function updateCharacter(id: string, values: CharacterFormValues): Promise<CharacterDetailResponse>;
+export async function createCharacter(
+  values: CharacterFormValues,
+): Promise<CharacterDetailResponse>;
+export async function updateCharacter(
+  id: string,
+  values: CharacterFormValues,
+): Promise<CharacterDetailResponse>;
 export async function deleteCharacter(id: string): Promise<{ ok?: boolean }>;
 export async function importCharacterCard(file: File): Promise<CharacterDetailResponse>;
 export async function exportCharacterCard(id: string, version: 'v2' | 'v3'): Promise<Blob>;
@@ -1104,6 +1157,7 @@ Expected: commit succeeds.
 ## Task 7: Character Manager List and Internal Navigation
 
 **Files:**
+
 - Create: `apps/web/src/features/characters/hooks/use-character-card-manager.ts`
 - Create: `apps/web/src/features/characters/components/character-card-manager.tsx`
 - Create: `apps/web/src/features/characters/components/character-card-list-panel.tsx`
@@ -1200,6 +1254,7 @@ Expected: commit succeeds.
 ## Task 8: Editor, Advanced Fields, Greetings, and Import UI
 
 **Files:**
+
 - Create: `apps/web/src/features/characters/components/character-card-form.tsx`
 - Create: `apps/web/src/features/characters/components/character-advanced-form.tsx`
 - Create: `apps/web/src/features/characters/components/character-greetings-editor.tsx`
@@ -1277,6 +1332,7 @@ Expected: commit succeeds.
 ## Task 9: End-to-End Verification and Final Polish
 
 **Files:**
+
 - Create: `apps/web/tests/characters.spec.ts`
 - Modify: `README.md` only if a new command or setup note is required
 

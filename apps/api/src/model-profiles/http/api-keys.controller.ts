@@ -1,41 +1,31 @@
-import {
-  Body,
-  Controller,
-  Delete,
-  Get,
-  Param,
-  Patch,
-  Post,
-  Req,
-  UseGuards,
-} from "@nestjs/common";
-import { ApiBody, ApiParam, ApiTags } from "@nestjs/swagger";
-import { AuthGuard } from "../../auth/http/auth.guard.js";
-import type { AuthenticatedRequest } from "../../auth/http/authenticated-request.js";
-import { ApiEnvelopeOkResponse } from "../../openapi/api-envelope-response.decorator.js";
-import { CreateModelProviderApiKeyUseCase } from "../application/create-model-provider-api-key.use-case.js";
-import { DeleteModelProviderApiKeyUseCase } from "../application/delete-model-provider-api-key.use-case.js";
-import { ListApiKeysUseCase } from "../application/list-api-keys.use-case.js";
+import { Body, Controller, Delete, Get, Param, Patch, Post, Req, UseGuards } from '@nestjs/common';
+import { ApiBody, ApiParam, ApiTags } from '@nestjs/swagger';
+import { AuthGuard } from '../../auth/http/auth.guard.js';
+import type { AuthenticatedRequest } from '../../auth/http/authenticated-request.js';
+import { ApiEnvelopeOkResponse } from '../../openapi/api-envelope-response.decorator.js';
+import { CreateModelProviderApiKeyUseCase } from '../application/create-model-provider-api-key.use-case.js';
+import { DeleteModelProviderApiKeyUseCase } from '../application/delete-model-provider-api-key.use-case.js';
+import { ListApiKeysUseCase } from '../application/list-api-keys.use-case.js';
 import {
   ModelProviderApplicationError,
   type ModelProviderApplicationErrorReason,
-} from "../application/model-provider-application-error.js";
-import { UpdateModelProviderApiKeyUseCase } from "../application/update-model-provider-api-key.use-case.js";
+} from '../application/model-provider-application-error.js';
+import { UpdateModelProviderApiKeyUseCase } from '../application/update-model-provider-api-key.use-case.js';
 import {
   CreateModelProviderApiKeyRequestDto,
   SaveModelProviderApiKeyRequestDto,
-} from "./model-provider-requests.dto.js";
+} from './model-provider-requests.dto.js';
 import {
   ApiKeyListResponseDto,
   DeleteApiKeyResponseDto,
   ModelProviderApiKeyResponseDto,
   toModelProviderApiKeyResponse,
-} from "./model-provider-responses.dto.js";
-import { toApiFailure } from "./model-provider-application-error.mapper.js";
+} from './model-provider-responses.dto.js';
+import { toApiFailure } from './model-provider-application-error.mapper.js';
 
-@ApiTags("api-keys")
+@ApiTags('api-keys')
 @UseGuards(AuthGuard)
-@Controller("api-keys")
+@Controller('api-keys')
 export class ApiKeysController {
   constructor(
     private readonly listUseCase: ListApiKeysUseCase,
@@ -46,9 +36,7 @@ export class ApiKeysController {
 
   @Get()
   @ApiEnvelopeOkResponse({ type: ApiKeyListResponseDto })
-  async list(
-    @Req() request: AuthenticatedRequest,
-  ): Promise<ApiKeyListResponseDto> {
+  async list(@Req() request: AuthenticatedRequest): Promise<ApiKeyListResponseDto> {
     return this.withErrors(async () => ({
       items: (await this.listUseCase.execute(request.authUser.id)).map(
         toModelProviderApiKeyResponse,
@@ -73,13 +61,13 @@ export class ApiKeysController {
     );
   }
 
-  @Patch(":id")
-  @ApiParam({ name: "id", type: String })
+  @Patch(':id')
+  @ApiParam({ name: 'id', type: String })
   @ApiBody({ type: SaveModelProviderApiKeyRequestDto })
   @ApiEnvelopeOkResponse({ type: ModelProviderApiKeyResponseDto })
   async update(
     @Req() request: AuthenticatedRequest,
-    @Param("id") id: string,
+    @Param('id') id: string,
     @Body() body: SaveModelProviderApiKeyRequestDto,
   ): Promise<ModelProviderApiKeyResponseDto> {
     return this.withErrors(async () =>
@@ -93,12 +81,12 @@ export class ApiKeysController {
     );
   }
 
-  @Get(":id/references")
-  @ApiParam({ name: "id", type: String })
+  @Get(':id/references')
+  @ApiParam({ name: 'id', type: String })
   @ApiEnvelopeOkResponse({ type: DeleteApiKeyResponseDto })
   async references(
     @Req() request: AuthenticatedRequest,
-    @Param("id") id: string,
+    @Param('id') id: string,
   ): Promise<DeleteApiKeyResponseDto> {
     return this.withErrors(async () => ({
       affectedProviderCount: await this.deleteUseCase.referenceCount({
@@ -108,12 +96,12 @@ export class ApiKeysController {
     }));
   }
 
-  @Delete(":id")
-  @ApiParam({ name: "id", type: String })
+  @Delete(':id')
+  @ApiParam({ name: 'id', type: String })
   @ApiEnvelopeOkResponse({ type: DeleteApiKeyResponseDto })
   delete(
     @Req() request: AuthenticatedRequest,
-    @Param("id") id: string,
+    @Param('id') id: string,
   ): Promise<DeleteApiKeyResponseDto> {
     return this.withErrors(() =>
       this.deleteUseCase.execute({
@@ -123,9 +111,7 @@ export class ApiKeysController {
     );
   }
 
-  private async withErrors<TResult>(
-    handler: () => Promise<TResult>,
-  ): Promise<TResult> {
+  private async withErrors<TResult>(handler: () => Promise<TResult>): Promise<TResult> {
     try {
       return await handler();
     } catch (error) {

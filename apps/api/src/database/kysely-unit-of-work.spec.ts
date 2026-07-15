@@ -40,9 +40,7 @@ describe('KyselyUnitOfWork', () => {
       ).rejects.toThrow('stop transaction');
 
       expect(context.database).toBe(database.db);
-      await expect(
-        findUser(database.db, 'rolled-back'),
-      ).resolves.toBeUndefined();
+      await expect(findUser(database.db, 'rolled-back')).resolves.toBeUndefined();
     } finally {
       await database.destroy();
     }
@@ -123,10 +121,7 @@ describe('KyselyUnitOfWork', () => {
   });
 });
 
-async function insertUser(
-  context: KyselyDatabaseContext,
-  id: string,
-): Promise<void> {
+async function insertUser(context: KyselyDatabaseContext, id: string): Promise<void> {
   const now = new Date().toISOString();
   await context.database
     .insertInto('users')
@@ -144,9 +139,5 @@ async function insertUser(
 }
 
 function findUser(database: KyselyDatabaseContext['database'], id: string) {
-  return database
-    .selectFrom('users')
-    .select('id')
-    .where('id', '=', id)
-    .executeTakeFirst();
+  return database.selectFrom('users').select('id').where('id', '=', id).executeTakeFirst();
 }

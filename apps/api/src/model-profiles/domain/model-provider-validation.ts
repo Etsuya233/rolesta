@@ -1,4 +1,8 @@
-import { findModelProviderCatalogItem, getModelProviderSource, type ModelProviderKind } from './model-provider-catalog.js';
+import {
+  findModelProviderCatalogItem,
+  getModelProviderSource,
+  type ModelProviderKind,
+} from './model-provider-catalog.js';
 import { ModelProviderDomainError } from './model-provider-domain-error.js';
 
 export function validateProviderConnection(
@@ -19,7 +23,9 @@ export function validateProviderConnection(
 
   if (
     !catalogItem.allowCustomBaseUrl &&
-    !catalogItem.baseUrls.some((registeredUrl) => normalizeBaseUrl(registeredUrl) === normalizedBaseUrl)
+    !catalogItem.baseUrls.some(
+      (registeredUrl) => normalizeBaseUrl(registeredUrl) === normalizedBaseUrl,
+    )
   ) {
     throw new ModelProviderDomainError('invalid-base-url', { providerKind, baseUrl });
   }

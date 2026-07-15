@@ -1,19 +1,19 @@
-import { ApiProperty } from "@nestjs/swagger";
-import type { PageResponse } from "@rolesta/shared";
+import { ApiProperty } from '@nestjs/swagger';
+import type { PageResponse } from '@rolesta/shared';
 import {
   MODEL_PROVIDER_KINDS,
   MODEL_PROVIDER_SOURCES,
   type ModelProviderCatalogItem,
   type ModelProviderKind,
   type ModelProviderSource,
-} from "../domain/model-provider-catalog.js";
+} from '../domain/model-provider-catalog.js';
 import type {
   ApiKey,
   ModelProviderConfig,
   ModelProviderSummary,
-} from "../domain/model-provider-config.js";
-import type { ModelProviderModelListResult } from "../application/list-model-provider-models.use-case.js";
-import type { TestModelProviderConnectionResult } from "../application/test-model-provider-connection.use-case.js";
+} from '../domain/model-provider-config.js';
+import type { ModelProviderModelListResult } from '../application/list-model-provider-models.use-case.js';
+import type { TestModelProviderConnectionResult } from '../application/test-model-provider-connection.use-case.js';
 
 export class ModelProviderCatalogItemResponseDto {
   @ApiProperty({ enum: MODEL_PROVIDER_KINDS })
@@ -73,8 +73,8 @@ export class ModelProviderSummaryResponseDto {
   @ApiProperty({ type: String })
   defaultModelName!: string;
 
-  @ApiProperty({ enum: ["manual", "vault"] })
-  credentialMode!: "manual" | "vault";
+  @ApiProperty({ enum: ['manual', 'vault'] })
+  credentialMode!: 'manual' | 'vault';
 
   @ApiProperty({ nullable: true, type: String }) apiKeyId!: string | null;
   @ApiProperty({ nullable: true, type: String }) apiKeyName!: string | null;
@@ -183,7 +183,7 @@ export function toModelProviderDetailResponse(
 ): ModelProviderDetailResponseDto {
   return {
     ...toModelProviderSummaryResponse(config),
-    secret: config.credentialMode === "manual" ? config.secret : "",
+    secret: config.credentialMode === 'manual' ? config.secret : '',
   };
 }
 
@@ -219,9 +219,7 @@ export function toTestModelProviderConnectionResponse(
   };
 }
 
-export function toModelProviderApiKeyResponse(
-  apiKey: ApiKey,
-): ModelProviderApiKeyResponseDto {
+export function toModelProviderApiKeyResponse(apiKey: ApiKey): ModelProviderApiKeyResponseDto {
   return {
     id: apiKey.id,
     name: apiKey.name,

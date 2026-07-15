@@ -1,86 +1,75 @@
-import { expect, test, type Page, type Route } from "@playwright/test";
-import { mockAuthenticatedApp } from "./api-mocks";
+import { expect, test, type Page, type Route } from '@playwright/test';
+import { mockAuthenticatedApp } from './api-mocks';
 
-test("filters presets by permission from the search toolbar", async ({
-  page,
-}) => {
+test('filters presets by permission from the search toolbar', async ({ page }) => {
   await mockAuthenticatedApp(page);
   await mockPresetList(page);
-  await page.goto("/app/presets");
+  await page.goto('/app/presets');
 
-  const filterButton = page.getByRole("button", { name: "Filter presets" });
+  const filterButton = page.getByRole('button', { name: 'Filter presets' });
   await filterButton.click();
 
   const publicRequest = page.waitForRequest((request) => {
     const url = new URL(request.url());
-    return (
-      url.pathname.endsWith("/api/presets") &&
-      url.searchParams.get("scope") === "public"
-    );
+    return url.pathname.endsWith('/api/presets') && url.searchParams.get('scope') === 'public';
   });
 
-  await page.getByRole("radio", { name: "Public", exact: true }).click();
+  await page.getByRole('radio', { name: 'Public', exact: true }).click();
   await publicRequest;
-  await expect(filterButton).toHaveAttribute("aria-pressed", "true");
+  await expect(filterButton).toHaveAttribute('aria-pressed', 'true');
 });
 
-test("reloads preset details after reopening the preset editor", async ({
-  page,
-}) => {
+test('reloads preset details after reopening the preset editor', async ({ page }) => {
   await mockAuthenticatedApp(page);
   await mockPresetList(page);
   await page.route(/\/api\/presets\/preset_e2e$/, async (route) => {
     await fulfillPresetDetail(route);
   });
 
-  await page.goto("/app/presets");
-  await page.getByRole("button", { name: /Complete preset/ }).click();
+  await page.goto('/app/presets');
+  await page.getByRole('button', { name: /Complete preset/ }).click();
 
-  const nameInput = page.getByRole("textbox", { name: "Name" });
-  await expect(nameInput).toHaveValue("Complete preset");
+  const nameInput = page.getByRole('textbox', { name: 'Name' });
+  await expect(nameInput).toHaveValue('Complete preset');
 
-  await page.getByRole("button", { name: "Back" }).click();
-  await expect(page.getByRole("heading", { name: "Presets" })).toBeVisible();
-  await page.getByRole("button", { name: /Complete preset/ }).click();
+  await page.getByRole('button', { name: 'Back' }).click();
+  await expect(page.getByRole('heading', { name: 'Presets' })).toBeVisible();
+  await page.getByRole('button', { name: /Complete preset/ }).click();
 
-  await expect(nameInput).toHaveValue("Complete preset");
+  await expect(nameInput).toHaveValue('Complete preset');
 });
 
-test("keeps prompt role and position selected after reopening an entry", async ({
-  page,
-}) => {
+test('keeps prompt role and position selected after reopening an entry', async ({ page }) => {
   await mockAuthenticatedApp(page);
   await mockPresetList(page);
   await page.route(/\/api\/presets\/preset_e2e$/, async (route) => {
     await fulfillPresetDetail(route);
   });
 
-  await page.goto("/app/presets");
-  await page.getByRole("button", { name: /Complete preset/ }).click();
-  await page.getByRole("button", { name: "Prompt list" }).click();
-  await page.getByRole("button", { name: "Edit entry" }).nth(1).click();
+  await page.goto('/app/presets');
+  await page.getByRole('button', { name: /Complete preset/ }).click();
+  await page.getByRole('button', { name: 'Prompt list' }).click();
+  await page.getByRole('button', { name: 'Edit entry' }).nth(1).click();
 
-  const roleSelect = page.getByRole("combobox", { name: "Role" });
-  const positionSelect = page.getByRole("combobox", { name: "Position" });
-  await expect(roleSelect).toHaveText("User");
-  await expect(positionSelect).toHaveText("Chat");
+  const roleSelect = page.getByRole('combobox', { name: 'Role' });
+  const positionSelect = page.getByRole('combobox', { name: 'Position' });
+  await expect(roleSelect).toHaveText('User');
+  await expect(positionSelect).toHaveText('Chat');
 
-  await page.getByRole("button", { name: "Back" }).click();
-  await page.getByRole("button", { name: "Edit entry" }).nth(1).click();
+  await page.getByRole('button', { name: 'Back' }).click();
+  await page.getByRole('button', { name: 'Edit entry' }).nth(1).click();
 
-  await expect(roleSelect).toHaveText("User");
-  await expect(positionSelect).toHaveText("Chat");
+  await expect(roleSelect).toHaveText('User');
+  await expect(positionSelect).toHaveText('Chat');
 });
 
-test("saves one complete preset document across editor pages", async ({
-  page,
-}) => {
+test('saves one complete preset document across editor pages', async ({ page }) => {
   let savedDocument: Record<string, unknown> | null = null;
 
   await mockAuthenticatedApp(page);
   await mockPresetList(page);
   await page.route(/\/api\/presets\/preset_e2e$/, async (route) => {
-    if (route.request().method() === "PUT") {
+    if (route.request().method() === 'PUT') {
       savedDocument = route.request().postDataJSON() as Record<string, unknown>;
       await fulfillPresetDetail(route, savedDocument);
       return;
@@ -89,51 +78,49 @@ test("saves one complete preset document across editor pages", async ({
     await fulfillPresetDetail(route);
   });
 
-  await page.goto("/app/presets");
-  await page.getByRole("button", { name: /Complete preset/ }).click();
-  await page.getByRole("button", { name: "Prompt list" }).click();
+  await page.goto('/app/presets');
+  await page.getByRole('button', { name: /Complete preset/ }).click();
+  await page.getByRole('button', { name: 'Prompt list' }).click();
 
-  const savePromptList = page.getByRole("button", { name: "Save" });
+  const savePromptList = page.getByRole('button', { name: 'Save' });
   await expect(savePromptList).toBeDisabled();
 
-  const enabledToggles = page.getByRole("checkbox", { name: "Enable entry" });
+  const enabledToggles = page.getByRole('checkbox', { name: 'Enable entry' });
   await enabledToggles.first().uncheck();
   await expect(savePromptList).toBeEnabled();
 
-  await page.getByRole("button", { name: "Edit entry" }).nth(1).click();
-  await page.getByRole("textbox", { name: "Name" }).fill("Second updated");
-  await page.getByRole("button", { name: "Save" }).click();
+  await page.getByRole('button', { name: 'Edit entry' }).nth(1).click();
+  await page.getByRole('textbox', { name: 'Name' }).fill('Second updated');
+  await page.getByRole('button', { name: 'Save' }).click();
 
-  await expect(page.getByRole("heading", { name: "Edit Entry" })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Edit Entry' })).toBeVisible();
   await expect(savePromptList).toBeDisabled();
-  await page.getByRole("button", { name: "Back" }).click();
-  await expect(
-    page.getByRole("heading", { name: "Prompt list" }),
-  ).toBeVisible();
+  await page.getByRole('button', { name: 'Back' }).click();
+  await expect(page.getByRole('heading', { name: 'Prompt list' })).toBeVisible();
   await expect(enabledToggles.first()).not.toBeChecked();
   await expect
     .poll(() => savedDocument)
     .toMatchObject({
-      name: "Complete preset",
-      modelProviderId: "provider_1",
+      name: 'Complete preset',
+      modelProviderId: 'provider_1',
       entries: [
-        { id: "entry_1", name: "First" },
-        { id: "entry_2", name: "Second updated" },
+        { id: 'entry_1', name: 'First' },
+        { id: 'entry_2', name: 'Second updated' },
       ],
       promptItems: [
-        { entryId: "entry_1", enabled: false },
-        { entryId: "entry_2", enabled: true },
+        { entryId: 'entry_1', enabled: false },
+        { entryId: 'entry_2', enabled: true },
       ],
     });
 });
 
-test("updates and clears the preset model connection", async ({ page }) => {
+test('updates and clears the preset model connection', async ({ page }) => {
   let savedDocument: Record<string, unknown> | null = null;
 
   await mockAuthenticatedApp(page);
   await mockPresetList(page);
   await page.route(/\/api\/presets\/preset_e2e$/, async (route) => {
-    if (route.request().method() === "PUT") {
+    if (route.request().method() === 'PUT') {
       savedDocument = route.request().postDataJSON() as Record<string, unknown>;
       await fulfillPresetDetail(route, savedDocument);
       return;
@@ -142,44 +129,36 @@ test("updates and clears the preset model connection", async ({ page }) => {
     await fulfillPresetDetail(route);
   });
 
-  await page.goto("/app/presets");
-  await page.getByRole("button", { name: /Complete preset/ }).click();
+  await page.goto('/app/presets');
+  await page.getByRole('button', { name: /Complete preset/ }).click();
 
-  const modelConnection = page.getByRole("combobox", {
-    name: "Model connection",
+  const modelConnection = page.getByRole('combobox', {
+    name: 'Model connection',
   });
-  await expect(modelConnection).toContainText("Primary connection");
+  await expect(modelConnection).toContainText('Primary connection');
   await modelConnection.click();
-  await page.getByRole("option", { name: /Secondary connection/ }).click();
-  await page.getByRole("button", { name: "Save" }).click();
-  await expect.poll(() => savedDocument?.modelProviderId).toBe("provider_2");
+  await page.getByRole('option', { name: /Secondary connection/ }).click();
+  await page.getByRole('button', { name: 'Save' }).click();
+  await expect.poll(() => savedDocument?.modelProviderId).toBe('provider_2');
 
-  await page.getByRole("button", { name: "Clear model connection" }).click();
-  await page.getByRole("button", { name: "Save" }).click();
+  await page.getByRole('button', { name: 'Clear model connection' }).click();
+  await page.getByRole('button', { name: 'Save' }).click();
   await expect.poll(() => savedDocument?.modelProviderId).toBeNull();
 });
 
 async function mockPresetList(page: Page) {
   await page.route(/\/api\/model-providers(?:\?.*)?$/, async (route) => {
-    const pageIndex = Number(
-      new URL(route.request().url()).searchParams.get("pageIndex"),
-    );
+    const pageIndex = Number(new URL(route.request().url()).searchParams.get('pageIndex'));
     const providers =
       pageIndex === 0
-        ? [modelProviderSummary("provider_1", "Primary connection", "model-a")]
-        : [
-            modelProviderSummary(
-              "provider_2",
-              "Secondary connection",
-              "model-b",
-            ),
-          ];
+        ? [modelProviderSummary('provider_1', 'Primary connection', 'model-a')]
+        : [modelProviderSummary('provider_2', 'Secondary connection', 'model-b')];
 
     await route.fulfill({
-      contentType: "application/json",
+      contentType: 'application/json',
       json: {
-        code: "SUCCESS",
-        msg: "ok",
+        code: 'SUCCESS',
+        msg: 'ok',
         data: {
           items: providers,
           pageIndex,
@@ -193,17 +172,17 @@ async function mockPresetList(page: Page) {
 
   await page.route(/\/api\/presets(?:\?.*)?$/, async (route) => {
     await route.fulfill({
-      contentType: "application/json",
+      contentType: 'application/json',
       json: {
-        code: "SUCCESS",
-        msg: "ok",
+        code: 'SUCCESS',
+        msg: 'ok',
         data: {
           items: [
             {
-              id: "preset_e2e",
-              ownerUserId: "user_e2e",
-              visibility: "private",
-              name: "Complete preset",
+              id: 'preset_e2e',
+              ownerUserId: 'user_e2e',
+              visibility: 'private',
+              name: 'Complete preset',
               entryCount: 2,
               promptItemCount: 2,
               tokenCount: 4,
@@ -223,43 +202,38 @@ async function mockPresetList(page: Page) {
   });
 }
 
-async function fulfillPresetDetail(
-  route: Route,
-  document: Record<string, unknown> = {},
-) {
-  const entries = (document.entries as
-    Array<Record<string, unknown>> | undefined) ?? [
+async function fulfillPresetDetail(route: Route, document: Record<string, unknown> = {}) {
+  const entries = (document.entries as Array<Record<string, unknown>> | undefined) ?? [
     {
-      id: "entry_1",
-      name: "First",
-      role: "system",
-      position: "system",
-      content: "first content",
+      id: 'entry_1',
+      name: 'First',
+      role: 'system',
+      position: 'system',
+      content: 'first content',
     },
     {
-      id: "entry_2",
-      name: "Second",
-      role: "user",
-      position: "chat",
-      content: "second content",
+      id: 'entry_2',
+      name: 'Second',
+      role: 'user',
+      position: 'chat',
+      content: 'second content',
     },
   ];
-  const promptItems = (document.promptItems as
-    Array<Record<string, unknown>> | undefined) ?? [
-    { entryId: "entry_1", enabled: true },
-    { entryId: "entry_2", enabled: true },
+  const promptItems = (document.promptItems as Array<Record<string, unknown>> | undefined) ?? [
+    { entryId: 'entry_1', enabled: true },
+    { entryId: 'entry_2', enabled: true },
   ];
 
   await route.fulfill({
-    contentType: "application/json",
+    contentType: 'application/json',
     json: {
-      code: "SUCCESS",
-      msg: "ok",
+      code: 'SUCCESS',
+      msg: 'ok',
       data: {
-        id: "preset_e2e",
-        ownerUserId: "user_e2e",
-        visibility: document.visibility ?? "private",
-        name: document.name ?? "Complete preset",
+        id: 'preset_e2e',
+        ownerUserId: 'user_e2e',
+        visibility: document.visibility ?? 'private',
+        name: document.name ?? 'Complete preset',
         entryCount: entries.length,
         promptItemCount: promptItems.length,
         tokenCount: 4,
@@ -267,14 +241,14 @@ async function fulfillPresetDetail(
         updatedAtMs: 1783090001000,
         lastUsedAtMs: null,
         usageCount: 0,
-        modelProviderId: Object.hasOwn(document, "modelProviderId")
+        modelProviderId: Object.hasOwn(document, 'modelProviderId')
           ? document.modelProviderId
-          : "provider_1",
+          : 'provider_1',
         modelSettings: document.modelSettings ?? defaultModelSettings,
-        tokenizer: "cl100k_base",
-        sourceFormat: "rolesta",
+        tokenizer: 'cl100k_base',
+        sourceFormat: 'rolesta',
         entries: entries.map((entry, index) => ({
-          presetId: "preset_e2e",
+          presetId: 'preset_e2e',
           identifier: entry.id,
           tokenCount: 2,
           metadata: {},
@@ -291,20 +265,16 @@ async function fulfillPresetDetail(
   });
 }
 
-function modelProviderSummary(
-  id: string,
-  name: string,
-  defaultModelName: string,
-) {
+function modelProviderSummary(id: string, name: string, defaultModelName: string) {
   return {
     id,
-    ownerUserId: "user_e2e",
+    ownerUserId: 'user_e2e',
     name,
-    providerKind: "openai-compatible",
-    providerSource: "custom",
-    baseUrl: "https://example.com/v1",
+    providerKind: 'openai-compatible',
+    providerSource: 'custom',
+    baseUrl: 'https://example.com/v1',
     defaultModelName,
-    credentialMode: "manual",
+    credentialMode: 'manual',
     apiKeyId: null,
     apiKeyName: null,
     createdAtMs: 1783090000000,
@@ -328,7 +298,7 @@ const defaultModelSettings = {
   topA: null,
   seed: null,
   n: null,
-  reasoningEffort: "",
-  verbosity: "",
+  reasoningEffort: '',
+  verbosity: '',
   showThoughts: false,
 };

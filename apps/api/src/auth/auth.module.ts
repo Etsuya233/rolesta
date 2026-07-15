@@ -1,8 +1,5 @@
 import { Module } from '@nestjs/common';
-import {
-  UNIT_OF_WORK,
-  type UnitOfWork,
-} from '../common/application/unit-of-work.js';
+import { UNIT_OF_WORK, type UnitOfWork } from '../common/application/unit-of-work.js';
 import { DatabaseModule } from '../database/database.module.js';
 import {
   CLOCK,
@@ -92,15 +89,8 @@ import { KyselyUserAccountStore } from './persistence/kysely-user-account-store.
         passwordHashing: PasswordHashing,
         tokenIssuer: SessionTokenIssuer,
         clock: Clock,
-      ) =>
-        new LoginUseCase(users, sessions, passwordHashing, tokenIssuer, clock),
-      inject: [
-        USER_ACCOUNT_STORE,
-        SESSION_STORE,
-        PASSWORD_HASHING,
-        SESSION_TOKEN_ISSUER,
-        CLOCK,
-      ],
+      ) => new LoginUseCase(users, sessions, passwordHashing, tokenIssuer, clock),
+      inject: [USER_ACCOUNT_STORE, SESSION_STORE, PASSWORD_HASHING, SESSION_TOKEN_ISSUER, CLOCK],
     },
     {
       provide: AuthenticateTokenUseCase,

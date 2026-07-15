@@ -1,18 +1,13 @@
 import { describe, expect, it } from 'vitest';
 import { createTestDatabase } from '../../../../../packages/db/src/test-utils/create-test-database.js';
 import { KyselyDatabaseContext } from '../../database/kysely-database-context.js';
-import {
-  createEmptyCharacterCardDraft,
-  type CharacterCard,
-} from '../domain/character-card.js';
+import { createEmptyCharacterCardDraft, type CharacterCard } from '../domain/character-card.js';
 import { KyselyCharacterCardStore } from './kysely-character-card-store.js';
 
 describe('KyselyCharacterCardStore', () => {
   it('finds private cards only for owners and public cards for other viewers', async () => {
     const database = await createTestDatabase();
-    const store = new KyselyCharacterCardStore(
-      new KyselyDatabaseContext(database.db),
-    );
+    const store = new KyselyCharacterCardStore(new KyselyDatabaseContext(database.db));
 
     try {
       await seedUser(database.db, 'owner');
@@ -33,18 +28,14 @@ describe('KyselyCharacterCardStore', () => {
         }),
       );
 
-      await expect(
-        store.findVisibleById('private_card', 'owner'),
-      ).resolves.toMatchObject({ id: 'private_card' });
-      await expect(
-        store.findVisibleById('private_card', 'reader'),
-      ).resolves.toBeNull();
-      await expect(
-        store.findVisibleById('public_card', 'reader'),
-      ).resolves.toMatchObject({ id: 'public_card' });
-      await expect(
-        store.findOwnedById('public_card', 'reader'),
-      ).resolves.toBeNull();
+      await expect(store.findVisibleById('private_card', 'owner')).resolves.toMatchObject({
+        id: 'private_card',
+      });
+      await expect(store.findVisibleById('private_card', 'reader')).resolves.toBeNull();
+      await expect(store.findVisibleById('public_card', 'reader')).resolves.toMatchObject({
+        id: 'public_card',
+      });
+      await expect(store.findOwnedById('public_card', 'reader')).resolves.toBeNull();
     } finally {
       await database.destroy();
     }
@@ -52,9 +43,7 @@ describe('KyselyCharacterCardStore', () => {
 
   it('lists all visible cards with stable offset pagination', async () => {
     const database = await createTestDatabase();
-    const store = new KyselyCharacterCardStore(
-      new KyselyDatabaseContext(database.db),
-    );
+    const store = new KyselyCharacterCardStore(new KyselyDatabaseContext(database.db));
 
     try {
       await seedUser(database.db, 'owner');
