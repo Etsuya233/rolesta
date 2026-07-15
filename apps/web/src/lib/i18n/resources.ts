@@ -837,6 +837,57 @@ const featureTestTranslations = {
   },
 } as const;
 
+const chatManagementTranslations = {
+  "en-US": {
+    tabs: { list: "Chat list", current: "Current chat" },
+    create: "Create chat", search: "Search chats", roleFilter: "Character filter",
+    filters: { all: "All characters", missing: "Missing character" },
+    sort: { label: "Sort chats", updatedDesc: "Recently updated", updatedAsc: "Oldest updated", createdDesc: "Recently created", titleAsc: "Title A-Z", titleDesc: "Title Z-A" },
+    actions: { menu: "Chat actions", edit: "Edit", delete: "Delete" },
+    missingCharacter: "Missing character", loading: "Loading chats", loadFailed: "Failed to load chats", loadFailedDescription: "The chat data could not be loaded.", retry: "Retry", empty: "No chats", emptyDescription: "Create a chat to start configuring a conversation.",
+    form: { createTitle: "Create chat", editTitle: "Edit chat", description: "Choose the character and assets used by this chat.", title: "Title", character: "Character", persona: "Persona", preset: "Preset", modelProvider: "Model connection", unselected: "Unselected", searchAssets: "Search assets", presetModel: "Preset", defaultsFailed: "Default assets failed to load.", create: "Create", save: "Save" },
+    validation: { required: "This field is required.", invalidType: "Enter a valid value.", maxLength: "This value is too long.", enum: "Choose an available option.", integer: "Enter a whole number.", minimum: "The value is too small.", maximum: "The value is too large.", unknownField: "This field is not supported.", atLeastOne: "Change at least one field.", assetUnavailable: "This asset is no longer available.", saveFailed: "The chat could not be saved." },
+    delete: { title: "Delete chat", description: "Delete “{{title}}” permanently?" },
+    current: { none: "No chat selected", noneDescription: "Select a chat from the list.", loadFailedDescription: "The selected chat is still active. Retry loading its details.", missingCharacter: "Choose a replacement character before generating new messages.", createdAt: "Created", updatedAt: "Last activity" },
+  },
+  "zh-CN": {
+    tabs: { list: "聊天列表", current: "当前聊天" },
+    create: "创建聊天", search: "搜索聊天", roleFilter: "角色筛选",
+    filters: { all: "全部角色", missing: "缺少角色" },
+    sort: { label: "聊天排序", updatedDesc: "最近更新", updatedAsc: "最早更新", createdDesc: "最近创建", titleAsc: "标题 A-Z", titleDesc: "标题 Z-A" },
+    actions: { menu: "聊天操作", edit: "编辑", delete: "删除" },
+    missingCharacter: "缺少角色", loading: "正在加载聊天", loadFailed: "聊天加载失败", loadFailedDescription: "暂时无法读取聊天数据。", retry: "重试", empty: "暂无聊天", emptyDescription: "创建聊天后即可配置对话。",
+    form: { createTitle: "创建聊天", editTitle: "编辑聊天", description: "选择该聊天使用的角色与资产。", title: "标题", character: "对话角色", persona: "Persona", preset: "预设", modelProvider: "模型连接", unselected: "未选择", searchAssets: "搜索资产", presetModel: "预设关联", defaultsFailed: "默认资产加载失败。", create: "创建", save: "保存" },
+    validation: { required: "此项不能为空。", invalidType: "请输入有效内容。", maxLength: "内容过长。", enum: "请选择可用选项。", integer: "请输入整数。", minimum: "数值过小。", maximum: "数值过大。", unknownField: "不支持此字段。", atLeastOne: "请至少修改一项。", assetUnavailable: "该资产已不可用。", saveFailed: "聊天保存失败。" },
+    delete: { title: "删除聊天", description: "确定永久删除“{{title}}”吗？" },
+    current: { none: "未选择聊天", noneDescription: "请从列表选择一个聊天。", loadFailedDescription: "当前聊天仍保持选中，可重试加载详情。", missingCharacter: "重新选择角色后才能生成新消息。", createdAt: "创建时间", updatedAt: "最近活动" },
+  },
+  "zh-TW": {
+    tabs: { list: "聊天列表", current: "目前聊天" },
+    create: "建立聊天", search: "搜尋聊天", roleFilter: "角色篩選",
+    filters: { all: "全部角色", missing: "缺少角色" },
+    sort: { label: "聊天排序", updatedDesc: "最近更新", updatedAsc: "最早更新", createdDesc: "最近建立", titleAsc: "標題 A-Z", titleDesc: "標題 Z-A" },
+    actions: { menu: "聊天操作", edit: "編輯", delete: "刪除" },
+    missingCharacter: "缺少角色", loading: "正在載入聊天", loadFailed: "聊天載入失敗", loadFailedDescription: "暫時無法讀取聊天資料。", retry: "重試", empty: "暫無聊天", emptyDescription: "建立聊天後即可設定對話。",
+    form: { createTitle: "建立聊天", editTitle: "編輯聊天", description: "選擇此聊天使用的角色與資產。", title: "標題", character: "對話角色", persona: "Persona", preset: "預設", modelProvider: "模型連線", unselected: "未選擇", searchAssets: "搜尋資產", presetModel: "預設關聯", defaultsFailed: "預設資產載入失敗。", create: "建立", save: "儲存" },
+    validation: { required: "此欄不可空白。", invalidType: "請輸入有效內容。", maxLength: "內容過長。", enum: "請選擇可用選項。", integer: "請輸入整數。", minimum: "數值過小。", maximum: "數值過大。", unknownField: "不支援此欄位。", atLeastOne: "請至少修改一項。", assetUnavailable: "此資產已無法使用。", saveFailed: "聊天儲存失敗。" },
+    delete: { title: "刪除聊天", description: "確定永久刪除「{{title}}」嗎？" },
+    current: { none: "未選擇聊天", noneDescription: "請從列表選擇聊天。", loadFailedDescription: "目前聊天仍保持選取，可重試載入詳細資料。", missingCharacter: "重新選擇角色後才能產生新訊息。", createdAt: "建立時間", updatedAt: "最近活動" },
+  },
+  "ja-JP": {
+    tabs: { list: "チャット一覧", current: "現在のチャット" },
+    create: "チャットを作成", search: "チャットを検索", roleFilter: "キャラクターフィルター",
+    filters: { all: "すべて", missing: "キャラクターなし" },
+    sort: { label: "並び順", updatedDesc: "最近の更新", updatedAsc: "古い更新", createdDesc: "最近の作成", titleAsc: "タイトル A-Z", titleDesc: "タイトル Z-A" },
+    actions: { menu: "チャット操作", edit: "編集", delete: "削除" },
+    missingCharacter: "キャラクターなし", loading: "チャットを読み込み中", loadFailed: "チャットを読み込めません", loadFailedDescription: "チャットデータを取得できませんでした。", retry: "再試行", empty: "チャットはありません", emptyDescription: "チャットを作成して会話を設定します。",
+    form: { createTitle: "チャットを作成", editTitle: "チャットを編集", description: "このチャットで使うキャラクターとアセットを選択します。", title: "タイトル", character: "キャラクター", persona: "Persona", preset: "プリセット", modelProvider: "モデル接続", unselected: "未選択", searchAssets: "アセットを検索", presetModel: "プリセット", defaultsFailed: "既定アセットを読み込めませんでした。", create: "作成", save: "保存" },
+    validation: { required: "必須項目です。", invalidType: "有効な値を入力してください。", maxLength: "入力が長すぎます。", enum: "利用可能な項目を選択してください。", integer: "整数を入力してください。", minimum: "値が小さすぎます。", maximum: "値が大きすぎます。", unknownField: "この項目は使用できません。", atLeastOne: "1項目以上変更してください。", assetUnavailable: "このアセットは利用できません。", saveFailed: "チャットを保存できませんでした。" },
+    delete: { title: "チャットを削除", description: "「{{title}}」を完全に削除しますか？" },
+    current: { none: "チャット未選択", noneDescription: "一覧からチャットを選択してください。", loadFailedDescription: "選択状態は維持されています。詳細を再読み込みしてください。", missingCharacter: "新しいメッセージを生成する前にキャラクターを選択してください。", createdAt: "作成日時", updatedAt: "最終アクティビティ" },
+  },
+} as const;
+
 export const resources = {
   "en-US": {
     translation: {
@@ -956,6 +1007,7 @@ export const resources = {
           },
           testing: featureTestTranslations["en-US"],
         },
+        management: chatManagementTranslations["en-US"],
       },
       worldbooks: worldbookTranslations["en-US"],
       chatPreferences: {
@@ -1498,6 +1550,7 @@ export const resources = {
           },
           testing: featureTestTranslations["zh-CN"],
         },
+        management: chatManagementTranslations["zh-CN"],
       },
       worldbooks: worldbookTranslations["zh-CN"],
       chatPreferences: {
@@ -2033,6 +2086,7 @@ export const resources = {
           },
           testing: featureTestTranslations["zh-TW"],
         },
+        management: chatManagementTranslations["zh-TW"],
       },
       worldbooks: worldbookTranslations["zh-TW"],
       chatPreferences: {
@@ -2571,6 +2625,7 @@ export const resources = {
           },
           testing: featureTestTranslations["ja-JP"],
         },
+        management: chatManagementTranslations["ja-JP"],
       },
       worldbooks: worldbookTranslations["ja-JP"],
       chatPreferences: {

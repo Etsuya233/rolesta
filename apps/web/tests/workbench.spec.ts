@@ -1,5 +1,5 @@
 import { expect, test } from '@playwright/test';
-import { mockAuthenticatedApp } from './api-mocks';
+import { mockAuthenticatedApp, mockChatManagement } from './api-mocks';
 
 test.beforeEach(async ({ page }) => {
   await page.addInitScript(() => {
@@ -422,6 +422,38 @@ test('mobile right panel stays below the toolbar and uses viewport width', async
   await expect(page.getByTestId('workspace-right-column')).toBeHidden();
 });
 
+test('creates a chat with visible title autofill and keeps Center unchanged', async ({ page }) => {
+  await mockChatManagement(page);
+  await openWorkbench(page);
+
+  await page.getByRole('button', { name: 'Create chat' }).click();
+  await page.getByRole('button', { name: 'Character', exact: true }).click();
+  await page.getByRole('button', { name: 'Seraphina', exact: true }).click();
+  await expect(page.getByLabel('Title')).toHaveValue('Seraphina');
+  await page.getByLabel('Title').fill('Custom title');
+  await page.getByRole('button', { name: 'Character', exact: true }).click();
+  await page.getByRole('button', { name: 'Luna', exact: true }).click();
+  await expect(page.getByLabel('Title')).toHaveValue('Custom title');
+  await page.getByRole('button', { name: 'Create', exact: true }).click();
+
+  await expect(page.getByRole('tab', { name: 'Current chat' })).toHaveAttribute('data-state', 'active');
+  await expect(page.getByRole('heading', { name: 'Custom title' })).toBeVisible();
+  await expect(page.getByTestId('workspace-panel-center-recentWorkspace')).toBeVisible();
+});
+
+test('mobile selection closes the left drawer and refresh clears active Chat', async ({ page }) => {
+  await mockChatManagement(page);
+  await page.setViewportSize({ width: 390, height: 844 });
+  await openWorkbench(page);
+  await page.getByRole('button', { name: 'Toggle left sidebar' }).click();
+  await page.getByRole('button', { name: /Existing chat/ }).click();
+  await expect(page.getByTestId('workspace-left-column')).toBeHidden();
+
+  await page.reload();
+  await page.getByRole('button', { name: 'Toggle left sidebar' }).click();
+  await expect(page.getByRole('tab', { name: 'Chat list' })).toHaveAttribute('data-state', 'active');
+});
+
 async function mockWorkspaceAssetLists(page: Parameters<typeof mockAuthenticatedApp>[0]) {
   const emptyPage = {
     items: [],
@@ -453,6 +485,24 @@ async function mockWorkspaceAssetLists(page: Parameters<typeof mockAuthenticated
   });
 
   await page.route(/\/api\/model-providers(?:\?.*)?$/, async (route) => {
+    await route.fulfill({
+      contentType: 'application/json',
+      json: { code: 'SUCCESS', msg: 'ok', data: emptyPage },
+    });
+  });
+
+  await page.route(/\/api\/chat-preferences\/assets$/, async (route) => {
+    await route.fulfill({
+      contentType: 'application/json',
+      json: { code: 'SUCCESS', msg: 'ok', data: {
+        personaCharacterId: null,
+        presetId: null,
+        modelProviderId: null,
+      } },
+    });
+  });
+
+  await page.route(/\/api\/chats(?:\?.*)?$/, async (route) => {
     await route.fulfill({
       contentType: 'application/json',
       json: { code: 'SUCCESS', msg: 'ok', data: emptyPage },

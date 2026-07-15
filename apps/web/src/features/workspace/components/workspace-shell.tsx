@@ -29,10 +29,6 @@ import type {
 import { WorkspacePanelHost } from "./workspace-panel-host";
 import { WorkspaceToolbar } from "./workspace-toolbar";
 
-interface WorkspaceShellProps {
-  activeChatId?: string | undefined;
-}
-
 const workspaceAreas: WorkspaceArea[] = ["left", "center", "right", "bottom"];
 const workspaceCenterMinWidth = 360;
 const workspacePanelSizeLimits = {
@@ -47,8 +43,9 @@ const workspacePanelSizeLimits = {
 } satisfies Record<WorkspaceResizableSide, { min: number; max: number }>;
 const workspacePanelResizeStep = 16;
 
-export function WorkspaceShell({ activeChatId }: WorkspaceShellProps) {
+export function WorkspaceShell() {
   const layout = useWorkspaceLayout();
+  const [activeChatId, setActiveChatId] = useState<string | null>(null);
   const desktopLayout = useDesktopWorkspaceLayout();
   const workspaceGridRef = useRef<HTMLDivElement>(null);
   const [resizingSide, setResizingSide] =
@@ -78,10 +75,12 @@ export function WorkspaceShell({ activeChatId }: WorkspaceShellProps) {
   const runtime = useMemo<WorkspacePanelRuntime>(
     () => ({
       activeChatId,
+      setActiveChatId,
       openPanel: layout.openPanel,
       closeArea: layout.closeArea,
+      closeMobileArea: layout.closeMobileArea,
     }),
-    [activeChatId, layout.closeArea, layout.openPanel],
+    [activeChatId, layout.closeArea, layout.closeMobileArea, layout.openPanel],
   );
   const toggleToolbarPanel = useCallback(
     (panelKey: WorkspacePanelKey) => {

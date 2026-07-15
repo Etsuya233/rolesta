@@ -1,4 +1,5 @@
 import type { CharactersTable } from "./characters.js";
+import type { ChatsTable } from "./chats.js";
 import type { AssetDefaultsTable } from "./asset-defaults.js";
 import type {
   ApiKeysTable,
@@ -11,13 +12,18 @@ import type {
 } from "./presets.js";
 import type { MigrationLockTable, SessionsTable, UsersTable } from "./users.js";
 import type { WorldbookEntriesTable, WorldbooksTable } from "./worldbooks.js";
-import type { FileContentsTable, FileObjectsTable, FileResourcesTable } from './files.js';
+import type {
+  FileContentsTable,
+  FileObjectsTable,
+  FileResourcesTable,
+} from "./files.js";
 
 export interface Database {
   users: UsersTable;
   sessions: SessionsTable;
   asset_defaults: AssetDefaultsTable;
   characters: CharactersTable;
+  chats: ChatsTable;
   model_provider_configs: ModelProviderConfigsTable;
   api_keys: ApiKeysTable;
   presets: PresetsTable;

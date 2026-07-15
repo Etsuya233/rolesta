@@ -26,6 +26,7 @@
     "cookie-parser": "^1.4.7",
     "kysely": "^0.29.2",
     "nestjs-pino": "^4.6.1",
+    "nestjs-zod": "^5.4.0",
     "pino": "^10.3.1",
     "pino-http": "^11.0.0",
     "reflect-metadata": "^0.2.2",

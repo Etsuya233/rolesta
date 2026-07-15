@@ -105,12 +105,4 @@ export const router = createBrowserRouter([
       </AppRouteGuard>
     ),
   },
-  {
-    path: "/app/chats/:chatId",
-    element: (
-      <AppRouteGuard>
-        <WorkbenchPage />
-      </AppRouteGuard>
-    ),
-  },
 ]);

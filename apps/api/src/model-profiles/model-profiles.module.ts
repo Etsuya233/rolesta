@@ -41,6 +41,8 @@ import {
 import { KyselyModelProviderStore } from "./persistence/kysely-model-provider-store.js";
 import { KyselyApiKeyStore } from "./persistence/kysely-api-key-store.js";
 import { API_KEY_STORE, type ApiKeyStore } from "./ports/api-key-store.js";
+import { MODEL_PROVIDER_REFERENCE_ACCESS } from "./contracts/model-provider-reference-access.js";
+import { KyselyModelProviderReferenceAccess } from "./persistence/kysely-model-provider-reference-access.js";
 
 @Module({
   imports: [DatabaseModule, DomainEventsModule, AuthModule, ApiLoggerModule],
@@ -48,10 +50,15 @@ import { API_KEY_STORE, type ApiKeyStore } from "./ports/api-key-store.js";
   providers: [
     KyselyModelProviderStore,
     KyselyApiKeyStore,
+    KyselyModelProviderReferenceAccess,
     FetchChatCompletionConnectionClient,
     CryptoIdGenerator,
     SystemClock,
     { provide: MODEL_PROVIDER_STORE, useExisting: KyselyModelProviderStore },
+    {
+      provide: MODEL_PROVIDER_REFERENCE_ACCESS,
+      useExisting: KyselyModelProviderReferenceAccess,
+    },
     { provide: API_KEY_STORE, useExisting: KyselyApiKeyStore },
     {
       provide: CHAT_COMPLETION_CONNECTION_CLIENT,
@@ -165,5 +172,6 @@ import { API_KEY_STORE, type ApiKeyStore } from "./ports/api-key-store.js";
       ],
     },
   ],
+  exports: [MODEL_PROVIDER_REFERENCE_ACCESS],
 })
 export class ModelProfilesModule {}
