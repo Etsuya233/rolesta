@@ -42,17 +42,24 @@ Browser
 
 ## 2. 技术栈与运行要求
 
-- Node.js 24.18.0，由 mise 根据仓库根目录的 `mise.toml` 安装和切换。
-- pnpm 11.9.0，由 mise 根据仓库根目录的 `mise.toml` 安装和切换。
+- Node.js 22 或更高版本。
+- pnpm 11 或更高版本。
 - Turborepo 负责任务编排。
 - API 使用 NestJS、Kysely、SQLite、class-validator 和 Swagger/OpenAPI。
 - Web 使用 React、React Router、TanStack Query、openapi-fetch、i18next、Tailwind CSS 和 shadcn/ui。
 - 单元测试与集成测试使用 Vitest，Web 端到端测试使用 Playwright。
 
-首次启动：
+推荐使用 mise 管理开发工具版本。仓库根目录的 `mise.toml` 固定了经过验证的 Node.js 24.18.0 和 pnpm 11.9.0，可通过以下命令安装：
 
 ```powershell
 mise install
+```
+
+使用 mise 时，建议把 `(& mise activate pwsh) | Out-String | Invoke-Expression` 加入 PowerShell profile，以便进入不同工作区时自动切换版本。也可以使用其他版本管理工具或手动安装，只要 Node.js 和 pnpm 满足上述版本要求。
+
+首次启动：
+
+```powershell
 pnpm install --trust-lockfile
 Copy-Item apps/api/.env.example apps/api/.env
 Copy-Item apps/web/.env.example apps/web/.env
@@ -61,8 +68,6 @@ pnpm --filter @rolesta/db build
 pnpm db:migrate
 pnpm dev
 ```
-
-首次使用前需要安装 mise，并把 `(& mise activate pwsh) | Out-String | Invoke-Expression` 加入 PowerShell profile。Node.js 和 pnpm 均由 mise 根据当前工作区配置提供。
 
 `pnpm db:migrate` 运行 `packages/db/dist/migrator.js`。全新检出或修改数据库包源码后，必须先构建 `@rolesta/db`。
 
