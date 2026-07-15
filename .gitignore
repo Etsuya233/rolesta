@@ -63,3 +63,6 @@ build/
 
 ### JRebel ###
 **/src/main/resources/rebel.xml
+
+### Superpowers ###
+.superpowers/
