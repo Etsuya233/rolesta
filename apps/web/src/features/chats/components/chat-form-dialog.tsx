@@ -149,7 +149,7 @@ export function ChatFormDialog({
           </DialogTitle>
           <DialogDescription>{t('chats.management.form.description')}</DialogDescription>
         </DialogHeader>
-        <form className="contents" onSubmit={submit}>
+        <form className="contents" onSubmit={(event) => void submit(event)}>
           <ScrollArea className="min-h-0 px-4">
             <FieldGroup className="pb-4">
               <Field data-invalid={Boolean(fieldErrors.title)}>
@@ -212,7 +212,7 @@ export function ChatFormDialog({
                     type="button"
                     size="sm"
                     variant="outline"
-                    onClick={() => defaults.refetch()}
+                    onClick={() => void defaults.refetch()}
                   >
                     <RotateCwIcon data-icon="inline-start" />
                     {t('chats.management.retry')}

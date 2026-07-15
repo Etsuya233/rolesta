@@ -143,7 +143,7 @@ export function ChatListTab({
               <EmptyTitle>{t('chats.management.loadFailed')}</EmptyTitle>
               <EmptyDescription>{t('chats.management.loadFailedDescription')}</EmptyDescription>
             </EmptyHeader>
-            <Button type="button" variant="outline" onClick={() => query.refetch()}>
+            <Button type="button" variant="outline" onClick={() => void query.refetch()}>
               <RotateCwIcon data-icon="inline-start" />
               {t('chats.management.retry')}
             </Button>

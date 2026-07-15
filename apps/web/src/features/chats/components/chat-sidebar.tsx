@@ -57,7 +57,7 @@ export function ChatSidebar({
               setTab('current');
               closeMobileArea();
             }}
-            onEdit={edit}
+            onEdit={(id) => void edit(id)}
             onDelete={setDeleteTarget}
           />
         </TabsContent>

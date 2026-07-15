@@ -9,7 +9,7 @@
     "preview": "vite preview --host 0.0.0.0",
     "test": "vitest run",
     "test:e2e": "playwright test",
-    "lint": "eslint \"src/**/*.{ts,tsx}\"",
+    "lint": "eslint \"src/**/*.{ts,tsx}\" --ignore-pattern \"src/lib/api/generated/**\"",
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "openapi:generate": "openapi-typescript ../api/openapi.json -o src/lib/api/generated/schema.ts"
   },
