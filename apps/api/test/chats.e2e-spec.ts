@@ -60,7 +60,10 @@ describe("Chats API", () => {
         modelProviderId: "mine-provider",
       })
       .expect(201)
-      .then((response) => response.body.data as ChatDetailBody);
+      .then(
+        (response) =>
+          (response.body as { data: ChatDetailBody }).data,
+      );
 
     expect(created).toMatchObject({
       title: "Shared  Character",
@@ -110,7 +113,7 @@ describe("Chats API", () => {
       )
       .set("Authorization", `Bearer ${owner.token}`)
       .expect(200)
-      .then((response) => response.body.data as ChatPageBody);
+      .then((response) => (response.body as { data: ChatPageBody }).data);
     expect(page).toMatchObject({
       pageIndex: 0,
       pageSize: 10,
@@ -137,7 +140,10 @@ describe("Chats API", () => {
         presetId: null,
       })
       .expect(200)
-      .then((response) => response.body.data as ChatDetailBody);
+      .then(
+        (response) =>
+          (response.body as { data: ChatDetailBody }).data,
+      );
     expect(updated).toMatchObject({
       title: "Shared  Character",
       persona: null,
@@ -149,7 +155,11 @@ describe("Chats API", () => {
       .delete(`/chats/${created.id}`)
       .set("Authorization", `Bearer ${owner.token}`)
       .expect(200)
-      .expect((response) => expect(response.body.data).toEqual({ ok: true }));
+      .expect((response) =>
+        expect((response.body as { data: { ok: boolean } }).data).toEqual({
+          ok: true,
+        }),
+      );
     await request(app.getHttpServer() as App)
       .get(`/chats/${created.id}`)
       .set("Authorization", `Bearer ${owner.token}`)
@@ -275,9 +285,12 @@ async function setupAdmin(app: INestApplication) {
     .post("/auth/setup-admin")
     .send({ username: "admin", password: "very-secure-password" })
     .expect(201);
+  const body = response.body as {
+    data: { token: string; user: { id: string } };
+  };
   return {
-    token: response.body.data.token as string,
-    userId: response.body.data.user.id as string,
+    token: body.data.token,
+    userId: body.data.user.id,
   };
 }
 
@@ -403,7 +416,7 @@ async function createChat(
     .set("Authorization", `Bearer ${token}`)
     .send(body)
     .expect(201)
-    .then((response) => response.body.data as ChatDetailBody);
+    .then((response) => (response.body as { data: ChatDetailBody }).data);
 }
 
 async function getChat(
@@ -415,5 +428,5 @@ async function getChat(
     .get(`/chats/${id}`)
     .set("Authorization", `Bearer ${token}`)
     .expect(200)
-    .then((response) => response.body.data as ChatDetailBody);
+    .then((response) => (response.body as { data: ChatDetailBody }).data);
 }

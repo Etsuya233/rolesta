@@ -38,6 +38,8 @@ import {
   type PresetModelProviderAccess,
 } from "./ports/preset-model-provider-access.js";
 import { PresetsController } from "./http/presets.controller.js";
+import { PRESET_REFERENCE_ACCESS } from "./contracts/preset-reference-access.js";
+import { KyselyPresetReferenceAccess } from "./persistence/kysely-preset-reference-access.js";
 
 @Module({
   imports: [DatabaseModule, DomainEventsModule, AuthModule],
@@ -45,11 +47,16 @@ import { PresetsController } from "./http/presets.controller.js";
   providers: [
     KyselyPresetStore,
     KyselyPresetModelProviderAccess,
+    KyselyPresetReferenceAccess,
     SillyTavernPresetCodec,
     ModelProviderDeletedEventsListener,
     CryptoIdGenerator,
     SystemClock,
     { provide: PRESET_STORE, useExisting: KyselyPresetStore },
+    {
+      provide: PRESET_REFERENCE_ACCESS,
+      useExisting: KyselyPresetReferenceAccess,
+    },
     {
       provide: PRESET_MODEL_PROVIDER_ACCESS,
       useExisting: KyselyPresetModelProviderAccess,
@@ -209,5 +216,6 @@ import { PresetsController } from "./http/presets.controller.js";
       inject: [PRESET_STORE, SystemClock, UNIT_OF_WORK],
     },
   ],
+  exports: [PRESET_REFERENCE_ACCESS],
 })
 export class PresetsModule {}

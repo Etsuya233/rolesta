@@ -119,11 +119,15 @@ describe('OpenAPI document', () => {
         expect.objectContaining({ name: 'role', in: 'query' }),
         expect.objectContaining({
           name: 'sort',
-          schema: expect.objectContaining({ enum: ['createdAt', 'updatedAt', 'title'] }),
+          schema: expect.objectContaining({
+            enum: ['createdAt', 'updatedAt', 'title'],
+          }) as unknown,
         }),
         expect.objectContaining({
           name: 'pageSize',
-          schema: expect.objectContaining({ enum: [10, 20, 50, 100] }),
+          schema: expect.objectContaining({
+            enum: [10, 20, 50, 100],
+          }) as unknown,
         }),
       ]),
     );

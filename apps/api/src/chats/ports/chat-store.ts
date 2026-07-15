@@ -38,7 +38,7 @@ export interface ChatDetail extends Chat {
 export interface ListChatsRequest {
   ownerUserId: string;
   q: string;
-  role: "all" | "missing" | string;
+  role: string;
   sort: "createdAt" | "updatedAt" | "title";
   direction: "asc" | "desc";
   pageIndex: number;

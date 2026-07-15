@@ -16,6 +16,7 @@ import type { AuthenticatedRequest } from "../../auth/http/authenticated-request
 import { GetPublicFileObjectsUseCase } from "../../files/application/get-public-file-objects.use-case.js";
 import { ApiEnvelopeOkResponse } from "../../openapi/api-envelope-response.decorator.js";
 import { ChatApplicationError } from "../application/chat-application-error.js";
+import type { ChatApplicationErrorReason } from "../application/chat-application-error.js";
 import { CreateChatUseCase } from "../application/create-chat.use-case.js";
 import { DeleteChatUseCase } from "../application/delete-chat.use-case.js";
 import { GetChatUseCase } from "../application/get-chat.use-case.js";
@@ -146,7 +147,11 @@ export class ChatsController {
     try {
       return await operation();
     } catch (error) {
-      if (error instanceof ChatApplicationError) throw toChatApiFailure(error);
+      if (error instanceof ChatApplicationError) {
+        throw toChatApiFailure(
+          error as ChatApplicationError<ChatApplicationErrorReason>,
+        );
+      }
       throw error;
     }
   }

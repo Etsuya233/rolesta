@@ -55,6 +55,10 @@ import {
 import { CharactersController } from "./http/characters.controller.js";
 import { KyselyCharacterAvatarAssignment } from "./persistence/kysely-character-avatar-assignment.js";
 import { KyselyCharacterCardStore } from "./persistence/kysely-character-card-store.js";
+import {
+  CHARACTER_REFERENCE_ACCESS,
+} from "./contracts/character-reference-access.js";
+import { KyselyCharacterReferenceAccess } from "./persistence/kysely-character-reference-access.js";
 
 @Module({
   imports: [DatabaseModule, DomainEventsModule, AuthModule, FilesModule],
@@ -62,10 +66,15 @@ import { KyselyCharacterCardStore } from "./persistence/kysely-character-card-st
   providers: [
     KyselyCharacterCardStore,
     KyselyCharacterAvatarAssignment,
+    KyselyCharacterReferenceAccess,
     SillyTavernCharacterCardCodec,
     CryptoIdGenerator,
     SystemClock,
     { provide: CHARACTER_CARD_STORE, useExisting: KyselyCharacterCardStore },
+    {
+      provide: CHARACTER_REFERENCE_ACCESS,
+      useExisting: KyselyCharacterReferenceAccess,
+    },
     {
       provide: CHARACTER_AVATAR_ASSIGNMENT,
       useExisting: KyselyCharacterAvatarAssignment,
@@ -213,5 +222,6 @@ import { KyselyCharacterCardStore } from "./persistence/kysely-character-card-st
       inject: [CHARACTER_CARD_STORE, CHARACTER_CARD_CODEC],
     },
   ],
+  exports: [CHARACTER_REFERENCE_ACCESS],
 })
 export class CharactersModule {}
