@@ -14,9 +14,9 @@
     "test:e2e": "turbo test:e2e",
     "lint": "turbo lint",
     "typecheck": "turbo typecheck",
-    "db:migrate": "corepack pnpm --filter @rolesta/db migrate",
-    "db:seed": "corepack pnpm --filter @rolesta/db seed",
-    "openapi:generate": "corepack pnpm --filter @rolesta/api openapi:generate && corepack pnpm --filter @rolesta/web openapi:generate",
+    "db:migrate": "pnpm --filter @rolesta/db migrate",
+    "db:seed": "pnpm --filter @rolesta/db seed",
+    "openapi:generate": "pnpm --filter @rolesta/api openapi:generate && pnpm --filter @rolesta/web openapi:generate",
     "format": "prettier --write \"**/*.{ts,tsx,js,cjs,json,md,css}\""
   },
   "devDependencies": {
