@@ -2,7 +2,7 @@
 
 **Goal:** Replace Corepack-based development commands with Bash and PowerShell startup scripts that load a root `.env`, prepend `RUNTIME_PATH`, run the active Shell's pre-startup task, and start the Turborepo workspace.
 
-**Architecture:** `start.sh` and `start.ps1` are independent native orchestrators with the same environment-file contract. Each script prepares its process environment before invoking Node or pnpm, runs its pre-startup task in a child process, validates runtime availability, and hands control to `pnpm dev:workspace`. The approved behavior is defined in `docs/superpowers/specs/2026-07-14-runtime-environment-startup-design.md`.
+**Architecture:** `start.sh` and `start.ps1` are independent native orchestrators with the same environment-file contract. Each script prepares its process environment before invoking Node or pnpm, runs its pre-startup task in a child process, validates runtime availability, and hands control to `pnpm dev:workspace`. The approved behavior is defined in `docs/specs/2026-07-14-runtime-environment-startup-design.md`.
 
 **Tech Stack:** Bash, PowerShell 7, pnpm 11, Turborepo, GitHub Actions.
 

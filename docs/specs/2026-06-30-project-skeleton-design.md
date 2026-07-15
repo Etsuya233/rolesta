@@ -36,8 +36,7 @@ packages/
   db/
   shared/
 docs/
-  superpowers/
-    specs/
+  specs/
 ```
 
 ### apps/api

@@ -1,6 +1,6 @@
 # Chat Management Implementation Plan
 
-**Goal:** Deliver private Chat CRUD, filtering, live asset associations, shared request validation, and the left-sidebar management experience defined in `docs/superpowers/specs/2026-07-15-chat-management-design.md`.
+**Goal:** Deliver private Chat CRUD, filtering, live asset associations, shared request validation, and the left-sidebar management experience defined in `docs/specs/2026-07-15-chat-management-design.md`.
 
 **Architecture:** Add a `chats` business module around a private `Chat` domain object and a Kysely store. Keep asset acquisition behind Chat-owned ports and serialize Chat writes with asset deletion or visibility changes through the existing Unit of Work. Chat stores live asset IDs and returns Chat-owned narrow summaries. Request field rules come from shared Zod schemas, while asset access remains an application concern. The Web keeps the active Chat in Workbench memory and leaves Center panel navigation independent.
 
