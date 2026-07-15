@@ -61,4 +61,5 @@ Rolesta 面向个人部署场景设计。产品当前以稳定的聊天核心和
 
 ## Development
 
+Worktree 请在 ./worktrees 里进行创建。
 项目架构、开发环境、代码组织和验证流程见 [Rolesta 项目开发指南](docs/development-guide.md)。
