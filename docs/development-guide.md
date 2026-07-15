@@ -42,8 +42,8 @@ Browser
 
 ## 2. 技术栈与运行要求
 
-- Node.js 22 或更高版本。
-- pnpm 11 或更高版本，仓库通过 Corepack 使用 pnpm。
+- Node.js 24.18.0，由 mise 根据仓库根目录的 `mise.toml` 安装和切换。
+- pnpm 11.9.0，由 Corepack 根据根 `package.json` 的 `packageManager` 字段提供。
 - Turborepo 负责任务编排。
 - API 使用 NestJS、Kysely、SQLite、class-validator 和 Swagger/OpenAPI。
 - Web 使用 React、React Router、TanStack Query、openapi-fetch、i18next、Tailwind CSS 和 shadcn/ui。
@@ -52,6 +52,8 @@ Browser
 首次启动：
 
 ```powershell
+mise install
+mise exec -- corepack enable
 pnpm install --trust-lockfile
 Copy-Item apps/api/.env.example apps/api/.env
 Copy-Item apps/web/.env.example apps/web/.env
@@ -60,6 +62,8 @@ pnpm --filter @rolesta/db build
 pnpm db:migrate
 pnpm dev
 ```
+
+首次使用前需要安装 mise，并把 `(& mise activate pwsh) | Out-String | Invoke-Expression` 加入 PowerShell profile。Corepack 仅负责把 `pnpm` 命令映射到 `packageManager` 声明的版本；项目 scripts 直接调用 `pnpm`。
 
 `pnpm db:migrate` 运行 `packages/db/dist/migrator.js`。全新检出或修改数据库包源码后，必须先构建 `@rolesta/db`。
 
