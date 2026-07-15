@@ -18,7 +18,7 @@ Rolesta 聚焦“可用、可解释、可持续整理”的角色扮演聊天工
 
 ### 创建聊天会话
 
-用户选择自己的身份角色、对话角色、预设和模型档案后即可开始一对一聊天。聊天工作台围绕消息流展开，常用的角色信息、世界书、预设、模型和运行时信息放在靠近会话的位置，减少频繁跳转。
+用户选择自己的身份角色、对话角色、预设和模型连接后即可开始一对一聊天。聊天工作台围绕消息流展开，常用的角色信息、世界书、预设、模型和运行时信息放在靠近会话的位置，减少频繁跳转。
 
 ### 调整和复用上下文
 
@@ -38,7 +38,7 @@ Rolesta 面向个人部署场景设计。产品当前以稳定的聊天核心和
 
 - 一对一角色扮演聊天。
 - 角色卡、世界书和预设的兼容导入与管理。
-- 模型档案配置。
+- 模型连接配置。
 - 基础上下文组装和调试。
 - 桌面与窄屏下可完成核心聊天流程。
 
@@ -55,46 +55,10 @@ Rolesta 面向个人部署场景设计。产品当前以稳定的聊天核心和
 
 - 聊天体验优先：用户进入产品后应能快速选择角色并开始对话。
 - 兼容内容优先：已有角色卡、世界书和预设应尽量可导入、可编辑、可继续使用。
-- 用户资产可控：用户应清楚知道自己拥有哪些角色、世界书、预设、模型档案和会话。
+- 用户资产可控：用户应清楚知道自己拥有哪些角色、世界书、预设、模型连接和会话。
 - 上下文可解释：用户应能查看一次生成受到哪些内容影响。
 - 移动端可完成核心流程：发送消息、重新生成、编辑消息、切换预设和查看调试摘要等操作应能在窄屏完成。
 
 ## Development
 
-Rolesta uses a TypeScript monorepo with a separated API and web app.
-
-### Requirements
-
-- Node.js 22 or newer.
-- pnpm 9 or newer.
-
-### Setup
-
-```powershell
-pnpm install --trust-lockfile
-Copy-Item apps/api/.env.example apps/api/.env
-Copy-Item apps/web/.env.example apps/web/.env
-Copy-Item packages/db/.env.example packages/db/.env
-pnpm db:migrate
-```
-
-### Run
-
-```powershell
-pnpm dev
-```
-
-Default local URLs:
-
-- Web: http://127.0.0.1:5173
-- API: http://127.0.0.1:3000
-- API docs: http://127.0.0.1:3000/docs
-
-### Verify
-
-```powershell
-pnpm lint
-pnpm typecheck
-pnpm test
-pnpm build
-```
+项目架构、开发环境、代码组织和验证流程见 [Rolesta 项目开发指南](docs/development-guide.md)。
