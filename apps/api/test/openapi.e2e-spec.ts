@@ -106,6 +106,41 @@ describe('OpenAPI document', () => {
         expect.objectContaining({ in: 'query', name: 'version' }),
       ]),
     );
+    expect(document.paths['/chats']?.post?.requestBody).toMatchObject({
+      required: true,
+      content: {
+        'application/json': {
+          schema: { $ref: '#/components/schemas/CreateChatRequestDto' },
+        },
+      },
+    });
+    expect(document.paths['/chats']?.get?.parameters).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ name: 'role', in: 'query' }),
+        expect.objectContaining({
+          name: 'sort',
+          schema: expect.objectContaining({ enum: ['createdAt', 'updatedAt', 'title'] }),
+        }),
+        expect.objectContaining({
+          name: 'pageSize',
+          schema: expect.objectContaining({ enum: [10, 20, 50, 100] }),
+        }),
+      ]),
+    );
+    const createChatSchema = document.components?.schemas?.CreateChatRequestDto as {
+      required?: string[];
+      additionalProperties?: boolean;
+      properties?: Record<string, Record<string, unknown>>;
+    };
+    expect(createChatSchema.required).toEqual(['title', 'chatCharacterId']);
+    expect(createChatSchema.additionalProperties).toBe(false);
+    expect(createChatSchema.properties?.title).toMatchObject({ minLength: 1, maxLength: 512 });
+    expect(createChatSchema.properties?.personaCharacterId).toMatchObject({ nullable: true });
+    const updateChatSchema = document.components?.schemas?.UpdateChatRequestDto as {
+      minProperties?: number;
+      additionalProperties?: boolean;
+    };
+    expect(updateChatSchema).toMatchObject({ minProperties: 1, additionalProperties: false });
 
     await app.close();
   });

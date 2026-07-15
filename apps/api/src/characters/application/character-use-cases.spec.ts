@@ -1,112 +1,137 @@
-import { describe, expect, it } from 'vitest';
-import type { PageResponse } from '@rolesta/shared';
-import { createEmptyCharacterCardDraft, type CharacterCard } from '../domain/character-card.js';
+import { describe, expect, it } from "vitest";
+import type { UnitOfWork } from "../../common/application/unit-of-work.js";
+import type { DomainEventPublisher } from "../../common/events/index.js";
+import type { PageResponse } from "@rolesta/shared";
+import {
+  createEmptyCharacterCardDraft,
+  type CharacterCard,
+} from "../domain/character-card.js";
 import type {
   CharacterCardCodec,
   ExportCharacterCardOptions,
   ImportedCharacterCard,
   ImportCharacterCardFile,
-} from '../ports/character-card-codec.js';
-import { CharacterPortError } from '../ports/character-port-error.js';
-import type { CharacterCardStore, ListCharactersRequest } from '../ports/character-card-store.js';
-import { CharacterApplicationError } from './character-application-error.js';
-import { CreateCharacterUseCase } from './create-character.use-case.js';
-import { ExportCharacterCardUseCase } from './export-character-card.use-case.js';
-import { ImportCharacterCardUseCase } from './import-character-card.use-case.js';
-import { UpdateCharacterUseCase } from './update-character.use-case.js';
+} from "../ports/character-card-codec.js";
+import { CharacterPortError } from "../ports/character-port-error.js";
+import type {
+  CharacterCardStore,
+  ListCharactersRequest,
+} from "../ports/character-card-store.js";
+import { CharacterApplicationError } from "./character-application-error.js";
+import { CreateCharacterUseCase } from "./create-character.use-case.js";
+import { ExportCharacterCardUseCase } from "./export-character-card.use-case.js";
+import { ImportCharacterCardUseCase } from "./import-character-card.use-case.js";
+import { UpdateCharacterUseCase } from "./update-character.use-case.js";
 
-describe('character use cases', () => {
-  it('creates private cards with generated id and clock timestamps', async () => {
+const unitOfWork: UnitOfWork = { run: (operation) => operation() };
+const events = { publish: () => Promise.resolve() } as unknown as DomainEventPublisher;
+
+describe("character use cases", () => {
+  it("creates private cards with generated id and clock timestamps", async () => {
     const store = new InMemoryCharacterCardStore();
-    const useCase = new CreateCharacterUseCase(store, new FixedIdGenerator('card_1'), new FixedClock(1783090000000));
+    const useCase = new CreateCharacterUseCase(
+      store,
+      new FixedIdGenerator("card_1"),
+      new FixedClock(1783090000000),
+    );
 
     const card = await useCase.execute({
-      ownerUserId: 'owner',
-      name: 'Created',
-      firstMessage: 'Hello',
+      ownerUserId: "owner",
+      name: "Created",
+      firstMessage: "Hello",
     });
 
     expect(card).toMatchObject({
-      id: 'card_1',
-      ownerUserId: 'owner',
-      visibility: 'private',
-      name: 'Created',
-      firstMessage: 'Hello',
+      id: "card_1",
+      ownerUserId: "owner",
+      visibility: "private",
+      name: "Created",
+      firstMessage: "Hello",
       createdAtMs: 1783090000000,
       updatedAtMs: 1783090000000,
       usageCount: 0,
     });
-    expect(await store.findOwnedById('card_1', 'owner')).toMatchObject({
-      name: 'Created',
+    expect(await store.findOwnedById("card_1", "owner")).toMatchObject({
+      name: "Created",
     });
   });
 
-  it('blocks another user from updating a public card', async () => {
+  it("blocks another user from updating a public card", async () => {
     const store = new InMemoryCharacterCardStore([
       characterCard({
-        id: 'card_1',
-        ownerUserId: 'owner',
-        visibility: 'public',
+        id: "card_1",
+        ownerUserId: "owner",
+        visibility: "public",
       }),
     ]);
-    const useCase = new UpdateCharacterUseCase(store, new FixedClock(1783090000100));
+    const useCase = new UpdateCharacterUseCase(
+      store,
+      new FixedClock(1783090000100),
+      unitOfWork,
+      events,
+    );
 
     await expect(
       useCase.execute({
-        id: 'card_1',
-        viewerUserId: 'reader',
-        comment: 'edited',
+        id: "card_1",
+        viewerUserId: "reader",
+        comment: "edited",
       }),
     ).rejects.toMatchObject(
       new CharacterApplicationError({
-        reason: 'forbidden',
+        reason: "forbidden",
         params: {
-          characterId: 'card_1',
-          viewerUserId: 'reader',
+          characterId: "card_1",
+          viewerUserId: "reader",
         },
       }),
     );
   });
 
-  it('exports a visible card as SillyTavern V3 by default', async () => {
+  it("exports a visible card as SillyTavern V3 by default", async () => {
     const store = new InMemoryCharacterCardStore([
       characterCard({
-        id: 'card_1',
-        ownerUserId: 'owner',
-        name: 'Exported',
-        firstMessage: 'Hello',
+        id: "card_1",
+        ownerUserId: "owner",
+        name: "Exported",
+        firstMessage: "Hello",
       }),
     ]);
-    const useCase = new ExportCharacterCardUseCase(store, new FakeCharacterCardCodec());
+    const useCase = new ExportCharacterCardUseCase(
+      store,
+      new FakeCharacterCardCodec(),
+    );
 
-    await expect(useCase.execute({ id: 'card_1', viewerUserId: 'owner' })).resolves.toMatchObject({
-      format: 'character-card',
-      version: 'v3',
-      name: 'Exported',
+    await expect(
+      useCase.execute({ id: "card_1", viewerUserId: "owner" }),
+    ).resolves.toMatchObject({
+      format: "character-card",
+      version: "v3",
+      name: "Exported",
     });
   });
 
-  it('maps codec port errors to application errors for import use cases', async () => {
+  it("maps codec port errors to application errors for import use cases", async () => {
     const store = new InMemoryCharacterCardStore();
     const useCase = new ImportCharacterCardUseCase(
       store,
       new ThrowingCharacterCardCodec(),
-      new FixedIdGenerator('card_1'),
+      new FixedIdGenerator("card_1"),
       new FixedClock(1783090000000),
     );
 
     await expect(
       useCase.execute({
-        ownerUserId: 'owner',
-        fileName: 'character.json',
-        content: Buffer.from('{}', 'utf8'),
+        ownerUserId: "owner",
+        fileName: "character.json",
+        content: Buffer.from("{}", "utf8"),
       }),
     ).rejects.toMatchObject(
       new CharacterApplicationError({
-        reason: 'invalid-character-card',
+        reason: "invalid-character-card",
         params: {
-          field: 'name',
-          detail: 'Missing required name field.',
+          field: "name",
+          detail: "Missing required name field.",
         },
       }),
     );
@@ -117,18 +142,18 @@ class FakeCharacterCardCodec implements CharacterCardCodec {
   importFile(file: ImportCharacterCardFile): ImportedCharacterCard {
     return {
       ...createEmptyCharacterCardDraft({
-        id: 'imported',
-        ownerUserId: 'importer',
+        id: "imported",
+        ownerUserId: "importer",
         nowMs: 1783090000000,
       }),
       name: file.fileName,
-      sourceSnapshot: file.content.toString('utf8'),
+      sourceSnapshot: file.content.toString("utf8"),
     };
   }
 
   exportCard(card: CharacterCard, options: ExportCharacterCardOptions): object {
     return {
-      format: 'character-card',
+      format: "character-card",
       version: options.version,
       name: card.name,
     };
@@ -140,10 +165,10 @@ class ThrowingCharacterCardCodec implements CharacterCardCodec {
     void file;
 
     throw new CharacterPortError({
-      reason: 'invalid-character-card',
+      reason: "invalid-character-card",
       params: {
-        field: 'name',
-        detail: 'Missing required name field.',
+        field: "name",
+        detail: "Missing required name field.",
       },
     });
   }
@@ -167,7 +192,9 @@ class InMemoryCharacterCardStore implements CharacterCardStore {
 
   list(request: ListCharactersRequest): Promise<PageResponse<CharacterCard>> {
     const items = Array.from(this.cards.values()).filter(
-      (card) => card.ownerUserId === request.viewerUserId || card.visibility === 'public',
+      (card) =>
+        card.ownerUserId === request.viewerUserId ||
+        card.visibility === "public",
     );
 
     return Promise.resolve({
@@ -179,17 +206,26 @@ class InMemoryCharacterCardStore implements CharacterCardStore {
     });
   }
 
-  findVisibleById(id: string, viewerUserId: string): Promise<CharacterCard | null> {
+  findVisibleById(
+    id: string,
+    viewerUserId: string,
+  ): Promise<CharacterCard | null> {
     const card = this.cards.get(id);
 
-    if (card === undefined || (card.ownerUserId !== viewerUserId && card.visibility !== 'public')) {
+    if (
+      card === undefined ||
+      (card.ownerUserId !== viewerUserId && card.visibility !== "public")
+    ) {
       return Promise.resolve(null);
     }
 
     return Promise.resolve(card);
   }
 
-  findOwnedById(id: string, ownerUserId: string): Promise<CharacterCard | null> {
+  findOwnedById(
+    id: string,
+    ownerUserId: string,
+  ): Promise<CharacterCard | null> {
     const card = this.cards.get(id);
     return Promise.resolve(card?.ownerUserId === ownerUserId ? card : null);
   }
@@ -234,13 +270,13 @@ class FixedClock {
 function characterCard(overrides: Partial<CharacterCard>): CharacterCard {
   return {
     ...createEmptyCharacterCardDraft({
-      id: overrides.id ?? 'card',
-      ownerUserId: overrides.ownerUserId ?? 'owner',
+      id: overrides.id ?? "card",
+      ownerUserId: overrides.ownerUserId ?? "owner",
       nowMs: 1783090000000,
     }),
-    name: overrides.name ?? 'Card',
-    firstMessage: overrides.firstMessage ?? 'Hello',
-    visibility: overrides.visibility ?? 'private',
+    name: overrides.name ?? "Card",
+    firstMessage: overrides.firstMessage ?? "Hello",
+    visibility: overrides.visibility ?? "private",
     ...overrides,
   };
 }

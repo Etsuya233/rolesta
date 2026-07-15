@@ -14,7 +14,7 @@ import { PresetManager } from "../../presets/components/preset-manager";
 import { FeatureTestPanel } from "../../testing/components/feature-test-panel";
 import { WorldbookManager } from "../../worldbooks/components/worldbook-manager";
 import { RecentWorkspacePanel } from "../components/recent-workspace-panel";
-import { WorkspaceLeftContextPanel } from "../components/workspace-left-context-panel";
+import { ChatSidebar } from "../../chats/components/chat-sidebar";
 
 export type WorkspaceArea = "left" | "center" | "right" | "bottom";
 
@@ -36,12 +36,14 @@ export interface OpenWorkspacePanelOptions {
 }
 
 export interface WorkspacePanelRuntime {
-  activeChatId?: string | undefined;
+  activeChatId: string | null;
+  setActiveChatId: (id: string | null) => void;
   openPanel: (
     panelKey: WorkspacePanelKey,
     options?: OpenWorkspacePanelOptions,
   ) => void;
   closeArea: (area: WorkspaceArea) => void;
+  closeMobileArea: () => void;
 }
 
 export interface WorkspacePanelDefinition {
@@ -79,7 +81,7 @@ export const workspacePanelDefinitions = [
     icon: MessagesSquareIcon,
     toolbarOrder: 10,
     defaultOpen: true,
-    Component: WorkspaceLeftContextPanel,
+    Component: ChatSidebar,
   },
   {
     key: "recentWorkspace",

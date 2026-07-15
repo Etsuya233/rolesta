@@ -1,20 +1,22 @@
-import { countPromptTokens } from '@rolesta/shared';
-import { UseCase } from '../../common/errors/index.js';
-import type { UnitOfWork } from '../../common/application/unit-of-work.js';
-import { ensureEpochMillis } from '../../shared/epoch-millis.js';
+import { countPromptTokens } from "@rolesta/shared";
+import { UseCase } from "../../common/errors/index.js";
+import type { UnitOfWork } from "../../common/application/unit-of-work.js";
+import type { DomainEventPublisher } from "../../common/events/index.js";
+import { ensureEpochMillis } from "../../shared/epoch-millis.js";
 import {
   withPresetTokenCount,
   type Preset,
   type PresetEntryPosition,
   type PresetEntryRole,
   type PresetVisibility,
-} from '../domain/preset.js';
-import type { PresetModelSettings } from '../domain/preset-model-settings.js';
-import type { PresetStore } from '../ports/preset-store.js';
-import type { PresetModelProviderAccess } from '../ports/preset-model-provider-access.js';
-import type { PresetClock } from './preset-application-services.js';
-import { PresetApplicationError } from './preset-application-error.js';
-import { translatePresetError } from './preset-error.mapper.js';
+} from "../domain/preset.js";
+import type { PresetModelSettings } from "../domain/preset-model-settings.js";
+import type { PresetStore } from "../ports/preset-store.js";
+import type { PresetModelProviderAccess } from "../ports/preset-model-provider-access.js";
+import { PresetVisibilityChangedEvent } from "../events/index.js";
+import type { PresetClock } from "./preset-application-services.js";
+import { PresetApplicationError } from "./preset-application-error.js";
+import { translatePresetError } from "./preset-error.mapper.js";
 
 export interface PresetDocumentEntry {
   id: string;
@@ -46,6 +48,7 @@ export class UpdatePresetDocumentUseCase {
     private readonly clock: PresetClock,
     private readonly modelProviderAccess: PresetModelProviderAccess,
     private readonly unitOfWork: UnitOfWork,
+    private readonly events: DomainEventPublisher,
   ) {}
 
   @UseCase(translatePresetError)
@@ -58,7 +61,7 @@ export class UpdatePresetDocumentUseCase {
 
       if (current === null) {
         throw new PresetApplicationError({
-          reason: 'not-found',
+          reason: "not-found",
           params: { presetId: command.presetId },
         });
       }
@@ -78,7 +81,7 @@ export class UpdatePresetDocumentUseCase {
         ))
       ) {
         throw new PresetApplicationError({
-          reason: 'model-provider-unavailable',
+          reason: "model-provider-unavailable",
           params: { modelProviderId: command.modelProviderId },
         });
       }
@@ -125,6 +128,15 @@ export class UpdatePresetDocumentUseCase {
         current.ownerUserId,
         command.modelProviderId,
       );
+      if (current.visibility === "public" && updated.visibility === "private") {
+        await this.events.publish(
+          new PresetVisibilityChangedEvent({
+            presetId: current.id,
+            ownerUserId: current.ownerUserId,
+            occurredAtMs: nowMs,
+          }),
+        );
+      }
       return updated;
     });
   }
@@ -139,7 +151,7 @@ function assertUniqueEntryIds(
   for (const entry of entries) {
     if (entryIds.has(entry.id)) {
       throw new PresetApplicationError({
-        reason: 'duplicate-entry',
+        reason: "duplicate-entry",
         params: { presetId, entryId: entry.id },
       });
     }
@@ -159,14 +171,14 @@ function assertValidPromptItems(
   for (const item of promptItems) {
     if (linkedEntryIds.has(item.entryId)) {
       throw new PresetApplicationError({
-        reason: 'duplicate-entry',
+        reason: "duplicate-entry",
         params: { presetId, entryId: item.entryId },
       });
     }
 
     if (!knownEntryIds.has(item.entryId)) {
       throw new PresetApplicationError({
-        reason: 'unknown-entry',
+        reason: "unknown-entry",
         params: { presetId, entryId: item.entryId },
       });
     }

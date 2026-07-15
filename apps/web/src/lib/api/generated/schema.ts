@@ -612,6 +612,38 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/chats": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["ChatsController_list"];
+        put?: never;
+        post: operations["ChatsController_create"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/chats/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["ChatsController_get"];
+        put?: never;
+        post?: never;
+        delete: operations["ChatsController_delete"];
+        options?: never;
+        head?: never;
+        patch: operations["ChatsController_update"];
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -1285,6 +1317,69 @@ export interface components {
         };
         DeleteApiKeyResponseDto: {
             affectedProviderCount: number;
+        };
+        ChatAvatarResponseDto: {
+            resourceId: string;
+            sources: {
+                [key: string]: string;
+            };
+        };
+        ChatCharacterSummaryResponseDto: {
+            id: string;
+            name: string;
+            avatar: components["schemas"]["ChatAvatarResponseDto"] | null;
+        };
+        ChatPresetSummaryResponseDto: {
+            id: string;
+            name: string;
+        };
+        ChatModelProviderSummaryResponseDto: {
+            id: string;
+            name: string;
+            /** @enum {string} */
+            providerKind: "openai-compatible" | "openai" | "claude" | "z-ai" | "deepseek";
+            defaultModelName: string;
+        };
+        ChatDetailResponseDto: {
+            id: string;
+            title: string;
+            chatCharacterId: string | null;
+            personaCharacterId: string | null;
+            presetId: string | null;
+            modelProviderId: string | null;
+            createdAtMs: number;
+            updatedAtMs: number;
+            chatCharacter: components["schemas"]["ChatCharacterSummaryResponseDto"] | null;
+            persona: components["schemas"]["ChatCharacterSummaryResponseDto"] | null;
+            preset: components["schemas"]["ChatPresetSummaryResponseDto"] | null;
+            modelProvider: components["schemas"]["ChatModelProviderSummaryResponseDto"] | null;
+        };
+        CreateChatRequestDto: {
+            title: string;
+            chatCharacterId: string;
+            personaCharacterId?: string | null;
+            presetId?: string | null;
+            modelProviderId?: string | null;
+        };
+        ChatListItemResponseDto: {
+            id: string;
+            title: string;
+            updatedAtMs: number;
+            chatCharacter: components["schemas"]["ChatCharacterSummaryResponseDto"] | null;
+        };
+        ChatPageResponseDto: {
+            items: components["schemas"]["ChatListItemResponseDto"][];
+            pageIndex: number;
+            pageSize: number;
+            totalItems: number;
+            totalPages: number;
+        };
+        UpdateChatRequestDto: {
+            title?: string;
+            chatCharacterId?: string;
+            personaCharacterId?: string | null;
+            presetId?: string | null;
+            modelProviderId?: string | null;
         };
     };
     responses: never;
@@ -3191,6 +3286,169 @@ export interface operations {
                         /** @example ok */
                         msg: string;
                         data: components["schemas"]["DeleteApiKeyResponseDto"];
+                    };
+                };
+            };
+        };
+    };
+    ChatsController_list: {
+        parameters: {
+            query?: {
+                q?: string;
+                role?: ("all" | "missing") | string;
+                sort?: "createdAt" | "updatedAt" | "title";
+                direction?: "asc" | "desc";
+                pageIndex?: number;
+                pageSize?: 10 | 20 | 50 | 100;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /**
+                         * @example SUCCESS
+                         * @enum {string}
+                         */
+                        code: "SUCCESS";
+                        /** @example ok */
+                        msg: string;
+                        data: components["schemas"]["ChatPageResponseDto"];
+                    };
+                };
+            };
+        };
+    };
+    ChatsController_create: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CreateChatRequestDto"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /**
+                         * @example SUCCESS
+                         * @enum {string}
+                         */
+                        code: "SUCCESS";
+                        /** @example ok */
+                        msg: string;
+                        data: components["schemas"]["ChatDetailResponseDto"];
+                    };
+                };
+            };
+        };
+    };
+    ChatsController_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /**
+                         * @example SUCCESS
+                         * @enum {string}
+                         */
+                        code: "SUCCESS";
+                        /** @example ok */
+                        msg: string;
+                        data: components["schemas"]["ChatDetailResponseDto"];
+                    };
+                };
+            };
+        };
+    };
+    ChatsController_delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /**
+                         * @example SUCCESS
+                         * @enum {string}
+                         */
+                        code: "SUCCESS";
+                        /** @example ok */
+                        msg: string;
+                        data: {
+                            ok?: boolean;
+                        };
+                    };
+                };
+            };
+        };
+    };
+    ChatsController_update: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UpdateChatRequestDto"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /**
+                         * @example SUCCESS
+                         * @enum {string}
+                         */
+                        code: "SUCCESS";
+                        /** @example ok */
+                        msg: string;
+                        data: components["schemas"]["ChatDetailResponseDto"];
                     };
                 };
             };

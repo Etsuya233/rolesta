@@ -31,6 +31,110 @@ export async function mockAuthenticatedApp(page: Page) {
   });
 }
 
+export async function mockChatManagement(page: Page) {
+  let chats = [chatDetail("chat_e2e", "Existing chat", "character_e2e", "Seraphina")];
+
+  await page.route(/\/api\/chat-preferences\/assets$/, async (route) => {
+    await route.fulfill({ contentType: "application/json", json: success({
+      personaCharacterId: null,
+      presetId: null,
+      modelProviderId: null,
+    }) });
+  });
+  await page.route(/\/api\/chats(?:\?.*)?$/, async (route) => {
+    if (route.request().method() === "POST") {
+      const body = route.request().postDataJSON() as { title: string; chatCharacterId: string };
+      const name = body.chatCharacterId === "character_luna" ? "Luna" : "Seraphina";
+      const created = chatDetail("chat_created", body.title, body.chatCharacterId, name);
+      chats = [created, ...chats];
+      await route.fulfill({ contentType: "application/json", json: success(created) });
+      return;
+    }
+    await route.fulfill({ contentType: "application/json", json: success({
+      items: chats.map((chat) => ({
+        id: chat.id,
+        title: chat.title,
+        updatedAtMs: chat.updatedAtMs,
+        chatCharacter: chat.chatCharacter,
+      })),
+      pageIndex: 0,
+      pageSize: 20,
+      totalItems: chats.length,
+      totalPages: 1,
+    }) });
+  });
+  await page.route(/\/api\/chats\/([^/?]+)$/, async (route) => {
+    const id = route.request().url().split("/").pop()!;
+    const chat = chats.find((item) => item.id === id);
+    if (!chat) {
+      await route.fulfill({ status: 404, contentType: "application/json", json: {
+        code: "NOT_FOUND", msg: "i18n:errors.notFound", data: {},
+      } });
+      return;
+    }
+    if (route.request().method() === "DELETE") {
+      chats = chats.filter((item) => item.id !== id);
+      await route.fulfill({ contentType: "application/json", json: success({ ok: true }) });
+      return;
+    }
+    if (route.request().method() === "PATCH") {
+      const body = route.request().postDataJSON() as Partial<typeof chat>;
+      Object.assign(chat, body, { updatedAtMs: chat.updatedAtMs + 1 });
+    }
+    await route.fulfill({ contentType: "application/json", json: success(chat) });
+  });
+  await page.route(/\/api\/characters(?:\?.*)?$/, async (route) => {
+    await route.fulfill({ contentType: "application/json", json: success({
+      items: [
+        characterSummary("character_e2e", "Seraphina"),
+        characterSummary("character_luna", "Luna"),
+      ],
+      pageIndex: 0,
+      pageSize: 100,
+      totalItems: 2,
+      totalPages: 1,
+    }) });
+  });
+}
+
+function success(data: unknown) {
+  return { code: "SUCCESS", msg: "ok", data };
+}
+
+function characterSummary(id: string, name: string) {
+  return {
+    id,
+    ownerUserId: "user_e2e",
+    visibility: "private",
+    name,
+    tags: [],
+    version: "1.0",
+    comment: "",
+    createdAtMs: 1783090000000,
+    updatedAtMs: 1783090000000,
+    lastUsedAtMs: null,
+    usageCount: 0,
+    avatar: null,
+  };
+}
+
+function chatDetail(id: string, title: string, characterId: string, characterName: string) {
+  return {
+    id,
+    title,
+    chatCharacterId: characterId,
+    personaCharacterId: null,
+    presetId: null,
+    modelProviderId: null,
+    createdAtMs: 1783090000000,
+    updatedAtMs: 1783090000000,
+    chatCharacter: { id: characterId, name: characterName, avatar: null },
+    persona: null,
+    preset: null,
+    modelProvider: null,
+  };
+}
+
 export async function mockCharacterList(page: Page) {
   await page.route(/\/api\/characters(?:\?.*)?$/, async (route) => {
     await route.fulfill({
