@@ -4,6 +4,12 @@ import { Button } from '../../../components/ui/button';
 import { FieldLegend, FieldSet } from '../../../components/ui/field';
 import { Popover, PopoverContent, PopoverTrigger } from '../../../components/ui/popover';
 import { ToggleGroup, ToggleGroupItem } from '../../../components/ui/toggle-group';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from '../../../components/ui/tooltip';
 import type { AssetScope } from './asset-scope-tabs';
 
 export interface AssetPermissionFilterMenuProps {
@@ -26,17 +32,24 @@ export function AssetPermissionFilterMenu({
 
   return (
     <Popover>
-      <PopoverTrigger asChild>
-        <Button
-          aria-label={buttonLabel}
-          aria-pressed={scope !== 'all'}
-          size="icon"
-          type="button"
-          variant={scope === 'all' ? 'outline' : 'secondary'}
-        >
-          <ListFilterIcon />
-        </Button>
-      </PopoverTrigger>
+      <TooltipProvider>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <PopoverTrigger asChild>
+              <Button
+                aria-label={buttonLabel}
+                aria-pressed={scope !== 'all'}
+                size="icon"
+                type="button"
+                variant={scope === 'all' ? 'outline' : 'secondary'}
+              >
+                <ListFilterIcon />
+              </Button>
+            </PopoverTrigger>
+          </TooltipTrigger>
+          <TooltipContent>{buttonLabel}</TooltipContent>
+        </Tooltip>
+      </TooltipProvider>
       <PopoverContent align="end" className="w-72">
         <FieldSet className="gap-2">
           <FieldLegend variant="label">{t('assets.filters.permission')}</FieldLegend>

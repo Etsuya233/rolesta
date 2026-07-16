@@ -148,6 +148,16 @@ export function isChatFormDirty(state: ChatFormState, chat: ChatDetail): boolean
   );
 }
 
+export function isCreateChatFormDirty(state: ChatFormState): boolean {
+  return (
+    state.chatCharacterId.length > 0 ||
+    state.titleEdited ||
+    state.personaTouched ||
+    state.presetTouched ||
+    state.modelSource === 'manual'
+  );
+}
+
 export function validateChatEdit(state: ChatFormState): {
   values: UpdateChatValues | null;
   issues: ValidationIssue[];

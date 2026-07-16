@@ -30,47 +30,44 @@ export function ChatListItem({
   const avatarSource = character?.avatar?.sources['64'] ?? character?.avatar?.sources['128'];
 
   return (
-    <div
-      className={cn(
-        'group flex min-h-16 items-center border-b border-border',
-        active && 'bg-accent',
-      )}
-    >
+    <div className={cn('group flex items-center border-b border-border', active && 'bg-accent')}>
       <button
         type="button"
-        className="flex min-w-0 flex-1 items-center gap-3 px-3 py-2 text-left"
+        className="flex min-w-0 flex-1 items-center gap-3 px-4 py-3 text-left"
         onClick={onSelect}
       >
-        <Avatar>
+        <Avatar size="lg">
           {avatarSource ? <AvatarImage src={avatarSource} alt={character?.name ?? ''} /> : null}
           <AvatarFallback>
             {character ? character.name.slice(0, 1).toUpperCase() : <UserRoundXIcon />}
           </AvatarFallback>
         </Avatar>
-        <span className="flex min-w-0 flex-1 flex-col gap-0.5">
+        <span className="flex min-w-0 flex-1 flex-col gap-1">
           <span className="truncate text-sm font-medium">{chat.title}</span>
-          <span className="truncate text-xs text-muted-foreground">
-            {character?.name ?? t('chats.management.missingCharacter')}
+          <span className="flex min-w-0 items-center gap-2 text-xs text-muted-foreground">
+            <span className="min-w-0 flex-1 truncate">
+              {character?.name ?? t('chats.management.missingCharacter')}
+            </span>
+            <time
+              className="shrink-0 whitespace-nowrap"
+              dateTime={new Date(chat.updatedAtMs).toISOString()}
+            >
+              {new Intl.DateTimeFormat(i18n.language, {
+                dateStyle: 'short',
+                timeStyle: 'short',
+              }).format(chat.updatedAtMs)}
+            </time>
           </span>
-          <time
-            className="text-xs text-muted-foreground"
-            dateTime={new Date(chat.updatedAtMs).toISOString()}
-          >
-            {new Intl.DateTimeFormat(i18n.language, {
-              dateStyle: 'short',
-              timeStyle: 'short',
-            }).format(chat.updatedAtMs)}
-          </time>
         </span>
       </button>
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
           <Button
             type="button"
-            size="icon-sm"
+            size="icon"
             variant="ghost"
             aria-label={t('chats.management.actions.menu')}
-            className="mr-2 shrink-0"
+            className="mr-3 shrink-0"
           >
             <MoreHorizontalIcon />
           </Button>

@@ -24,6 +24,7 @@ export interface PageControlsProps {
   pageSize: number;
   totalPages: number;
   pageSizeOptions?: number[];
+  compact?: boolean;
   onPageIndexChange: (pageIndex: number) => void;
   onPageSizeChange: (pageSize: number) => void;
 }
@@ -33,6 +34,7 @@ export function PageControls({
   pageSize,
   totalPages,
   pageSizeOptions = [10, 20, 50, 100],
+  compact = false,
   onPageIndexChange,
   onPageSizeChange,
 }: PageControlsProps) {
@@ -62,7 +64,7 @@ export function PageControls({
         className="mx-0 w-auto justify-end"
       >
         <PaginationContent>
-          <PaginationItem>
+          <PaginationItem className={cn(compact && 'hidden min-[360px]:block')}>
             <CompactPageLink
               disabled={!canGoPrevious}
               label={t('assets.pagination.firstPage')}
@@ -108,7 +110,7 @@ export function PageControls({
               }}
             />
           </PaginationItem>
-          <PaginationItem>
+          <PaginationItem className={cn(compact && 'hidden min-[360px]:block')}>
             <CompactPageLink
               disabled={!canGoNext}
               label={t('assets.pagination.lastPage')}
