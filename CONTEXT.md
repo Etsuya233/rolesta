@@ -43,3 +43,51 @@ _避免使用_：系统提示词、空 Entry、marker
 **预设导入问题（Preset Import Issue）**：
 预设兼容导入中无法转换为 Rolesta 领域模型的单个条目及其明确原因。存在导入问题时，其他受支持条目仍可完成导入。
 _避免使用_：导入失败、兼容警告
+
+## 生成上下文
+
+**Prompt View**：
+资产领域面向提示词组装提供的只读语义投影，只包含形成生成上下文所需的信息。
+_避免使用_：Asset DTO、完整聚合
+
+**Preset Prompt Plan**：
+预设根据自身启用、顺序、生成类型、放置和覆盖规则形成的有序计划，其中固定插槽仍等待运行时内容展开。
+_避免使用_：Rendered Preset、Messages
+
+**组装追踪（Assembly Trace）**：
+解释最终模型消息来源、世界书命中、变量替换、Token 占用和历史裁剪的记录。
+_避免使用_：Debug Log、Request Log
+
+## 世界书扫描
+
+**世界书扫描（Worldbook Scan）**：
+根据扫描上下文和世界书规则确定激活条目及其注入位置的过程。
+_避免使用_：Lore Search、Worldbook Assembly
+
+**世界书扫描上下文（Worldbook Scan Context）**：
+一次世界书扫描可观察的历史、角色、Persona、生成类型、运行设置和既有状态快照。
+_避免使用_：Chat Context、Request Context
+
+**世界书扫描偏好（Worldbook Scan Preferences）**：
+用户为后续世界书扫描保存的默认行为选择，由世界书领域拥有。
+_避免使用_：Chat Preferences、Worldbook Defaults
+
+**世界书扫描设置（Worldbook Scan Settings）**：
+一次世界书扫描实际使用的完整设置快照，已经包含领域默认值和用户偏好。
+_避免使用_：Worldbook Config、Scan Preferences
+
+**世界书运行时状态（Worldbook Runtime State）**：
+隶属于具体聊天会话、用于延续世界书跨轮次效果的状态，例如 sticky、cooldown 和 delay。
+_避免使用_：Worldbook Settings、Scan Cache
+
+**世界书激活装饰器（Worldbook Activation Decorator）**：
+写在世界书条目内容中的控制标记，用于强制激活或禁止激活该条目。装饰器属于内容表达的一部分，不作为可独立编辑的条目属性。
+_避免使用_：Activation Field、Decorator List
+
+**世界书扫描随机源（Worldbook Scan Random）**：
+一次世界书扫描用于概率激活和分组竞争的显式随机输入。相同扫描上下文与相同随机序列产生相同扫描结果。
+_避免使用_：Global Random、Scanner Seed
+
+**世界书条目引用（Worldbook Entry Ref）**：
+世界书运行时状态引用具体条目的稳定身份，由来源类型、来源资产身份和条目身份共同确定。
+_避免使用_：Entry Key、Worldbook UID
