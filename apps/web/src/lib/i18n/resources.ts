@@ -1419,7 +1419,6 @@ export const resources = {
           kinds: {
             slot: 'Slot',
             systemPrompt: 'System',
-            customPrompt: 'Custom',
           },
         },
         entries: {
@@ -1995,7 +1994,6 @@ export const resources = {
           kinds: {
             slot: '插槽',
             systemPrompt: '系统提示词',
-            customPrompt: '自定义',
           },
         },
         entries: {
@@ -2571,7 +2569,6 @@ export const resources = {
           kinds: {
             slot: '插槽',
             systemPrompt: '系統提示詞',
-            customPrompt: '自訂',
           },
         },
         entries: {
@@ -3150,7 +3147,6 @@ export const resources = {
           kinds: {
             slot: 'スロット',
             systemPrompt: 'システム',
-            customPrompt: 'カスタム',
           },
         },
         entries: {

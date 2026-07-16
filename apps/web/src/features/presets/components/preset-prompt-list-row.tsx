@@ -54,7 +54,7 @@ export function PresetPromptListRow({
     <div
       ref={setNodeRef}
       className={cn(
-        'grid min-h-14 grid-cols-[2.25rem_minmax(0,1fr)_auto_2.25rem_2.25rem_minmax(3.75rem,auto)] items-center gap-1 border-b border-border px-2 py-2',
+        'grid min-h-14 grid-cols-[2.25rem_minmax(0,1fr)_6rem_2.25rem_2.25rem_minmax(3.75rem,auto)] items-center gap-1 border-b border-border px-2 py-2',
         isDragging && 'relative z-10 bg-muted shadow-sm',
       )}
       style={{ transform: CSS.Transform.toString(transform), transition }}
@@ -72,7 +72,13 @@ export function PresetPromptListRow({
         <GripVertical aria-hidden="true" />
       </Button>
       <span className="min-w-0 truncate text-sm font-medium">{label}</span>
-      <Badge variant="secondary">{t(`presets.promptList.kinds.${item.kind}`)}</Badge>
+      {item.kind === 'customPrompt' ? (
+        <span aria-hidden="true" />
+      ) : (
+        <Badge className="justify-self-start" variant="secondary">
+          {t(`presets.promptList.kinds.${item.kind}`)}
+        </Badge>
+      )}
       {onUnlink ? (
         <Button
           aria-label={t(

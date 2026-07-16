@@ -30,7 +30,13 @@ export function PresetImportPanel({
     async onSuccess(importResult) {
       await queryClient.invalidateQueries({ queryKey: ['presets'] });
       queryClient.setQueryData(['preset', importResult.preset.id], importResult.preset);
-      setResult(importResult);
+
+      if (importResult.issues.length > 0) {
+        setResult(importResult);
+        return;
+      }
+
+      onImported(importResult.preset);
     },
     onError(error) {
       notify.error({ title: getFormErrorMessage(error) });
