@@ -6,7 +6,7 @@ import { KyselyDatabaseContext } from '../../database/kysely-database-context.js
 import { KyselyUnitOfWork } from '../../database/kysely-unit-of-work.js';
 import { ModelProviderDeletedEventsListener } from '../../presets/application/model-provider-deleted-events.listener.js';
 import { createDefaultPresetModelSettings } from '../../presets/domain/preset-model-settings.js';
-import type { Preset } from '../../presets/domain/preset.js';
+import { createDefaultPresetPromptItems, type Preset } from '../../presets/domain/preset.js';
 import { KyselyPresetStore } from '../../presets/persistence/kysely-preset-store.js';
 import { PRESET_STORE } from '../../presets/ports/preset-store.js';
 import type { ModelProviderConfig } from '../domain/model-provider-config.js';
@@ -92,6 +92,7 @@ function modelProvider(): ModelProviderConfig {
 }
 
 function linkedPreset(): Preset {
+  let itemId = 0;
   return {
     id: 'preset_1',
     ownerUserId: 'owner',
@@ -101,7 +102,7 @@ function linkedPreset(): Preset {
     modelSettings: createDefaultPresetModelSettings(),
     tokenizer: 'cl100k_base',
     entries: [],
-    promptItems: [],
+    promptItems: createDefaultPresetPromptItems(() => `item_${++itemId}`),
     tokenCount: 0,
     sourceFormat: 'rolesta',
     sourceSnapshot: {},

@@ -1,16 +1,19 @@
 import { defineConfig, devices } from '@playwright/test';
 
+const port = process.env.PLAYWRIGHT_PORT ?? '5173';
+const baseURL = `http://127.0.0.1:${port}`;
+
 export default defineConfig({
   testDir: './tests',
   fullyParallel: true,
   retries: process.env.CI ? 2 : 0,
   use: {
-    baseURL: 'http://127.0.0.1:5173',
+    baseURL,
     trace: 'on-first-retry',
   },
   webServer: {
-    command: 'pnpm --filter @rolesta/web dev',
-    url: 'http://127.0.0.1:5173',
+    command: `pnpm exec vite --host 0.0.0.0 --port ${port}`,
+    url: baseURL,
     reuseExistingServer: !process.env.CI,
   },
   projects: [

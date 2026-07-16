@@ -15,21 +15,25 @@ import {
   ValidateNested,
 } from 'class-validator';
 import {
-  PRESET_SORT_KEYS,
+  PRESET_ENTRY_ROLES,
+  PRESET_GENERATION_TYPES,
+  PRESET_VISIBILITIES,
+  PRESET_SLOTS,
+  PRESET_SYSTEM_PROMPTS,
+  type PresetEntryRole,
+  type PresetGenerationType,
+  type PresetVisibility,
+  type PresetSlot,
+  type PresetSystemPrompt,
+} from '../domain/preset.js';
+import {
   PRESET_LIST_SCOPES,
+  PRESET_SORT_KEYS,
   SORT_DIRECTIONS,
-  type PresetSortKey,
   type PresetListScope,
+  type PresetSortKey,
   type SortDirection,
 } from '../ports/preset-store.js';
-import {
-  PRESET_ENTRY_POSITIONS,
-  PRESET_ENTRY_ROLES,
-  PRESET_VISIBILITIES,
-  type PresetEntryPosition,
-  type PresetEntryRole,
-  type PresetVisibility,
-} from '../domain/preset.js';
 
 export class ListPresetsQueryDto {
   @ApiPropertyOptional({ enum: PRESET_LIST_SCOPES })
@@ -74,77 +78,62 @@ export class PresetModelSettingsDto {
   @IsOptional()
   @IsNumber()
   contextLength?: number | null;
-
   @ApiPropertyOptional({ nullable: true, type: Number })
   @IsOptional()
   @IsNumber()
   maxResponseLength?: number | null;
-
   @ApiPropertyOptional({ type: Boolean })
   @IsOptional()
   @IsBoolean()
   stream?: boolean;
-
   @ApiPropertyOptional({ nullable: true, type: Number })
   @IsOptional()
   @IsNumber()
   temperature?: number | null;
-
   @ApiPropertyOptional({ nullable: true, type: Number })
   @IsOptional()
   @IsNumber()
   presencePenalty?: number | null;
-
   @ApiPropertyOptional({ nullable: true, type: Number })
   @IsOptional()
   @IsNumber()
   frequencyPenalty?: number | null;
-
   @ApiPropertyOptional({ nullable: true, type: Number })
   @IsOptional()
   @IsNumber()
   repetitionPenalty?: number | null;
-
   @ApiPropertyOptional({ nullable: true, type: Number })
   @IsOptional()
   @IsNumber()
   topP?: number | null;
-
   @ApiPropertyOptional({ nullable: true, type: Number })
   @IsOptional()
   @IsNumber()
   topK?: number | null;
-
   @ApiPropertyOptional({ nullable: true, type: Number })
   @IsOptional()
   @IsNumber()
   minP?: number | null;
-
   @ApiPropertyOptional({ nullable: true, type: Number })
   @IsOptional()
   @IsNumber()
   topA?: number | null;
-
   @ApiPropertyOptional({ nullable: true, type: Number })
   @IsOptional()
   @IsNumber()
   seed?: number | null;
-
   @ApiPropertyOptional({ nullable: true, type: Number })
   @IsOptional()
   @IsNumber()
   n?: number | null;
-
   @ApiPropertyOptional({ type: String })
   @IsOptional()
   @IsString()
   reasoningEffort?: string;
-
   @ApiPropertyOptional({ type: String })
   @IsOptional()
   @IsString()
   verbosity?: string;
-
   @ApiPropertyOptional({ type: Boolean })
   @IsOptional()
   @IsBoolean()
@@ -156,18 +145,15 @@ export class PresetEditableFieldsDto {
   @IsOptional()
   @IsIn(PRESET_VISIBILITIES)
   visibility?: PresetVisibility;
-
   @ApiPropertyOptional({ maxLength: 255, type: String })
   @IsOptional()
   @IsString()
   @MaxLength(255)
   name?: string;
-
   @ApiPropertyOptional({ nullable: true, type: String })
   @IsOptional()
   @IsString()
   modelProviderId?: string | null;
-
   @ApiPropertyOptional({ type: PresetModelSettingsDto })
   @IsOptional()
   @ValidateNested()
@@ -180,17 +166,14 @@ export class CreatePresetRequestDto {
   @IsOptional()
   @IsIn(PRESET_VISIBILITIES)
   visibility?: PresetVisibility;
-
   @ApiProperty({ maxLength: 255, type: String })
   @IsString()
   @MaxLength(255)
   name!: string;
-
   @ApiPropertyOptional({ nullable: true, type: String })
   @IsOptional()
   @IsString()
   modelProviderId?: string | null;
-
   @ApiPropertyOptional({ type: PresetModelSettingsDto })
   @IsOptional()
   @ValidateNested()
@@ -200,24 +183,42 @@ export class CreatePresetRequestDto {
 
 export class UpdatePresetRequestDto extends PresetEditableFieldsDto {}
 
+export class PresetPromptPlacementDto {
+  @ApiProperty({ enum: ['relative', 'inChat'] })
+  @IsIn(['relative', 'inChat'])
+  kind!: 'relative' | 'inChat';
+
+  @ApiPropertyOptional({ minimum: 0, type: Number })
+  @ValidateIf((value: PresetPromptPlacementDto) => value.kind === 'inChat')
+  @IsInt()
+  @Min(0)
+  depth?: number;
+
+  @ApiPropertyOptional({ type: Number })
+  @ValidateIf((value: PresetPromptPlacementDto) => value.kind === 'inChat')
+  @IsInt()
+  order?: number;
+}
+
 export class PresetDocumentEntryDto {
   @ApiProperty({ type: String })
   @IsString()
   id!: string;
-
   @ApiProperty({ maxLength: 255, type: String })
   @IsString()
   @MaxLength(255)
   name!: string;
-
   @ApiProperty({ enum: PRESET_ENTRY_ROLES })
   @IsIn(PRESET_ENTRY_ROLES)
   role!: PresetEntryRole;
-
-  @ApiProperty({ enum: PRESET_ENTRY_POSITIONS })
-  @IsIn(PRESET_ENTRY_POSITIONS)
-  position!: PresetEntryPosition;
-
+  @ApiProperty({ type: PresetPromptPlacementDto })
+  @ValidateNested()
+  @Type(() => PresetPromptPlacementDto)
+  placement!: PresetPromptPlacementDto;
+  @ApiProperty({ enum: PRESET_GENERATION_TYPES, isArray: true })
+  @IsArray()
+  @IsIn(PRESET_GENERATION_TYPES, { each: true })
+  generationTypes!: PresetGenerationType[];
   @ApiProperty({ type: String })
   @IsString()
   content!: string;
@@ -226,11 +227,52 @@ export class PresetDocumentEntryDto {
 export class PresetDocumentPromptItemDto {
   @ApiProperty({ type: String })
   @IsString()
-  entryId!: string;
-
+  id!: string;
+  @ApiProperty({ enum: ['slot', 'systemPrompt', 'customPrompt'] })
+  @IsIn(['slot', 'systemPrompt', 'customPrompt'])
+  kind!: 'slot' | 'systemPrompt' | 'customPrompt';
   @ApiProperty({ type: Boolean })
   @IsBoolean()
   enabled!: boolean;
+  @ApiPropertyOptional({ enum: PRESET_SLOTS })
+  @IsOptional()
+  @IsIn(PRESET_SLOTS)
+  slot?: PresetSlot;
+  @ApiPropertyOptional({ enum: PRESET_SYSTEM_PROMPTS })
+  @IsOptional()
+  @IsIn(PRESET_SYSTEM_PROMPTS)
+  systemPrompt?: PresetSystemPrompt;
+  @ApiPropertyOptional({ maxLength: 255, type: String })
+  @IsOptional()
+  @IsString()
+  @MaxLength(255)
+  name?: string;
+  @ApiPropertyOptional({ enum: PRESET_ENTRY_ROLES })
+  @IsOptional()
+  @IsIn(PRESET_ENTRY_ROLES)
+  role?: PresetEntryRole;
+  @ApiPropertyOptional({ type: PresetPromptPlacementDto })
+  @IsOptional()
+  @ValidateNested()
+  @Type(() => PresetPromptPlacementDto)
+  placement?: PresetPromptPlacementDto;
+  @ApiPropertyOptional({ enum: PRESET_GENERATION_TYPES, isArray: true })
+  @IsOptional()
+  @IsArray()
+  @IsIn(PRESET_GENERATION_TYPES, { each: true })
+  generationTypes?: PresetGenerationType[];
+  @ApiPropertyOptional({ type: String })
+  @IsOptional()
+  @IsString()
+  content?: string;
+  @ApiPropertyOptional({ type: Boolean })
+  @IsOptional()
+  @IsBoolean()
+  allowCharacterOverride?: boolean;
+  @ApiPropertyOptional({ type: String })
+  @IsOptional()
+  @IsString()
+  entryId?: string;
 }
 
 export class PresetDocumentModelSettingsDto {
@@ -238,74 +280,59 @@ export class PresetDocumentModelSettingsDto {
   @ValidateIf((_object, value) => value !== null)
   @IsNumber()
   contextLength!: number | null;
-
   @ApiProperty({ nullable: true, type: Number })
   @ValidateIf((_object, value) => value !== null)
   @IsNumber()
   maxResponseLength!: number | null;
-
   @ApiProperty({ type: Boolean })
   @IsBoolean()
   stream!: boolean;
-
   @ApiProperty({ nullable: true, type: Number })
   @ValidateIf((_object, value) => value !== null)
   @IsNumber()
   temperature!: number | null;
-
   @ApiProperty({ nullable: true, type: Number })
   @ValidateIf((_object, value) => value !== null)
   @IsNumber()
   presencePenalty!: number | null;
-
   @ApiProperty({ nullable: true, type: Number })
   @ValidateIf((_object, value) => value !== null)
   @IsNumber()
   frequencyPenalty!: number | null;
-
   @ApiProperty({ nullable: true, type: Number })
   @ValidateIf((_object, value) => value !== null)
   @IsNumber()
   repetitionPenalty!: number | null;
-
   @ApiProperty({ nullable: true, type: Number })
   @ValidateIf((_object, value) => value !== null)
   @IsNumber()
   topP!: number | null;
-
   @ApiProperty({ nullable: true, type: Number })
   @ValidateIf((_object, value) => value !== null)
   @IsNumber()
   topK!: number | null;
-
   @ApiProperty({ nullable: true, type: Number })
   @ValidateIf((_object, value) => value !== null)
   @IsNumber()
   minP!: number | null;
-
   @ApiProperty({ nullable: true, type: Number })
   @ValidateIf((_object, value) => value !== null)
   @IsNumber()
   topA!: number | null;
-
   @ApiProperty({ nullable: true, type: Number })
   @ValidateIf((_object, value) => value !== null)
   @IsNumber()
   seed!: number | null;
-
   @ApiProperty({ nullable: true, type: Number })
   @ValidateIf((_object, value) => value !== null)
   @IsNumber()
   n!: number | null;
-
   @ApiProperty({ type: String })
   @IsString()
   reasoningEffort!: string;
-
   @ApiProperty({ type: String })
   @IsString()
   verbosity!: string;
-
   @ApiProperty({ type: Boolean })
   @IsBoolean()
   showThoughts!: boolean;
@@ -315,28 +342,23 @@ export class UpdatePresetDocumentRequestDto {
   @ApiProperty({ enum: PRESET_VISIBILITIES })
   @IsIn(PRESET_VISIBILITIES)
   visibility!: PresetVisibility;
-
   @ApiProperty({ maxLength: 255, type: String })
   @IsString()
   @MaxLength(255)
   name!: string;
-
   @ApiProperty({ nullable: true, type: String })
   @ValidateIf((_object, value) => value !== null)
   @IsString()
   modelProviderId!: string | null;
-
   @ApiProperty({ type: PresetDocumentModelSettingsDto })
   @ValidateNested()
   @Type(() => PresetDocumentModelSettingsDto)
   modelSettings!: PresetDocumentModelSettingsDto;
-
   @ApiProperty({ type: () => [PresetDocumentEntryDto] })
   @IsArray()
   @ValidateNested({ each: true })
   @Type(() => PresetDocumentEntryDto)
   entries!: PresetDocumentEntryDto[];
-
   @ApiProperty({ type: () => [PresetDocumentPromptItemDto] })
   @IsArray()
   @ValidateNested({ each: true })
@@ -349,15 +371,17 @@ export class CreatePresetEntryRequestDto {
   @IsString()
   @MaxLength(255)
   name!: string;
-
   @ApiProperty({ enum: PRESET_ENTRY_ROLES })
   @IsIn(PRESET_ENTRY_ROLES)
   role!: PresetEntryRole;
-
-  @ApiProperty({ enum: PRESET_ENTRY_POSITIONS })
-  @IsIn(PRESET_ENTRY_POSITIONS)
-  position!: PresetEntryPosition;
-
+  @ApiProperty({ type: PresetPromptPlacementDto })
+  @ValidateNested()
+  @Type(() => PresetPromptPlacementDto)
+  placement!: PresetPromptPlacementDto;
+  @ApiProperty({ enum: PRESET_GENERATION_TYPES, isArray: true })
+  @IsArray()
+  @IsIn(PRESET_GENERATION_TYPES, { each: true })
+  generationTypes!: PresetGenerationType[];
   @ApiProperty({ type: String })
   @IsString()
   content!: string;
@@ -369,17 +393,20 @@ export class UpdatePresetEntryRequestDto {
   @IsString()
   @MaxLength(255)
   name?: string;
-
   @ApiPropertyOptional({ enum: PRESET_ENTRY_ROLES })
   @IsOptional()
   @IsIn(PRESET_ENTRY_ROLES)
   role?: PresetEntryRole;
-
-  @ApiPropertyOptional({ enum: PRESET_ENTRY_POSITIONS })
+  @ApiPropertyOptional({ type: PresetPromptPlacementDto })
   @IsOptional()
-  @IsIn(PRESET_ENTRY_POSITIONS)
-  position?: PresetEntryPosition;
-
+  @ValidateNested()
+  @Type(() => PresetPromptPlacementDto)
+  placement?: PresetPromptPlacementDto;
+  @ApiPropertyOptional({ enum: PRESET_GENERATION_TYPES, isArray: true })
+  @IsOptional()
+  @IsArray()
+  @IsIn(PRESET_GENERATION_TYPES, { each: true })
+  generationTypes?: PresetGenerationType[];
   @ApiPropertyOptional({ type: String })
   @IsOptional()
   @IsString()
@@ -389,8 +416,7 @@ export class UpdatePresetEntryRequestDto {
 export class UpdatePresetPromptItemDto {
   @ApiProperty({ type: String })
   @IsString()
-  entryId!: string;
-
+  id!: string;
   @ApiProperty({ type: Boolean })
   @IsBoolean()
   enabled!: boolean;

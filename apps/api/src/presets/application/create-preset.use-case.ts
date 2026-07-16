@@ -9,7 +9,11 @@ import { applyPresetEditableFields, type PresetEditableFields } from './preset-e
 import type { PresetStore } from '../ports/preset-store.js';
 import type { PresetModelProviderAccess } from '../ports/preset-model-provider-access.js';
 import { createDefaultPresetModelSettings } from '../domain/preset-model-settings.js';
-import { withPresetTokenCount, type Preset } from '../domain/preset.js';
+import {
+  createDefaultPresetPromptItems,
+  withPresetTokenCount,
+  type Preset,
+} from '../domain/preset.js';
 
 export interface CreatePresetCommand extends PresetEditableFields {
   ownerUserId: string;
@@ -36,7 +40,7 @@ export class CreatePresetUseCase {
       modelSettings: createDefaultPresetModelSettings(),
       tokenizer: PROMPT_TOKENIZER,
       entries: [],
-      promptItems: [],
+      promptItems: createDefaultPresetPromptItems(() => this.idGenerator.createId()),
       sourceFormat: 'rolesta',
       sourceSnapshot: {},
       createdAtMs: nowMs,

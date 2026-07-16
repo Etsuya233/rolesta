@@ -6,7 +6,12 @@ import { PresetApplicationError } from './preset-application-error.js';
 import { translatePresetError } from './preset-error.mapper.js';
 import type { PresetClock, PresetIdGenerator } from './preset-application-services.js';
 import type { PresetStore } from '../ports/preset-store.js';
-import type { Preset, PresetEntryPosition, PresetEntryRole } from '../domain/preset.js';
+import type {
+  Preset,
+  PresetEntryRole,
+  PresetGenerationType,
+  PresetPromptPlacement,
+} from '../domain/preset.js';
 import { withPresetTokenCount } from '../domain/preset.js';
 
 export interface CreatePresetEntryCommand {
@@ -14,7 +19,8 @@ export interface CreatePresetEntryCommand {
   viewerUserId: string;
   name: string;
   role: PresetEntryRole;
-  position: PresetEntryPosition;
+  placement: PresetPromptPlacement;
+  generationTypes: PresetGenerationType[];
   content: string;
 }
 
@@ -52,7 +58,8 @@ export class CreatePresetEntryUseCase {
             identifier: entryId,
             name: command.name,
             role: command.role,
-            position: command.position,
+            placement: command.placement,
+            generationTypes: command.generationTypes,
             content: command.content,
             tokenCount: countPromptTokens(command.content),
             metadata: {},
@@ -63,6 +70,8 @@ export class CreatePresetEntryUseCase {
         promptItems: [
           ...current.promptItems,
           {
+            id: this.idGenerator.createId(),
+            kind: 'customPrompt',
             entryId,
             enabled: true,
             orderIndex: current.promptItems.length,

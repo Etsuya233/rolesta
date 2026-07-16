@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { Button } from '../../../components/ui/button';
 import { MobileTopBar } from '../../assets/components/mobile-top-bar';
 import { usePresetDraftSession } from '../hooks/use-preset-draft-sessions';
+import { isCustomPromptItem } from '../model/preset-editor-form';
 import { PresetEntryEditor } from './preset-entry-editor';
 import type { PresetPage } from './preset-pages';
 import { PresetStackPage } from './preset-stack-page';
@@ -25,7 +26,9 @@ export function PresetEntryEditPage({
       {
         ...document,
         entries: document.entries.filter((candidate) => candidate.id !== page.entryId),
-        promptItems: document.promptItems.filter((item) => item.entryId !== page.entryId),
+        promptItems: document.promptItems.filter(
+          (item) => !isCustomPromptItem(item) || item.entryId !== page.entryId,
+        ),
       },
       onBack,
     );
