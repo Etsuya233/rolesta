@@ -26,16 +26,38 @@ export interface WorldbookDocumentEntry {
   selectiveLogic: WorldbookSelectiveLogic;
   constant: boolean;
   vectorized: boolean;
-  caseSensitive: boolean;
-  matchWholeWords: boolean;
+  ignoreBudget: boolean;
+  useProbability: boolean;
+  caseSensitive: boolean | null;
+  matchWholeWords: boolean | null;
+  matchPersonaDescription: boolean;
+  matchCharacterDescription: boolean;
+  matchCharacterPersonality: boolean;
+  matchCharacterDepthPrompt: boolean;
+  matchScenario: boolean;
+  matchCreatorNotes: boolean;
   insertionPosition: WorldbookInsertionPosition;
+  insertionOrder: number;
   depth: number;
   insertionRole: WorldbookEntryRole;
   anchorName: string;
   scanDepth: number | null;
   excludeRecursion: boolean;
   preventRecursion: boolean;
-  delayUntilRecursion: boolean;
+  delayUntilRecursion: number;
+  group: string;
+  groupOverride: boolean;
+  groupWeight: number;
+  useGroupScoring: boolean | null;
+  sticky: number | null;
+  cooldown: number | null;
+  delay: number | null;
+  characterFilterNames: string[];
+  characterFilterTags: string[];
+  characterFilterExclude: boolean;
+  triggers: Worldbook['entries'][number]['triggers'];
+  automationId: string;
+  addMemo: boolean;
   probability: number;
 }
 
@@ -46,9 +68,6 @@ export interface UpdateWorldbookDocumentCommand {
   name: string;
   description: string;
   tags: string[];
-  scanDepth: number;
-  tokenBudget: number;
-  recursiveScan: boolean;
   entries: WorldbookDocumentEntry[];
 }
 
@@ -86,14 +105,14 @@ export class UpdateWorldbookDocumentUseCase {
 
       const nowMs = ensureEpochMillis(this.clock.now().getTime());
       const currentEntryById = new Map(current.entries.map((entry) => [entry.id, entry]));
-      const entries = command.entries.map((entry, insertionOrder) => {
+      const entries = command.entries.map((entry, displayIndex) => {
         const existing = currentEntryById.get(entry.id);
 
         return {
           ...entry,
           id: existing?.id ?? this.idGenerator.createId(),
           worldbookId: current.id,
-          insertionOrder,
+          displayIndex,
           tokenCount: countPromptTokens(entry.content),
           createdAtMs: existing?.createdAtMs ?? nowMs,
           updatedAtMs: nowMs,
@@ -105,9 +124,6 @@ export class UpdateWorldbookDocumentUseCase {
         name: command.name,
         description: command.description,
         tags: command.tags,
-        scanDepth: command.scanDepth,
-        tokenBudget: command.tokenBudget,
-        recursiveScan: command.recursiveScan,
         entries,
         updatedAtMs: nowMs,
       };

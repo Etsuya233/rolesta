@@ -1,5 +1,6 @@
 export type WorldbookPage =
   | { name: 'list'; key: 'worldbooks:list' }
+  | { name: 'scanPreferences'; key: 'worldbooks:scan-preferences' }
   | { name: 'create'; key: 'worldbooks:create'; sessionKey: string }
   | { name: 'editMain'; key: string; worldbookId: string; sessionKey: string }
   | { name: 'entryList'; key: string; worldbookId: string; sessionKey: string }
@@ -74,6 +75,10 @@ export function worldbookEntryEditPage(
 
 export function importWorldbookPage(): WorldbookPage {
   return { name: 'import', key: 'worldbooks:import' };
+}
+
+export function worldbookScanPreferencesPage(): WorldbookPage {
+  return { name: 'scanPreferences', key: 'worldbooks:scan-preferences' };
 }
 
 export function worldbookSessionKey(worldbookId: string): string {

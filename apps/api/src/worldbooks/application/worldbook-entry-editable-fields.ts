@@ -17,8 +17,16 @@ export interface WorldbookEntryEditableFields {
   selectiveLogic?: WorldbookSelectiveLogic;
   constant?: boolean;
   vectorized?: boolean;
-  caseSensitive?: boolean;
-  matchWholeWords?: boolean;
+  ignoreBudget?: boolean;
+  useProbability?: boolean;
+  caseSensitive?: boolean | null;
+  matchWholeWords?: boolean | null;
+  matchPersonaDescription?: boolean;
+  matchCharacterDescription?: boolean;
+  matchCharacterPersonality?: boolean;
+  matchCharacterDepthPrompt?: boolean;
+  matchScenario?: boolean;
+  matchCreatorNotes?: boolean;
   insertionPosition?: WorldbookInsertionPosition;
   insertionOrder?: number;
   depth?: number;
@@ -27,7 +35,20 @@ export interface WorldbookEntryEditableFields {
   scanDepth?: number | null;
   excludeRecursion?: boolean;
   preventRecursion?: boolean;
-  delayUntilRecursion?: boolean;
+  delayUntilRecursion?: number;
+  group?: string;
+  groupOverride?: boolean;
+  groupWeight?: number;
+  useGroupScoring?: boolean | null;
+  sticky?: number | null;
+  cooldown?: number | null;
+  delay?: number | null;
+  characterFilterNames?: string[];
+  characterFilterTags?: string[];
+  characterFilterExclude?: boolean;
+  triggers?: WorldbookEntry['triggers'];
+  automationId?: string;
+  addMemo?: boolean;
   probability?: number;
 }
 
@@ -49,8 +70,17 @@ export function applyWorldbookEntryEditableFields(
     selectiveLogic: fields.selectiveLogic ?? entry.selectiveLogic,
     constant: fields.constant ?? entry.constant,
     vectorized: fields.vectorized ?? entry.vectorized,
-    caseSensitive: fields.caseSensitive ?? entry.caseSensitive,
-    matchWholeWords: fields.matchWholeWords ?? entry.matchWholeWords,
+    ignoreBudget: fields.ignoreBudget ?? entry.ignoreBudget,
+    useProbability: fields.useProbability ?? entry.useProbability,
+    caseSensitive: fields.caseSensitive === undefined ? entry.caseSensitive : fields.caseSensitive,
+    matchWholeWords:
+      fields.matchWholeWords === undefined ? entry.matchWholeWords : fields.matchWholeWords,
+    matchPersonaDescription: fields.matchPersonaDescription ?? entry.matchPersonaDescription,
+    matchCharacterDescription: fields.matchCharacterDescription ?? entry.matchCharacterDescription,
+    matchCharacterPersonality: fields.matchCharacterPersonality ?? entry.matchCharacterPersonality,
+    matchCharacterDepthPrompt: fields.matchCharacterDepthPrompt ?? entry.matchCharacterDepthPrompt,
+    matchScenario: fields.matchScenario ?? entry.matchScenario,
+    matchCreatorNotes: fields.matchCreatorNotes ?? entry.matchCreatorNotes,
     insertionPosition: fields.insertionPosition ?? entry.insertionPosition,
     insertionOrder: fields.insertionOrder ?? entry.insertionOrder,
     depth: fields.depth ?? entry.depth,
@@ -60,6 +90,20 @@ export function applyWorldbookEntryEditableFields(
     excludeRecursion: fields.excludeRecursion ?? entry.excludeRecursion,
     preventRecursion: fields.preventRecursion ?? entry.preventRecursion,
     delayUntilRecursion: fields.delayUntilRecursion ?? entry.delayUntilRecursion,
+    group: fields.group ?? entry.group,
+    groupOverride: fields.groupOverride ?? entry.groupOverride,
+    groupWeight: fields.groupWeight ?? entry.groupWeight,
+    useGroupScoring:
+      fields.useGroupScoring === undefined ? entry.useGroupScoring : fields.useGroupScoring,
+    sticky: fields.sticky === undefined ? entry.sticky : fields.sticky,
+    cooldown: fields.cooldown === undefined ? entry.cooldown : fields.cooldown,
+    delay: fields.delay === undefined ? entry.delay : fields.delay,
+    characterFilterNames: fields.characterFilterNames ?? entry.characterFilterNames,
+    characterFilterTags: fields.characterFilterTags ?? entry.characterFilterTags,
+    characterFilterExclude: fields.characterFilterExclude ?? entry.characterFilterExclude,
+    triggers: fields.triggers ?? entry.triggers,
+    automationId: fields.automationId ?? entry.automationId,
+    addMemo: fields.addMemo ?? entry.addMemo,
     probability: fields.probability ?? entry.probability,
     tokenCount: content === entry.content ? entry.tokenCount : countPromptTokens(content),
   };

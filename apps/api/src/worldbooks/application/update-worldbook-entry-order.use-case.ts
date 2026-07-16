@@ -83,7 +83,7 @@ export class UpdateWorldbookEntryOrderUseCase {
       const orderedEntries: WorldbookEntry[] = command.entries.map((item, index) => ({
         ...entryById.get(item.entryId)!,
         enabled: item.enabled,
-        insertionOrder: index,
+        displayIndex: index,
         updatedAtMs: nowMs,
       }));
 

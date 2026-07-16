@@ -91,14 +91,24 @@ export function WorldbookEntryEditor({
     { value: 'notAll', label: t('worldbooks.entries.selectiveLogic.notAll') },
     { value: 'notAny', label: t('worldbooks.entries.selectiveLogic.notAny') },
   ];
+  const inheritedBooleanOptions = [
+    { value: 'inherit', label: t('worldbooks.entries.inherited.followPreferences') },
+    { value: 'enabled', label: t('worldbooks.entries.inherited.enabled') },
+    { value: 'disabled', label: t('worldbooks.entries.inherited.disabled') },
+  ];
+  const generationTriggers = [
+    'normal',
+    'continue',
+    'impersonate',
+    'swipe',
+    'regenerate',
+    'quiet',
+  ] as const;
 
   useEffect(() => {
     if (entry) {
       setForm(
-        worldbookEntryEditorFormFromEntry(
-          entry,
-          document.entries.findIndex((candidate) => candidate.id === entry.id),
-        ),
+        worldbookEntryEditorFormFromEntry(entry),
       );
     }
   }, [document.entries, entry]);
@@ -115,11 +125,12 @@ export function WorldbookEntryEditor({
       ...worldbookEntryValuesFromForm(nextForm),
     };
     setDocument((current) => {
-      const entries = current.entries.filter((candidate) => candidate.id !== entryId);
-      const insertionOrder = Math.max(0, Math.min(nextForm.insertionOrder, entries.length));
-      entries.splice(insertionOrder, 0, nextEntry);
-
-      return { ...current, entries };
+      return {
+        ...current,
+        entries: current.entries.map((candidate) =>
+          candidate.id === entryId ? nextEntry : candidate,
+        ),
+      };
     });
   }
 
@@ -133,14 +144,11 @@ export function WorldbookEntryEditor({
 
     const values = worldbookEntryValuesFromForm(form);
     const id = entryId ?? crypto.randomUUID();
-    let entries = entryId
-      ? document.entries.filter((candidate) => candidate.id !== entryId)
-      : [...document.entries];
+    let entries = [...document.entries];
     const nextEntry = { id, ...values };
 
     if (entryId) {
-      const insertionOrder = Math.max(0, Math.min(form.insertionOrder, entries.length));
-      entries = [...entries.slice(0, insertionOrder), nextEntry, ...entries.slice(insertionOrder)];
+      entries = entries.map((candidate) => (candidate.id === entryId ? nextEntry : candidate));
     } else {
       entries.push(nextEntry);
     }
@@ -238,13 +246,6 @@ export function WorldbookEntryEditor({
                 onChange={(constant) => updateForm({ ...form, constant })}
               />
               <WorldbookCheckboxField
-                checked={form.vectorized}
-                disabled={isPending}
-                id={`${fieldPrefix}-vectorized`}
-                label={t('worldbooks.entries.fields.vectorized')}
-                onChange={(vectorized) => updateForm({ ...form, vectorized })}
-              />
-              <WorldbookCheckboxField
                 checked={form.selective}
                 disabled={isPending}
                 id={`${fieldPrefix}-selective`}
@@ -252,19 +253,65 @@ export function WorldbookEntryEditor({
                 onChange={(selective) => updateForm({ ...form, selective })}
               />
               <WorldbookCheckboxField
-                checked={form.caseSensitive}
+                checked={form.useProbability}
+                disabled={isPending}
+                id={`${fieldPrefix}-use-probability`}
+                label={t('worldbooks.entries.fields.useProbability')}
+                onChange={(useProbability) => updateForm({ ...form, useProbability })}
+              />
+              <WorldbookCheckboxField
+                checked={form.ignoreBudget}
+                disabled={isPending}
+                id={`${fieldPrefix}-ignore-budget`}
+                label={t('worldbooks.entries.fields.ignoreBudget')}
+                onChange={(ignoreBudget) => updateForm({ ...form, ignoreBudget })}
+              />
+            </div>
+            <div className="grid gap-3 sm:grid-cols-2">
+              <WorldbookSelectField
                 disabled={isPending}
                 id={`${fieldPrefix}-case-sensitive`}
                 label={t('worldbooks.entries.fields.caseSensitive')}
-                onChange={(caseSensitive) => updateForm({ ...form, caseSensitive })}
+                options={inheritedBooleanOptions}
+                value={inheritedBooleanValue(form.caseSensitive)}
+                onChange={(value) =>
+                  updateForm({ ...form, caseSensitive: inheritedBoolean(value) })
+                }
               />
-              <WorldbookCheckboxField
-                checked={form.matchWholeWords}
+              <WorldbookSelectField
                 disabled={isPending}
                 id={`${fieldPrefix}-whole-words`}
                 label={t('worldbooks.entries.fields.matchWholeWords')}
-                onChange={(matchWholeWords) => updateForm({ ...form, matchWholeWords })}
+                options={inheritedBooleanOptions}
+                value={inheritedBooleanValue(form.matchWholeWords)}
+                onChange={(value) =>
+                  updateForm({ ...form, matchWholeWords: inheritedBoolean(value) })
+                }
               />
+            </div>
+          </WorldbookEntrySection>
+
+          <WorldbookEntrySection title={t('worldbooks.entries.sections.scanSources')}>
+            <div className="grid gap-3 sm:grid-cols-2">
+              {(
+                [
+                  'matchPersonaDescription',
+                  'matchCharacterDescription',
+                  'matchCharacterPersonality',
+                  'matchCharacterDepthPrompt',
+                  'matchScenario',
+                  'matchCreatorNotes',
+                ] as const
+              ).map((field) => (
+                <WorldbookCheckboxField
+                  key={field}
+                  checked={form[field]}
+                  disabled={isPending}
+                  id={`${fieldPrefix}-${field}`}
+                  label={t(`worldbooks.entries.fields.${field}`)}
+                  onChange={(value) => updateForm({ ...form, [field]: value })}
+                />
+              ))}
             </div>
           </WorldbookEntrySection>
 
@@ -344,13 +391,119 @@ export function WorldbookEntryEditor({
                 label={t('worldbooks.entries.fields.preventRecursion')}
                 onChange={(preventRecursion) => updateForm({ ...form, preventRecursion })}
               />
-              <WorldbookCheckboxField
-                checked={form.delayUntilRecursion}
+              <WorldbookNumberField
                 disabled={isPending}
                 id={`${fieldPrefix}-delay-until-recursion`}
                 label={t('worldbooks.entries.fields.delayUntilRecursion')}
-                onChange={(delayUntilRecursion) => updateForm({ ...form, delayUntilRecursion })}
+                value={form.delayUntilRecursion}
+                onChange={(delayUntilRecursion) =>
+                  updateForm({ ...form, delayUntilRecursion: delayUntilRecursion ?? 0 })
+                }
               />
+            </div>
+          </WorldbookEntrySection>
+
+          <WorldbookEntrySection title={t('worldbooks.entries.sections.grouping')}>
+            <div className="grid gap-3 sm:grid-cols-2">
+              <WorldbookTextField
+                disabled={isPending}
+                id={`${fieldPrefix}-group`}
+                label={t('worldbooks.entries.fields.group')}
+                value={form.group}
+                onChange={(event) => updateForm({ ...form, group: event.target.value })}
+              />
+              <WorldbookNumberField
+                disabled={isPending}
+                id={`${fieldPrefix}-group-weight`}
+                label={t('worldbooks.entries.fields.groupWeight')}
+                value={form.groupWeight}
+                onChange={(groupWeight) => updateForm({ ...form, groupWeight: groupWeight ?? 0 })}
+              />
+              <WorldbookCheckboxField
+                checked={form.groupOverride}
+                disabled={isPending}
+                id={`${fieldPrefix}-group-override`}
+                label={t('worldbooks.entries.fields.groupOverride')}
+                onChange={(groupOverride) => updateForm({ ...form, groupOverride })}
+              />
+              <WorldbookSelectField
+                disabled={isPending}
+                id={`${fieldPrefix}-group-scoring`}
+                label={t('worldbooks.entries.fields.useGroupScoring')}
+                options={inheritedBooleanOptions}
+                value={inheritedBooleanValue(form.useGroupScoring)}
+                onChange={(value) =>
+                  updateForm({ ...form, useGroupScoring: inheritedBoolean(value) })
+                }
+              />
+            </div>
+          </WorldbookEntrySection>
+
+          <WorldbookEntrySection title={t('worldbooks.entries.sections.timing')}>
+            <div className="grid gap-3 sm:grid-cols-3">
+              {(['sticky', 'cooldown', 'delay'] as const).map((field) => (
+                <WorldbookNumberField
+                  key={field}
+                  disabled={isPending}
+                  id={`${fieldPrefix}-${field}`}
+                  label={t(`worldbooks.entries.fields.${field}`)}
+                  value={form[field]}
+                  onChange={(value) => updateForm({ ...form, [field]: value })}
+                />
+              ))}
+            </div>
+          </WorldbookEntrySection>
+
+          <WorldbookEntrySection title={t('worldbooks.entries.sections.filters')}>
+            <div className="grid gap-3 sm:grid-cols-2">
+              <WorldbookTextAreaField
+                className="min-h-20"
+                disabled={isPending}
+                id={`${fieldPrefix}-character-filter-names`}
+                label={t('worldbooks.entries.fields.characterFilterNames')}
+                rows={2}
+                value={form.characterFilterNamesText}
+                onChange={(event) =>
+                  updateForm({ ...form, characterFilterNamesText: event.target.value })
+                }
+              />
+              <WorldbookTextAreaField
+                className="min-h-20"
+                disabled={isPending}
+                id={`${fieldPrefix}-character-filter-tags`}
+                label={t('worldbooks.entries.fields.characterFilterTags')}
+                rows={2}
+                value={form.characterFilterTagsText}
+                onChange={(event) =>
+                  updateForm({ ...form, characterFilterTagsText: event.target.value })
+                }
+              />
+            </div>
+            <WorldbookCheckboxField
+              checked={form.characterFilterExclude}
+              disabled={isPending}
+              id={`${fieldPrefix}-character-filter-exclude`}
+              label={t('worldbooks.entries.fields.characterFilterExclude')}
+              onChange={(characterFilterExclude) => updateForm({ ...form, characterFilterExclude })}
+            />
+            <div className="grid gap-3 sm:grid-cols-2">
+              {generationTriggers.map((trigger) => (
+                <WorldbookCheckboxField
+                  key={trigger}
+                  checked={form.triggers.includes(trigger)}
+                  disabled={isPending}
+                  id={`${fieldPrefix}-trigger-${trigger}`}
+                  label={t(`worldbooks.entries.triggers.${trigger}`)}
+                  onChange={(checked) =>
+                    updateForm({
+                      ...form,
+                      triggers: checked
+                        ? [...form.triggers, trigger]
+                        : form.triggers.filter((item) => item !== trigger),
+                    })
+                  }
+                />
+              ))}
             </div>
           </WorldbookEntrySection>
         </div>
@@ -374,4 +527,12 @@ function WorldbookEntrySection({ title, children }: { title: string; children: R
       <div className="grid gap-3">{children}</div>
     </section>
   );
+}
+
+function inheritedBooleanValue(value: boolean | null): 'inherit' | 'enabled' | 'disabled' {
+  return value === null ? 'inherit' : value ? 'enabled' : 'disabled';
+}
+
+function inheritedBoolean(value: string): boolean | null {
+  return value === 'inherit' ? null : value === 'enabled';
 }

@@ -1,4 +1,4 @@
-import { Import, Plus } from 'lucide-react';
+import { Import, Plus, Settings } from 'lucide-react';
 import type { ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Button } from '../../../components/ui/button';
@@ -10,11 +10,13 @@ export function WorldbookListPage({
   onBack,
   onCreate,
   onImport,
+  onSettings,
   onSelectWorldbook,
 }: {
   onBack: () => void;
   onCreate: () => void;
   onImport: () => void;
+  onSettings: () => void;
   onSelectWorldbook: (worldbookId: string) => void;
 }) {
   const { t } = useTranslation();
@@ -24,6 +26,9 @@ export function WorldbookListPage({
       <MobileTopBar
         actions={
           <>
+            <IconAction label={t('worldbooks.scanPreferences.openAction')} onClick={onSettings}>
+              <Settings aria-hidden="true" />
+            </IconAction>
             <IconAction label={t('worldbooks.list.importAction')} onClick={onImport}>
               <Import aria-hidden="true" />
             </IconAction>

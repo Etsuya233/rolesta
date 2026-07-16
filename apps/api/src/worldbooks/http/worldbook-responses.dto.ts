@@ -4,6 +4,7 @@ import type {
   Worldbook,
   WorldbookEntryRole,
   WorldbookEntry,
+  WorldbookGenerationTrigger,
   WorldbookInsertionPosition,
   WorldbookSelectiveLogic,
   WorldbookSourceFormat,
@@ -12,6 +13,7 @@ import type {
 } from '../domain/worldbook.js';
 import {
   WORLDBOOK_ENTRY_ROLES,
+  WORLDBOOK_GENERATION_TRIGGERS,
   WORLDBOOK_INSERTION_POSITIONS,
   WORLDBOOK_SELECTIVE_LOGICS,
 } from '../domain/worldbook.js';
@@ -34,15 +36,6 @@ export class WorldbookSummaryResponseDto {
 
   @ApiProperty({ type: [String] })
   tags!: string[];
-
-  @ApiProperty({ type: Number })
-  scanDepth!: number;
-
-  @ApiProperty({ type: Number })
-  tokenBudget!: number;
-
-  @ApiProperty({ type: Boolean })
-  recursiveScan!: boolean;
 
   @ApiProperty({ type: Number })
   entryCount!: number;
@@ -104,16 +97,43 @@ export class WorldbookEntryResponseDto {
   vectorized!: boolean;
 
   @ApiProperty({ type: Boolean })
-  caseSensitive!: boolean;
+  ignoreBudget!: boolean;
 
   @ApiProperty({ type: Boolean })
-  matchWholeWords!: boolean;
+  useProbability!: boolean;
+
+  @ApiProperty({ nullable: true, type: Boolean })
+  caseSensitive!: boolean | null;
+
+  @ApiProperty({ nullable: true, type: Boolean })
+  matchWholeWords!: boolean | null;
+
+  @ApiProperty({ type: Boolean })
+  matchPersonaDescription!: boolean;
+
+  @ApiProperty({ type: Boolean })
+  matchCharacterDescription!: boolean;
+
+  @ApiProperty({ type: Boolean })
+  matchCharacterPersonality!: boolean;
+
+  @ApiProperty({ type: Boolean })
+  matchCharacterDepthPrompt!: boolean;
+
+  @ApiProperty({ type: Boolean })
+  matchScenario!: boolean;
+
+  @ApiProperty({ type: Boolean })
+  matchCreatorNotes!: boolean;
 
   @ApiProperty({ enum: WORLDBOOK_INSERTION_POSITIONS })
   insertionPosition!: WorldbookInsertionPosition;
 
   @ApiProperty({ type: Number })
   insertionOrder!: number;
+
+  @ApiProperty({ type: Number })
+  displayIndex!: number;
 
   @ApiProperty({ type: Number })
   depth!: number;
@@ -133,8 +153,47 @@ export class WorldbookEntryResponseDto {
   @ApiProperty({ type: Boolean })
   preventRecursion!: boolean;
 
+  @ApiProperty({ type: Number })
+  delayUntilRecursion!: number;
+
+  @ApiProperty({ type: String })
+  group!: string;
+
   @ApiProperty({ type: Boolean })
-  delayUntilRecursion!: boolean;
+  groupOverride!: boolean;
+
+  @ApiProperty({ type: Number })
+  groupWeight!: number;
+
+  @ApiProperty({ nullable: true, type: Boolean })
+  useGroupScoring!: boolean | null;
+
+  @ApiProperty({ nullable: true, type: Number })
+  sticky!: number | null;
+
+  @ApiProperty({ nullable: true, type: Number })
+  cooldown!: number | null;
+
+  @ApiProperty({ nullable: true, type: Number })
+  delay!: number | null;
+
+  @ApiProperty({ type: [String] })
+  characterFilterNames!: string[];
+
+  @ApiProperty({ type: [String] })
+  characterFilterTags!: string[];
+
+  @ApiProperty({ type: Boolean })
+  characterFilterExclude!: boolean;
+
+  @ApiProperty({ enum: WORLDBOOK_GENERATION_TRIGGERS, isArray: true })
+  triggers!: WorldbookGenerationTrigger[];
+
+  @ApiProperty({ type: String })
+  automationId!: string;
+
+  @ApiProperty({ type: Boolean })
+  addMemo!: boolean;
 
   @ApiProperty({ type: Number })
   probability!: number;
@@ -188,9 +247,6 @@ export function toWorldbookDetailResponse(worldbook: Worldbook): WorldbookDetail
     name: worldbook.name,
     description: worldbook.description,
     tags: worldbook.tags,
-    scanDepth: worldbook.scanDepth,
-    tokenBudget: worldbook.tokenBudget,
-    recursiveScan: worldbook.recursiveScan,
     entryCount: worldbook.entries.length,
     enabledEntryCount: worldbook.entries.filter((entry) => entry.enabled).length,
     tokenCount: worldbook.entries.reduce((total, entry) => total + entry.tokenCount, 0),

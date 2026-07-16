@@ -1,6 +1,6 @@
 import type { TFunction } from 'i18next';
 import { countPromptTokens } from '@rolesta/shared';
-import { BadgeInfo, BookOpenText, SlidersHorizontal } from 'lucide-react';
+import { BadgeInfo, BookOpenText } from 'lucide-react';
 import { useId, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Accordion } from '../../../components/ui/accordion';
@@ -10,9 +10,7 @@ import type { WorldbookDetailResponse, WorldbookVisibility } from '../api/worldb
 import {
   FormActionButton,
   FormSubmitButton,
-  WorldbookCheckboxField,
   WorldbookFormSection,
-  WorldbookNumberField,
   WorldbookSelectField,
   WorldbookTextAreaField,
   WorldbookTextField,
@@ -33,7 +31,7 @@ export function WorldbookMainEditor({
 }) {
   const { t } = useTranslation();
   const fieldPrefix = useId();
-  const [openSections, setOpenSections] = useState<string[]>(['basic', 'matching']);
+  const [openSections, setOpenSections] = useState<string[]>(['basic']);
   const { document, form, setForm, isDirty, isPending, worldbook, submit } =
     useWorldbookDraftSession({
       sessionKey,
@@ -131,37 +129,6 @@ export function WorldbookMainEditor({
           </WorldbookFormSection>
 
           <WorldbookFormSection
-            icon={SlidersHorizontal}
-            summary={matchingSummary({ form, t })}
-            title={t('worldbooks.editor.sections.matching.title')}
-            value="matching"
-          >
-            <div className="grid grid-cols-2 gap-3">
-              <WorldbookNumberField
-                disabled={isPending}
-                id={`${fieldPrefix}-scan-depth`}
-                label={t('worldbooks.editor.fields.scanDepth')}
-                value={form.scanDepth}
-                onChange={(scanDepth) => setForm({ ...form, scanDepth: scanDepth ?? 0 })}
-              />
-              <WorldbookNumberField
-                disabled={isPending}
-                id={`${fieldPrefix}-token-budget`}
-                label={t('worldbooks.editor.fields.tokenBudget')}
-                value={form.tokenBudget}
-                onChange={(tokenBudget) => setForm({ ...form, tokenBudget: tokenBudget ?? 0 })}
-              />
-            </div>
-            <WorldbookCheckboxField
-              checked={form.recursiveScan}
-              disabled={isPending}
-              id={`${fieldPrefix}-recursive`}
-              label={t('worldbooks.editor.fields.recursiveScan')}
-              onChange={(recursiveScan) => setForm({ ...form, recursiveScan })}
-            />
-          </WorldbookFormSection>
-
-          <WorldbookFormSection
             icon={BookOpenText}
             summary={t('worldbooks.editor.sections.source.summary')}
             title={t('worldbooks.editor.sections.source.title')}
@@ -210,22 +177,4 @@ function basicSummary({
     'worldbooks.editor.summaries.entries',
     { value: entryCount },
   )}`;
-}
-
-function matchingSummary({
-  form,
-  t,
-}: {
-  form: { scanDepth: number; tokenBudget: number; recursiveScan: boolean };
-  t: TFunction;
-}): string {
-  return `${t('worldbooks.editor.summaries.scanDepth', {
-    value: form.scanDepth,
-  })} · ${t('worldbooks.editor.summaries.tokenBudget', {
-    value: form.tokenBudget,
-  })} · ${
-    form.recursiveScan
-      ? t('worldbooks.editor.summaries.recursiveEnabled')
-      : t('worldbooks.editor.summaries.recursiveDisabled')
-  }`;
 }

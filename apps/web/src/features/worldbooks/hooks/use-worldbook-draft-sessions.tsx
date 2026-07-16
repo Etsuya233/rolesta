@@ -252,9 +252,6 @@ export function useWorldbookDraftSession({
         name: document.name,
         description: document.description,
         tags: document.tags,
-        scanDepth: document.scanDepth,
-        tokenBudget: document.tokenBudget,
-        recursiveScan: document.recursiveScan,
       }),
     async onSuccess(worldbook) {
       await queryClient.invalidateQueries({ queryKey: ['worldbooks'] });
@@ -277,9 +274,6 @@ export function useWorldbookDraftSession({
       description: document.description,
       tagsText: document.tags.join(', '),
       visibility: document.visibility,
-      scanDepth: document.scanDepth,
-      tokenBudget: document.tokenBudget,
-      recursiveScan: document.recursiveScan,
     }),
     [document],
   );
@@ -291,9 +285,6 @@ export function useWorldbookDraftSession({
           description: current.description,
           tagsText: current.tags.join(', '),
           visibility: current.visibility,
-          scanDepth: current.scanDepth,
-          tokenBudget: current.tokenBudget,
-          recursiveScan: current.recursiveScan,
         };
         const nextForm = typeof update === 'function' ? update(currentForm) : update;
 

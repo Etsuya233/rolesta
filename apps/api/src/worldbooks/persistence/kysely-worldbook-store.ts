@@ -27,9 +27,6 @@ export class KyselyWorldbookStore implements WorldbookStore {
         'name',
         'description',
         'tags_json',
-        'scan_depth',
-        'token_budget',
-        'recursive_scan',
         'created_at_ms',
         'updated_at_ms',
         'last_used_at_ms',
@@ -127,7 +124,7 @@ export class KyselyWorldbookStore implements WorldbookStore {
       .selectFrom('worldbook_entries')
       .selectAll()
       .where('worldbook_id', '=', row.id)
-      .orderBy('insertion_order', 'asc')
+      .orderBy('display_index', 'asc')
       .orderBy('created_at_ms', 'asc')
       .execute();
 
@@ -138,9 +135,6 @@ export class KyselyWorldbookStore implements WorldbookStore {
       name: row.name,
       description: row.description,
       tags: jsonColumn<string[]>(row.tags_json),
-      scanDepth: row.scan_depth,
-      tokenBudget: row.token_budget,
-      recursiveScan: row.recursive_scan === 1,
       entries: entries.map(toWorldbookEntry),
       sourceFormat: row.source_format,
       sourceSnapshot: jsonColumn<unknown>(row.source_snapshot_json),
@@ -192,9 +186,6 @@ type WorldbookListRow = Pick<
   | 'name'
   | 'description'
   | 'tags_json'
-  | 'scan_depth'
-  | 'token_budget'
-  | 'recursive_scan'
   | 'created_at_ms'
   | 'updated_at_ms'
   | 'last_used_at_ms'
@@ -255,9 +246,6 @@ function toWorldbookRow(worldbook: Worldbook): WorldbookInsert {
     name: worldbook.name,
     description: worldbook.description,
     tags_json: JSON.stringify(worldbook.tags),
-    scan_depth: worldbook.scanDepth,
-    token_budget: worldbook.tokenBudget,
-    recursive_scan: worldbook.recursiveScan ? 1 : 0,
     source_format: worldbook.sourceFormat,
     source_snapshot_json: JSON.stringify(worldbook.sourceSnapshot),
     created_at_ms: ensureEpochMillis(worldbook.createdAtMs),
@@ -282,17 +270,39 @@ function toEntryRow(entry: WorldbookEntry): WorldbookEntryInsert {
     selective_logic: entry.selectiveLogic,
     constant: entry.constant ? 1 : 0,
     vectorized: entry.vectorized ? 1 : 0,
-    case_sensitive: entry.caseSensitive ? 1 : 0,
-    match_whole_words: entry.matchWholeWords ? 1 : 0,
+    ignore_budget: entry.ignoreBudget ? 1 : 0,
+    use_probability: entry.useProbability ? 1 : 0,
+    case_sensitive: nullableBooleanColumn(entry.caseSensitive),
+    match_whole_words: nullableBooleanColumn(entry.matchWholeWords),
+    match_persona_description: entry.matchPersonaDescription ? 1 : 0,
+    match_character_description: entry.matchCharacterDescription ? 1 : 0,
+    match_character_personality: entry.matchCharacterPersonality ? 1 : 0,
+    match_character_depth_prompt: entry.matchCharacterDepthPrompt ? 1 : 0,
+    match_scenario: entry.matchScenario ? 1 : 0,
+    match_creator_notes: entry.matchCreatorNotes ? 1 : 0,
     insertion_position: entry.insertionPosition,
     insertion_order: entry.insertionOrder,
+    display_index: entry.displayIndex,
     depth: entry.depth,
     insertion_role: entry.insertionRole,
     anchor_name: entry.anchorName,
     entry_scan_depth: entry.scanDepth,
     exclude_recursion: entry.excludeRecursion ? 1 : 0,
     prevent_recursion: entry.preventRecursion ? 1 : 0,
-    delay_until_recursion: entry.delayUntilRecursion ? 1 : 0,
+    delay_until_recursion: entry.delayUntilRecursion,
+    group_name: entry.group,
+    group_override: entry.groupOverride ? 1 : 0,
+    group_weight: entry.groupWeight,
+    use_group_scoring: entry.useGroupScoring === null ? null : entry.useGroupScoring ? 1 : 0,
+    sticky: entry.sticky,
+    cooldown: entry.cooldown,
+    delay: entry.delay,
+    character_filter_names_json: JSON.stringify(entry.characterFilterNames),
+    character_filter_tags_json: JSON.stringify(entry.characterFilterTags),
+    character_filter_exclude: entry.characterFilterExclude ? 1 : 0,
+    triggers_json: JSON.stringify(entry.triggers),
+    automation_id: entry.automationId,
+    add_memo: entry.addMemo ? 1 : 0,
     probability: entry.probability,
     token_count: entry.tokenCount,
     created_at_ms: ensureEpochMillis(entry.createdAtMs),
@@ -311,9 +321,6 @@ function toWorldbookSummary(
     name: row.name,
     description: row.description,
     tags: jsonColumn<string[]>(row.tags_json),
-    scanDepth: row.scan_depth,
-    tokenBudget: row.token_budget,
-    recursiveScan: row.recursive_scan === 1,
     entryCount: stats?.entryCount ?? 0,
     enabledEntryCount: stats?.enabledEntryCount ?? 0,
     tokenCount: stats?.tokenCount ?? 0,
@@ -338,17 +345,39 @@ function toWorldbookEntry(row: WorldbookEntryRow): WorldbookEntry {
     selectiveLogic: row.selective_logic,
     constant: row.constant === 1,
     vectorized: row.vectorized === 1,
-    caseSensitive: row.case_sensitive === 1,
-    matchWholeWords: row.match_whole_words === 1,
+    ignoreBudget: row.ignore_budget === 1,
+    useProbability: row.use_probability === 1,
+    caseSensitive: inheritedBooleanColumn(row.case_sensitive),
+    matchWholeWords: inheritedBooleanColumn(row.match_whole_words),
+    matchPersonaDescription: row.match_persona_description === 1,
+    matchCharacterDescription: row.match_character_description === 1,
+    matchCharacterPersonality: row.match_character_personality === 1,
+    matchCharacterDepthPrompt: row.match_character_depth_prompt === 1,
+    matchScenario: row.match_scenario === 1,
+    matchCreatorNotes: row.match_creator_notes === 1,
     insertionPosition: row.insertion_position,
     insertionOrder: row.insertion_order,
+    displayIndex: row.display_index,
     depth: row.depth,
     insertionRole: row.insertion_role,
     anchorName: row.anchor_name,
     scanDepth: row.entry_scan_depth,
     excludeRecursion: row.exclude_recursion === 1,
     preventRecursion: row.prevent_recursion === 1,
-    delayUntilRecursion: row.delay_until_recursion === 1,
+    delayUntilRecursion: row.delay_until_recursion,
+    group: row.group_name,
+    groupOverride: row.group_override === 1,
+    groupWeight: row.group_weight,
+    useGroupScoring: row.use_group_scoring === null ? null : row.use_group_scoring === 1,
+    sticky: row.sticky,
+    cooldown: row.cooldown,
+    delay: row.delay,
+    characterFilterNames: jsonColumn<string[]>(row.character_filter_names_json),
+    characterFilterTags: jsonColumn<string[]>(row.character_filter_tags_json),
+    characterFilterExclude: row.character_filter_exclude === 1,
+    triggers: jsonColumn<WorldbookEntry['triggers']>(row.triggers_json),
+    automationId: row.automation_id,
+    addMemo: row.add_memo === 1,
     probability: row.probability,
     tokenCount: row.token_count,
     createdAtMs: epochMillisColumn(row.created_at_ms),
@@ -358,6 +387,14 @@ function toWorldbookEntry(row: WorldbookEntryRow): WorldbookEntry {
 
 function jsonColumn<TValue>(value: string): TValue {
   return JSON.parse(value) as TValue;
+}
+
+function nullableBooleanColumn(value: boolean | null): number {
+  return value === null ? -1 : value ? 1 : 0;
+}
+
+function inheritedBooleanColumn(value: number): boolean | null {
+  return value === -1 ? null : value === 1;
 }
 
 function epochMillisColumn(value: unknown): number {

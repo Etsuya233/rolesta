@@ -5,9 +5,6 @@ export interface WorldbookEditableFields {
   name?: string;
   description?: string;
   tags?: string[];
-  scanDepth?: number;
-  tokenBudget?: number;
-  recursiveScan?: boolean;
 }
 
 export function applyWorldbookEditableFields(
@@ -20,8 +17,5 @@ export function applyWorldbookEditableFields(
     name: fields.name ?? worldbook.name,
     description: fields.description ?? worldbook.description,
     tags: fields.tags ?? worldbook.tags,
-    scanDepth: fields.scanDepth ?? worldbook.scanDepth,
-    tokenBudget: fields.tokenBudget ?? worldbook.tokenBudget,
-    recursiveScan: fields.recursiveScan ?? worldbook.recursiveScan,
   };
 }
