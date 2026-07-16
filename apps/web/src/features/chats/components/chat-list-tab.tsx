@@ -14,6 +14,7 @@ import {
   SelectValue,
 } from '../../../components/ui/select';
 import { PageControls } from '../../assets/components/page-controls';
+import { AssetSortPopover } from '../../assets/components/asset-sort-popover';
 import { listCharacters } from '../../characters/api/characters-api';
 import { useQuery } from '@tanstack/react-query';
 import type { ChatListItem as ChatListItemData } from '../api/chats-api';
@@ -36,13 +37,10 @@ export function ChatListTab({
   const { t } = useTranslation();
   const [q, setQ] = useState('');
   const [role, setRole] = useState('all');
-  const [sort, setSort] = useState('updatedAt:desc');
+  const [sortKey, setSortKey] = useState<'createdAt' | 'updatedAt' | 'title'>('updatedAt');
+  const [direction, setDirection] = useState<'asc' | 'desc'>('desc');
   const [pageIndex, setPageIndex] = useState(0);
   const [pageSize, setPageSize] = useState<10 | 20 | 50 | 100>(20);
-  const [sortKey, direction] = sort.split(':') as [
-    'createdAt' | 'updatedAt' | 'title',
-    'asc' | 'desc',
-  ];
   const query = useChats({ q, role, sort: sortKey, direction, pageIndex, pageSize });
   const characters = useQuery({
     queryKey: ['chat-list', 'characters'],
@@ -56,10 +54,18 @@ export function ChatListTab({
         q: '',
       }),
   });
+  const sortOptions: Array<{
+    value: 'createdAt' | 'updatedAt' | 'title';
+    label: string;
+  }> = [
+    { value: 'updatedAt', label: t('chats.management.sort.updatedAt') },
+    { value: 'createdAt', label: t('chats.management.sort.createdAt') },
+    { value: 'title', label: t('chats.management.sort.title') },
+  ];
 
   return (
     <div className="flex h-full min-h-0 flex-col">
-      <div className="flex shrink-0 flex-col gap-2 border-b p-3">
+      <div className="flex shrink-0 flex-col gap-3 border-b px-4 py-3">
         <div className="flex items-center gap-2">
           <InputGroup className="min-w-0 flex-1">
             <InputGroupInput
@@ -72,7 +78,7 @@ export function ChatListTab({
               }}
             />
             <InputGroupAddon>
-              <SearchIcon />
+              <SearchIcon className="size-4" />
             </InputGroupAddon>
           </InputGroup>
           <Button
@@ -84,7 +90,7 @@ export function ChatListTab({
             <PlusIcon />
           </Button>
         </div>
-        <div className="grid grid-cols-2 gap-2">
+        <div className="flex items-center gap-2">
           <Select
             value={role}
             onValueChange={(value) => {
@@ -92,7 +98,7 @@ export function ChatListTab({
               setPageIndex(0);
             }}
           >
-            <SelectTrigger aria-label={t('chats.management.roleFilter')}>
+            <SelectTrigger aria-label={t('chats.management.roleFilter')} className="min-w-0 flex-1">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
@@ -107,32 +113,21 @@ export function ChatListTab({
               </SelectGroup>
             </SelectContent>
           </Select>
-          <Select
-            value={sort}
-            onValueChange={(value) => {
-              setSort(value);
+          <AssetSortPopover
+            active={sortKey !== 'updatedAt' || direction !== 'desc'}
+            buttonLabel={t('chats.management.sort.label')}
+            direction={direction}
+            options={sortOptions}
+            sort={sortKey}
+            onDirectionChange={(value) => {
               setPageIndex(0);
+              setDirection(value);
             }}
-          >
-            <SelectTrigger aria-label={t('chats.management.sort.label')}>
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectGroup>
-                <SelectItem value="updatedAt:desc">
-                  {t('chats.management.sort.updatedDesc')}
-                </SelectItem>
-                <SelectItem value="updatedAt:asc">
-                  {t('chats.management.sort.updatedAsc')}
-                </SelectItem>
-                <SelectItem value="createdAt:desc">
-                  {t('chats.management.sort.createdDesc')}
-                </SelectItem>
-                <SelectItem value="title:asc">{t('chats.management.sort.titleAsc')}</SelectItem>
-                <SelectItem value="title:desc">{t('chats.management.sort.titleDesc')}</SelectItem>
-              </SelectGroup>
-            </SelectContent>
-          </Select>
+            onSortChange={(value) => {
+              setPageIndex(0);
+              setSortKey(value);
+            }}
+          />
         </div>
       </div>
 
@@ -170,8 +165,9 @@ export function ChatListTab({
           ))
         )}
       </ScrollArea>
-      <div className="shrink-0 border-t p-2">
+      <div className="shrink-0 border-t p-3">
         <PageControls
+          compact
           pageIndex={pageIndex}
           pageSize={pageSize}
           totalPages={query.data?.totalPages ?? 0}
