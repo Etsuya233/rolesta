@@ -378,12 +378,20 @@ test('creates a chat with visible title autofill and keeps Center unchanged', as
   await openWorkbench(page);
 
   await page.getByRole('button', { name: 'Create chat' }).click();
-  await page.getByRole('button', { name: 'Character', exact: true }).click();
-  await page.getByRole('button', { name: 'Seraphina', exact: true }).click();
+  const characterPicker = page
+    .getByRole('group')
+    .filter({ has: page.getByText('Character', { exact: true }) })
+    .getByRole('button');
+
+  await characterPicker.click();
+  const characterDialog = page.getByRole('dialog', { name: 'Choose character' });
+  await characterDialog.getByRole('button').filter({ hasText: 'Seraphina' }).click();
+  await characterDialog.getByRole('button', { name: 'Confirm' }).click();
   await expect(page.getByLabel('Title')).toHaveValue('Seraphina');
   await page.getByLabel('Title').fill('Custom title');
-  await page.getByRole('button', { name: 'Character', exact: true }).click();
-  await page.getByRole('button', { name: 'Luna', exact: true }).click();
+  await characterPicker.click();
+  await characterDialog.getByRole('button').filter({ hasText: 'Luna' }).click();
+  await characterDialog.getByRole('button', { name: 'Confirm' }).click();
   await expect(page.getByLabel('Title')).toHaveValue('Custom title');
   await page.getByRole('button', { name: 'Create', exact: true }).click();
 
