@@ -1,11 +1,68 @@
 import { countPromptTokens, PROMPT_TOKENIZER } from '@rolesta/shared';
 import { Injectable } from '@nestjs/common';
 import { PresetPortError } from '../../ports/preset-port-error.js';
-import type { PresetEntryPosition, PresetEntryRole, Preset } from '../../domain/preset.js';
+import {
+  PRESET_SYSTEM_PROMPT_DEFAULTS,
+  PRESET_SYSTEM_PROMPTS,
+  PRESET_DEFAULT_ITEM_ORDER,
+  type Preset,
+  type PresetEntryRole,
+  type PresetGenerationType,
+  type PresetPromptPlacement,
+  type PresetSlot,
+  type PresetSystemPrompt,
+} from '../../domain/preset.js';
 import { createDefaultPresetModelSettings } from '../../domain/preset-model-settings.js';
-import type { ImportedPreset, PresetCodec } from '../../ports/preset-codec.js';
+import type {
+  ImportedPreset,
+  PresetCodec,
+  PresetImportIssue,
+  ImportedPresetEntry,
+  ImportedPresetPromptItem,
+} from '../../ports/preset-codec.js';
 
 const SILLY_TAVERN_CHAT_COMPLETION_PROMPT_ORDER_ID = 100001;
+
+const identifierToKey = {
+  main: 'mainPrompt',
+  nsfw: 'auxiliaryPrompt',
+  jailbreak: 'postHistoryInstructions',
+  enhanceDefinitions: 'enhanceDefinitions',
+  worldInfoBefore: 'worldInfoBefore',
+  personaDescription: 'personaDescription',
+  charDescription: 'characterDescription',
+  charPersonality: 'characterPersonality',
+  scenario: 'scenario',
+  worldInfoAfter: 'worldInfoAfter',
+  dialogueExamples: 'dialogueExamples',
+  chatHistory: 'chatHistory',
+} as const;
+
+const keyToIdentifier = {
+  mainPrompt: 'main',
+  auxiliaryPrompt: 'nsfw',
+  postHistoryInstructions: 'jailbreak',
+  enhanceDefinitions: 'enhanceDefinitions',
+  worldInfoBefore: 'worldInfoBefore',
+  personaDescription: 'personaDescription',
+  characterDescription: 'charDescription',
+  characterPersonality: 'charPersonality',
+  scenario: 'scenario',
+  worldInfoAfter: 'worldInfoAfter',
+  dialogueExamples: 'dialogueExamples',
+  chatHistory: 'chatHistory',
+} as const;
+
+const defaultSlotNames: Record<PresetSlot, string> = {
+  worldInfoBefore: 'World Info (before)',
+  personaDescription: 'Persona Description',
+  characterDescription: 'Char Description',
+  characterPersonality: 'Char Personality',
+  scenario: 'Scenario',
+  worldInfoAfter: 'World Info (after)',
+  dialogueExamples: 'Chat Examples',
+  chatHistory: 'Chat History',
+};
 
 export interface SillyTavernPresetOutput {
   name: string;
@@ -37,7 +94,14 @@ interface SillyTavernPromptOutput {
   name: string;
   role: string;
   content: string;
-  injection_position: number | string;
+  system_prompt: boolean;
+  marker?: boolean;
+  injection_position: number;
+  injection_depth?: number;
+  injection_order?: number;
+  injection_trigger?: string[];
+  forbid_overrides?: boolean;
+  [key: string]: unknown;
 }
 
 @Injectable()
@@ -53,19 +117,77 @@ export class SillyTavernPresetCodec implements PresetCodec {
 
 export function fromSillyTavernPreset(input: unknown): ImportedPreset {
   if (!isRecord(input)) {
-    throw new PresetPortError({
-      reason: 'invalid-preset',
-      params: {
-        field: 'input',
-      },
-    });
+    throw invalidPreset('input');
   }
 
   const prompts = promptArray(input);
-  const entries = prompts.map(toImportedEntry);
-  const promptItems = chatCompletionPromptOrder(input)
-    .map((item, index) => toImportedPromptItem(item, index))
-    .filter((item) => entries.some((entry) => entry.identifier === item.identifier));
+  const definitions = new Map(prompts.map((prompt) => [stringField(prompt, 'identifier'), prompt]));
+  const issues: PresetImportIssue[] = [];
+  const entries: ImportedPresetEntry[] = [];
+  const promptItems: ImportedPresetPromptItem[] = [];
+  const handledIdentifiers = new Set<string>();
+  const orderedIdentifiers = chatCompletionPromptOrder(input);
+
+  for (const orderItem of orderedIdentifiers) {
+    const identifier = stringField(orderItem, 'identifier');
+    const definition = definitions.get(identifier);
+    const name = definition ? stringField(definition, 'name') || identifier : identifier;
+    const knownKey = identifierToKey[identifier as keyof typeof identifierToKey];
+    if (knownKey && handledIdentifiers.has(identifier)) {
+      issues.push({ identifier, name, reason: 'duplicate-system-item' });
+      continue;
+    }
+    handledIdentifiers.add(identifier);
+    const item = importOrderedItem(
+      identifier,
+      name,
+      definition,
+      booleanField(orderItem, 'enabled'),
+      promptItems.length,
+      issues,
+    );
+    if (item) {
+      promptItems.push(item.item);
+      if (item.entry) {
+        entries.push(item.entry);
+      }
+    }
+  }
+
+  for (const prompt of prompts) {
+    const identifier = stringField(prompt, 'identifier');
+    if (handledIdentifiers.has(identifier)) {
+      continue;
+    }
+    const name = stringField(prompt, 'name') || identifier;
+    const classification = classifyPrompt(prompt, identifier);
+    if (classification.kind === 'custom') {
+      entries.push(toImportedEntry(prompt, identifier));
+      continue;
+    }
+    if (
+      classification.kind === 'unknown-marker' ||
+      classification.kind === 'unknown-system' ||
+      classification.kind === 'unsupported'
+    ) {
+      issues.push({ identifier, name, reason: classification.reason });
+    }
+  }
+
+  const presentKeys = new Set<string>();
+  for (const item of promptItems) {
+    presentKeys.add(
+      item.kind === 'customPrompt'
+        ? item.identifier
+        : item.kind === 'systemPrompt'
+          ? item.systemPrompt
+          : item.slot,
+    );
+  }
+  const supplementedItems = PRESET_DEFAULT_ITEM_ORDER.filter((key) => !presentKeys.has(key));
+  for (const key of supplementedItems) {
+    promptItems.push(defaultImportedItem(key, promptItems.length, definitions));
+  }
 
   return {
     name: stringField(input, 'name') || 'Untitled preset',
@@ -73,6 +195,8 @@ export function fromSillyTavernPreset(input: unknown): ImportedPreset {
     tokenizer: PROMPT_TOKENIZER,
     entries,
     promptItems,
+    issues,
+    supplementedItems,
     sourceSnapshot: input,
   };
 }
@@ -81,21 +205,29 @@ export function toSillyTavernPreset(preset: Preset): SillyTavernPresetOutput {
   const orderedItems = [...preset.promptItems].sort(
     (left, right) => left.orderIndex - right.orderIndex,
   );
+  const entryById = new Map(preset.entries.map((entry) => [entry.id, entry]));
+  const prompts = preset.entries.map((entry) => toSillyTavernCustomPrompt(entry));
+
+  for (const item of orderedItems) {
+    if (item.kind === 'customPrompt') {
+      continue;
+    }
+    prompts.push(toSillyTavernSystemPrompt(item));
+  }
 
   return {
     name: preset.name,
-    prompts: preset.entries.map(toSillyTavernPrompt),
+    prompts,
     prompt_order: [
       {
         character_id: SILLY_TAVERN_CHAT_COMPLETION_PROMPT_ORDER_ID,
-        order: orderedItems
-          .map((item) => {
-            const entry = preset.entries.find((candidate) => candidate.id === item.entryId);
-            return entry === undefined
-              ? null
-              : { identifier: entry.identifier, enabled: item.enabled };
-          })
-          .filter((item): item is { identifier: string; enabled: boolean } => item !== null),
+        order: orderedItems.map((item) => ({
+          identifier:
+            item.kind === 'customPrompt'
+              ? entryById.get(item.entryId)!.identifier
+              : keyToIdentifier[item.kind === 'systemPrompt' ? item.systemPrompt : item.slot],
+          enabled: item.enabled,
+        })),
       },
     ],
     openai_max_context: preset.modelSettings.contextLength,
@@ -117,53 +249,266 @@ export function toSillyTavernPreset(preset: Preset): SillyTavernPresetOutput {
   };
 }
 
-function toImportedEntry(prompt: Record<string, unknown>): ImportedPreset['entries'][number] {
-  const identifier = stringField(prompt, 'identifier');
-  const name = stringField(prompt, 'name') || identifier || 'Untitled entry';
-  const content = stringField(prompt, 'content');
+function importOrderedItem(
+  identifier: string,
+  name: string,
+  definition: Record<string, unknown> | undefined,
+  enabled: boolean,
+  orderIndex: number,
+  issues: PresetImportIssue[],
+): { item: ImportedPresetPromptItem; entry?: ImportedPresetEntry } | null {
+  if (!definition) {
+    const key = identifierToKey[identifier as keyof typeof identifierToKey];
+    if (!key) {
+      issues.push({ identifier, name, reason: 'missing-prompt-definition' });
+      return null;
+    }
+    return {
+      item: { ...defaultImportedItem(key, orderIndex, new Map()), enabled },
+    };
+  }
 
+  const classification = classifyPrompt(definition, identifier);
+  if (classification.kind === 'unknown-marker') {
+    issues.push({ identifier, name, reason: classification.reason });
+    return null;
+  }
+  if (classification.kind === 'unknown-system') {
+    issues.push({ identifier, name, reason: classification.reason });
+    return null;
+  }
+  if (classification.kind === 'custom') {
+    return {
+      item: { kind: 'customPrompt', identifier, enabled, orderIndex },
+      entry: toImportedEntry(definition, identifier),
+    };
+  }
+
+  const key = identifierToKey[identifier as keyof typeof identifierToKey];
+  return { item: importedItemFromDefinition(key, definition, enabled, orderIndex) };
+}
+
+function defaultImportedItem(
+  key: (typeof PRESET_DEFAULT_ITEM_ORDER)[number],
+  orderIndex: number,
+  definitions: Map<string, Record<string, unknown>>,
+): ImportedPresetPromptItem {
+  const definition = definitions.get(keyToIdentifier[key]);
+  return definition
+    ? importedItemFromDefinition(key, definition, false, orderIndex)
+    : importedItemFromDefault(key, orderIndex);
+}
+
+function importedItemFromDefinition(
+  key: (typeof PRESET_DEFAULT_ITEM_ORDER)[number],
+  definition: Record<string, unknown>,
+  enabled: boolean,
+  orderIndex: number,
+): ImportedPresetPromptItem {
+  if (isSystemPromptKey(key)) {
+    const defaults = PRESET_SYSTEM_PROMPT_DEFAULTS[key];
+    const content = stringField(definition, 'content');
+    const item = {
+      kind: 'systemPrompt' as const,
+      systemPrompt: key,
+      name: stringField(definition, 'name') || defaults.name,
+      role: entryRole(definition.role),
+      content,
+      placement: placement(definition),
+      generationTypes: generationTypes(definition),
+      tokenCount: countPromptTokens(content),
+      enabled,
+      orderIndex,
+    };
+    return key === 'mainPrompt' || key === 'postHistoryInstructions'
+      ? { ...item, allowCharacterOverride: definition.forbid_overrides !== true }
+      : item;
+  }
+
+  if (key === 'dialogueExamples' || key === 'chatHistory') {
+    return { kind: 'slot', slot: key, enabled, orderIndex };
+  }
   return {
-    identifier: identifier || name,
-    name,
+    kind: 'slot',
+    slot: key,
+    role: entryRole(definition.role),
+    placement: placement(definition),
+    generationTypes: generationTypes(definition),
+    enabled,
+    orderIndex,
+  };
+}
+
+function importedItemFromDefault(
+  key: (typeof PRESET_DEFAULT_ITEM_ORDER)[number],
+  orderIndex: number,
+): ImportedPresetPromptItem {
+  if (isSystemPromptKey(key)) {
+    const definition = PRESET_SYSTEM_PROMPT_DEFAULTS[key];
+    const item = {
+      kind: 'systemPrompt' as const,
+      systemPrompt: key,
+      name: definition.name,
+      role: definition.role,
+      content: definition.content,
+      placement: { ...definition.placement },
+      generationTypes: [...definition.generationTypes],
+      tokenCount: countPromptTokens(definition.content),
+      enabled: false,
+      orderIndex,
+    };
+    return definition.allowCharacterOverride === undefined
+      ? item
+      : { ...item, allowCharacterOverride: definition.allowCharacterOverride };
+  }
+  if (key === 'dialogueExamples' || key === 'chatHistory') {
+    return { kind: 'slot', slot: key, enabled: false, orderIndex };
+  }
+  return {
+    kind: 'slot',
+    slot: key,
+    role: 'system',
+    placement: { kind: 'relative' },
+    generationTypes: [],
+    enabled: false,
+    orderIndex,
+  };
+}
+
+function toImportedEntry(prompt: Record<string, unknown>, identifier: string): ImportedPresetEntry {
+  const content = stringField(prompt, 'content');
+  return {
+    identifier,
+    name: stringField(prompt, 'name') || identifier,
     role: entryRole(prompt.role),
-    position: entryPosition(prompt.injection_position),
     content,
+    placement: placement(prompt),
+    generationTypes: generationTypes(prompt),
     tokenCount: countPromptTokens(content),
     metadata: Object.fromEntries(
       Object.entries(prompt).filter(
-        ([key]) => !['identifier', 'name', 'role', 'content', 'injection_position'].includes(key),
+        ([key]) =>
+          ![
+            'identifier',
+            'name',
+            'role',
+            'content',
+            'injection_position',
+            'injection_depth',
+            'injection_order',
+            'injection_trigger',
+          ].includes(key),
       ),
     ),
   };
 }
 
-function toImportedPromptItem(
-  input: Record<string, unknown>,
-  orderIndex: number,
-): ImportedPreset['promptItems'][number] {
-  const identifier = stringField(input, 'identifier');
-
-  return {
-    identifier,
-    enabled: booleanField(input, 'enabled'),
-    orderIndex,
-  };
-}
-
-function toSillyTavernPrompt(entry: Preset['entries'][number]): SillyTavernPromptOutput {
+function toSillyTavernCustomPrompt(entry: Preset['entries'][number]): SillyTavernPromptOutput {
   return {
     identifier: entry.identifier,
     name: entry.name,
     role: entry.role,
     content: entry.content,
-    injection_position: sillyTavernPosition(entry.position),
+    system_prompt: false,
+    injection_position: injectionPosition(entry.placement),
+    ...injectionFields(entry.placement, entry.generationTypes),
     ...entry.metadata,
   };
 }
 
+function toSillyTavernSystemPrompt(
+  item: Exclude<Preset['promptItems'][number], { kind: 'customPrompt' }>,
+): SillyTavernPromptOutput {
+  const key = item.kind === 'systemPrompt' ? item.systemPrompt : item.slot;
+  const isSlot = item.kind === 'slot';
+  const role = item.kind === 'systemPrompt' ? item.role : 'role' in item ? item.role : 'system';
+  const content = item.kind === 'systemPrompt' ? item.content : '';
+  const placement =
+    item.kind === 'systemPrompt' || 'placement' in item
+      ? item.placement
+      : { kind: 'relative' as const };
+  const prompt: SillyTavernPromptOutput = {
+    identifier: keyToIdentifier[key],
+    name: item.kind === 'systemPrompt' ? item.name : defaultSlotNames[item.slot],
+    role,
+    content,
+    system_prompt: true,
+    injection_position: injectionPosition(placement),
+    ...(isSlot ? { marker: true } : {}),
+  };
+  if (
+    item.kind === 'systemPrompt' &&
+    (item.systemPrompt === 'mainPrompt' || item.systemPrompt === 'postHistoryInstructions')
+  ) {
+    prompt.forbid_overrides = !item.allowCharacterOverride;
+  }
+  const generationTypes =
+    item.kind === 'systemPrompt' || 'generationTypes' in item ? item.generationTypes : [];
+  Object.assign(prompt, injectionFields(placement, generationTypes));
+  return prompt;
+}
+
+function placement(input: Record<string, unknown>): PresetPromptPlacement {
+  const position = input.injection_position;
+  if (position === 1 || position === 'chat') {
+    return {
+      kind: 'inChat',
+      depth: integerField(input, 'injection_depth', 4),
+      order: integerField(input, 'injection_order', 100),
+    };
+  }
+  return { kind: 'relative' };
+}
+
+function injectionPosition(placement: PresetPromptPlacement): number {
+  return placement.kind === 'inChat' ? 1 : 0;
+}
+
+function injectionFields(
+  placement: PresetPromptPlacement,
+  generationTypes: PresetGenerationType[],
+): Record<string, unknown> {
+  return {
+    ...(placement.kind === 'inChat'
+      ? { injection_depth: placement.depth, injection_order: placement.order }
+      : {}),
+    ...(generationTypes.length > 0 ? { injection_trigger: generationTypes } : {}),
+  };
+}
+
+function classifyPrompt(
+  prompt: Record<string, unknown>,
+  identifier: string,
+):
+  | { kind: 'known'; key: (typeof PRESET_DEFAULT_ITEM_ORDER)[number] }
+  | { kind: 'custom' }
+  | { kind: 'unknown-marker'; reason: 'unknown-marker' }
+  | { kind: 'unknown-system'; reason: 'unknown-system-prompt' }
+  | { kind: 'unsupported'; reason: 'unsupported-prompt-type' } {
+  const key = identifierToKey[identifier as keyof typeof identifierToKey];
+  const marker = prompt.marker === true;
+  const systemPrompt = prompt.system_prompt === true;
+  if (key) {
+    return { kind: 'known', key };
+  }
+  if (marker) {
+    return { kind: 'unknown-marker', reason: 'unknown-marker' };
+  }
+  if (systemPrompt) {
+    return { kind: 'unknown-system', reason: 'unknown-system-prompt' };
+  }
+  if (prompt.system_prompt === false) {
+    return { kind: 'custom' };
+  }
+  return { kind: 'unsupported', reason: 'unsupported-prompt-type' };
+}
+
+function isSystemPromptKey(key: string): key is PresetSystemPrompt {
+  return (PRESET_SYSTEM_PROMPTS as readonly string[]).includes(key);
+}
+
 function modelSettings(input: Record<string, unknown>): ImportedPreset['modelSettings'] {
   const defaults = createDefaultPresetModelSettings();
-
   return {
     contextLength: nullableNumberField(input, 'openai_max_context'),
     maxResponseLength: nullableNumberField(input, 'openai_max_tokens'),
@@ -186,173 +531,125 @@ function modelSettings(input: Record<string, unknown>): ImportedPreset['modelSet
 
 function promptArray(input: Record<string, unknown>): Array<Record<string, unknown>> {
   const value = input.prompts;
-
   if (Array.isArray(value) && value.every(isRecord)) {
     return value;
   }
-
-  throw new PresetPortError({
-    reason: 'invalid-preset',
-    params: {
-      field: 'prompts',
-    },
-  });
+  throw invalidPreset('prompts');
 }
 
 function chatCompletionPromptOrder(input: Record<string, unknown>): Array<Record<string, unknown>> {
-  const promptOrder = input.prompt_order;
-
-  if (!Array.isArray(promptOrder) || !promptOrder.every(isRecord)) {
+  const value = input.prompt_order;
+  if (!Array.isArray(value) || !value.every(isRecord)) {
     return [];
   }
-
-  const selected = promptOrder.find(
+  const selected = value.find(
     (item) => item.character_id === SILLY_TAVERN_CHAT_COMPLETION_PROMPT_ORDER_ID,
   );
-
-  if (!isRecord(selected) || !Array.isArray(selected.order) || !selected.order.every(isRecord)) {
-    return [];
+  if (selected && Array.isArray(selected.order) && selected.order.every(isRecord)) {
+    return selected.order;
   }
-
-  return selected.order;
+  if (
+    value.every((item) => typeof item.identifier === 'string' && typeof item.enabled === 'boolean')
+  ) {
+    return value;
+  }
+  return [];
 }
 
 function entryRole(value: unknown): PresetEntryRole {
   if (value === undefined || value === null) {
     return 'system';
   }
-
   if (value === 'user' || value === 'assistant' || value === 'system') {
     return value;
   }
-
-  throw new PresetPortError({
-    reason: 'invalid-preset',
-    params: {
-      field: 'role',
-    },
-  });
+  throw invalidPreset('role');
 }
 
-function entryPosition(value: unknown): PresetEntryPosition {
-  if (value === 'system' || value === 'chat' || value === 'preHistory' || value === 'postHistory') {
-    return value;
+function generationTypes(input: Record<string, unknown>): PresetGenerationType[] {
+  const value = input.injection_trigger;
+  if (value === undefined || value === null) {
+    return [];
   }
-
-  if (value === 0) {
-    return 'system';
+  if (!Array.isArray(value) || !value.every((item) => typeof item === 'string')) {
+    throw invalidPreset('injection_trigger');
   }
-
-  if (value === 1) {
-    return 'preHistory';
-  }
-
-  if (value === 2) {
-    return 'postHistory';
-  }
-
-  return 'unknown';
-}
-
-function sillyTavernPosition(value: PresetEntryPosition): number | string {
-  const positions: Record<PresetEntryPosition, number | string> = {
-    system: 0,
-    preHistory: 1,
-    postHistory: 2,
-    chat: 'chat',
-    unknown: 'unknown',
-  };
-
-  return positions[value];
+  return value.filter(
+    (item): item is PresetGenerationType =>
+      item === 'normal' ||
+      item === 'continue' ||
+      item === 'impersonate' ||
+      item === 'swipe' ||
+      item === 'regenerate' ||
+      item === 'quiet',
+  );
 }
 
 function stringField(input: Record<string, unknown>, key: string): string {
   const value = input[key];
-
   if (value === undefined || value === null) {
     return '';
   }
-
   if (typeof value === 'string') {
     return value;
   }
-
-  throw new PresetPortError({
-    reason: 'invalid-preset',
-    params: {
-      field: key,
-    },
-  });
+  throw invalidPreset(key);
 }
 
 function booleanField(input: Record<string, unknown>, key: string): boolean {
   const value = input[key];
-
   if (value === undefined || value === null) {
     return false;
   }
-
   if (typeof value === 'boolean') {
     return value;
   }
-
-  throw new PresetPortError({
-    reason: 'invalid-preset',
-    params: {
-      field: key,
-    },
-  });
+  throw invalidPreset(key);
 }
 
 function optionalBooleanField(input: Record<string, unknown>, key: string): boolean | undefined {
   const value = input[key];
-
   if (value === undefined || value === null) {
     return undefined;
   }
-
   if (typeof value === 'boolean') {
     return value;
   }
-
-  throw new PresetPortError({
-    reason: 'invalid-preset',
-    params: {
-      field: key,
-    },
-  });
+  throw invalidPreset(key);
 }
 
 function nullableNumberField(input: Record<string, unknown>, key: string): number | null {
   const value = input[key];
-
   if (value === undefined || value === null || value === '') {
     return null;
   }
-
   if (typeof value === 'number' && Number.isFinite(value)) {
     return value;
   }
+  throw invalidPreset(key);
+}
 
-  throw new PresetPortError({
-    reason: 'invalid-preset',
-    params: {
-      field: key,
-    },
-  });
+function integerField(input: Record<string, unknown>, key: string, defaultValue: number): number {
+  const value = input[key];
+  if (value === undefined || value === null) {
+    return defaultValue;
+  }
+  if (typeof value === 'number' && Number.isInteger(value)) {
+    return value;
+  }
+  throw invalidPreset(key);
 }
 
 function importFileContent(content: Buffer): unknown {
   try {
     return JSON.parse(content.toString('utf8')) as unknown;
   } catch {
-    throw new PresetPortError({
-      reason: 'invalid-import-file',
-      params: {
-        field: 'content',
-      },
-    });
+    throw new PresetPortError({ reason: 'invalid-import-file', params: { field: 'content' } });
   }
+}
+
+function invalidPreset(field: string): PresetPortError {
+  return new PresetPortError({ reason: 'invalid-preset', params: { field } });
 }
 
 function isRecord(value: unknown): value is Record<string, unknown> {

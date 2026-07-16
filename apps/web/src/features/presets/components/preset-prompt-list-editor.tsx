@@ -15,6 +15,12 @@ import { useTranslation } from 'react-i18next';
 import { Button } from '../../../components/ui/button';
 import { Input } from '../../../components/ui/input';
 import { usePresetDraftSession } from '../hooks/use-preset-draft-sessions';
+import {
+  isContentSlotItem,
+  isCustomPromptItem,
+  isSystemPromptItem,
+} from '../model/preset-editor-form';
+import type { PresetDocumentPromptItem } from '../api/presets-api';
 import { PresetPromptListRow } from './preset-prompt-list-row';
 
 export function PresetPromptListEditor({
@@ -22,11 +28,13 @@ export function PresetPromptListEditor({
   sessionKey,
   onCreateEntry,
   onEditEntry,
+  onEditSystemItem,
 }: {
   presetId: string;
   sessionKey: string;
   onCreateEntry: () => void;
   onEditEntry: (entryId: string) => void;
+  onEditSystemItem: (itemId: string) => void;
 }) {
   const { t } = useTranslation();
   const { document, setDocument, isPending, saveDocument } = usePresetDraftSession({
@@ -39,7 +47,9 @@ export function PresetPromptListEditor({
     () => new Map(document.entries.map((entry) => [entry.id, entry])),
     [document.entries],
   );
-  const linkedEntryIds = new Set(document.promptItems.map((item) => item.entryId));
+  const linkedEntryIds = new Set(
+    document.promptItems.filter(isCustomPromptItem).map((item) => item.entryId),
+  );
   const unlinkedEntries = document.entries.filter((entry) => !linkedEntryIds.has(entry.id));
   const visibleUnlinkedEntries = useMemo(() => {
     const keyword = debouncedUnlinkedSearch.trim().toLocaleLowerCase();
@@ -51,8 +61,16 @@ export function PresetPromptListEditor({
     return unlinkedEntries.filter((entry) => entry.name.toLocaleLowerCase().includes(keyword));
   }, [debouncedUnlinkedSearch, unlinkedEntries]);
   const totalTokens = document.promptItems.reduce((total, item) => {
-    const entry = entryById.get(item.entryId);
-    return total + (item.enabled && entry ? countPromptTokens(entry.content) : 0);
+    if (!item.enabled) {
+      return total;
+    }
+    if (isSystemPromptItem(item)) {
+      return total + countPromptTokens(item.content);
+    }
+    if (isCustomPromptItem(item)) {
+      return total + countPromptTokens(entryById.get(item.entryId)!.content);
+    }
+    return total;
   }, 0);
   const sensors = useSensors(
     useSensor(MouseSensor, { activationConstraint: { distance: 4 } }),
@@ -72,9 +90,17 @@ export function PresetPromptListEditor({
 
   function linkEntry(entryId: string) {
     setPromptItems((items) =>
-      items.some((item) => item.entryId === entryId)
+      items.some((item) => isCustomPromptItem(item) && item.entryId === entryId)
         ? items
-        : [...items, { entryId, enabled: true }],
+        : [
+            ...items,
+            {
+              id: crypto.randomUUID(),
+              kind: 'customPrompt' as const,
+              entryId,
+              enabled: true,
+            },
+          ],
     );
   }
 
@@ -82,7 +108,9 @@ export function PresetPromptListEditor({
     const nextDocument = {
       ...document,
       entries: document.entries.filter((entry) => entry.id !== entryId),
-      promptItems: document.promptItems.filter((item) => item.entryId !== entryId),
+      promptItems: document.promptItems.filter(
+        (item) => !isCustomPromptItem(item) || item.entryId !== entryId,
+      ),
     };
 
     saveDocument(nextDocument);
@@ -111,37 +139,47 @@ export function PresetPromptListEditor({
           onDragEnd={(event) => setItemsAfterDrag(event, document.promptItems, setPromptItems)}
         >
           <SortableContext
-            items={document.promptItems.map((item) => item.entryId)}
+            items={document.promptItems.map((item) => item.id)}
             strategy={verticalListSortingStrategy}
           >
             {document.promptItems.map((item) => {
-              const entry = entryById.get(item.entryId);
-
-              if (!entry) {
-                return null;
-              }
+              const entry = isCustomPromptItem(item) ? entryById.get(item.entryId)! : null;
+              const label = entry
+                ? entry.name
+                : isSystemPromptItem(item)
+                  ? item.name
+                  : t(`presets.systemItems.names.${item.slot}`);
+              const tokenCount = entry
+                ? countPromptTokens(entry.content)
+                : isSystemPromptItem(item)
+                  ? countPromptTokens(item.content)
+                  : 0;
+              const editItem = entry
+                ? () => onEditEntry(entry.id)
+                : isSystemPromptItem(item) || isContentSlotItem(item)
+                  ? () => onEditSystemItem(item.id)
+                  : undefined;
+              const unlinkItem = entry
+                ? () =>
+                    setPromptItems((items) => items.filter((candidate) => candidate.id !== item.id))
+                : undefined;
 
               return (
                 <PresetPromptListRow
-                  key={item.entryId}
+                  key={item.id}
                   disabled={isPending}
-                  enabled={item.enabled}
-                  entry={entry}
-                  id={item.entryId}
-                  tokenCount={countPromptTokens(entry.content)}
-                  onEdit={() => onEditEntry(entry.id)}
+                  item={item}
+                  label={label}
+                  tokenCount={tokenCount}
+                  {...(editItem ? { onEdit: editItem } : {})}
                   onToggle={(enabled) =>
                     setPromptItems((items) =>
                       items.map((candidate) =>
-                        candidate.entryId === item.entryId ? { ...candidate, enabled } : candidate,
+                        candidate.id === item.id ? { ...candidate, enabled } : candidate,
                       ),
                     )
                   }
-                  onUnlink={() =>
-                    setPromptItems((items) =>
-                      items.filter((candidate) => candidate.entryId !== item.entryId),
-                    )
-                  }
+                  {...(unlinkItem ? { onUnlink: unlinkItem } : {})}
                 />
               );
             })}
@@ -240,12 +278,8 @@ export function PresetPromptListEditor({
 
 function setItemsAfterDrag(
   event: DragEndEvent,
-  items: Array<{ entryId: string; enabled: boolean }>,
-  setItems: (
-    update: (
-      items: Array<{ entryId: string; enabled: boolean }>,
-    ) => Array<{ entryId: string; enabled: boolean }>,
-  ) => void,
+  items: PresetDocumentPromptItem[],
+  setItems: (update: (items: PresetDocumentPromptItem[]) => PresetDocumentPromptItem[]) => void,
 ) {
   const { active, over } = event;
 
@@ -253,8 +287,8 @@ function setItemsAfterDrag(
     return;
   }
 
-  const oldIndex = items.findIndex((item) => item.entryId === active.id);
-  const newIndex = items.findIndex((item) => item.entryId === over.id);
+  const oldIndex = items.findIndex((item) => item.id === active.id);
+  const newIndex = items.findIndex((item) => item.id === over.id);
 
   if (oldIndex >= 0 && newIndex >= 0) {
     setItems((current) => arrayMove(current, oldIndex, newIndex));

@@ -3,7 +3,7 @@ import { createTestDatabase } from '../../../../../packages/db/src/test-utils/cr
 import { KyselyDatabaseContext } from '../../database/kysely-database-context.js';
 import { KyselyUnitOfWork } from '../../database/kysely-unit-of-work.js';
 import { createDefaultPresetModelSettings } from '../domain/preset-model-settings.js';
-import type { Preset } from '../domain/preset.js';
+import { createDefaultPresetPromptItems, type Preset } from '../domain/preset.js';
 import { KyselyPresetStore } from './kysely-preset-store.js';
 
 describe('KyselyPresetStore', () => {
@@ -91,8 +91,10 @@ async function seedUser(db: TestDatabase, id: string): Promise<void> {
 }
 
 function preset(overrides: Partial<Preset>): Preset {
+  const presetId = overrides.id ?? 'preset';
+  let itemId = 0;
   return {
-    id: overrides.id ?? 'preset',
+    id: presetId,
     ownerUserId: overrides.ownerUserId ?? 'owner',
     visibility: overrides.visibility ?? 'private',
     name: overrides.name ?? overrides.id ?? 'Preset',
@@ -100,7 +102,7 @@ function preset(overrides: Partial<Preset>): Preset {
     modelSettings: createDefaultPresetModelSettings(),
     tokenizer: 'cl100k_base',
     entries: [],
-    promptItems: [],
+    promptItems: createDefaultPresetPromptItems(() => `${presetId}_item_${++itemId}`),
     tokenCount: 0,
     sourceFormat: 'rolesta',
     sourceSnapshot: {},

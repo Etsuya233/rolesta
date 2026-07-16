@@ -2,7 +2,6 @@ import { countPromptTokens } from '@rolesta/shared';
 import { useEffect, useId, useState, type FormEvent } from 'react';
 import { useTranslation } from 'react-i18next';
 import { notify } from '../../../lib/notifications/notify';
-import type { PresetEntryPosition, PresetEntryRole } from '../api/presets-api';
 import { usePresetDraftSession } from '../hooks/use-preset-draft-sessions';
 import {
   emptyPresetEntryEditorForm,
@@ -10,12 +9,8 @@ import {
   presetEntryValuesFromForm,
   type PresetEntryEditorFormState,
 } from '../model/preset-editor-form';
-import {
-  FormSubmitButton,
-  PresetSelectField,
-  PresetTextAreaField,
-  PresetTextField,
-} from './preset-form-fields';
+import { FormSubmitButton, PresetTextAreaField, PresetTextField } from './preset-form-fields';
+import { PresetPromptBehaviorFields } from './preset-prompt-behavior-fields';
 
 export function PresetEntryEditor({
   presetId,
@@ -40,26 +35,12 @@ export function PresetEntryEditor({
   const [form, setForm] = useState<PresetEntryEditorFormState>(() =>
     entry ? presetEntryEditorFormFromEntry(entry) : emptyPresetEntryEditorForm,
   );
-  const roleOptions: Array<{ value: PresetEntryRole; label: string }> = [
-    { value: 'system', label: t('presets.entries.roles.system') },
-    { value: 'user', label: t('presets.entries.roles.user') },
-    { value: 'assistant', label: t('presets.entries.roles.assistant') },
-  ];
-  const positionOptions: Array<{
-    value: PresetEntryPosition;
-    label: string;
-  }> = [
-    { value: 'system', label: t('presets.entries.positions.system') },
-    { value: 'chat', label: t('presets.entries.positions.chat') },
-    { value: 'preHistory', label: t('presets.entries.positions.preHistory') },
-    { value: 'postHistory', label: t('presets.entries.positions.postHistory') },
-    { value: 'unknown', label: t('presets.entries.positions.unknown') },
-  ];
   const entryValues = presetEntryValuesFromForm(form);
   const entryChanged = entry
     ? entry.name !== entryValues.name ||
       entry.role !== entryValues.role ||
-      entry.position !== entryValues.position ||
+      JSON.stringify(entry.placement) !== JSON.stringify(entryValues.placement) ||
+      JSON.stringify(entry.generationTypes) !== JSON.stringify(entryValues.generationTypes) ||
       entry.content !== entryValues.content
     : form.name.trim().length > 0 || form.content.length > 0;
 
@@ -105,7 +86,15 @@ export function PresetEntryEditor({
       : [...document.entries, { id, ...values }];
     const promptItems = entryId
       ? document.promptItems
-      : [...document.promptItems, { entryId: id, enabled: true }];
+      : [
+          ...document.promptItems,
+          {
+            id: crypto.randomUUID(),
+            kind: 'customPrompt' as const,
+            entryId: id,
+            enabled: true,
+          },
+        ];
 
     saveDocument({ ...document, entries, promptItems }, onSaved);
   }
@@ -124,24 +113,15 @@ export function PresetEntryEditor({
             value={form.name}
             onChange={(event) => updateForm({ ...form, name: event.target.value })}
           />
-          <div className="grid grid-cols-2 gap-3">
-            <PresetSelectField
-              disabled={isPending}
-              id={`${fieldPrefix}-role`}
-              label={t('presets.entries.fields.role')}
-              options={roleOptions}
-              value={form.role}
-              onChange={(role) => updateForm({ ...form, role })}
-            />
-            <PresetSelectField
-              disabled={isPending}
-              id={`${fieldPrefix}-position`}
-              label={t('presets.entries.fields.position')}
-              options={positionOptions}
-              value={form.position}
-              onChange={(position) => updateForm({ ...form, position })}
-            />
-          </div>
+          <PresetPromptBehaviorFields
+            disabled={isPending}
+            placement={form.placement}
+            role={form.role}
+            selectedGenerationTypes={form.generationTypes}
+            onGenerationTypesChange={(generationTypes) => updateForm({ ...form, generationTypes })}
+            onPlacementChange={(placement) => updateForm({ ...form, placement })}
+            onRoleChange={(role) => updateForm({ ...form, role })}
+          />
           <PresetTextAreaField
             disabled={isPending}
             id={`${fieldPrefix}-content`}

@@ -1,9 +1,9 @@
 import { createHash } from 'node:crypto';
 import type { INestApplication } from '@nestjs/common';
 import { Test } from '@nestjs/testing';
-import type { Database } from '@rolesta/db';
+import type { Database, PresetPromptItemsTable } from '@rolesta/db';
 import { ERROR_CODES, I18N_MESSAGE_PREFIX } from '@rolesta/shared';
-import type { Kysely } from 'kysely';
+import type { Insertable, Kysely } from 'kysely';
 import request from 'supertest';
 import type { App } from 'supertest/types.js';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
@@ -11,8 +11,12 @@ import { createTestDatabase } from '../../../packages/db/src/test-utils/create-t
 import { AppModule } from '../src/app.module.js';
 import { configureApp } from '../src/configure-app.js';
 import { KYSELY_DB } from '../src/database/database.provider.js';
+import {
+  createDefaultPresetPromptItems,
+  type PresetPromptItem,
+} from '../src/presets/domain/preset.js';
 
-describe('Chats API', () => {
+describe('Chats API', { timeout: 15_000 }, () => {
   let app: INestApplication;
   let testDatabase: Awaited<ReturnType<typeof createTestDatabase>>;
   let originalDatabasePath: string | undefined;
@@ -376,6 +380,14 @@ async function seedAssets(
       usage_count: 0,
     })
     .execute();
+  let promptItemId = 0;
+  const promptItems = createDefaultPresetPromptItems(
+    () => `${prefix}preset-item-${++promptItemId}`,
+  );
+  await db
+    .insertInto('preset_prompt_items')
+    .values(promptItems.map((item) => toPresetPromptItemRow(`${prefix}preset`, item)))
+    .execute();
   await db
     .insertInto('model_provider_configs')
     .values({
@@ -395,6 +407,56 @@ async function seedAssets(
       usage_count: 0,
     })
     .execute();
+}
+
+function toPresetPromptItemRow(
+  presetId: string,
+  item: PresetPromptItem,
+): Insertable<PresetPromptItemsTable> {
+  const base = {
+    id: item.id,
+    preset_id: presetId,
+    kind: item.kind,
+    enabled: item.enabled ? 1 : 0,
+    order_index: item.orderIndex,
+  };
+  if (item.kind === 'systemPrompt') {
+    return {
+      ...base,
+      slot_key: null,
+      system_prompt_key: item.systemPrompt,
+      entry_id: null,
+      name: item.name,
+      role: item.role,
+      content: item.content,
+      placement_kind: item.placement.kind,
+      in_chat_depth: item.placement.kind === 'inChat' ? item.placement.depth : null,
+      in_chat_order: item.placement.kind === 'inChat' ? item.placement.order : null,
+      generation_types_json: JSON.stringify(item.generationTypes),
+      allow_character_override:
+        item.allowCharacterOverride === undefined ? null : item.allowCharacterOverride ? 1 : 0,
+      token_count: item.tokenCount,
+    };
+  }
+  if (item.kind === 'customPrompt') {
+    throw new Error('Seed preset defaults cannot contain custom prompts.');
+  }
+  const placement = 'placement' in item ? item.placement : null;
+  return {
+    ...base,
+    slot_key: item.slot,
+    system_prompt_key: null,
+    entry_id: null,
+    name: null,
+    role: 'role' in item ? item.role : null,
+    content: null,
+    placement_kind: placement?.kind ?? null,
+    in_chat_depth: placement?.kind === 'inChat' ? placement.depth : null,
+    in_chat_order: placement?.kind === 'inChat' ? placement.order : null,
+    generation_types_json: JSON.stringify('generationTypes' in item ? item.generationTypes : []),
+    allow_character_override: null,
+    token_count: null,
+  };
 }
 
 async function createChat(

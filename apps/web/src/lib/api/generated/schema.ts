@@ -1090,6 +1090,12 @@ export interface components {
       verbosity: string;
       showThoughts: boolean;
     };
+    PresetPromptPlacementResponseDto: {
+      /** @enum {string} */
+      kind: 'relative' | 'inChat';
+      depth?: number | null;
+      order?: number | null;
+    };
     PresetEntryResponseDto: {
       id: string;
       presetId: string;
@@ -1097,8 +1103,8 @@ export interface components {
       name: string;
       /** @enum {string} */
       role: 'system' | 'user' | 'assistant';
-      /** @enum {string} */
-      position: 'system' | 'chat' | 'preHistory' | 'postHistory' | 'unknown';
+      placement: components['schemas']['PresetPromptPlacementResponseDto'];
+      generationTypes: ('normal' | 'continue' | 'impersonate' | 'swipe' | 'regenerate' | 'quiet')[];
       content: string;
       tokenCount: number;
       metadata: {
@@ -1108,9 +1114,35 @@ export interface components {
       updatedAtMs: number;
     };
     PresetPromptItemResponseDto: {
-      entryId: string;
+      id: string;
+      /** @enum {string} */
+      kind: 'slot' | 'systemPrompt' | 'customPrompt';
       enabled: boolean;
       orderIndex: number;
+      /** @enum {string} */
+      slot?:
+        | 'worldInfoBefore'
+        | 'personaDescription'
+        | 'characterDescription'
+        | 'characterPersonality'
+        | 'scenario'
+        | 'worldInfoAfter'
+        | 'dialogueExamples'
+        | 'chatHistory';
+      /** @enum {string} */
+      systemPrompt?:
+        'mainPrompt' | 'auxiliaryPrompt' | 'enhanceDefinitions' | 'postHistoryInstructions';
+      entryId?: string;
+      name?: string;
+      /** @enum {string} */
+      role?: 'system' | 'user' | 'assistant';
+      placement?: components['schemas']['PresetPromptPlacementResponseDto'];
+      generationTypes?: (
+        'normal' | 'continue' | 'impersonate' | 'swipe' | 'regenerate' | 'quiet'
+      )[];
+      content?: string;
+      allowCharacterOverride?: boolean;
+      tokenCount?: number;
     };
     PresetDetailResponseDto: {
       id: string;
@@ -1184,18 +1216,49 @@ export interface components {
       verbosity: string;
       showThoughts: boolean;
     };
+    PresetPromptPlacementDto: {
+      /** @enum {string} */
+      kind: 'relative' | 'inChat';
+      depth?: number;
+      order?: number;
+    };
     PresetDocumentEntryDto: {
       id: string;
       name: string;
       /** @enum {string} */
       role: 'system' | 'user' | 'assistant';
-      /** @enum {string} */
-      position: 'system' | 'chat' | 'preHistory' | 'postHistory' | 'unknown';
+      placement: components['schemas']['PresetPromptPlacementDto'];
+      generationTypes: ('normal' | 'continue' | 'impersonate' | 'swipe' | 'regenerate' | 'quiet')[];
       content: string;
     };
     PresetDocumentPromptItemDto: {
-      entryId: string;
+      id: string;
+      /** @enum {string} */
+      kind: 'slot' | 'systemPrompt' | 'customPrompt';
       enabled: boolean;
+      /** @enum {string} */
+      slot?:
+        | 'worldInfoBefore'
+        | 'personaDescription'
+        | 'characterDescription'
+        | 'characterPersonality'
+        | 'scenario'
+        | 'worldInfoAfter'
+        | 'dialogueExamples'
+        | 'chatHistory';
+      /** @enum {string} */
+      systemPrompt?:
+        'mainPrompt' | 'auxiliaryPrompt' | 'enhanceDefinitions' | 'postHistoryInstructions';
+      name?: string;
+      /** @enum {string} */
+      role?: 'system' | 'user' | 'assistant';
+      placement?: components['schemas']['PresetPromptPlacementDto'];
+      generationTypes?: (
+        'normal' | 'continue' | 'impersonate' | 'swipe' | 'regenerate' | 'quiet'
+      )[];
+      content?: string;
+      allowCharacterOverride?: boolean;
+      entryId?: string;
     };
     UpdatePresetDocumentRequestDto: {
       /** @enum {string} */
@@ -1206,24 +1269,55 @@ export interface components {
       entries: components['schemas']['PresetDocumentEntryDto'][];
       promptItems: components['schemas']['PresetDocumentPromptItemDto'][];
     };
+    PresetImportIssueResponseDto: {
+      identifier: string;
+      name: string;
+      /** @enum {string} */
+      reason:
+        | 'unknown-marker'
+        | 'unknown-system-prompt'
+        | 'duplicate-system-item'
+        | 'missing-prompt-definition'
+        | 'unsupported-prompt-type';
+    };
+    PresetImportResponseDto: {
+      preset: components['schemas']['PresetDetailResponseDto'];
+      issues: components['schemas']['PresetImportIssueResponseDto'][];
+      supplementedItems: (
+        | 'mainPrompt'
+        | 'auxiliaryPrompt'
+        | 'enhanceDefinitions'
+        | 'postHistoryInstructions'
+        | 'worldInfoBefore'
+        | 'personaDescription'
+        | 'characterDescription'
+        | 'characterPersonality'
+        | 'scenario'
+        | 'worldInfoAfter'
+        | 'dialogueExamples'
+        | 'chatHistory'
+      )[];
+    };
     CreatePresetEntryRequestDto: {
       name: string;
       /** @enum {string} */
       role: 'system' | 'user' | 'assistant';
-      /** @enum {string} */
-      position: 'system' | 'chat' | 'preHistory' | 'postHistory' | 'unknown';
+      placement: components['schemas']['PresetPromptPlacementDto'];
+      generationTypes: ('normal' | 'continue' | 'impersonate' | 'swipe' | 'regenerate' | 'quiet')[];
       content: string;
     };
     UpdatePresetEntryRequestDto: {
       name?: string;
       /** @enum {string} */
       role?: 'system' | 'user' | 'assistant';
-      /** @enum {string} */
-      position?: 'system' | 'chat' | 'preHistory' | 'postHistory' | 'unknown';
+      placement?: components['schemas']['PresetPromptPlacementDto'];
+      generationTypes?: (
+        'normal' | 'continue' | 'impersonate' | 'swipe' | 'regenerate' | 'quiet'
+      )[];
       content?: string;
     };
     UpdatePresetPromptItemDto: {
-      entryId: string;
+      id: string;
       enabled: boolean;
     };
     UpdatePresetPromptItemsRequestDto: {
@@ -2697,7 +2791,7 @@ export interface operations {
             code: 'SUCCESS';
             /** @example ok */
             msg: string;
-            data: components['schemas']['PresetDetailResponseDto'];
+            data: components['schemas']['PresetImportResponseDto'];
           };
         };
       };

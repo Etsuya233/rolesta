@@ -12,13 +12,16 @@ export type PresetModelSettings = components['schemas']['PresetModelSettingsResp
 export type PresetSummaryResponse = components['schemas']['PresetSummaryResponseDto'];
 export type PresetEntryResponse = components['schemas']['PresetEntryResponseDto'];
 export type PresetPromptItemResponse = components['schemas']['PresetPromptItemResponseDto'];
+export type PresetImportResponse = components['schemas']['PresetImportResponseDto'];
 export type PresetDetailResponse = components['schemas']['PresetDetailResponseDto'];
 export type PresetPageResponse = components['schemas']['PresetPageResponseDto'];
 export type PresetDocument = components['schemas']['UpdatePresetDocumentRequestDto'];
 export type PresetCreateValues = components['schemas']['CreatePresetRequestDto'];
 
 export type PresetEntryRole = PresetEntryResponse['role'];
-export type PresetEntryPosition = PresetEntryResponse['position'];
+export type PresetPromptPlacement = components['schemas']['PresetPromptPlacementDto'];
+export type PresetGenerationType = PresetEntryResponse['generationTypes'][number];
+export type PresetDocumentPromptItem = PresetDocument['promptItems'][number];
 export type PresetVisibility = PresetSummaryResponse['visibility'];
 
 export type ListPresetsQuery = NonNullable<
@@ -63,7 +66,7 @@ export async function deletePreset(id: string): Promise<{ ok?: boolean }> {
   return result.data;
 }
 
-export async function importPreset(file: File): Promise<PresetDetailResponse> {
+export async function importPreset(file: File): Promise<PresetImportResponse> {
   const formData = new FormData();
   formData.set('file', file);
 

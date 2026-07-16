@@ -1,9 +1,12 @@
 import type {
   PresetDetailResponse,
   PresetDocument,
-  PresetEntryPosition,
+  PresetDocumentPromptItem,
   PresetEntryRole,
+  PresetGenerationType,
   PresetModelSettings,
+  PresetPromptItemResponse,
+  PresetPromptPlacement,
   PresetVisibility,
 } from '../api/presets-api';
 
@@ -17,7 +20,8 @@ export interface PresetEditorFormState {
 export interface PresetEntryEditorFormState {
   name: string;
   role: PresetEntryRole;
-  position: PresetEntryPosition;
+  placement: PresetPromptPlacement;
+  generationTypes: PresetGenerationType[];
   content: string;
 }
 
@@ -50,17 +54,22 @@ export const emptyPresetEditorForm: PresetEditorFormState = {
 export const emptyPresetEntryEditorForm: PresetEntryEditorFormState = {
   name: '',
   role: 'system',
-  position: 'system',
+  placement: { kind: 'relative' },
+  generationTypes: [],
   content: '',
 };
 
 export function presetEntryEditorFormFromEntry(
-  entry: Pick<PresetDocument['entries'][number], 'name' | 'role' | 'position' | 'content'>,
+  entry: Pick<
+    PresetDocument['entries'][number],
+    'name' | 'role' | 'placement' | 'generationTypes' | 'content'
+  >,
 ): PresetEntryEditorFormState {
   return {
     name: entry.name,
     role: entry.role,
-    position: entry.position,
+    placement: entry.placement,
+    generationTypes: entry.generationTypes,
     content: entry.content,
   };
 }
@@ -69,7 +78,8 @@ export function presetEntryValuesFromForm(form: PresetEntryEditorFormState) {
   return {
     name: form.name.trim(),
     role: form.role,
-    position: form.position,
+    placement: form.placement,
+    generationTypes: form.generationTypes,
     content: form.content,
   };
 }
@@ -84,18 +94,108 @@ export function presetDocumentFromDetail(preset: PresetDetailResponse): PresetDo
       id: entry.id,
       name: entry.name,
       role: entry.role,
-      position: entry.position,
+      placement: requestPlacement(entry.placement),
+      generationTypes: entry.generationTypes,
       content: entry.content,
     })),
     promptItems: [...preset.promptItems]
       .sort((left, right) => left.orderIndex - right.orderIndex)
-      .map((item) => ({
-        entryId: item.entryId,
-        enabled: item.enabled,
-      })),
+      .map(responsePromptItemToDocument),
   };
 }
 
 export function presetDocumentEquals(left: PresetDocument, right: PresetDocument): boolean {
   return JSON.stringify(left) === JSON.stringify(right);
+}
+
+export function isCustomPromptItem(
+  item: PresetDocumentPromptItem,
+): item is PresetDocumentPromptItem & { kind: 'customPrompt'; entryId: string } {
+  return item.kind === 'customPrompt';
+}
+
+export function isSystemPromptItem(
+  item: PresetDocumentPromptItem,
+): item is PresetDocumentPromptItem & {
+  kind: 'systemPrompt';
+  systemPrompt: 'mainPrompt' | 'auxiliaryPrompt' | 'enhanceDefinitions' | 'postHistoryInstructions';
+  name: string;
+  role: PresetEntryRole;
+  placement: PresetPromptPlacement;
+  generationTypes: PresetGenerationType[];
+  content: string;
+} {
+  return item.kind === 'systemPrompt';
+}
+
+export function isStructuralSlotItem(
+  item: PresetDocumentPromptItem,
+): item is PresetDocumentPromptItem & {
+  kind: 'slot';
+  slot: 'dialogueExamples' | 'chatHistory';
+} {
+  return item.kind === 'slot' && (item.slot === 'dialogueExamples' || item.slot === 'chatHistory');
+}
+
+export function isContentSlotItem(
+  item: PresetDocumentPromptItem,
+): item is PresetDocumentPromptItem & {
+  kind: 'slot';
+  slot:
+    | 'worldInfoBefore'
+    | 'personaDescription'
+    | 'characterDescription'
+    | 'characterPersonality'
+    | 'scenario'
+    | 'worldInfoAfter';
+  role: PresetEntryRole;
+  placement: PresetPromptPlacement;
+  generationTypes: PresetGenerationType[];
+} {
+  return item.kind === 'slot' && !isStructuralSlotItem(item);
+}
+
+function responsePromptItemToDocument(item: PresetPromptItemResponse): PresetDocumentPromptItem {
+  const base = { id: item.id, kind: item.kind, enabled: item.enabled };
+  if (item.kind === 'customPrompt') {
+    return { ...base, kind: item.kind, entryId: item.entryId! };
+  }
+  if (item.kind === 'systemPrompt') {
+    const systemPrompt = item.systemPrompt!;
+    const result = {
+      ...base,
+      kind: item.kind,
+      systemPrompt,
+      name: item.name!,
+      role: item.role!,
+      placement: requestPlacement(item.placement!),
+      generationTypes: item.generationTypes!,
+      content: item.content!,
+    };
+    return item.allowCharacterOverride === undefined
+      ? result
+      : { ...result, allowCharacterOverride: item.allowCharacterOverride };
+  }
+  const slot = item.slot! as NonNullable<PresetDocumentPromptItem['slot']>;
+  if (slot === 'dialogueExamples' || slot === 'chatHistory') {
+    return { ...base, kind: item.kind, slot };
+  }
+  return {
+    ...base,
+    kind: item.kind,
+    slot,
+    role: item.role!,
+    placement: requestPlacement(item.placement!),
+    generationTypes: item.generationTypes!,
+  };
+}
+
+function requestPlacement(input: {
+  kind: 'relative' | 'inChat';
+  depth?: number | null;
+  order?: number | null;
+}): PresetPromptPlacement {
+  return input.kind === 'relative'
+    ? { kind: 'relative' }
+    : { kind: 'inChat', depth: input.depth!, order: input.order! };
 }

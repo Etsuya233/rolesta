@@ -35,6 +35,12 @@ import { UpdatePresetEntryUseCase } from '../application/update-preset-entry.use
 import { UpdatePresetDocumentUseCase } from '../application/update-preset-document.use-case.js';
 import { UpdatePresetPromptItemsUseCase } from '../application/update-preset-prompt-items.use-case.js';
 import { UpdatePresetUseCase } from '../application/update-preset.use-case.js';
+import type {
+  PresetContentSlot,
+  PresetPromptItem,
+  PresetPromptPlacement,
+  PresetSystemPrompt,
+} from '../domain/preset.js';
 import { toApiFailure } from './preset-application-error.mapper.js';
 import {
   CreatePresetEntryRequestDto,
@@ -47,6 +53,7 @@ import {
 } from './preset-requests.dto.js';
 import {
   PresetDetailResponseDto,
+  PresetImportResponseDto,
   PresetPageResponseDto,
   toPresetDetailResponse,
   toPresetPageResponse,
@@ -154,7 +161,19 @@ export class PresetsController {
         await this.updatePresetDocumentUseCase.execute({
           presetId: id,
           viewerUserId: request.authUser.id,
-          ...body,
+          visibility: body.visibility,
+          name: body.name,
+          modelProviderId: body.modelProviderId,
+          modelSettings: body.modelSettings,
+          entries: body.entries.map((entry) => ({
+            id: entry.id,
+            name: entry.name,
+            role: entry.role,
+            content: entry.content,
+            placement: toPresetPlacement(entry.placement),
+            generationTypes: entry.generationTypes,
+          })),
+          promptItems: body.promptItems.map(toPresetPromptItem),
         }),
         request.authUser.id,
       ),
@@ -191,11 +210,11 @@ export class PresetsController {
     },
   })
   @UseInterceptors(FileInterceptor('file'))
-  @ApiEnvelopeOkResponse({ type: PresetDetailResponseDto })
+  @ApiEnvelopeOkResponse({ type: PresetImportResponseDto })
   async importPreset(
     @Req() request: AuthenticatedRequest,
     @UploadedFile() file: UploadedPresetFile | undefined,
-  ): Promise<PresetDetailResponseDto> {
+  ): Promise<PresetImportResponseDto> {
     return this.withApplicationErrors(async () => {
       if (file === undefined) {
         throw new PresetApplicationError({
@@ -206,13 +225,15 @@ export class PresetsController {
         });
       }
 
-      return toPresetDetailResponse(
-        await this.importPresetUseCase.execute({
-          ownerUserId: request.authUser.id,
-          content: file.buffer,
-        }),
-        request.authUser.id,
-      );
+      const result = await this.importPresetUseCase.execute({
+        ownerUserId: request.authUser.id,
+        content: file.buffer,
+      });
+      return {
+        preset: toPresetDetailResponse(result.preset, request.authUser.id),
+        issues: result.issues,
+        supplementedItems: result.supplementedItems,
+      };
     });
   }
 
@@ -252,7 +273,11 @@ export class PresetsController {
         await this.createPresetEntryUseCase.execute({
           presetId: id,
           viewerUserId: request.authUser.id,
-          ...body,
+          name: body.name,
+          role: body.role,
+          placement: toPresetPlacement(body.placement),
+          generationTypes: body.generationTypes,
+          content: body.content,
         }),
         request.authUser.id,
       ),
@@ -276,7 +301,11 @@ export class PresetsController {
           presetId: id,
           entryId,
           viewerUserId: request.authUser.id,
-          ...body,
+          ...(body.name === undefined ? {} : { name: body.name }),
+          ...(body.role === undefined ? {} : { role: body.role }),
+          ...(body.placement === undefined ? {} : { placement: toPresetPlacement(body.placement) }),
+          ...(body.generationTypes === undefined ? {} : { generationTypes: body.generationTypes }),
+          ...(body.content === undefined ? {} : { content: body.content }),
         }),
         request.authUser.id,
       ),
@@ -341,4 +370,63 @@ export class PresetsController {
 interface UploadedPresetFile {
   originalname: string;
   buffer: Buffer;
+}
+
+function toPresetPlacement(input: {
+  kind: 'relative' | 'inChat';
+  depth?: number;
+  order?: number;
+}): PresetPromptPlacement {
+  return input.kind === 'relative'
+    ? { kind: 'relative' }
+    : { kind: 'inChat', depth: input.depth!, order: input.order! };
+}
+
+function toPresetPromptItem(input: {
+  id: string;
+  kind: 'slot' | 'systemPrompt' | 'customPrompt';
+  enabled: boolean;
+  slot?: string;
+  systemPrompt?: string;
+  name?: string;
+  role?: 'system' | 'user' | 'assistant';
+  placement?: { kind: 'relative' | 'inChat'; depth?: number; order?: number };
+  generationTypes?: Array<'normal' | 'continue' | 'impersonate' | 'swipe' | 'regenerate' | 'quiet'>;
+  content?: string;
+  allowCharacterOverride?: boolean;
+  entryId?: string;
+}): PresetPromptItem {
+  const base = { id: input.id, enabled: input.enabled, orderIndex: 0 };
+  if (input.kind === 'customPrompt') {
+    return { ...base, kind: input.kind, entryId: input.entryId! };
+  }
+  if (input.kind === 'systemPrompt') {
+    const systemPrompt = input.systemPrompt! as PresetSystemPrompt;
+    const item = {
+      ...base,
+      kind: input.kind,
+      systemPrompt,
+      name: input.name!,
+      role: input.role!,
+      content: input.content!,
+      placement: toPresetPlacement(input.placement!),
+      generationTypes: input.generationTypes!,
+      tokenCount: 0,
+    };
+    return systemPrompt === 'mainPrompt' || systemPrompt === 'postHistoryInstructions'
+      ? { ...item, allowCharacterOverride: input.allowCharacterOverride! }
+      : item;
+  }
+  const slot = input.slot!;
+  if (slot === 'dialogueExamples' || slot === 'chatHistory') {
+    return { ...base, kind: input.kind, slot };
+  }
+  return {
+    ...base,
+    kind: input.kind,
+    slot: slot as PresetContentSlot,
+    role: input.role!,
+    placement: toPresetPlacement(input.placement!),
+    generationTypes: input.generationTypes!,
+  };
 }

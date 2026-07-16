@@ -1,7 +1,12 @@
 import { useTranslation } from 'react-i18next';
 import { MobileTopBar } from '../../assets/components/mobile-top-bar';
 import { PresetPromptListEditor } from './preset-prompt-list-editor';
-import { presetEntryCreatePage, presetEntryEditPage, type PresetPage } from './preset-pages';
+import {
+  presetEntryCreatePage,
+  presetEntryEditPage,
+  presetSystemItemEditPage,
+  type PresetPage,
+} from './preset-pages';
 import { PresetStackPage } from './preset-stack-page';
 
 export function PresetPromptListPage({
@@ -24,6 +29,9 @@ export function PresetPromptListPage({
         onCreateEntry={() => pushPage(presetEntryCreatePage(page.presetId, page.sessionKey))}
         onEditEntry={(entryId) =>
           pushPage(presetEntryEditPage(page.presetId, entryId, page.sessionKey))
+        }
+        onEditSystemItem={(itemId) =>
+          pushPage(presetSystemItemEditPage(page.presetId, itemId, page.sessionKey))
         }
       />
     </PresetStackPage>

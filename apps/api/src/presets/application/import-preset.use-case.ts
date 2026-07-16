@@ -6,11 +6,17 @@ import { PresetApplicationError } from './preset-application-error.js';
 import { translatePresetError } from './preset-error.mapper.js';
 import type { PresetStore } from '../ports/preset-store.js';
 import type { PresetCodec } from '../ports/preset-codec.js';
-import { withPresetTokenCount, type Preset } from '../domain/preset.js';
+import { withPresetTokenCount, type Preset, type PresetPromptItem } from '../domain/preset.js';
 
 export interface ImportPresetCommand {
   ownerUserId: string;
   content: Buffer;
+}
+
+export interface ImportPresetResult {
+  preset: Preset;
+  issues: ReturnType<PresetCodec['importFile']>['issues'];
+  supplementedItems: ReturnType<PresetCodec['importFile']>['supplementedItems'];
 }
 
 export class ImportPresetUseCase {
@@ -23,7 +29,7 @@ export class ImportPresetUseCase {
   ) {}
 
   @UseCase(translatePresetError)
-  async execute(command: ImportPresetCommand): Promise<Preset> {
+  async execute(command: ImportPresetCommand): Promise<ImportPresetResult> {
     const imported = this.codec.importFile(command.content);
     const nowMs = ensureEpochMillis(this.clock.now().getTime());
     const presetId = this.idGenerator.createId();
@@ -34,25 +40,34 @@ export class ImportPresetUseCase {
       createdAtMs: nowMs,
       updatedAtMs: nowMs,
     }));
-    const promptItems = imported.promptItems.map((item) => {
-      const entry = entries.find((candidate) => candidate.identifier === item.identifier);
+    const entryByIdentifier = new Map(entries.map((entry) => [entry.identifier, entry]));
+    const promptItems: PresetPromptItem[] = [];
 
-      if (entry === undefined) {
-        throw new PresetApplicationError({
-          reason: 'unknown-entry',
-          params: {
-            presetId,
-            identifier: item.identifier,
-          },
+    for (const item of imported.promptItems) {
+      if (item.kind === 'customPrompt') {
+        const entry = entryByIdentifier.get(item.identifier);
+        if (!entry) {
+          throw new PresetApplicationError({
+            reason: 'unknown-entry',
+            params: { presetId, identifier: item.identifier },
+          });
+        }
+        promptItems.push({
+          id: this.idGenerator.createId(),
+          kind: item.kind,
+          entryId: entry.id,
+          enabled: item.enabled,
+          orderIndex: item.orderIndex,
         });
+        continue;
       }
 
-      return {
-        entryId: entry.id,
-        enabled: item.enabled,
-        orderIndex: item.orderIndex,
-      };
-    });
+      promptItems.push({
+        ...item,
+        id: this.idGenerator.createId(),
+      });
+    }
+
     const preset = withPresetTokenCount({
       id: presetId,
       ownerUserId: command.ownerUserId,
@@ -73,6 +88,10 @@ export class ImportPresetUseCase {
 
     await this.unitOfWork.run(() => this.store.save(preset));
 
-    return preset;
+    return {
+      preset,
+      issues: imported.issues,
+      supplementedItems: imported.supplementedItems,
+    };
   }
 }

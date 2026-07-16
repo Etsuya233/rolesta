@@ -1,12 +1,17 @@
 import { countPromptTokens } from '@rolesta/shared';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { Upload } from 'lucide-react';
+import { CircleAlert, ListPlus, Upload } from 'lucide-react';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Button } from '../../../components/ui/button';
+import { Alert, AlertDescription, AlertTitle } from '../../../components/ui/alert';
 import { getFormErrorMessage } from '../../../lib/forms/form-error';
 import { notify } from '../../../lib/notifications/notify';
-import { importPreset, type PresetDetailResponse } from '../api/presets-api';
+import {
+  importPreset,
+  type PresetDetailResponse,
+  type PresetImportResponse,
+} from '../api/presets-api';
 
 const SILLY_TAVERN_CHAT_COMPLETION_PROMPT_ORDER_ID = 100001;
 
@@ -19,12 +24,13 @@ export function PresetImportPanel({
   const queryClient = useQueryClient();
   const [file, setFile] = useState<File | null>(null);
   const [preview, setPreview] = useState<PresetImportPreview | null>(null);
+  const [result, setResult] = useState<PresetImportResponse | null>(null);
   const importMutation = useMutation({
     mutationFn: (selectedFile: File) => importPreset(selectedFile),
-    async onSuccess(preset) {
+    async onSuccess(importResult) {
       await queryClient.invalidateQueries({ queryKey: ['presets'] });
-      queryClient.setQueryData(['preset', preset.id], preset);
-      onImported(preset);
+      queryClient.setQueryData(['preset', importResult.preset.id], importResult.preset);
+      setResult(importResult);
     },
     onError(error) {
       notify.error({ title: getFormErrorMessage(error) });
@@ -63,6 +69,7 @@ export function PresetImportPanel({
             accept="application/json,.json"
             className="sr-only"
             type="file"
+            disabled={result !== null}
             onChange={(event) => void chooseFile(event.target.files?.[0])}
           />
         </label>
@@ -80,6 +87,37 @@ export function PresetImportPanel({
             </div>
           </div>
         ) : null}
+        {result ? (
+          <div className="mt-4 flex flex-col gap-3">
+            {result.issues.length > 0 ? (
+              <Alert variant="destructive">
+                <CircleAlert />
+                <AlertTitle>{t('presets.import.issuesTitle')}</AlertTitle>
+                <AlertDescription>
+                  <ul className="flex list-disc flex-col gap-1 pl-4">
+                    {result.issues.map((issue, index) => (
+                      <li key={`${issue.identifier}:${issue.reason}:${index}`}>
+                        {issue.name || issue.identifier}:{' '}
+                        {t(`presets.import.issues.${issue.reason}`)}
+                      </li>
+                    ))}
+                  </ul>
+                </AlertDescription>
+              </Alert>
+            ) : null}
+            {result.supplementedItems.length > 0 ? (
+              <Alert>
+                <ListPlus />
+                <AlertTitle>{t('presets.import.supplementedTitle')}</AlertTitle>
+                <AlertDescription>
+                  {result.supplementedItems
+                    .map((item) => t(`presets.systemItems.names.${item}`))
+                    .join(', ')}
+                </AlertDescription>
+              </Alert>
+            ) : null}
+          </div>
+        ) : null}
       </div>
 
       <div className="flex shrink-0 flex-col gap-3 border-t border-border bg-background px-4 py-3">
@@ -87,9 +125,11 @@ export function PresetImportPanel({
           className="w-full"
           disabled={!file || importMutation.isPending}
           type="button"
-          onClick={() => file && importMutation.mutate(file)}
+          onClick={() =>
+            result ? onImported(result.preset) : file ? importMutation.mutate(file) : undefined
+          }
         >
-          {t('presets.import.submit')}
+          {t(result ? 'presets.import.continue' : 'presets.import.submit')}
         </Button>
       </div>
     </div>

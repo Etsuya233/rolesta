@@ -13,8 +13,11 @@ import type { ListPresetsRequest, PresetSortKey, PresetStore } from '../ports/pr
 import type { PresetModelSettings } from '../domain/preset-model-settings.js';
 import {
   withPresetTokenCount,
+  type PresetGenerationType,
+  type PresetPromptPlacement,
   type Preset,
   type PresetEntry,
+  type PresetPromptItem,
   type PresetSummary,
 } from '../domain/preset.js';
 
@@ -218,7 +221,7 @@ export class KyselyPresetStore implements PresetStore {
 
     const itemRows = await this.context.database
       .selectFrom('preset_prompt_items')
-      .select(['preset_id', 'entry_id', 'enabled'])
+      .select(['preset_id', 'entry_id', 'token_count', 'enabled'])
       .where('preset_id', 'in', presetIds)
       .execute();
 
@@ -229,7 +232,10 @@ export class KyselyPresetStore implements PresetStore {
         presetStats.promptItemCount += 1;
 
         if (row.enabled === 1) {
-          presetStats.tokenCount += tokenCountByEntryId.get(row.entry_id) ?? 0;
+          presetStats.tokenCount +=
+            row.entry_id === null
+              ? (row.token_count ?? 0)
+              : (tokenCountByEntryId.get(row.entry_id) ?? 0);
         }
       }
     }
@@ -345,14 +351,18 @@ function toPresetSummary(row: PresetListRow, stats: PresetSummaryStats | undefin
 }
 
 function toEntryRow(entry: PresetEntry): PresetEntryInsert {
+  const placement = entry.placement;
   return {
     id: entry.id,
     preset_id: entry.presetId,
     identifier: entry.identifier,
     name: entry.name,
     role: entry.role,
-    position: entry.position,
     content: entry.content,
+    placement_kind: placement.kind,
+    in_chat_depth: placement.kind === 'inChat' ? placement.depth : null,
+    in_chat_order: placement.kind === 'inChat' ? placement.order : null,
+    generation_types_json: JSON.stringify(entry.generationTypes),
     token_count: entry.tokenCount,
     metadata_json: JSON.stringify(entry.metadata),
     created_at_ms: ensureEpochMillis(entry.createdAtMs),
@@ -360,15 +370,70 @@ function toEntryRow(entry: PresetEntry): PresetEntryInsert {
   };
 }
 
-function toPromptItemRow(
-  presetId: string,
-  item: Preset['promptItems'][number],
-): PresetPromptItemInsert {
-  return {
+function toPromptItemRow(presetId: string, item: PresetPromptItem): PresetPromptItemInsert {
+  const base = {
+    id: item.id,
     preset_id: presetId,
-    entry_id: item.entryId,
     enabled: item.enabled ? 1 : 0,
     order_index: item.orderIndex,
+  };
+
+  if (item.kind === 'customPrompt') {
+    return {
+      ...base,
+      kind: item.kind,
+      slot_key: null,
+      system_prompt_key: null,
+      entry_id: item.entryId,
+      name: null,
+      role: null,
+      content: null,
+      placement_kind: null,
+      in_chat_depth: null,
+      in_chat_order: null,
+      generation_types_json: '[]',
+      allow_character_override: null,
+      token_count: null,
+    };
+  }
+
+  if (item.kind === 'systemPrompt') {
+    const placement = item.placement;
+    return {
+      ...base,
+      kind: item.kind,
+      slot_key: null,
+      system_prompt_key: item.systemPrompt,
+      entry_id: null,
+      name: item.name,
+      role: item.role,
+      content: item.content,
+      placement_kind: placement.kind,
+      in_chat_depth: placement.kind === 'inChat' ? placement.depth : null,
+      in_chat_order: placement.kind === 'inChat' ? placement.order : null,
+      generation_types_json: JSON.stringify(item.generationTypes),
+      allow_character_override:
+        item.allowCharacterOverride === undefined ? null : item.allowCharacterOverride ? 1 : 0,
+      token_count: item.tokenCount,
+    };
+  }
+
+  const placement = 'placement' in item ? item.placement : null;
+  return {
+    ...base,
+    kind: item.kind,
+    slot_key: item.slot,
+    system_prompt_key: null,
+    entry_id: null,
+    name: null,
+    role: 'role' in item ? item.role : null,
+    content: null,
+    placement_kind: placement?.kind ?? null,
+    in_chat_depth: placement?.kind === 'inChat' ? placement.depth : null,
+    in_chat_order: placement?.kind === 'inChat' ? placement.order : null,
+    generation_types_json: JSON.stringify('generationTypes' in item ? item.generationTypes : []),
+    allow_character_override: null,
+    token_count: null,
   };
 }
 
@@ -379,8 +444,9 @@ function toPresetEntry(row: PresetEntryRow): PresetEntry {
     identifier: row.identifier,
     name: row.name,
     role: row.role,
-    position: row.position,
     content: row.content,
+    placement: toPlacement(row.placement_kind, row.in_chat_depth, row.in_chat_order),
+    generationTypes: jsonColumn<PresetGenerationType[]>(row.generation_types_json),
     tokenCount: row.token_count,
     metadata: jsonColumn<Record<string, unknown>>(row.metadata_json),
     createdAtMs: epochMillisColumn(row.created_at_ms),
@@ -389,11 +455,56 @@ function toPresetEntry(row: PresetEntryRow): PresetEntry {
 }
 
 function toPromptItem(row: PresetPromptItemRow): Preset['promptItems'][number] {
-  return {
-    entryId: row.entry_id,
+  const base = {
+    id: row.id,
     enabled: row.enabled === 1,
     orderIndex: row.order_index,
   };
+
+  if (row.kind === 'customPrompt') {
+    return { ...base, kind: row.kind, entryId: row.entry_id! };
+  }
+
+  if (row.kind === 'systemPrompt') {
+    const systemPrompt = row.system_prompt_key!;
+    const item = {
+      ...base,
+      kind: row.kind,
+      systemPrompt,
+      name: row.name!,
+      role: row.role!,
+      content: row.content!,
+      placement: toPlacement(row.placement_kind!, row.in_chat_depth, row.in_chat_order),
+      generationTypes: jsonColumn<PresetGenerationType[]>(row.generation_types_json),
+      tokenCount: row.token_count!,
+    };
+    return systemPrompt === 'mainPrompt' || systemPrompt === 'postHistoryInstructions'
+      ? { ...item, allowCharacterOverride: row.allow_character_override === 1 }
+      : item;
+  }
+
+  const slot = row.slot_key!;
+  if (slot === 'dialogueExamples' || slot === 'chatHistory') {
+    return { ...base, kind: row.kind, slot };
+  }
+  return {
+    ...base,
+    kind: row.kind,
+    slot,
+    role: row.role!,
+    placement: toPlacement(row.placement_kind!, row.in_chat_depth, row.in_chat_order),
+    generationTypes: jsonColumn<PresetGenerationType[]>(row.generation_types_json),
+  };
+}
+
+function toPlacement(
+  kind: 'relative' | 'inChat',
+  depth: number | null,
+  order: number | null,
+): PresetPromptPlacement {
+  return kind === 'relative'
+    ? { kind: 'relative' }
+    : { kind: 'inChat', depth: depth!, order: order! };
 }
 
 function jsonColumn<TValue>(value: string): TValue {

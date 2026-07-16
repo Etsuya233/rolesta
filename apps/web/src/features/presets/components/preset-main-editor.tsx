@@ -23,6 +23,7 @@ import {
 } from '../../../components/ui/tooltip';
 import { listAllModelProviders } from '../../model-providers/api/model-providers-api';
 import { usePresetDraftSession } from '../hooks/use-preset-draft-sessions';
+import { isCustomPromptItem, isSystemPromptItem } from '../model/preset-editor-form';
 import type { PresetDetailResponse, PresetModelSettings } from '../api/presets-api';
 import {
   FormActionButton,
@@ -61,8 +62,16 @@ export function PresetMainEditor({
   const settings = form.modelSettings;
   const entryById = new Map(document.entries.map((entry) => [entry.id, entry]));
   const tokenCount = document.promptItems.reduce((total, item) => {
-    const entry = entryById.get(item.entryId);
-    return total + (item.enabled && entry ? countPromptTokens(entry.content) : 0);
+    if (!item.enabled) {
+      return total;
+    }
+    if (isSystemPromptItem(item)) {
+      return total + countPromptTokens(item.content);
+    }
+    if (isCustomPromptItem(item)) {
+      return total + countPromptTokens(entryById.get(item.entryId)!.content);
+    }
+    return total;
   }, 0);
 
   return (
