@@ -14,13 +14,17 @@ export function toApiFailure(
       return new ApiFailure({
         status: HttpStatus.NOT_FOUND,
         code: ERROR_CODES.NOT_FOUND,
+        reason: error.reason,
         params: error.params,
+        cause: error,
       });
     case 'forbidden':
       return new ApiFailure({
         status: HttpStatus.FORBIDDEN,
         code: ERROR_CODES.FORBIDDEN,
+        reason: error.reason,
         params: error.params,
+        cause: error,
       });
     case 'invalid-character-card':
     case 'invalid-import-file':
@@ -29,19 +33,25 @@ export function toApiFailure(
       return new ApiFailure({
         status: HttpStatus.BAD_REQUEST,
         code: ERROR_CODES.VALIDATION_FAILED,
+        reason: error.reason,
         params: error.params,
+        cause: error,
       });
     case 'avatar-storage-unavailable':
       return new ApiFailure({
         status: HttpStatus.SERVICE_UNAVAILABLE,
         code: ERROR_CODES.INTERNAL_ERROR,
+        reason: error.reason,
         params: error.params,
+        cause: error,
       });
     case 'avatar-assignment-conflict':
       return new ApiFailure({
         status: HttpStatus.CONFLICT,
         code: ERROR_CODES.VALIDATION_FAILED,
+        reason: error.reason,
         params: error.params,
+        cause: error,
       });
   }
 }

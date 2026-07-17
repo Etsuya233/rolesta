@@ -9,7 +9,10 @@ export function toApiFailure(error: ModelProviderApplicationError): ApiFailure {
       return new ApiFailure({
         status: HttpStatus.NOT_FOUND,
         code: ERROR_CODES.NOT_FOUND,
+        reason: error.reason,
         messageKey: 'modelProviders.errors.notFound',
+        params: error.params,
+        cause: error,
       });
     case 'invalid-provider':
     case 'invalid-base-url':
@@ -23,7 +26,10 @@ export function toApiFailure(error: ModelProviderApplicationError): ApiFailure {
       return new ApiFailure({
         status: HttpStatus.BAD_REQUEST,
         code: ERROR_CODES.VALIDATION_FAILED,
+        reason: error.reason,
         messageKey: `modelProviders.errors.${error.reason}`,
+        params: error.params,
+        cause: error,
       });
   }
 }

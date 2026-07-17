@@ -6,6 +6,7 @@ import type { API_SUCCESS_CODE } from '@rolesta/shared';
 import type { Kysely } from 'kysely';
 import type { App } from 'supertest/types.js';
 import request from 'supertest';
+import sharp from 'sharp';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { createTestDatabase } from '../../../packages/db/src/test-utils/create-test-database.js';
 import { AppModule } from '../src/app.module.js';
@@ -32,11 +33,14 @@ describe('Characters API', () => {
   let app: INestApplication | undefined;
   let testDatabase: Awaited<ReturnType<typeof createTestDatabase>> | undefined;
   let originalDatabasePath: string | undefined;
+  let originalFileStorageDriver: string | undefined;
 
   beforeEach(async () => {
     originalDatabasePath = process.env.SQLITE_DATABASE_PATH;
+    originalFileStorageDriver = process.env.FILE_STORAGE_DRIVER;
     testDatabase = await createTestDatabase();
     process.env.SQLITE_DATABASE_PATH = testDatabase.databasePath;
+    process.env.FILE_STORAGE_DRIVER = 'database';
     await testDatabase.db.destroy();
 
     const moduleRef = await Test.createTestingModule({
@@ -61,6 +65,47 @@ describe('Characters API', () => {
     } else {
       process.env.SQLITE_DATABASE_PATH = originalDatabasePath;
     }
+    if (originalFileStorageDriver === undefined) {
+      delete process.env.FILE_STORAGE_DRIVER;
+    } else {
+      process.env.FILE_STORAGE_DRIVER = originalFileStorageDriver;
+    }
+  });
+
+  it('uploads a cropped avatar with browser-precision coordinates', async () => {
+    const token = await setupAdmin(app!);
+    const createResponse = await request(app!.getHttpServer() as App)
+      .post('/characters')
+      .set('Authorization', `Bearer ${token}`)
+      .send({ name: 'Avatar Card' })
+      .expect(201);
+    const id = responseBody<SuccessEnvelope<{ id: string }>>(createResponse).data.id;
+    const image = await sharp({
+      create: {
+        width: 32,
+        height: 32,
+        channels: 3,
+        background: '#cc3344',
+      },
+    })
+      .png()
+      .toBuffer();
+
+    await request(app!.getHttpServer() as App)
+      .put(`/characters/${id}/avatar`)
+      .set('Authorization', `Bearer ${token}`)
+      .field('x', '0.123456789')
+      .field('y', '0.123456789')
+      .field('width', '0.5')
+      .field('height', '0.5')
+      .attach('file', image, { filename: 'avatar.png', contentType: 'image/png' })
+      .expect(200)
+      .expect((response) => {
+        const body = responseBody<SuccessEnvelope<{ avatar: { sources: Record<string, string> } }>>(
+          response,
+        );
+        expect(body.data.avatar.sources).toHaveProperty('128');
+      });
   });
 
   it('imports a SillyTavern JSON character and lists it in all scope', async () => {

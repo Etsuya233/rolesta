@@ -30,6 +30,8 @@ export class ApiExceptionFilter implements ExceptionFilter {
           ? new ApiFailure({
               status: HttpStatus.PAYLOAD_TOO_LARGE,
               code: ERROR_CODES.VALIDATION_FAILED,
+              reason: 'payload-too-large',
+              cause: exception,
             })
           : createInternalApiFailure();
     const httpStatus =
@@ -62,10 +64,19 @@ export class ApiExceptionFilter implements ExceptionFilter {
       statusCode: httpStatus,
       method: request.method,
       path: request.originalUrl,
+      requestId: request.id,
     };
 
     if (exception instanceof ApiFailure) {
-      this.logger.warn(fields, 'API failure');
+      this.logger.warn(
+        {
+          ...fields,
+          reason: exception.reason,
+          params: exception.params,
+          ...(exception.cause === undefined ? {} : { err: exception.cause }),
+        },
+        'API failure',
+      );
       return;
     }
 

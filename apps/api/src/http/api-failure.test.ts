@@ -8,6 +8,7 @@ describe('ApiFailure', () => {
     const failure = new ApiFailure({
       status: HttpStatus.BAD_REQUEST,
       code: ERROR_CODES.VALIDATION_FAILED,
+      reason: 'request-validation',
     });
 
     expect(failure.message).toBe(`${I18N_MESSAGE_PREFIX}errors.validationFailed`);
@@ -18,14 +19,19 @@ describe('ApiFailure', () => {
   });
 
   it('keeps an explicit business message key and params', () => {
+    const cause = new Error('invalid crop');
     const failure = new ApiFailure({
       status: HttpStatus.BAD_REQUEST,
       code: ERROR_CODES.VALIDATION_FAILED,
       messageKey: 'errors.passwordTooShort',
       params: { min: 8 },
+      reason: 'invalid-avatar',
+      cause,
     });
 
     expect(failure.message).toBe(`${I18N_MESSAGE_PREFIX}errors.passwordTooShort`);
     expect(failure.params).toEqual({ min: 8 });
+    expect(failure.reason).toBe('invalid-avatar');
+    expect(failure.cause).toBe(cause);
   });
 });

@@ -36,8 +36,10 @@ describe('RequestValidationPipe', () => {
   it('keeps legacy class-validator DTOs on the legacy path', async () => {
     const result = await pipe.transform({ count: 2 }, metadata(LegacyRequestDto));
     expect(result).toBeInstanceOf(LegacyRequestDto);
-    await expect(pipe.transform({ count: '2' }, metadata(LegacyRequestDto))).rejects.toBeInstanceOf(
-      ApiFailure,
-    );
+    await expect(pipe.transform({ count: '2' }, metadata(LegacyRequestDto))).rejects.toMatchObject({
+      code: 'VALIDATION_FAILED',
+      params: { issues: [{ field: 'count', rule: 'integer' }] },
+      reason: 'request-validation',
+    } satisfies Partial<ApiFailure>);
   });
 });

@@ -27,23 +27,25 @@ import {
 
 export class AvatarCropRequestDto {
   @Type(() => Number)
-  @IsNumber({ maxDecimalPlaces: 6 })
+  @IsNumber()
   @Min(0)
   @Max(1)
   x!: number;
 
   @Type(() => Number)
-  @IsNumber({ maxDecimalPlaces: 6 })
+  @IsNumber()
   @Min(0)
   @Max(1)
   y!: number;
 
   @Type(() => Number)
+  @IsNumber()
   @Min(0.000001)
   @Max(1)
   width!: number;
 
   @Type(() => Number)
+  @IsNumber()
   @Min(0.000001)
   @Max(1)
   height!: number;
