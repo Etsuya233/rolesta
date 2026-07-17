@@ -79,7 +79,6 @@ export function PresetSelectionDialog({
   return (
     <AssetSelectionDialog
       allowClear
-      description={t('chats.management.picker.presetDescription')}
       open={open}
       pagination={
         <PageControls

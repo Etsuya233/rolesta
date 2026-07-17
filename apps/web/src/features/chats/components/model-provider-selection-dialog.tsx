@@ -81,7 +81,6 @@ export function ModelProviderSelectionDialog({
   return (
     <AssetSelectionDialog
       allowClear
-      description={t('chats.management.picker.modelProviderDescription')}
       open={open}
       pagination={
         <PageControls
@@ -168,9 +167,11 @@ export function ModelProviderSelectionDialog({
                     </span>
                   ) : null}
                 </span>
-                <span className="flex flex-wrap gap-x-3 gap-y-1 text-xs text-muted-foreground">
-                  <span>{formatModelProviderKind(config.providerKind)}</span>
-                  <span>{config.defaultModelName || t('modelProviders.list.noDefaultModel')}</span>
+                <span className="flex min-w-0 items-center gap-3 text-xs text-muted-foreground">
+                  <span className="shrink-0">{formatModelProviderKind(config.providerKind)}</span>
+                  <span className="truncate">
+                    {config.defaultModelName || t('modelProviders.list.noDefaultModel')}
+                  </span>
                 </span>
               </span>
               <CheckIcon className={cn('shrink-0', config.id !== pendingId && 'invisible')} />

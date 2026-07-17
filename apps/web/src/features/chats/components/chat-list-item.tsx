@@ -30,10 +30,15 @@ export function ChatListItem({
   const avatarSource = character?.avatar?.sources['64'] ?? character?.avatar?.sources['128'];
 
   return (
-    <div className={cn('group flex items-center border-b border-border', active && 'bg-accent')}>
+    <div
+      className={cn(
+        'group grid min-w-0 grid-cols-[minmax(0,1fr)_auto] items-center border-b border-border transition-colors hover:bg-muted/30',
+        active && 'bg-accent hover:bg-accent',
+      )}
+    >
       <button
         type="button"
-        className="flex min-w-0 flex-1 items-center gap-3 px-4 py-3 text-left"
+        className="flex min-w-0 items-center gap-3 px-4 py-3 text-left"
         onClick={onSelect}
       >
         <Avatar size="lg">
@@ -44,8 +49,8 @@ export function ChatListItem({
         </Avatar>
         <span className="flex min-w-0 flex-1 flex-col gap-1">
           <span className="truncate text-sm font-medium">{chat.title}</span>
-          <span className="flex min-w-0 items-center gap-2 text-xs text-muted-foreground">
-            <span className="min-w-0 flex-1 truncate">
+          <span className="grid min-w-0 grid-cols-[minmax(0,1fr)_auto] items-center gap-2 text-xs text-muted-foreground">
+            <span className="truncate">
               {character?.name ?? t('chats.management.missingCharacter')}
             </span>
             <time

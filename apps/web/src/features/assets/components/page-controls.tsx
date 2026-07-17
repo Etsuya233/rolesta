@@ -80,7 +80,6 @@ export function PageControls({
               className={cn(!canGoPrevious && 'pointer-events-none opacity-40')}
               href="#"
               tabIndex={canGoPrevious ? undefined : -1}
-              text={t('assets.pagination.previousPage')}
               onClick={(event) => {
                 event.preventDefault();
                 if (canGoPrevious) {
@@ -101,7 +100,6 @@ export function PageControls({
               className={cn(!canGoNext && 'pointer-events-none opacity-40')}
               href="#"
               tabIndex={canGoNext ? undefined : -1}
-              text={t('assets.pagination.nextPage')}
               onClick={(event) => {
                 event.preventDefault();
                 if (canGoNext) {

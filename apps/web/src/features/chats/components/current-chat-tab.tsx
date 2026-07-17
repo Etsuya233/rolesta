@@ -94,7 +94,7 @@ export function CurrentChatTab({
         </Button>
       </div>
       <ScrollArea className="min-h-0 flex-1">
-        <div className="flex flex-col p-4">
+        <div className="flex w-full min-w-0 max-w-full flex-col overflow-hidden p-4">
           {!chat.chatCharacter ? (
             <Alert className="mb-3">
               <UserRoundXIcon />
@@ -173,7 +173,7 @@ function CurrentAssetRow({
   const avatarSource = avatar?.sources['64'] ?? avatar?.sources['128'];
 
   return (
-    <div className="flex min-w-0 items-center gap-3 py-2.5">
+    <div className="flex w-full min-w-0 max-w-full items-center gap-3 overflow-hidden py-2.5">
       {avatar ? (
         <Avatar size="lg">
           {avatarSource ? <AvatarImage alt={name ?? ''} src={avatarSource} /> : null}
@@ -184,12 +184,16 @@ function CurrentAssetRow({
           <Icon />
         </span>
       )}
-      <span className="flex min-w-0 flex-1 flex-col gap-0.5">
+      <span className="flex w-0 min-w-0 flex-1 flex-col gap-0.5 overflow-hidden">
         <span className="text-xs text-muted-foreground">{label}</span>
-        <span className="truncate text-sm font-medium">
+        <span className="truncate text-sm font-medium" title={name}>
           {name ?? t('chats.management.form.unselected')}
         </span>
-        {detail ? <span className="truncate text-xs text-muted-foreground">{detail}</span> : null}
+        {detail ? (
+          <span className="truncate text-xs text-muted-foreground" title={detail}>
+            {detail}
+          </span>
+        ) : null}
       </span>
     </div>
   );

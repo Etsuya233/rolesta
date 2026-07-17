@@ -378,12 +378,14 @@ test('creates a chat with visible title autofill and keeps Center unchanged', as
   await openWorkbench(page);
 
   await page.getByRole('button', { name: 'Create chat' }).click();
-  await page.getByRole('button', { name: 'Character', exact: true }).click();
-  await page.getByRole('button', { name: 'Seraphina', exact: true }).click();
+  await page.getByText('Character', { exact: true }).locator('..').getByRole('button').click();
+  await page.getByRole('button', { name: /Seraphina/ }).click();
+  await page.getByRole('button', { name: 'Confirm' }).click();
   await expect(page.getByLabel('Title')).toHaveValue('Seraphina');
   await page.getByLabel('Title').fill('Custom title');
-  await page.getByRole('button', { name: 'Character', exact: true }).click();
-  await page.getByRole('button', { name: 'Luna', exact: true }).click();
+  await page.getByText('Character', { exact: true }).locator('..').getByRole('button').click();
+  await page.getByRole('button', { name: /Luna/ }).click();
+  await page.getByRole('button', { name: 'Confirm' }).click();
   await expect(page.getByLabel('Title')).toHaveValue('Custom title');
   await page.getByRole('button', { name: 'Create', exact: true }).click();
 
@@ -409,6 +411,84 @@ test('mobile selection closes the left drawer and refresh clears active Chat', a
     'data-state',
     'active',
   );
+});
+
+test('polishes chat list interactions and character grid selection', async ({ page }) => {
+  await mockChatManagement(page);
+  const longProviderName = 'Production model connection with a deliberately overflowing name';
+  const longModelName = 'provider/model-with-a-deliberately-overflowing-version-and-context-name';
+  await page.route(/\/api\/chats\/chat_e2e$/, async (route) => {
+    await route.fulfill({
+      contentType: 'application/json',
+      json: {
+        code: 'SUCCESS',
+        msg: 'ok',
+        data: {
+          id: 'chat_e2e',
+          title: 'Existing chat',
+          chatCharacterId: 'character_e2e',
+          personaCharacterId: null,
+          presetId: null,
+          modelProviderId: 'model_provider_e2e',
+          createdAtMs: 1783090000000,
+          updatedAtMs: 1783090000000,
+          chatCharacter: { id: 'character_e2e', name: 'Seraphina', avatar: null },
+          persona: null,
+          preset: null,
+          modelProvider: {
+            id: 'model_provider_e2e',
+            name: longProviderName,
+            providerKind: 'openai',
+            defaultModelName: longModelName,
+          },
+        },
+      },
+    });
+  });
+  await openWorkbench(page);
+
+  const chatButton = page.getByRole('button', { name: /Existing chat/ });
+  const chatRow = chatButton.locator('..');
+  const backgroundBeforeHover = await chatRow.evaluate(
+    (element) => getComputedStyle(element).backgroundColor,
+  );
+  await chatButton.hover();
+  await expect
+    .poll(() => chatRow.evaluate((element) => getComputedStyle(element).backgroundColor))
+    .not.toBe(backgroundBeforeHover);
+
+  await expect(page.getByLabel('Previous page')).toHaveText('');
+  await expect(page.getByLabel('Next page')).toHaveText('');
+
+  await chatButton.click();
+  const providerName = page.getByTitle(longProviderName);
+  const modelName = page.getByTitle(`OpenAI · ${longModelName}`);
+  for (const text of [providerName, modelName]) {
+    await expect(text).toBeVisible();
+    const dimensions = await text.evaluate((element) => ({
+      clientWidth: element.clientWidth,
+      scrollWidth: element.scrollWidth,
+      textOverflow: getComputedStyle(element).textOverflow,
+    }));
+    expect(dimensions.scrollWidth).toBeGreaterThan(dimensions.clientWidth);
+    expect(dimensions.textOverflow).toBe('ellipsis');
+  }
+
+  await page.getByRole('tab', { name: 'Chat list' }).click();
+
+  await page.getByRole('button', { name: 'Create chat' }).click();
+  await page.getByText('Character', { exact: true }).locator('..').getByRole('button').click();
+  await expect(
+    page.getByText('Browse visible character cards and confirm one selection.'),
+  ).toHaveCount(0);
+  await page.getByRole('radio', { name: 'Grid view' }).click();
+
+  const characterCard = page.getByRole('button', { name: /Seraphina/ });
+  const cardBox = await characterCard.boundingBox();
+  expect(cardBox).not.toBeNull();
+  expect(cardBox!.height / cardBox!.width).toBeCloseTo(4 / 3, 1);
+  await characterCard.click();
+  await expect(characterCard).toHaveAttribute('aria-pressed', 'true');
 });
 
 async function mockWorkspaceAssetLists(page: Parameters<typeof mockAuthenticatedApp>[0]) {

@@ -96,7 +96,6 @@ export function CharacterSelectionDialog({
     <AssetSelectionDialog
       allowClear={purpose === 'persona'}
       confirmDisabled={purpose === 'character' && pendingId === null}
-      description={t('chats.management.picker.characterDescription')}
       open={open}
       pagination={
         <PageControls
@@ -298,29 +297,44 @@ function CharacterGridChoice({
   return (
     <Button
       aria-pressed={selected}
-      className="h-auto min-h-40 flex-col justify-start gap-3 p-3 text-center whitespace-normal"
+      className={cn(
+        'relative aspect-[3/4] h-auto w-full overflow-hidden border-border bg-muted p-0 text-left whitespace-normal hover:bg-muted',
+        selected && 'border-primary',
+      )}
       type="button"
-      variant={selected ? 'secondary' : 'outline'}
+      variant="outline"
       onClick={onSelect}
     >
-      <Avatar className="size-16" size="lg">
-        {avatarSource ? <AvatarImage alt={character.name} src={avatarSource} /> : null}
-        <AvatarFallback className="text-base">
+      {avatarSource ? (
+        <img
+          alt=""
+          className="absolute inset-0 size-full object-cover transition-transform duration-200 group-hover/button:scale-[1.02]"
+          src={avatarSource}
+        />
+      ) : (
+        <span className="absolute inset-0 flex items-center justify-center text-3xl font-semibold text-muted-foreground">
           {character.name.slice(0, 1).toUpperCase()}
-        </AvatarFallback>
-      </Avatar>
-      <span className="flex min-w-0 max-w-full flex-col items-center gap-1.5">
-        <span className="max-w-full truncate text-sm font-medium">{character.name}</span>
-        <span className="flex flex-wrap justify-center gap-1">
+        </span>
+      )}
+      <span className="absolute inset-x-0 bottom-0 flex min-w-0 flex-col gap-1.5 bg-linear-to-t from-black/85 via-black/55 to-transparent px-3 pt-10 pb-3 text-white">
+        <span className="truncate text-sm font-medium">{character.name}</span>
+        <span className="flex min-w-0 items-center gap-1 overflow-hidden">
           {showDefault ? <AssetDefaultBadge kind="persona" /> : null}
           {character.visibility ? (
-            <Badge variant="outline">
+            <Badge className="shrink-0 border-white/35 text-white" variant="outline">
               {t(
                 character.visibility === 'public'
                   ? 'characters.list.publicVisibility'
                   : 'characters.list.privateVisibility',
               )}
             </Badge>
+          ) : null}
+          {character.tags ? (
+            <AssetTagList
+              className="min-w-0 flex-1 flex-nowrap overflow-hidden [&_[data-slot=badge]]:border-white/35 [&_[data-slot=badge]]:text-white"
+              maxItems={1}
+              tags={character.tags}
+            />
           ) : null}
         </span>
       </span>

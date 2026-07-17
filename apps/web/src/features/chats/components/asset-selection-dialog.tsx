@@ -5,7 +5,6 @@ import { Button } from '../../../components/ui/button';
 import {
   Dialog,
   DialogContent,
-  DialogDescription,
   DialogFooter,
   DialogHeader,
   DialogTitle,
@@ -17,7 +16,6 @@ import { Skeleton } from '../../../components/ui/skeleton';
 export function AssetSelectionDialog({
   open,
   title,
-  description,
   search,
   selectedLabel,
   toolbar,
@@ -32,7 +30,6 @@ export function AssetSelectionDialog({
 }: {
   open: boolean;
   title: string;
-  description: string;
   search: string;
   selectedLabel: string;
   toolbar?: ReactNode;
@@ -52,7 +49,6 @@ export function AssetSelectionDialog({
       <DialogContent className="grid h-[calc(100dvh-1rem)] max-h-[calc(100dvh-1rem)] w-[calc(100%-1rem)] max-w-4xl grid-rows-[auto_auto_minmax(0,1fr)_auto_auto] gap-0 p-0 sm:h-[min(46rem,calc(100dvh-2rem))] sm:max-h-[calc(100dvh-2rem)]">
         <DialogHeader className="border-b px-4 py-3 pr-12">
           <DialogTitle>{title}</DialogTitle>
-          <DialogDescription>{description}</DialogDescription>
         </DialogHeader>
 
         <div className="flex shrink-0 items-center gap-2 border-b px-4 py-3">

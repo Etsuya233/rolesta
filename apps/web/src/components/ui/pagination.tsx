@@ -50,21 +50,13 @@ function PaginationLink({ className, isActive, size = 'icon', ...props }: Pagina
 function PaginationPrevious({
   ariaLabel,
   className,
-  text,
   ...props
 }: React.ComponentProps<typeof PaginationLink> & {
   ariaLabel: string;
-  text: string;
 }) {
   return (
-    <PaginationLink
-      aria-label={ariaLabel}
-      size="default"
-      className={cn('pl-1.5!', className)}
-      {...props}
-    >
-      <ChevronLeftIcon data-icon="inline-start" />
-      <span className="hidden sm:block">{text}</span>
+    <PaginationLink aria-label={ariaLabel} size="icon" className={className} {...props}>
+      <ChevronLeftIcon />
     </PaginationLink>
   );
 }
@@ -72,21 +64,13 @@ function PaginationPrevious({
 function PaginationNext({
   ariaLabel,
   className,
-  text,
   ...props
 }: React.ComponentProps<typeof PaginationLink> & {
   ariaLabel: string;
-  text: string;
 }) {
   return (
-    <PaginationLink
-      aria-label={ariaLabel}
-      size="default"
-      className={cn('pr-1.5!', className)}
-      {...props}
-    >
-      <span className="hidden sm:block">{text}</span>
-      <ChevronRightIcon data-icon="inline-end" />
+    <PaginationLink aria-label={ariaLabel} size="icon" className={className} {...props}>
+      <ChevronRightIcon />
     </PaginationLink>
   );
 }
