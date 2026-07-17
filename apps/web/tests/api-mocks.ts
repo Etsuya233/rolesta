@@ -1,7 +1,7 @@
 import type { Page, Route } from '@playwright/test';
 
 export async function mockAuthenticatedApp(page: Page) {
-  await page.route(/\/api\/auth\/setup-status$/, async (route) => {
+  await page.route(/^https?:\/\/[^/]+\/(?:api\/)?auth\/setup-status$/, async (route) => {
     await route.fulfill({
       contentType: 'application/json',
       json: {
@@ -12,7 +12,7 @@ export async function mockAuthenticatedApp(page: Page) {
     });
   });
 
-  await page.route(/\/api\/auth\/current-user$/, async (route) => {
+  await page.route(/^https?:\/\/[^/]+\/(?:api\/)?auth\/current-user$/, async (route) => {
     await route.fulfill({
       contentType: 'application/json',
       json: {

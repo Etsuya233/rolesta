@@ -103,7 +103,8 @@ function presetDraftSessionKeys(pages: PresetPage[]): string[] {
       page.name === 'editMain' ||
       page.name === 'promptList' ||
       page.name === 'entryCreate' ||
-      page.name === 'entryEdit'
+      page.name === 'entryEdit' ||
+      page.name === 'systemItemEdit'
     ) {
       sessionKeys.add(page.sessionKey);
     }

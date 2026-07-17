@@ -6,6 +6,7 @@ import { loadDatabaseConfig } from './config/database-config.js';
 import { createMigrationProvider } from './migrations/index.js';
 import { createTestDatabase } from './test-utils/create-test-database.js';
 import * as assetDefaultsDomainEventsMigration from './migrations/0013_asset_defaults_domain_events.js';
+import * as presetPromptModelMigration from './migrations/0015_preset_prompt_model.js';
 
 describe('database migrations', () => {
   const databases: Array<Awaited<ReturnType<typeof createTestDatabase>>> = [];
@@ -165,6 +166,105 @@ describe('database migrations', () => {
         'chats_owner_character_idx',
       ]),
     );
+  });
+
+  it('migrates legacy preset entries into typed prompt items without losing duplicates', async () => {
+    const database = await createTestDatabase();
+    databases.push(database);
+    await presetPromptModelMigration.down(database.db);
+    await database.db
+      .insertInto('users')
+      .values({
+        id: 'user_1',
+        username: 'owner',
+        password_hash: 'hash',
+        display_name: 'Owner',
+        role: 'user',
+        created_at: '2026-07-16T00:00:00.000Z',
+        updated_at: '2026-07-16T00:00:00.000Z',
+      })
+      .execute();
+    await database.db
+      .insertInto('presets')
+      .values({
+        id: 'preset_1',
+        owner_user_id: 'user_1',
+        visibility: 'private',
+        name: 'Legacy',
+        model_provider_id: null,
+        model_settings_json: '{"stream":true}',
+        tokenizer: 'cl100k_base',
+        source_format: 'sillytavern_preset',
+        source_snapshot_json: '{}',
+        created_at_ms: 1,
+        updated_at_ms: 1,
+        last_used_at_ms: null,
+        usage_count: 0,
+      })
+      .execute();
+    await sql`
+      insert into preset_entries (
+        id, preset_id, identifier, name, role, position, content, token_count,
+        metadata_json, created_at_ms, updated_at_ms
+      ) values
+        ('main_1', 'preset_1', 'main', 'Main', 'system', 'system', 'primary', 2,
+         '{"system_prompt":true,"forbid_overrides":true}', 1, 1),
+        ('main_2', 'preset_1', 'main', 'Duplicate Main', 'assistant', 'postHistory',
+         'duplicate', 3, '{"system_prompt":true}', 2, 2),
+        ('custom_1', 'preset_1', 'custom', 'Custom', 'user', 'preHistory', 'custom', 4,
+         '{"system_prompt":false,"injection_depth":7,"injection_order":90}', 3, 3)
+    `.execute(database.db);
+    await sql`
+      insert into preset_prompt_items (preset_id, entry_id, enabled, order_index) values
+        ('preset_1', 'main_1', 1, 0),
+        ('preset_1', 'main_2', 1, 1),
+        ('preset_1', 'custom_1', 0, 2)
+    `.execute(database.db);
+
+    await presetPromptModelMigration.up(database.db);
+
+    const entries = await sql<{
+      id: string;
+      identifier: string;
+      placement_kind: string;
+      in_chat_depth: number | null;
+    }>`select id, identifier, placement_kind, in_chat_depth from preset_entries order by id`.execute(
+      database.db,
+    );
+    const items = await sql<{
+      kind: string;
+      system_prompt_key: string | null;
+      entry_id: string | null;
+      enabled: number;
+      order_index: number;
+      allow_character_override: number | null;
+    }>`
+      select kind, system_prompt_key, entry_id, enabled, order_index, allow_character_override
+      from preset_prompt_items
+      order by order_index
+    `.execute(database.db);
+
+    expect(entries.rows).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ id: 'main_2', identifier: 'main-custom-1' }),
+        expect.objectContaining({
+          id: 'custom_1',
+          identifier: 'custom',
+          placement_kind: 'inChat',
+          in_chat_depth: 7,
+        }),
+      ]),
+    );
+    expect(items.rows).toHaveLength(14);
+    expect(items.rows[0]).toMatchObject({
+      kind: 'systemPrompt',
+      system_prompt_key: 'mainPrompt',
+      enabled: 1,
+      order_index: 0,
+      allow_character_override: 0,
+    });
+    expect(items.rows[1]).toMatchObject({ kind: 'customPrompt', entry_id: 'main_2' });
+    expect(items.rows.slice(3).every((item) => item.enabled === 0)).toBe(true);
   });
 
   it('preserves asset defaults while removing asset foreign keys', async () => {

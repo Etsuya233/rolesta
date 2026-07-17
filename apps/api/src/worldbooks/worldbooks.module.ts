@@ -10,12 +10,14 @@ import { DeleteWorldbookEntryUseCase } from './application/delete-worldbook-entr
 import { DeleteWorldbookUseCase } from './application/delete-worldbook.use-case.js';
 import { ExportWorldbookUseCase } from './application/export-worldbook.use-case.js';
 import { GetWorldbookUseCase } from './application/get-worldbook.use-case.js';
+import { GetWorldbookScanPreferencesUseCase } from './application/get-worldbook-scan-preferences.use-case.js';
 import { ImportWorldbookUseCase } from './application/import-worldbook.use-case.js';
 import { ListWorldbooksUseCase } from './application/list-worldbooks.use-case.js';
 import { UpdateWorldbookEntryOrderUseCase } from './application/update-worldbook-entry-order.use-case.js';
 import { UpdateWorldbookEntryUseCase } from './application/update-worldbook-entry.use-case.js';
 import { UpdateWorldbookDocumentUseCase } from './application/update-worldbook-document.use-case.js';
 import { UpdateWorldbookUseCase } from './application/update-worldbook.use-case.js';
+import { UpdateWorldbookScanPreferencesUseCase } from './application/update-worldbook-scan-preferences.use-case.js';
 import type {
   WorldbookClock,
   WorldbookIdGenerator,
@@ -25,16 +27,26 @@ import { WORLDBOOK_CODEC, type WorldbookCodec } from './ports/worldbook-codec.js
 import { WORLDBOOK_STORE, type WorldbookStore } from './ports/worldbook-store.js';
 import { WorldbooksController } from './http/worldbooks.controller.js';
 import { KyselyWorldbookStore } from './persistence/kysely-worldbook-store.js';
+import { KyselyWorldbookScanPreferencesStore } from './persistence/kysely-worldbook-scan-preferences-store.js';
+import {
+  WORLDBOOK_SCAN_PREFERENCES_STORE,
+  type WorldbookScanPreferencesStore,
+} from './ports/worldbook-scan-preferences-store.js';
 
 @Module({
   imports: [DatabaseModule, AuthModule],
   controllers: [WorldbooksController],
   providers: [
     KyselyWorldbookStore,
+    KyselyWorldbookScanPreferencesStore,
     SillyTavernWorldbookCodec,
     CryptoIdGenerator,
     SystemClock,
     { provide: WORLDBOOK_STORE, useExisting: KyselyWorldbookStore },
+    {
+      provide: WORLDBOOK_SCAN_PREFERENCES_STORE,
+      useExisting: KyselyWorldbookScanPreferencesStore,
+    },
     { provide: WORLDBOOK_CODEC, useExisting: SillyTavernWorldbookCodec },
     {
       provide: ListWorldbooksUseCase,
@@ -45,6 +57,18 @@ import { KyselyWorldbookStore } from './persistence/kysely-worldbook-store.js';
       provide: GetWorldbookUseCase,
       useFactory: (store: WorldbookStore) => new GetWorldbookUseCase(store),
       inject: [WORLDBOOK_STORE],
+    },
+    {
+      provide: GetWorldbookScanPreferencesUseCase,
+      useFactory: (store: WorldbookScanPreferencesStore) =>
+        new GetWorldbookScanPreferencesUseCase(store),
+      inject: [WORLDBOOK_SCAN_PREFERENCES_STORE],
+    },
+    {
+      provide: UpdateWorldbookScanPreferencesUseCase,
+      useFactory: (store: WorldbookScanPreferencesStore) =>
+        new UpdateWorldbookScanPreferencesUseCase(store),
+      inject: [WORLDBOOK_SCAN_PREFERENCES_STORE],
     },
     {
       provide: CreateWorldbookUseCase,

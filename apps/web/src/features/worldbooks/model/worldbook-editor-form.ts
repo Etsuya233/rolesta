@@ -12,9 +12,6 @@ export interface WorldbookEditorFormState {
   description: string;
   tagsText: string;
   visibility: WorldbookVisibility;
-  scanDepth: number;
-  tokenBudget: number;
-  recursiveScan: boolean;
 }
 
 export interface WorldbookEntryEditorFormState {
@@ -28,8 +25,16 @@ export interface WorldbookEntryEditorFormState {
   selectiveLogic: WorldbookSelectiveLogic;
   constant: boolean;
   vectorized: boolean;
-  caseSensitive: boolean;
-  matchWholeWords: boolean;
+  ignoreBudget: boolean;
+  useProbability: boolean;
+  caseSensitive: boolean | null;
+  matchWholeWords: boolean | null;
+  matchPersonaDescription: boolean;
+  matchCharacterDescription: boolean;
+  matchCharacterPersonality: boolean;
+  matchCharacterDepthPrompt: boolean;
+  matchScenario: boolean;
+  matchCreatorNotes: boolean;
   insertionPosition: WorldbookInsertionPosition;
   insertionOrder: number;
   depth: number;
@@ -38,7 +43,20 @@ export interface WorldbookEntryEditorFormState {
   scanDepth: number | null;
   excludeRecursion: boolean;
   preventRecursion: boolean;
-  delayUntilRecursion: boolean;
+  delayUntilRecursion: number;
+  group: string;
+  groupOverride: boolean;
+  groupWeight: number;
+  useGroupScoring: boolean | null;
+  sticky: number | null;
+  cooldown: number | null;
+  delay: number | null;
+  characterFilterNamesText: string;
+  characterFilterTagsText: string;
+  characterFilterExclude: boolean;
+  triggers: WorldbookDocument['entries'][number]['triggers'];
+  automationId: string;
+  addMemo: boolean;
   probability: number;
 }
 
@@ -47,9 +65,6 @@ export const emptyWorldbookEditorForm: WorldbookEditorFormState = {
   description: '',
   tagsText: '',
   visibility: 'private',
-  scanDepth: 3,
-  tokenBudget: 1024,
-  recursiveScan: false,
 };
 
 export const emptyWorldbookEntryEditorForm: WorldbookEntryEditorFormState = {
@@ -63,17 +78,38 @@ export const emptyWorldbookEntryEditorForm: WorldbookEntryEditorFormState = {
   selectiveLogic: 'andAny',
   constant: false,
   vectorized: false,
-  caseSensitive: false,
-  matchWholeWords: false,
+  ignoreBudget: false,
+  useProbability: true,
+  caseSensitive: null,
+  matchWholeWords: null,
+  matchPersonaDescription: false,
+  matchCharacterDescription: false,
+  matchCharacterPersonality: false,
+  matchCharacterDepthPrompt: false,
+  matchScenario: false,
+  matchCreatorNotes: false,
   insertionPosition: 'beforeCharacterDefinition',
-  insertionOrder: 0,
-  depth: 3,
+  insertionOrder: 100,
+  depth: 4,
   insertionRole: 'system',
   anchorName: '',
   scanDepth: null,
   excludeRecursion: false,
   preventRecursion: false,
-  delayUntilRecursion: false,
+  delayUntilRecursion: 0,
+  group: '',
+  groupOverride: false,
+  groupWeight: 100,
+  useGroupScoring: null,
+  sticky: null,
+  cooldown: null,
+  delay: null,
+  characterFilterNamesText: '',
+  characterFilterTagsText: '',
+  characterFilterExclude: false,
+  triggers: [],
+  automationId: '',
+  addMemo: false,
   probability: 100,
 };
 
@@ -85,15 +121,11 @@ export function worldbookEditorFormFromDetail(
     description: worldbook.description,
     tagsText: worldbook.tags.join(', '),
     visibility: worldbook.visibility,
-    scanDepth: worldbook.scanDepth,
-    tokenBudget: worldbook.tokenBudget,
-    recursiveScan: worldbook.recursiveScan,
   };
 }
 
 export function worldbookEntryEditorFormFromEntry(
   entry: WorldbookDocument['entries'][number],
-  insertionOrder: number,
 ): WorldbookEntryEditorFormState {
   return {
     enabled: entry.enabled,
@@ -106,10 +138,18 @@ export function worldbookEntryEditorFormFromEntry(
     selectiveLogic: entry.selectiveLogic,
     constant: entry.constant,
     vectorized: entry.vectorized,
+    ignoreBudget: entry.ignoreBudget,
+    useProbability: entry.useProbability,
     caseSensitive: entry.caseSensitive,
     matchWholeWords: entry.matchWholeWords,
+    matchPersonaDescription: entry.matchPersonaDescription,
+    matchCharacterDescription: entry.matchCharacterDescription,
+    matchCharacterPersonality: entry.matchCharacterPersonality,
+    matchCharacterDepthPrompt: entry.matchCharacterDepthPrompt,
+    matchScenario: entry.matchScenario,
+    matchCreatorNotes: entry.matchCreatorNotes,
     insertionPosition: entry.insertionPosition,
-    insertionOrder,
+    insertionOrder: entry.insertionOrder,
     depth: entry.depth,
     insertionRole: entry.insertionRole,
     anchorName: entry.anchorName,
@@ -117,6 +157,19 @@ export function worldbookEntryEditorFormFromEntry(
     excludeRecursion: entry.excludeRecursion,
     preventRecursion: entry.preventRecursion,
     delayUntilRecursion: entry.delayUntilRecursion,
+    group: entry.group,
+    groupOverride: entry.groupOverride,
+    groupWeight: entry.groupWeight,
+    useGroupScoring: entry.useGroupScoring,
+    sticky: entry.sticky,
+    cooldown: entry.cooldown,
+    delay: entry.delay,
+    characterFilterNamesText: entry.characterFilterNames.join(', '),
+    characterFilterTagsText: entry.characterFilterTags.join(', '),
+    characterFilterExclude: entry.characterFilterExclude,
+    triggers: entry.triggers,
+    automationId: entry.automationId,
+    addMemo: entry.addMemo,
     probability: entry.probability,
   };
 }
@@ -127,9 +180,6 @@ export function worldbookValuesFromForm(form: WorldbookEditorFormState) {
     description: form.description,
     tags: textListFromInput(form.tagsText),
     visibility: form.visibility,
-    scanDepth: form.scanDepth,
-    tokenBudget: form.tokenBudget,
-    recursiveScan: form.recursiveScan,
   };
 }
 
@@ -145,9 +195,18 @@ export function worldbookEntryValuesFromForm(form: WorldbookEntryEditorFormState
     selectiveLogic: form.selectiveLogic,
     constant: form.constant,
     vectorized: form.vectorized,
+    ignoreBudget: form.ignoreBudget,
+    useProbability: form.useProbability,
     caseSensitive: form.caseSensitive,
     matchWholeWords: form.matchWholeWords,
+    matchPersonaDescription: form.matchPersonaDescription,
+    matchCharacterDescription: form.matchCharacterDescription,
+    matchCharacterPersonality: form.matchCharacterPersonality,
+    matchCharacterDepthPrompt: form.matchCharacterDepthPrompt,
+    matchScenario: form.matchScenario,
+    matchCreatorNotes: form.matchCreatorNotes,
     insertionPosition: form.insertionPosition,
+    insertionOrder: form.insertionOrder,
     depth: form.depth,
     insertionRole: form.insertionRole,
     anchorName: form.anchorName.trim(),
@@ -155,6 +214,19 @@ export function worldbookEntryValuesFromForm(form: WorldbookEntryEditorFormState
     excludeRecursion: form.excludeRecursion,
     preventRecursion: form.preventRecursion,
     delayUntilRecursion: form.delayUntilRecursion,
+    group: form.group,
+    groupOverride: form.groupOverride,
+    groupWeight: form.groupWeight,
+    useGroupScoring: form.useGroupScoring,
+    sticky: form.sticky,
+    cooldown: form.cooldown,
+    delay: form.delay,
+    characterFilterNames: textListFromInput(form.characterFilterNamesText),
+    characterFilterTags: textListFromInput(form.characterFilterTagsText),
+    characterFilterExclude: form.characterFilterExclude,
+    triggers: form.triggers,
+    automationId: form.automationId,
+    addMemo: form.addMemo,
     probability: form.probability,
   };
 }
@@ -165,11 +237,8 @@ export function worldbookDocumentFromDetail(worldbook: WorldbookDetailResponse):
     name: worldbook.name,
     description: worldbook.description,
     tags: worldbook.tags,
-    scanDepth: worldbook.scanDepth,
-    tokenBudget: worldbook.tokenBudget,
-    recursiveScan: worldbook.recursiveScan,
     entries: [...worldbook.entries]
-      .sort((left, right) => left.insertionOrder - right.insertionOrder)
+      .sort((left, right) => left.displayIndex - right.displayIndex)
       .map((entry) => ({
         id: entry.id,
         enabled: entry.enabled,
@@ -182,9 +251,18 @@ export function worldbookDocumentFromDetail(worldbook: WorldbookDetailResponse):
         selectiveLogic: entry.selectiveLogic,
         constant: entry.constant,
         vectorized: entry.vectorized,
+        ignoreBudget: entry.ignoreBudget,
+        useProbability: entry.useProbability,
         caseSensitive: entry.caseSensitive,
         matchWholeWords: entry.matchWholeWords,
+        matchPersonaDescription: entry.matchPersonaDescription,
+        matchCharacterDescription: entry.matchCharacterDescription,
+        matchCharacterPersonality: entry.matchCharacterPersonality,
+        matchCharacterDepthPrompt: entry.matchCharacterDepthPrompt,
+        matchScenario: entry.matchScenario,
+        matchCreatorNotes: entry.matchCreatorNotes,
         insertionPosition: entry.insertionPosition,
+        insertionOrder: entry.insertionOrder,
         depth: entry.depth,
         insertionRole: entry.insertionRole,
         anchorName: entry.anchorName,
@@ -192,6 +270,19 @@ export function worldbookDocumentFromDetail(worldbook: WorldbookDetailResponse):
         excludeRecursion: entry.excludeRecursion,
         preventRecursion: entry.preventRecursion,
         delayUntilRecursion: entry.delayUntilRecursion,
+        group: entry.group,
+        groupOverride: entry.groupOverride,
+        groupWeight: entry.groupWeight,
+        useGroupScoring: entry.useGroupScoring,
+        sticky: entry.sticky,
+        cooldown: entry.cooldown,
+        delay: entry.delay,
+        characterFilterNames: entry.characterFilterNames,
+        characterFilterTags: entry.characterFilterTags,
+        characterFilterExclude: entry.characterFilterExclude,
+        triggers: entry.triggers,
+        automationId: entry.automationId,
+        addMemo: entry.addMemo,
         probability: entry.probability,
       })),
   };

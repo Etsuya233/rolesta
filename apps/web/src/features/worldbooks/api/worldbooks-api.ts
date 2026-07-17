@@ -14,6 +14,7 @@ export type WorldbookEntryResponse = components['schemas']['WorldbookEntryRespon
 export type WorldbookPageResponse = components['schemas']['WorldbookPageResponseDto'];
 export type WorldbookCreateValues = components['schemas']['CreateWorldbookRequestDto'];
 export type WorldbookDocument = components['schemas']['UpdateWorldbookDocumentRequestDto'];
+export type WorldbookScanPreferences = components['schemas']['WorldbookScanPreferencesDto'];
 
 export type WorldbookVisibility = WorldbookSummaryResponse['visibility'];
 export type WorldbookInsertionPosition = WorldbookEntryResponse['insertionPosition'];
@@ -35,6 +36,20 @@ export async function listWorldbooks(query: ListWorldbooksQuery): Promise<Worldb
 export async function getWorldbook(id: string): Promise<WorldbookDetailResponse> {
   const result = await requestApi(
     openApiClient.GET('/worldbooks/{id}', { params: { path: { id } } }),
+  );
+  return result.data;
+}
+
+export async function getWorldbookScanPreferences(): Promise<WorldbookScanPreferences> {
+  const result = await requestApi(openApiClient.GET('/worldbooks/scan-preferences'));
+  return result.data;
+}
+
+export async function updateWorldbookScanPreferences(
+  preferences: WorldbookScanPreferences,
+): Promise<WorldbookScanPreferences> {
+  const result = await requestApi(
+    openApiClient.PUT('/worldbooks/scan-preferences', { body: preferences }),
   );
   return result.data;
 }

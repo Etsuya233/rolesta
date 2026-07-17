@@ -27,12 +27,14 @@ import { DeleteWorldbookEntryUseCase } from '../application/delete-worldbook-ent
 import { DeleteWorldbookUseCase } from '../application/delete-worldbook.use-case.js';
 import { ExportWorldbookUseCase } from '../application/export-worldbook.use-case.js';
 import { GetWorldbookUseCase } from '../application/get-worldbook.use-case.js';
+import { GetWorldbookScanPreferencesUseCase } from '../application/get-worldbook-scan-preferences.use-case.js';
 import { ImportWorldbookUseCase } from '../application/import-worldbook.use-case.js';
 import { ListWorldbooksUseCase } from '../application/list-worldbooks.use-case.js';
 import { UpdateWorldbookEntryOrderUseCase } from '../application/update-worldbook-entry-order.use-case.js';
 import { UpdateWorldbookEntryUseCase } from '../application/update-worldbook-entry.use-case.js';
 import { UpdateWorldbookDocumentUseCase } from '../application/update-worldbook-document.use-case.js';
 import { UpdateWorldbookUseCase } from '../application/update-worldbook.use-case.js';
+import { UpdateWorldbookScanPreferencesUseCase } from '../application/update-worldbook-scan-preferences.use-case.js';
 import {
   WorldbookApplicationError,
   type WorldbookApplicationErrorReason,
@@ -53,6 +55,7 @@ import {
   WorldbookDetailResponseDto,
   WorldbookPageResponseDto,
 } from './worldbook-responses.dto.js';
+import { WorldbookScanPreferencesDto } from './worldbook-scan-preferences.dto.js';
 
 @ApiTags('worldbooks')
 @UseGuards(AuthGuard)
@@ -71,6 +74,8 @@ export class WorldbooksController {
     private readonly updateWorldbookEntryUseCase: UpdateWorldbookEntryUseCase,
     private readonly deleteWorldbookEntryUseCase: DeleteWorldbookEntryUseCase,
     private readonly updateWorldbookEntryOrderUseCase: UpdateWorldbookEntryOrderUseCase,
+    private readonly getScanPreferencesUseCase: GetWorldbookScanPreferencesUseCase,
+    private readonly updateScanPreferencesUseCase: UpdateWorldbookScanPreferencesUseCase,
   ) {}
 
   @Get()
@@ -85,6 +90,22 @@ export class WorldbooksController {
         ...query,
       }),
     );
+  }
+
+  @Get('scan-preferences')
+  @ApiEnvelopeOkResponse({ type: WorldbookScanPreferencesDto })
+  getScanPreferences(@Req() request: AuthenticatedRequest): Promise<WorldbookScanPreferencesDto> {
+    return this.getScanPreferencesUseCase.execute(request.authUser.id);
+  }
+
+  @Put('scan-preferences')
+  @ApiBody({ type: WorldbookScanPreferencesDto })
+  @ApiEnvelopeOkResponse({ type: WorldbookScanPreferencesDto })
+  updateScanPreferences(
+    @Req() request: AuthenticatedRequest,
+    @Body() body: WorldbookScanPreferencesDto,
+  ): Promise<WorldbookScanPreferencesDto> {
+    return this.updateScanPreferencesUseCase.execute(request.authUser.id, body);
   }
 
   @Get(':id')

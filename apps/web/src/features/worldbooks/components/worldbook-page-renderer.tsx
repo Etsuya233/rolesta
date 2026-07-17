@@ -5,10 +5,12 @@ import { WorldbookEntryEditPage } from './worldbook-entry-edit-page';
 import { WorldbookEntryListPage } from './worldbook-entry-list-page';
 import { WorldbookImportPage } from './worldbook-import-page';
 import { WorldbookListPage } from './worldbook-list-page';
+import { WorldbookScanPreferencesPage } from './worldbook-scan-preferences-page';
 import {
   createWorldbookPage,
   editWorldbookPage,
   importWorldbookPage,
+  worldbookScanPreferencesPage,
   type WorldbookPage,
 } from './worldbook-pages';
 
@@ -31,9 +33,14 @@ export function WorldbookPageRenderer({
         onBack={onRootBack}
         onCreate={() => pushPage(createWorldbookPage())}
         onImport={() => pushPage(importWorldbookPage())}
+        onSettings={() => pushPage(worldbookScanPreferencesPage())}
         onSelectWorldbook={(worldbookId) => pushPage(editWorldbookPage(worldbookId))}
       />
     );
+  }
+
+  if (page.name === 'scanPreferences') {
+    return <WorldbookScanPreferencesPage onBack={popPage} />;
   }
 
   if (page.name === 'create') {

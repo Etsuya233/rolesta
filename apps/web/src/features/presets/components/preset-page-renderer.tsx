@@ -5,6 +5,7 @@ import { PresetEntryEditPage } from './preset-entry-edit-page';
 import { PresetImportPage } from './preset-import-page';
 import { PresetListPage } from './preset-list-page';
 import { PresetPromptListPage } from './preset-prompt-list-page';
+import { PresetSystemItemEditPage } from './preset-system-item-edit-page';
 import {
   createPresetPage,
   editPresetPage,
@@ -54,6 +55,10 @@ export function PresetPageRenderer({
 
   if (page.name === 'entryEdit') {
     return <PresetEntryEditPage page={page} onBack={popPage} />;
+  }
+
+  if (page.name === 'systemItemEdit') {
+    return <PresetSystemItemEditPage page={page} onBack={popPage} />;
   }
 
   return <PresetImportPage replacePage={replacePage} onBack={popPage} />;

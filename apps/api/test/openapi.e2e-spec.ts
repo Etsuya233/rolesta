@@ -67,6 +67,52 @@ describe('OpenAPI document', () => {
         expect.arrayContaining([expect.objectContaining({ in: 'query', name: 'scope' })]),
       );
     }
+    expect(document.paths['/worldbooks/scan-preferences']?.get).toBeDefined();
+    expect(document.paths['/worldbooks/scan-preferences']?.put?.requestBody).toMatchObject({
+      content: {
+        'application/json': {
+          schema: { $ref: '#/components/schemas/WorldbookScanPreferencesDto' },
+        },
+      },
+    });
+    const worldbookSummarySchema = document.components?.schemas?.WorldbookSummaryResponseDto as {
+      properties?: Record<string, unknown>;
+    };
+    expect(worldbookSummarySchema.properties).not.toHaveProperty('scanDepth');
+    expect(worldbookSummarySchema.properties).not.toHaveProperty('tokenBudget');
+    expect(worldbookSummarySchema.properties).not.toHaveProperty('recursiveScan');
+    const worldbookEntrySchema = document.components?.schemas?.WorldbookEntryResponseDto as {
+      required?: string[];
+      properties?: Record<string, Record<string, unknown>>;
+    };
+    expect(worldbookEntrySchema.required).toEqual(
+      expect.arrayContaining([
+        'ignoreBudget',
+        'insertionOrder',
+        'displayIndex',
+        'useProbability',
+        'matchPersonaDescription',
+        'useGroupScoring',
+        'sticky',
+        'triggers',
+      ]),
+    );
+    expect(worldbookEntrySchema.properties?.caseSensitive).toMatchObject({ nullable: true });
+    expect(worldbookEntrySchema.properties?.matchWholeWords).toMatchObject({ nullable: true });
+    expect(worldbookEntrySchema.properties?.useGroupScoring).toMatchObject({ nullable: true });
+    const worldbookDocumentEntrySchema = document.components?.schemas?.WorldbookDocumentEntryDto as {
+      required?: string[];
+    };
+    expect(worldbookDocumentEntrySchema.required).toEqual(
+      expect.arrayContaining(['insertionOrder', 'scanDepth']),
+    );
+    expect(worldbookEntrySchema.properties?.triggers).toMatchObject({
+      type: 'array',
+      items: {
+        type: 'string',
+        enum: ['normal', 'continue', 'impersonate', 'swipe', 'regenerate', 'quiet'],
+      },
+    });
     const presetSummarySchema = document.components?.schemas?.PresetSummaryResponseDto as {
       required?: string[];
       properties?: Record<string, unknown>;

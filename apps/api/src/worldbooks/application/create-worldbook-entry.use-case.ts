@@ -27,8 +27,16 @@ export interface CreateWorldbookEntryCommand {
   selectiveLogic?: WorldbookSelectiveLogic;
   constant?: boolean;
   vectorized?: boolean;
-  caseSensitive?: boolean;
-  matchWholeWords?: boolean;
+  ignoreBudget?: boolean;
+  useProbability?: boolean;
+  caseSensitive?: boolean | null;
+  matchWholeWords?: boolean | null;
+  matchPersonaDescription?: boolean;
+  matchCharacterDescription?: boolean;
+  matchCharacterPersonality?: boolean;
+  matchCharacterDepthPrompt?: boolean;
+  matchScenario?: boolean;
+  matchCreatorNotes?: boolean;
   insertionPosition?: WorldbookInsertionPosition;
   insertionOrder?: number;
   depth?: number;
@@ -37,7 +45,20 @@ export interface CreateWorldbookEntryCommand {
   scanDepth?: number | null;
   excludeRecursion?: boolean;
   preventRecursion?: boolean;
-  delayUntilRecursion?: boolean;
+  delayUntilRecursion?: number;
+  group?: string;
+  groupOverride?: boolean;
+  groupWeight?: number;
+  useGroupScoring?: boolean | null;
+  sticky?: number | null;
+  cooldown?: number | null;
+  delay?: number | null;
+  characterFilterNames?: string[];
+  characterFilterTags?: string[];
+  characterFilterExclude?: boolean;
+  triggers?: WorldbookEntry['triggers'];
+  automationId?: string;
+  addMemo?: boolean;
   probability?: number;
 }
 
@@ -72,9 +93,8 @@ export class CreateWorldbookEntryUseCase {
       }
 
       const nowMs = ensureEpochMillis(this.clock.now().getTime());
-      const nextOrder =
-        command.insertionOrder ??
-        current.entries.reduce((max, entry) => Math.max(max, entry.insertionOrder), -1) + 1;
+      const displayIndex =
+        current.entries.reduce((max, entry) => Math.max(max, entry.displayIndex), -1) + 1;
       const entry: WorldbookEntry = {
         id: this.idGenerator.createId(),
         worldbookId: current.id,
@@ -88,17 +108,39 @@ export class CreateWorldbookEntryUseCase {
         selectiveLogic: command.selectiveLogic ?? 'andAny',
         constant: command.constant ?? false,
         vectorized: command.vectorized ?? false,
-        caseSensitive: command.caseSensitive ?? false,
-        matchWholeWords: command.matchWholeWords ?? false,
+        ignoreBudget: command.ignoreBudget ?? false,
+        useProbability: command.useProbability ?? true,
+        caseSensitive: command.caseSensitive === undefined ? null : command.caseSensitive,
+        matchWholeWords: command.matchWholeWords === undefined ? null : command.matchWholeWords,
+        matchPersonaDescription: command.matchPersonaDescription ?? false,
+        matchCharacterDescription: command.matchCharacterDescription ?? false,
+        matchCharacterPersonality: command.matchCharacterPersonality ?? false,
+        matchCharacterDepthPrompt: command.matchCharacterDepthPrompt ?? false,
+        matchScenario: command.matchScenario ?? false,
+        matchCreatorNotes: command.matchCreatorNotes ?? false,
         insertionPosition: command.insertionPosition ?? 'beforeCharacterDefinition',
-        insertionOrder: nextOrder,
-        depth: command.depth ?? current.scanDepth,
+        insertionOrder: command.insertionOrder ?? 100,
+        displayIndex,
+        depth: command.depth ?? 4,
         insertionRole: command.insertionRole ?? 'system',
         anchorName: command.anchorName ?? '',
         scanDepth: command.scanDepth === undefined ? null : command.scanDepth,
         excludeRecursion: command.excludeRecursion ?? false,
         preventRecursion: command.preventRecursion ?? false,
-        delayUntilRecursion: command.delayUntilRecursion ?? false,
+        delayUntilRecursion: command.delayUntilRecursion ?? 0,
+        group: command.group ?? '',
+        groupOverride: command.groupOverride ?? false,
+        groupWeight: command.groupWeight ?? 100,
+        useGroupScoring: command.useGroupScoring === undefined ? null : command.useGroupScoring,
+        sticky: command.sticky === undefined ? null : command.sticky,
+        cooldown: command.cooldown === undefined ? null : command.cooldown,
+        delay: command.delay === undefined ? null : command.delay,
+        characterFilterNames: command.characterFilterNames ?? [],
+        characterFilterTags: command.characterFilterTags ?? [],
+        characterFilterExclude: command.characterFilterExclude ?? false,
+        triggers: command.triggers ?? [],
+        automationId: command.automationId ?? '',
+        addMemo: command.addMemo ?? false,
         probability: command.probability ?? 100,
         tokenCount: countPromptTokens(command.content),
         createdAtMs: nowMs,

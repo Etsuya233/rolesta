@@ -4,10 +4,13 @@ import type { UnitOfWork } from '../../common/application/unit-of-work.js';
 import type { DomainEventPublisher } from '../../common/events/index.js';
 import { ensureEpochMillis } from '../../shared/epoch-millis.js';
 import {
+  isReservedPresetIdentifier,
   withPresetTokenCount,
   type Preset,
-  type PresetEntryPosition,
   type PresetEntryRole,
+  type PresetGenerationType,
+  type PresetPromptItem,
+  type PresetPromptPlacement,
   type PresetVisibility,
 } from '../domain/preset.js';
 import type { PresetModelSettings } from '../domain/preset-model-settings.js';
@@ -22,13 +25,9 @@ export interface PresetDocumentEntry {
   id: string;
   name: string;
   role: PresetEntryRole;
-  position: PresetEntryPosition;
   content: string;
-}
-
-export interface PresetDocumentPromptItem {
-  entryId: string;
-  enabled: boolean;
+  placement: PresetPromptPlacement;
+  generationTypes: PresetGenerationType[];
 }
 
 export interface UpdatePresetDocumentCommand {
@@ -39,7 +38,7 @@ export interface UpdatePresetDocumentCommand {
   modelProviderId: string | null;
   modelSettings: PresetModelSettings;
   entries: PresetDocumentEntry[];
-  promptItems: PresetDocumentPromptItem[];
+  promptItems: PresetPromptItem[];
 }
 
 export class UpdatePresetDocumentUseCase {
@@ -64,7 +63,7 @@ export class UpdatePresetDocumentUseCase {
       }
 
       assertUniqueEntryIds(command.presetId, command.entries);
-      assertValidPromptItems(command.presetId, command.entries, command.promptItems);
+      assertStableSystemItemIds(current, command.promptItems);
 
       if (
         command.modelProviderId !== null &&
@@ -80,35 +79,56 @@ export class UpdatePresetDocumentUseCase {
       const currentEntryById = new Map(current.entries.map((entry) => [entry.id, entry]));
       const entries = command.entries.map((entry) => {
         const existing = currentEntryById.get(entry.id);
+        const identifier = existing?.identifier ?? entry.id;
+
+        if (isReservedPresetIdentifier(identifier)) {
+          throw new PresetApplicationError({
+            reason: 'invalid-preset',
+            params: { field: 'entries.identifier' },
+          });
+        }
 
         return {
           id: entry.id,
           presetId: current.id,
-          identifier: existing?.identifier ?? entry.id,
+          identifier,
           name: entry.name,
           role: entry.role,
-          position: entry.position,
           content: entry.content,
+          placement: entry.placement,
+          generationTypes: entry.generationTypes,
           tokenCount: countPromptTokens(entry.content),
           metadata: existing?.metadata ?? {},
           createdAtMs: existing?.createdAtMs ?? nowMs,
           updatedAtMs: nowMs,
         };
       });
-      const updated = withPresetTokenCount({
-        ...current,
-        visibility: command.visibility,
-        name: command.name,
-        modelProviderId: command.modelProviderId,
-        modelSettings: command.modelSettings,
-        entries,
-        promptItems: command.promptItems.map((item, orderIndex) => ({
-          entryId: item.entryId,
-          enabled: item.enabled,
-          orderIndex,
-        })),
-        updatedAtMs: nowMs,
-      });
+      let updated: Preset;
+
+      try {
+        updated = withPresetTokenCount({
+          ...current,
+          visibility: command.visibility,
+          name: command.name,
+          modelProviderId: command.modelProviderId,
+          modelSettings: command.modelSettings,
+          entries,
+          promptItems: command.promptItems.map((item, orderIndex) => ({
+            ...item,
+            orderIndex,
+            ...(item.kind === 'systemPrompt'
+              ? { tokenCount: countPromptTokens(item.content) }
+              : {}),
+          })),
+          updatedAtMs: nowMs,
+        });
+      } catch (error) {
+        throw new PresetApplicationError({
+          reason: 'invalid-preset',
+          params: { field: 'promptItems' },
+          cause: error,
+        });
+      }
 
       await this.store.update(updated);
       await this.store.updateModelProviderAssociation(
@@ -145,29 +165,31 @@ function assertUniqueEntryIds(presetId: string, entries: PresetDocumentEntry[]):
   }
 }
 
-function assertValidPromptItems(
-  presetId: string,
-  entries: PresetDocumentEntry[],
-  promptItems: PresetDocumentPromptItem[],
-): void {
-  const knownEntryIds = new Set(entries.map((entry) => entry.id));
-  const linkedEntryIds = new Set<string>();
+function assertStableSystemItemIds(current: Preset, promptItems: PresetPromptItem[]): void {
+  const currentSystemItemById = new Map(
+    current.promptItems
+      .filter((item) => item.kind !== 'customPrompt')
+      .map((item) => [item.id, item]),
+  );
 
   for (const item of promptItems) {
-    if (linkedEntryIds.has(item.entryId)) {
-      throw new PresetApplicationError({
-        reason: 'duplicate-entry',
-        params: { presetId, entryId: item.entryId },
-      });
+    if (item.kind === 'customPrompt') {
+      continue;
     }
 
-    if (!knownEntryIds.has(item.entryId)) {
+    const currentItem = currentSystemItemById.get(item.id);
+    const sameSystemKey =
+      currentItem !== undefined &&
+      ((item.kind === 'systemPrompt' &&
+        currentItem.kind === 'systemPrompt' &&
+        currentItem.systemPrompt === item.systemPrompt) ||
+        (item.kind === 'slot' && currentItem.kind === 'slot' && currentItem.slot === item.slot));
+
+    if (!sameSystemKey) {
       throw new PresetApplicationError({
-        reason: 'unknown-entry',
-        params: { presetId, entryId: item.entryId },
+        reason: 'invalid-preset',
+        params: { field: 'promptItems.id' },
       });
     }
-
-    linkedEntryIds.add(item.entryId);
   }
 }

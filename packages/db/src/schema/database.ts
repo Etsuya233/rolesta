@@ -4,7 +4,11 @@ import type { AssetDefaultsTable } from './asset-defaults.js';
 import type { ApiKeysTable, ModelProviderConfigsTable } from './model-providers.js';
 import type { PresetEntriesTable, PresetPromptItemsTable, PresetsTable } from './presets.js';
 import type { MigrationLockTable, SessionsTable, UsersTable } from './users.js';
-import type { WorldbookEntriesTable, WorldbooksTable } from './worldbooks.js';
+import type {
+  WorldbookEntriesTable,
+  WorldbookScanPreferencesTable,
+  WorldbooksTable,
+} from './worldbooks.js';
 import type { FileContentsTable, FileObjectsTable, FileResourcesTable } from './files.js';
 
 export interface Database {
@@ -20,6 +24,7 @@ export interface Database {
   preset_prompt_items: PresetPromptItemsTable;
   worldbooks: WorldbooksTable;
   worldbook_entries: WorldbookEntriesTable;
+  worldbook_scan_preferences: WorldbookScanPreferencesTable;
   file_resources: FileResourcesTable;
   file_objects: FileObjectsTable;
   file_contents: FileContentsTable;

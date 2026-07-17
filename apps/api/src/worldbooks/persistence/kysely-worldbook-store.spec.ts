@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { createTestDatabase } from '../../../../../packages/db/src/test-utils/create-test-database.js';
 import { KyselyDatabaseContext } from '../../database/kysely-database-context.js';
 import { KyselyUnitOfWork } from '../../database/kysely-unit-of-work.js';
-import type { Worldbook } from '../domain/worldbook.js';
+import type { Worldbook, WorldbookEntry } from '../domain/worldbook.js';
 import { KyselyWorldbookStore } from './kysely-worldbook-store.js';
 
 describe('KyselyWorldbookStore', () => {
@@ -42,6 +42,58 @@ describe('KyselyWorldbookStore', () => {
       await expect(listIds(store, 'all')).resolves.toEqual(['mine', 'public']);
       await expect(listIds(store, 'mine')).resolves.toEqual(['mine']);
       await expect(listIds(store, 'public')).resolves.toEqual(['public']);
+    } finally {
+      await database.destroy();
+    }
+  });
+
+  it('round-trips core scan fields and nullable preference overrides', async () => {
+    const database = await createTestDatabase();
+    const context = new KyselyDatabaseContext(database.db);
+    const unitOfWork = new KyselyUnitOfWork(database.db, context);
+    const store = new KyselyWorldbookStore(context);
+    const book = worldbook({ entries: [worldbookEntry()] });
+
+    try {
+      await seedUser(database.db, 'owner');
+      await unitOfWork.run(() => store.save(book));
+
+      const saved = await store.findOwnedById(book.id, 'owner');
+      expect(saved?.entries[0]).toMatchObject({
+        vectorized: true,
+        ignoreBudget: true,
+        useProbability: false,
+        caseSensitive: null,
+        matchWholeWords: false,
+        matchPersonaDescription: true,
+        matchCharacterDescription: true,
+        matchCharacterPersonality: true,
+        matchCharacterDepthPrompt: true,
+        matchScenario: true,
+        matchCreatorNotes: true,
+        scanDepth: 7,
+        delayUntilRecursion: 2,
+        group: 'weather, region',
+        groupOverride: true,
+        groupWeight: 75,
+        useGroupScoring: null,
+        sticky: 3,
+        cooldown: 4,
+        delay: 5,
+        characterFilterNames: ['seraphina.png'],
+        characterFilterTags: ['guardian'],
+        characterFilterExclude: true,
+        triggers: ['normal', 'regenerate'],
+        automationId: 'quick-reply-1',
+        addMemo: true,
+      });
+      await expect(
+        database.db
+          .selectFrom('worldbook_entries')
+          .select(['case_sensitive', 'match_whole_words'])
+          .where('id', '=', 'entry')
+          .executeTakeFirstOrThrow(),
+      ).resolves.toEqual({ case_sensitive: -1, match_whole_words: 0 });
     } finally {
       await database.destroy();
     }
@@ -89,9 +141,6 @@ function worldbook(overrides: Partial<Worldbook>): Worldbook {
     name: overrides.name ?? overrides.id ?? 'Worldbook',
     description: '',
     tags: [],
-    scanDepth: 3,
-    tokenBudget: 1024,
-    recursiveScan: false,
     entries: [],
     sourceFormat: 'rolesta',
     sourceSnapshot: {},
@@ -100,5 +149,59 @@ function worldbook(overrides: Partial<Worldbook>): Worldbook {
     lastUsedAtMs: null,
     usageCount: 0,
     ...overrides,
+  };
+}
+
+function worldbookEntry(): WorldbookEntry {
+  return {
+    id: 'entry',
+    worldbookId: 'worldbook',
+    enabled: true,
+    name: 'Entry',
+    comment: 'Memo',
+    content: 'Lore',
+    primaryKeys: ['lore'],
+    secondaryKeys: ['archive'],
+    selective: true,
+    selectiveLogic: 'andAny',
+    constant: false,
+    vectorized: true,
+    ignoreBudget: true,
+    useProbability: false,
+    caseSensitive: null,
+    matchWholeWords: false,
+    matchPersonaDescription: true,
+    matchCharacterDescription: true,
+    matchCharacterPersonality: true,
+    matchCharacterDepthPrompt: true,
+    matchScenario: true,
+    matchCreatorNotes: true,
+    insertionPosition: 'atDepth',
+    insertionOrder: 10,
+    displayIndex: 0,
+    depth: 4,
+    insertionRole: 'assistant',
+    anchorName: '',
+    scanDepth: 7,
+    excludeRecursion: true,
+    preventRecursion: true,
+    delayUntilRecursion: 2,
+    group: 'weather, region',
+    groupOverride: true,
+    groupWeight: 75,
+    useGroupScoring: null,
+    sticky: 3,
+    cooldown: 4,
+    delay: 5,
+    characterFilterNames: ['seraphina.png'],
+    characterFilterTags: ['guardian'],
+    characterFilterExclude: true,
+    triggers: ['normal', 'regenerate'],
+    automationId: 'quick-reply-1',
+    addMemo: true,
+    probability: 60,
+    tokenCount: 1,
+    createdAtMs: 1783090000000,
+    updatedAtMs: 1783090000000,
   };
 }

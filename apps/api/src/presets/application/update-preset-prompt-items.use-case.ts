@@ -12,7 +12,7 @@ export interface UpdatePresetPromptItemsCommand {
   presetId: string;
   viewerUserId: string;
   items: Array<{
-    entryId: string;
+    id: string;
     enabled: boolean;
   }>;
 }
@@ -38,43 +38,53 @@ export class UpdatePresetPromptItemsUseCase {
         });
       }
 
-      const entryIds = new Set<string>();
+      const itemIds = new Set<string>();
 
       for (const item of command.items) {
-        if (entryIds.has(item.entryId)) {
+        if (itemIds.has(item.id)) {
           throw new PresetApplicationError({
             reason: 'duplicate-entry',
             params: {
               presetId: command.presetId,
-              entryId: item.entryId,
+              entryId: item.id,
             },
           });
         }
 
-        entryIds.add(item.entryId);
+        itemIds.add(item.id);
 
-        if (!current.entries.some((entry) => entry.id === item.entryId)) {
+        if (!current.promptItems.some((candidate) => candidate.id === item.id)) {
           throw new PresetApplicationError({
             reason: 'unknown-entry',
             params: {
               presetId: command.presetId,
-              entryId: item.entryId,
+              entryId: item.id,
             },
           });
         }
       }
 
       const nowMs = ensureEpochMillis(this.clock.now().getTime());
-      const promptItems: PresetPromptItem[] = command.items.map((item, index) => ({
-        entryId: item.entryId,
+      const currentItemById = new Map(current.promptItems.map((item) => [item.id, item]));
+      const promptItems: PresetPromptItem[] = command.items.map((item, orderIndex) => ({
+        ...currentItemById.get(item.id)!,
         enabled: item.enabled,
-        orderIndex: index,
+        orderIndex,
       }));
-      const updated = withPresetTokenCount({
-        ...current,
-        promptItems,
-        updatedAtMs: nowMs,
-      });
+      let updated: Preset;
+      try {
+        updated = withPresetTokenCount({
+          ...current,
+          promptItems,
+          updatedAtMs: nowMs,
+        });
+      } catch (error) {
+        throw new PresetApplicationError({
+          reason: 'invalid-preset',
+          params: { field: 'promptItems' },
+          cause: error,
+        });
+      }
 
       await this.store.update(updated);
 

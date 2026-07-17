@@ -37,9 +37,6 @@ export class ImportWorldbookUseCase {
       name: imported.name,
       description: imported.description,
       tags: imported.tags,
-      scanDepth: imported.scanDepth,
-      tokenBudget: imported.tokenBudget,
-      recursiveScan: imported.recursiveScan,
       entries: imported.entries.map((entry) => ({
         ...entry,
         id: this.idGenerator.createId(),

@@ -47,7 +47,7 @@ export class DeletePresetEntryUseCase {
 
       const nowMs = ensureEpochMillis(this.clock.now().getTime());
       const remainingItems = current.promptItems
-        .filter((item) => item.entryId !== command.entryId)
+        .filter((item) => item.kind !== 'customPrompt' || item.entryId !== command.entryId)
         .map((item, index) => ({ ...item, orderIndex: index }));
       const updated = withPresetTokenCount({
         ...current,

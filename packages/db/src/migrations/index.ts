@@ -14,6 +14,8 @@ import * as filesMigration from './0011_files.js';
 import * as assetDefaultsMigration from './0012_asset_defaults.js';
 import * as assetDefaultsDomainEventsMigration from './0013_asset_defaults_domain_events.js';
 import * as chatsMigration from './0014_chats.js';
+import * as presetPromptModelMigration from './0015_preset_prompt_model.js';
+import * as worldbookScanningMigration from './0016_worldbook_scanning.js';
 
 type DialectMigration = {
   common: Migration;
@@ -64,6 +66,12 @@ const migrations: Record<string, DialectMigration> = {
   },
   '0014_chats': {
     common: chatsMigration,
+  },
+  '0015_preset_prompt_model': {
+    common: presetPromptModelMigration,
+  },
+  '0016_worldbook_scanning': {
+    common: worldbookScanningMigration,
   },
 };
 

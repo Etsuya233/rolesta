@@ -6,7 +6,12 @@ import { PresetApplicationError } from './preset-application-error.js';
 import { translatePresetError } from './preset-error.mapper.js';
 import type { PresetClock } from './preset-application-services.js';
 import type { PresetStore } from '../ports/preset-store.js';
-import type { Preset, PresetEntryPosition, PresetEntryRole } from '../domain/preset.js';
+import type {
+  Preset,
+  PresetEntryRole,
+  PresetGenerationType,
+  PresetPromptPlacement,
+} from '../domain/preset.js';
 import { withPresetTokenCount } from '../domain/preset.js';
 
 export interface UpdatePresetEntryCommand {
@@ -15,7 +20,8 @@ export interface UpdatePresetEntryCommand {
   viewerUserId: string;
   name?: string;
   role?: PresetEntryRole;
-  position?: PresetEntryPosition;
+  placement?: PresetPromptPlacement;
+  generationTypes?: PresetGenerationType[];
   content?: string;
 }
 
@@ -64,7 +70,8 @@ export class UpdatePresetEntryUseCase {
             ...entry,
             name: command.name ?? entry.name,
             role: command.role ?? entry.role,
-            position: command.position ?? entry.position,
+            placement: command.placement ?? entry.placement,
+            generationTypes: command.generationTypes ?? entry.generationTypes,
             content,
             tokenCount: countPromptTokens(content),
             updatedAtMs: nowMs,

@@ -11,6 +11,13 @@ export type PresetPage =
       entryId: string;
       sessionKey: string;
     }
+  | {
+      name: 'systemItemEdit';
+      key: string;
+      presetId: string;
+      itemId: string;
+      sessionKey: string;
+    }
   | { name: 'import'; key: 'presets:import' };
 
 export const presetListPage: PresetPage = {
@@ -63,6 +70,20 @@ export function presetEntryEditPage(
     key: `preset:${presetId}:entry:${entryId}`,
     presetId,
     entryId,
+    sessionKey,
+  };
+}
+
+export function presetSystemItemEditPage(
+  presetId: string,
+  itemId: string,
+  sessionKey: string,
+): PresetPage {
+  return {
+    name: 'systemItemEdit',
+    key: `preset:${presetId}:system-item:${itemId}`,
+    presetId,
+    itemId,
     sessionKey,
   };
 }

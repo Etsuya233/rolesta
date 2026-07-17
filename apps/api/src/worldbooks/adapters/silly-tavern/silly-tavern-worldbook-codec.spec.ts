@@ -6,6 +6,7 @@ import { WorldbookPortError } from '../../ports/worldbook-port-error.js';
 import {
   fromSillyTavernWorldInfo,
   toSillyTavernWorldInfo,
+  worldbookScanSourceFromCharacterBook,
 } from './silly-tavern-worldbook-codec.js';
 
 describe('SillyTavern world info mapper', () => {
@@ -29,16 +30,17 @@ describe('SillyTavern world info mapper', () => {
       constant: false,
       vectorized: false,
       selective: true,
-      caseSensitive: false,
-      matchWholeWords: false,
+      caseSensitive: null,
+      matchWholeWords: null,
       insertionPosition: 'beforeCharacterDefinition',
       selectiveLogic: 'andAny',
       insertionRole: 'system',
       scanDepth: null,
       excludeRecursion: false,
       preventRecursion: false,
-      delayUntilRecursion: false,
-      insertionOrder: 0,
+      delayUntilRecursion: 0,
+      insertionOrder: 100,
+      displayIndex: 0,
       depth: 4,
       probability: 100,
     });
@@ -71,6 +73,7 @@ describe('SillyTavern world info mapper', () => {
             role: 2,
             selectiveLogic: 3,
             order: 7,
+            displayIndex: 2,
             depth: 3,
             scanDepth: 6,
             excludeRecursion: true,
@@ -89,9 +92,6 @@ describe('SillyTavern world info mapper', () => {
       name: 'Array book',
       description: 'Lore',
       tags: ['setting'],
-      scanDepth: 5,
-      tokenBudget: 800,
-      recursiveScan: true,
     });
     expect(worldbook.entries[0]).toMatchObject({
       enabled: false,
@@ -103,12 +103,14 @@ describe('SillyTavern world info mapper', () => {
       insertionRole: 'assistant',
       selectiveLogic: 'andAll',
       vectorized: true,
+      depth: 3,
       scanDepth: 6,
       excludeRecursion: true,
       preventRecursion: true,
-      delayUntilRecursion: true,
+      delayUntilRecursion: 1,
       anchorName: 'gate-anchor',
       insertionOrder: 7,
+      displayIndex: 2,
     });
     expect(worldbook.entries[0]).not.toHaveProperty('unsupported');
   });
@@ -142,10 +144,11 @@ describe('SillyTavern world info mapper', () => {
       insertionRole: 'user',
       selectiveLogic: 'notAny',
       vectorized: true,
+      depth: 4,
       scanDepth: 9,
       excludeRecursion: true,
       preventRecursion: true,
-      delayUntilRecursion: true,
+      delayUntilRecursion: 1,
       anchorName: 'anchor-slot',
     });
   });
@@ -157,6 +160,36 @@ describe('SillyTavern world info mapper', () => {
     );
   });
 
+  it('converts a V3 character card embedded worldbook into a typed scan source', () => {
+    const card = JSON.parse(
+      readFileSync(
+        resolve(process.cwd(), 'test/fixtures/silly-tavern/st_default_character.json'),
+        'utf8',
+      ),
+    ) as { data: { character_book: Record<string, unknown> } };
+    const source = worldbookScanSourceFromCharacterBook({
+      characterId: 'character-1',
+      characterName: 'Seraphina',
+      sourceRole: 'character',
+      characterBook: card.data.character_book,
+    });
+
+    expect(source).toMatchObject({
+      sourceType: 'characterCard',
+      sourceAssetId: 'character-1',
+      sourceRole: 'character',
+      name: 'Seraphina',
+    });
+    expect(source.entries).toHaveLength(4);
+    expect(source.entries[0]).toMatchObject({
+      id: '0',
+      primaryKeys: ['eldoria', 'wood', 'forest', 'magical forest'],
+      matchWholeWords: null,
+      useGroupScoring: false,
+      ignoreBudget: false,
+    });
+  });
+
   it('exports SillyTavern compatible core fields without source snapshot merging', () => {
     const worldbook: Worldbook = {
       id: 'book-1',
@@ -165,9 +198,6 @@ describe('SillyTavern world info mapper', () => {
       name: 'Exported',
       description: '',
       tags: [],
-      scanDepth: 3,
-      tokenBudget: 1024,
-      recursiveScan: false,
       sourceFormat: 'sillytavern_world_info',
       sourceSnapshot: { providerOnly: true },
       createdAtMs: 1,
@@ -187,18 +217,40 @@ describe('SillyTavern world info mapper', () => {
           selective: false,
           constant: true,
           vectorized: true,
+          ignoreBudget: false,
+          useProbability: true,
           caseSensitive: false,
           matchWholeWords: true,
+          matchPersonaDescription: false,
+          matchCharacterDescription: false,
+          matchCharacterPersonality: false,
+          matchCharacterDepthPrompt: false,
+          matchScenario: false,
+          matchCreatorNotes: false,
           selectiveLogic: 'notAll',
           insertionPosition: 'atDepth',
           insertionOrder: 2,
+          displayIndex: 5,
           depth: 4,
           insertionRole: 'assistant',
           anchorName: 'slot',
           scanDepth: 8,
           excludeRecursion: true,
           preventRecursion: true,
-          delayUntilRecursion: true,
+          delayUntilRecursion: 1,
+          group: '',
+          groupOverride: false,
+          groupWeight: 100,
+          useGroupScoring: null,
+          sticky: null,
+          cooldown: null,
+          delay: null,
+          characterFilterNames: [],
+          characterFilterTags: [],
+          characterFilterExclude: false,
+          triggers: [],
+          automationId: '',
+          addMemo: false,
           probability: 100,
           tokenCount: 1,
           createdAtMs: 1,
@@ -223,8 +275,10 @@ describe('SillyTavern world info mapper', () => {
       scanDepth: 8,
       excludeRecursion: true,
       preventRecursion: true,
-      delayUntilRecursion: true,
+      delayUntilRecursion: 1,
       outletName: 'slot',
+      order: 2,
+      displayIndex: 5,
     });
     expect(output).not.toHaveProperty('providerOnly');
   });

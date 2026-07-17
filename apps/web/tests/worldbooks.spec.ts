@@ -41,6 +41,75 @@ test('keeps public visibility selected after reopening the worldbook editor', as
   await expect(visibilitySelect).toHaveText('Public');
 });
 
+test('loads and saves user-level worldbook scan preferences', async ({ page }) => {
+  let savedPreferences: Record<string, unknown> | null = null;
+  const preferences = worldbookScanPreferences();
+
+  await mockAuthenticatedApp(page);
+  await mockWorldbookList(page);
+  await page.route(/\/api\/worldbooks\/scan-preferences$/, async (route) => {
+    if (route.request().method() === 'PUT') {
+      savedPreferences = route.request().postDataJSON() as Record<string, unknown>;
+    }
+
+    await route.fulfill({
+      contentType: 'application/json',
+      json: {
+        code: 'SUCCESS',
+        msg: 'ok',
+        data: savedPreferences ?? preferences,
+      },
+    });
+  });
+
+  await page.goto('/app/worldbooks');
+  await page.getByRole('button', { name: 'Worldbook scan settings' }).click();
+  await expect(page.getByText('Worldbook scan preferences', { exact: true })).toBeVisible();
+
+  await page.getByRole('spinbutton', { name: 'Scan depth' }).fill('6');
+  await page.getByRole('checkbox', { name: 'Recursive scan' }).check();
+  await page.getByRole('button', { name: 'Save preferences' }).click();
+
+  await expect
+    .poll(() => savedPreferences)
+    .toMatchObject({
+      scanDepth: 6,
+      budgetPercent: 25,
+      recursive: true,
+      characterLoreInsertionStrategy: 'characterFirst',
+    });
+});
+
+test('edits insertion priority without changing display order', async ({ page }) => {
+  let savedDocument: Record<string, unknown> | null = null;
+
+  await mockAuthenticatedApp(page);
+  await mockWorldbookList(page);
+  await page.route(/\/api\/worldbooks\/worldbook_e2e$/, async (route) => {
+    if (route.request().method() === 'PUT') {
+      savedDocument = route.request().postDataJSON() as Record<string, unknown>;
+      await fulfillWorldbookDetail(route, savedDocument);
+      return;
+    }
+
+    await fulfillWorldbookDetail(route);
+  });
+
+  await page.goto('/app/worldbooks');
+  await page.getByRole('button', { name: /Complete worldbook/ }).click();
+  await page.getByRole('button', { name: 'Entries', exact: true }).click();
+  await page.getByText('First', { exact: true }).click();
+  await page.getByRole('spinbutton', { name: 'Order' }).fill('999');
+  await page.getByTestId('worldbook-floating-save').click();
+
+  await expect.poll(() => savedDocument).toMatchObject({
+    entries: [
+      { id: 'entry_1', insertionOrder: 999 },
+      { id: 'entry_2', insertionOrder: 100 },
+    ],
+  });
+});
+
 test('keeps worldbook entry changes in one draft until save', async ({ page }) => {
   let savedDocument: Record<string, unknown> | null = null;
   let updateRequestCount = 0;
@@ -72,7 +141,7 @@ test('keeps worldbook entry changes in one draft until save', async ({ page }) =
   const saveEntry = floatingSave;
   await expect(page.getByRole('button', { name: 'Delete entry' })).toBeVisible();
   await expect(saveEntry).toBeDisabled();
-  await page.getByRole('textbox', { name: 'Name' }).fill('Second updated');
+  await page.getByRole('textbox', { name: 'Name', exact: true }).fill('Second updated');
   await expect(saveEntry).toBeEnabled();
   await page.getByRole('button', { name: 'Back' }).click();
 
@@ -105,13 +174,20 @@ test('keeps worldbook entry changes in one draft until save', async ({ page }) =
           enabled: false,
           constant: true,
         },
-        { id: 'entry_2', name: 'Second updated', enabled: true },
+        {
+          id: 'entry_2',
+          name: 'Second updated',
+          enabled: true,
+          vectorized: true,
+          automationId: 'quick-reply-2',
+          addMemo: true,
+        },
       ],
     });
   await expect.poll(() => updateRequestCount).toBe(1);
 
   await page.setViewportSize({ width: 390, height: 844 });
-  const lastEntryControl = page.getByRole('checkbox', {
+  const lastEntryControl = page.getByRole('spinbutton', {
     name: 'Delay until recursion',
   });
   await lastEntryControl.scrollIntoViewIfNeeded();
@@ -150,9 +226,6 @@ async function mockWorldbookList(page: Page) {
               name: 'Complete worldbook',
               description: '',
               tags: [],
-              scanDepth: 3,
-              tokenBudget: 1024,
-              recursiveScan: false,
               entryCount: 2,
               enabledEntryCount: 2,
               tokenCount: 4,
@@ -175,7 +248,11 @@ async function mockWorldbookList(page: Page) {
 async function fulfillWorldbookDetail(route: Route, document: Record<string, unknown> = {}) {
   const entries = (document.entries as Array<Record<string, unknown>> | undefined) ?? [
     worldbookEntry('entry_1', 'First'),
-    worldbookEntry('entry_2', 'Second'),
+    worldbookEntry('entry_2', 'Second', {
+      vectorized: true,
+      automationId: 'quick-reply-2',
+      addMemo: true,
+    }),
   ];
 
   await route.fulfill({
@@ -190,9 +267,6 @@ async function fulfillWorldbookDetail(route: Route, document: Record<string, unk
         name: document.name ?? 'Complete worldbook',
         description: document.description ?? '',
         tags: document.tags ?? [],
-        scanDepth: document.scanDepth ?? 3,
-        tokenBudget: document.tokenBudget ?? 1024,
-        recursiveScan: document.recursiveScan ?? false,
         entryCount: entries.length,
         enabledEntryCount: entries.filter((entry) => entry.enabled).length,
         tokenCount: 4,
@@ -201,11 +275,12 @@ async function fulfillWorldbookDetail(route: Route, document: Record<string, unk
         updatedAtMs: 1783090001000,
         lastUsedAtMs: null,
         usageCount: 0,
-        entries: entries.map((entry, insertionOrder) => ({
+        entries: entries.map((entry, displayIndex) => ({
           worldbookId: 'worldbook_e2e',
-          insertionOrder,
+          insertionOrder: 100,
+          displayIndex,
           tokenCount: 2,
-          createdAtMs: 1783090000000 + insertionOrder,
+          createdAtMs: 1783090000000 + displayIndex,
           updatedAtMs: 1783090001000,
           ...entry,
         })),
@@ -214,7 +289,7 @@ async function fulfillWorldbookDetail(route: Route, document: Record<string, unk
   });
 }
 
-function worldbookEntry(id: string, name: string) {
+function worldbookEntry(id: string, name: string, overrides: Record<string, unknown> = {}) {
   return {
     id,
     enabled: true,
@@ -227,8 +302,16 @@ function worldbookEntry(id: string, name: string) {
     selectiveLogic: 'andAny',
     constant: false,
     vectorized: false,
-    caseSensitive: false,
-    matchWholeWords: false,
+    ignoreBudget: false,
+    useProbability: true,
+    caseSensitive: null,
+    matchWholeWords: null,
+    matchPersonaDescription: false,
+    matchCharacterDescription: false,
+    matchCharacterPersonality: false,
+    matchCharacterDepthPrompt: false,
+    matchScenario: false,
+    matchCreatorNotes: false,
     insertionPosition: 'beforeCharacterDefinition',
     depth: 3,
     insertionRole: 'system',
@@ -236,7 +319,38 @@ function worldbookEntry(id: string, name: string) {
     scanDepth: null,
     excludeRecursion: false,
     preventRecursion: false,
-    delayUntilRecursion: false,
+    delayUntilRecursion: 0,
+    group: '',
+    groupOverride: false,
+    groupWeight: 100,
+    useGroupScoring: null,
+    sticky: null,
+    cooldown: null,
+    delay: null,
+    characterFilterNames: [],
+    characterFilterTags: [],
+    characterFilterExclude: false,
+    triggers: [],
+    automationId: '',
+    addMemo: false,
     probability: 100,
+    ...overrides,
+  };
+}
+
+function worldbookScanPreferences() {
+  return {
+    scanDepth: 2,
+    minActivations: 0,
+    minActivationsDepthMax: 0,
+    budgetPercent: 25,
+    budgetCap: 0,
+    recursive: false,
+    caseSensitive: false,
+    matchWholeWords: false,
+    useGroupScoring: false,
+    maxRecursionSteps: 0,
+    includeNames: true,
+    characterLoreInsertionStrategy: 'characterFirst',
   };
 }

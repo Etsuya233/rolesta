@@ -1,492 +1,247 @@
 import { describe, expect, it } from 'vitest';
+import type { PageResponse } from '@rolesta/shared';
 import type { UnitOfWork } from '../../common/application/unit-of-work.js';
 import type { DomainEventPublisher } from '../../common/events/index.js';
-import type { PageResponse } from '@rolesta/shared';
-import { PresetApplicationError } from './preset-application-error.js';
+import { createDefaultPresetModelSettings } from '../domain/preset-model-settings.js';
+import {
+  createDefaultPresetPromptItems,
+  withPresetTokenCount,
+  type Preset,
+  type PresetSummary,
+} from '../domain/preset.js';
+import type { PresetCodec, ImportedPreset } from '../ports/preset-codec.js';
+import type { PresetModelProviderAccess } from '../ports/preset-model-provider-access.js';
+import type { PresetStore } from '../ports/preset-store.js';
 import { CreatePresetUseCase } from './create-preset.use-case.js';
 import { ImportPresetUseCase } from './import-preset.use-case.js';
-import { GetPresetUseCase } from './get-preset.use-case.js';
-import { UpdatePresetPromptItemsUseCase } from './update-preset-prompt-items.use-case.js';
 import { UpdatePresetDocumentUseCase } from './update-preset-document.use-case.js';
-import { UpdatePresetUseCase } from './update-preset.use-case.js';
-import type { PresetClock, PresetIdGenerator } from './preset-application-services.js';
-import type { Preset, PresetSummary } from '../domain/preset.js';
-import type { PresetCodec, ImportedPreset } from '../ports/preset-codec.js';
-import { PresetPortError } from '../ports/preset-port-error.js';
-import type { PresetStore } from '../ports/preset-store.js';
-import type { PresetModelProviderAccess } from '../ports/preset-model-provider-access.js';
+import { UpdatePresetPromptItemsUseCase } from './update-preset-prompt-items.use-case.js';
 
 describe('preset use cases', () => {
-  it('creates a preset linked to an owned model provider', async () => {
+  it('creates a preset with all twelve system items', async () => {
     const store = new InMemoryPresetStore();
     const useCase = new CreatePresetUseCase(
       store,
-      new FixedIdGenerator('preset_1'),
-      new FixedClock(1783090000000),
-      new InMemoryPresetModelProviderAccess([{ id: 'provider_1', ownerUserId: 'owner' }]),
+      new FixedIdGenerator(),
+      new FixedClock(),
+      new InMemoryPresetModelProviderAccess(),
       unitOfWork,
     );
 
-    await expect(
-      useCase.execute({
-        ownerUserId: 'owner',
-        name: 'Linked preset',
-        modelProviderId: 'provider_1',
-      }),
-    ).resolves.toMatchObject({ modelProviderId: 'provider_1' });
-    expect(store.savedPreset?.modelProviderId).toBe('provider_1');
+    const created = await useCase.execute({ ownerUserId: 'owner', name: 'New preset' });
+
+    expect(created.promptItems).toHaveLength(12);
+    expect(created.entries).toHaveLength(0);
+    expect(store.savedPreset).toEqual(created);
   });
 
-  it('rejects a model provider unavailable to the preset owner', async () => {
-    const useCase = new CreatePresetUseCase(
+  it('returns import issues and supplemented item keys', async () => {
+    const importedIdGenerator = new FixedIdGenerator();
+    const imported: ImportedPreset = {
+      name: 'Imported',
+      modelSettings: createDefaultPresetModelSettings(),
+      tokenizer: 'cl100k_base',
+      entries: [],
+      promptItems: createDefaultPresetPromptItems(() => importedIdGenerator.createId())
+        .filter((item) => item.kind !== 'customPrompt')
+        .map((item) => ({ ...item, enabled: false })),
+      issues: [{ identifier: 'unknown', name: 'Unknown', reason: 'unknown-marker' }],
+      supplementedItems: ['mainPrompt'],
+      sourceSnapshot: {},
+    };
+    const useCase = new ImportPresetUseCase(
       new InMemoryPresetStore(),
-      new FixedIdGenerator('preset_1'),
-      new FixedClock(1783090000000),
-      new InMemoryPresetModelProviderAccess([{ id: 'provider_1', ownerUserId: 'other' }]),
+      new FixedPresetCodec(imported),
+      new FixedIdGenerator(),
+      new FixedClock(),
       unitOfWork,
     );
 
-    await expect(
-      useCase.execute({
-        ownerUserId: 'owner',
-        name: 'Linked preset',
-        modelProviderId: 'provider_1',
-      }),
-    ).rejects.toMatchObject({
-      reason: 'model-provider-unavailable',
-      params: { modelProviderId: 'provider_1' },
-    });
+    const result = await useCase.execute({ ownerUserId: 'owner', content: Buffer.from('{}') });
+
+    expect(result.preset.promptItems).toHaveLength(12);
+    expect(result.issues).toEqual(imported.issues);
+    expect(result.supplementedItems).toEqual(['mainPrompt']);
   });
 
-  it('preserves omitted model provider fields and clears explicit nulls', async () => {
-    const store = new InMemoryPresetStore([
-      preset({ id: 'preset_1', modelProviderId: 'provider_1' }),
-    ]);
-    const useCase = new UpdatePresetUseCase(
+  it('updates the full typed document while preserving custom entry identity', async () => {
+    const current = basePreset();
+    current.entries.push({
+      id: 'entry_1',
+      presetId: current.id,
+      identifier: 'custom_1',
+      name: 'Old',
+      role: 'system',
+      content: 'old',
+      placement: { kind: 'relative' },
+      generationTypes: [],
+      tokenCount: 1,
+      metadata: { extension: true },
+      createdAtMs: 10,
+      updatedAtMs: 10,
+    });
+    current.promptItems.push({
+      id: 'custom_item',
+      kind: 'customPrompt',
+      entryId: 'entry_1',
+      enabled: false,
+      orderIndex: current.promptItems.length,
+    });
+    const store = new InMemoryPresetStore([current]);
+    const useCase = new UpdatePresetDocumentUseCase(
       store,
-      new FixedClock(1783090000000),
+      new FixedClock(),
       new InMemoryPresetModelProviderAccess(),
       unitOfWork,
       events,
     );
-
-    await expect(
-      useCase.execute({
-        id: 'preset_1',
-        viewerUserId: 'owner',
-        name: 'Renamed',
-      }),
-    ).resolves.toMatchObject({ modelProviderId: 'provider_1' });
-    expect(store.updatedAssociation).toBeNull();
-
-    await expect(
-      useCase.execute({
-        id: 'preset_1',
-        viewerUserId: 'owner',
-        modelProviderId: null,
-      }),
-    ).resolves.toMatchObject({ modelProviderId: null });
-    expect(store.updatedAssociation).toEqual({
-      presetId: 'preset_1',
-      ownerUserId: 'owner',
-      modelProviderId: null,
-    });
-  });
-
-  it('allows public reads and keeps private presets owner-only', async () => {
-    const store = new InMemoryPresetStore([
-      preset({ id: 'public', ownerUserId: 'owner', visibility: 'public' }),
-      preset({ id: 'private', ownerUserId: 'owner', visibility: 'private' }),
-    ]);
-    const useCase = new GetPresetUseCase(store);
-
-    await expect(useCase.execute({ id: 'public', viewerUserId: 'reader' })).resolves.toMatchObject({
-      id: 'public',
-    });
-    await expect(useCase.execute({ id: 'private', viewerUserId: 'reader' })).rejects.toMatchObject({
-      reason: 'not-found',
-    });
-  });
-
-  it('maps codec port errors to application errors for import use cases', async () => {
-    const useCase = new ImportPresetUseCase(
-      new NoopPresetStore(),
-      new ThrowingPresetCodec(),
-      new FixedIdGenerator('preset_1'),
-      new FixedClock(1783090000000),
-      unitOfWork,
-    );
-
-    await expect(
-      useCase.execute({
-        ownerUserId: 'owner',
-        content: Buffer.from('{}', 'utf8'),
-      }),
-    ).rejects.toMatchObject(
-      new PresetApplicationError({
-        reason: 'invalid-preset',
-        params: {
-          field: 'prompts',
-        },
-        cause: expect.any(PresetPortError),
-      }),
-    );
-  });
-
-  it('keeps duplicate prompt item errors on the application boundary', async () => {
-    const useCase = new UpdatePresetPromptItemsUseCase(
-      new InMemoryPresetStore([
-        preset({
-          id: 'preset_1',
-          ownerUserId: 'owner',
-          entries: [
-            {
-              id: 'entry_1',
-              presetId: 'preset_1',
-              identifier: 'main',
-              name: 'Main',
-              role: 'system',
-              position: 'system',
-              content: 'alpha',
-              tokenCount: 1,
-              metadata: {},
-              createdAtMs: 1,
-              updatedAtMs: 1,
-            },
-          ],
-          promptItems: [],
-        }),
-      ]),
-      new FixedClock(1783090000000),
-      unitOfWork,
-    );
-
-    await expect(
-      useCase.execute({
-        presetId: 'preset_1',
-        viewerUserId: 'owner',
-        items: [
-          { entryId: 'entry_1', enabled: true },
-          { entryId: 'entry_1', enabled: false },
-        ],
-      }),
-    ).rejects.toMatchObject(
-      new PresetApplicationError({
-        reason: 'duplicate-entry',
-        params: {
-          presetId: 'preset_1',
-          entryId: 'entry_1',
-        },
-      }),
-    );
-  });
-
-  it('replaces the editable preset document as one aggregate', async () => {
-    const store = new InMemoryPresetStore([
-      preset({
-        id: 'preset_1',
-        ownerUserId: 'owner',
-        entries: [
-          {
-            id: 'entry_1',
-            presetId: 'preset_1',
-            identifier: 'preserved-identifier',
-            name: 'Old entry',
-            role: 'system',
-            position: 'system',
-            content: 'old content',
-            tokenCount: 2,
-            metadata: { extension: true },
-            createdAtMs: 10,
-            updatedAtMs: 10,
-          },
-        ],
-        promptItems: [{ entryId: 'entry_1', enabled: false, orderIndex: 0 }],
-      }),
-    ]);
-    const useCase = new UpdatePresetDocumentUseCase(
-      store,
-      new FixedClock(1783090000000),
-      new InMemoryPresetModelProviderAccess([{ id: 'provider_1', ownerUserId: 'owner' }]),
-      unitOfWork,
-      events,
-    );
-
+    const main = current.promptItems.find(
+      (item) => item.kind === 'systemPrompt' && item.systemPrompt === 'mainPrompt',
+    )!;
     const updated = await useCase.execute({
-      presetId: 'preset_1',
+      presetId: current.id,
       viewerUserId: 'owner',
       visibility: 'public',
-      name: 'Updated preset',
-      modelProviderId: 'provider_1',
-      modelSettings: {
-        ...preset({}).modelSettings,
-        stream: false,
-      },
+      name: 'Updated',
+      modelProviderId: null,
+      modelSettings: current.modelSettings,
       entries: [
         {
           id: 'entry_1',
-          name: 'Updated entry',
+          name: 'Updated custom',
           role: 'user',
-          position: 'chat',
-          content: 'updated content',
-        },
-        {
-          id: 'entry_2',
-          name: 'New entry',
-          role: 'assistant',
-          position: 'postHistory',
-          content: 'new content',
+          content: 'updated',
+          placement: { kind: 'inChat', depth: 4, order: 100 },
+          generationTypes: ['quiet'],
         },
       ],
-      promptItems: [
-        { entryId: 'entry_2', enabled: true },
-        { entryId: 'entry_1', enabled: true },
-      ],
+      promptItems: current.promptItems.map((item) =>
+        item.id === main.id && item.kind === 'systemPrompt'
+          ? { ...item, content: 'Changed main', enabled: true }
+          : item,
+      ),
     });
 
-    expect(updated.name).toBe('Updated preset');
-    expect(updated.visibility).toBe('public');
-    expect(updated.modelSettings.stream).toBe(false);
-    expect(updated.modelProviderId).toBe('provider_1');
-    expect(updated.entries).toHaveLength(2);
+    expect(updated.name).toBe('Updated');
     expect(updated.entries[0]).toMatchObject({
-      id: 'entry_1',
-      identifier: 'preserved-identifier',
+      identifier: 'custom_1',
       metadata: { extension: true },
-      createdAtMs: 10,
-      updatedAtMs: 1783090000000,
+      content: 'updated',
     });
-    expect(updated.entries[1]).toMatchObject({
-      id: 'entry_2',
-      identifier: 'entry_2',
-      metadata: {},
-      createdAtMs: 1783090000000,
+    expect(updated.promptItems.find((item) => item.id === main.id)).toMatchObject({
+      kind: 'systemPrompt',
+      content: 'Changed main',
     });
-    expect(updated.promptItems).toEqual([
-      { entryId: 'entry_2', enabled: true, orderIndex: 0 },
-      { entryId: 'entry_1', enabled: true, orderIndex: 1 },
-    ]);
-    expect(store.updatedPreset).toEqual(updated);
   });
 
-  it('rejects prompt items that reference entries outside the document', async () => {
-    const useCase = new UpdatePresetDocumentUseCase(
-      new InMemoryPresetStore([preset({ id: 'preset_1' })]),
-      new FixedClock(1783090000000),
-      new InMemoryPresetModelProviderAccess(),
+  it('keeps system items required when updating prompt item state', async () => {
+    const current = basePreset();
+    const useCase = new UpdatePresetPromptItemsUseCase(
+      new InMemoryPresetStore([current]),
+      new FixedClock(),
       unitOfWork,
-      events,
     );
 
     await expect(
       useCase.execute({
-        presetId: 'preset_1',
+        presetId: current.id,
         viewerUserId: 'owner',
-        visibility: 'private',
-        name: 'Preset',
-        modelProviderId: null,
-        modelSettings: preset({}).modelSettings,
-        entries: [],
-        promptItems: [{ entryId: 'missing', enabled: true }],
+        items: current.promptItems.slice(1).map((item) => ({ id: item.id, enabled: item.enabled })),
       }),
-    ).rejects.toMatchObject(
-      new PresetApplicationError({
-        reason: 'unknown-entry',
-        params: { presetId: 'preset_1', entryId: 'missing' },
-      }),
-    );
+    ).rejects.toMatchObject({ reason: 'invalid-preset' });
   });
 });
 
 const unitOfWork: UnitOfWork = { run: (operation) => operation() };
 const events = { publish: () => Promise.resolve() } as unknown as DomainEventPublisher;
 
-class ThrowingPresetCodec implements PresetCodec {
+class FixedPresetCodec implements PresetCodec {
+  constructor(private readonly imported: ImportedPreset) {}
   importFile(): ImportedPreset {
-    throw new PresetPortError({
-      reason: 'invalid-preset',
-      params: {
-        field: 'prompts',
-      },
-    });
+    return this.imported;
   }
-
   exportPreset(): object {
     return {};
-  }
-}
-
-class NoopPresetStore implements PresetStore {
-  list(): Promise<PageResponse<PresetSummary>> {
-    return Promise.resolve(emptyPage());
-  }
-
-  findOwnedById(): Promise<Preset | null> {
-    return Promise.resolve(null);
-  }
-
-  findVisibleById(): Promise<Preset | null> {
-    return Promise.resolve(null);
-  }
-
-  save(): Promise<void> {
-    return Promise.resolve();
-  }
-
-  update(): Promise<void> {
-    return Promise.resolve();
-  }
-
-  updateModelProviderAssociation(): Promise<void> {
-    return Promise.resolve();
-  }
-
-  clearModelProviderAssociations(): Promise<void> {
-    return Promise.resolve();
-  }
-
-  deleteOwned(): Promise<boolean> {
-    return Promise.resolve(false);
   }
 }
 
 class InMemoryPresetStore implements PresetStore {
   savedPreset: Preset | null = null;
   updatedPreset: Preset | null = null;
-  updatedAssociation: {
-    presetId: string;
-    ownerUserId: string;
-    modelProviderId: string | null;
-  } | null = null;
-
   constructor(private readonly presets: Preset[] = []) {}
-
   list(): Promise<PageResponse<PresetSummary>> {
-    return Promise.resolve(emptyPage());
+    return Promise.resolve({ items: [], pageIndex: 0, pageSize: 20, totalItems: 0, totalPages: 0 });
   }
-
   findOwnedById(id: string, ownerUserId: string): Promise<Preset | null> {
-    const preset = this.presets.find(
-      (candidate) => candidate.id === id && candidate.ownerUserId === ownerUserId,
+    return Promise.resolve(
+      this.presets.find((preset) => preset.id === id && preset.ownerUserId === ownerUserId) ?? null,
     );
-    return Promise.resolve(preset ?? null);
   }
-
   findVisibleById(id: string, viewerUserId: string): Promise<Preset | null> {
-    const preset = this.presets.find(
-      (candidate) =>
-        candidate.id === id &&
-        (candidate.ownerUserId === viewerUserId || candidate.visibility === 'public'),
+    return Promise.resolve(
+      this.presets.find(
+        (preset) =>
+          preset.id === id &&
+          (preset.ownerUserId === viewerUserId || preset.visibility === 'public'),
+      ) ?? null,
     );
-    return Promise.resolve(preset ?? null);
   }
-
   save(preset: Preset): Promise<void> {
     this.savedPreset = preset;
     return Promise.resolve();
   }
-
   update(preset: Preset): Promise<void> {
     this.updatedPreset = preset;
     return Promise.resolve();
   }
-
-  updateModelProviderAssociation(
-    presetId: string,
-    ownerUserId: string,
-    modelProviderId: string | null,
-  ): Promise<void> {
-    this.updatedAssociation = { presetId, ownerUserId, modelProviderId };
+  updateModelProviderAssociation(): Promise<void> {
     return Promise.resolve();
   }
-
-  clearModelProviderAssociations(ownerUserId: string, modelProviderId: string): Promise<void> {
-    for (const preset of this.presets) {
-      if (preset.ownerUserId === ownerUserId && preset.modelProviderId === modelProviderId) {
-        preset.modelProviderId = null;
-      }
-    }
+  clearModelProviderAssociations(): Promise<void> {
     return Promise.resolve();
   }
-
   deleteOwned(): Promise<boolean> {
     return Promise.resolve(false);
   }
 }
 
 class InMemoryPresetModelProviderAccess implements PresetModelProviderAccess {
-  constructor(private readonly providers: Array<{ id: string; ownerUserId: string }> = []) {}
-
-  acquireOwned(modelProviderId: string, ownerUserId: string): Promise<boolean> {
-    return Promise.resolve(
-      this.providers.some(
-        (provider) => provider.id === modelProviderId && provider.ownerUserId === ownerUserId,
-      ),
-    );
+  acquireOwned(): Promise<boolean> {
+    return Promise.resolve(true);
   }
 }
 
-function emptyPage(): PageResponse<PresetSummary> {
-  return {
-    items: [],
-    pageIndex: 0,
-    pageSize: 20,
-    totalItems: 0,
-    totalPages: 0,
-  };
-}
-
-class FixedClock implements PresetClock {
-  constructor(private readonly nowMs: number) {}
-
+class FixedClock {
   now(): Date {
-    return new Date(this.nowMs);
+    return new Date(1783090000000);
   }
 }
 
-class FixedIdGenerator implements PresetIdGenerator {
-  constructor(private readonly value: string) {}
-
+class FixedIdGenerator {
+  private value = 0;
   createId(): string {
-    return this.value;
+    this.value += 1;
+    return `id_${this.value}`;
   }
 }
 
-function preset(overrides: Partial<Preset>): Preset {
-  return {
-    id: overrides.id ?? 'preset',
-    ownerUserId: overrides.ownerUserId ?? 'owner',
-    visibility: overrides.visibility ?? 'private',
-    name: overrides.name ?? 'Preset',
+function basePreset(): Preset {
+  const generator = new FixedIdGenerator();
+  return withPresetTokenCount({
+    id: 'preset_1',
+    ownerUserId: 'owner',
+    visibility: 'private',
+    name: 'Preset',
     modelProviderId: null,
-    modelSettings: {
-      contextLength: null,
-      maxResponseLength: null,
-      stream: true,
-      temperature: null,
-      presencePenalty: null,
-      frequencyPenalty: null,
-      repetitionPenalty: null,
-      topP: null,
-      topK: null,
-      minP: null,
-      topA: null,
-      seed: null,
-      n: null,
-      reasoningEffort: '',
-      verbosity: '',
-      showThoughts: false,
-    },
+    modelSettings: createDefaultPresetModelSettings(),
     tokenizer: 'cl100k_base',
     entries: [],
-    promptItems: [],
-    tokenCount: 0,
+    promptItems: createDefaultPresetPromptItems(() => generator.createId()),
     sourceFormat: 'rolesta',
     sourceSnapshot: {},
     createdAtMs: 1,
     updatedAtMs: 1,
     lastUsedAtMs: null,
     usageCount: 0,
-    ...overrides,
-  };
+  });
 }

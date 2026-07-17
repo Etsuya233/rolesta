@@ -23,6 +23,16 @@ export type WorldbookEntryRole = (typeof WORLDBOOK_ENTRY_ROLES)[number];
 export const WORLDBOOK_SELECTIVE_LOGICS = ['andAny', 'notAll', 'notAny', 'andAll'] as const;
 export type WorldbookSelectiveLogic = (typeof WORLDBOOK_SELECTIVE_LOGICS)[number];
 
+export const WORLDBOOK_GENERATION_TRIGGERS = [
+  'normal',
+  'continue',
+  'impersonate',
+  'swipe',
+  'regenerate',
+  'quiet',
+] as const;
+export type WorldbookGenerationTrigger = (typeof WORLDBOOK_GENERATION_TRIGGERS)[number];
+
 export interface Worldbook {
   id: string;
   ownerUserId: string;
@@ -30,9 +40,6 @@ export interface Worldbook {
   name: string;
   description: string;
   tags: string[];
-  scanDepth: number;
-  tokenBudget: number;
-  recursiveScan: boolean;
   entries: WorldbookEntry[];
   sourceFormat: WorldbookSourceFormat;
   sourceSnapshot: unknown;
@@ -49,9 +56,6 @@ export interface WorldbookSummary {
   name: string;
   description: string;
   tags: string[];
-  scanDepth: number;
-  tokenBudget: number;
-  recursiveScan: boolean;
   entryCount: number;
   enabledEntryCount: number;
   tokenCount: number;
@@ -74,17 +78,39 @@ export interface WorldbookEntry {
   selectiveLogic: WorldbookSelectiveLogic;
   constant: boolean;
   vectorized: boolean;
-  caseSensitive: boolean;
-  matchWholeWords: boolean;
+  ignoreBudget: boolean;
+  useProbability: boolean;
+  caseSensitive: boolean | null;
+  matchWholeWords: boolean | null;
+  matchPersonaDescription: boolean;
+  matchCharacterDescription: boolean;
+  matchCharacterPersonality: boolean;
+  matchCharacterDepthPrompt: boolean;
+  matchScenario: boolean;
+  matchCreatorNotes: boolean;
   insertionPosition: WorldbookInsertionPosition;
   insertionOrder: number;
+  displayIndex: number;
   depth: number;
   insertionRole: WorldbookEntryRole;
   anchorName: string;
   scanDepth: number | null;
   excludeRecursion: boolean;
   preventRecursion: boolean;
-  delayUntilRecursion: boolean;
+  delayUntilRecursion: number;
+  group: string;
+  groupOverride: boolean;
+  groupWeight: number;
+  useGroupScoring: boolean | null;
+  sticky: number | null;
+  cooldown: number | null;
+  delay: number | null;
+  characterFilterNames: string[];
+  characterFilterTags: string[];
+  characterFilterExclude: boolean;
+  triggers: WorldbookGenerationTrigger[];
+  automationId: string;
+  addMemo: boolean;
   probability: number;
   tokenCount: number;
   createdAtMs: number;
@@ -99,9 +125,6 @@ export function toWorldbookSummary(worldbook: Worldbook): WorldbookSummary {
     name: worldbook.name,
     description: worldbook.description,
     tags: worldbook.tags,
-    scanDepth: worldbook.scanDepth,
-    tokenBudget: worldbook.tokenBudget,
-    recursiveScan: worldbook.recursiveScan,
     entryCount: worldbook.entries.length,
     enabledEntryCount: worldbook.entries.filter((entry) => entry.enabled).length,
     tokenCount: worldbook.entries.reduce((total, entry) => total + entry.tokenCount, 0),
