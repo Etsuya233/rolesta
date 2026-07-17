@@ -39,6 +39,11 @@ describe('ApiExceptionFilter', () => {
         reason: 'invalid-avatar',
         params: { field: 'crop' },
         err: cause,
+        response: {
+          code: ERROR_CODES.VALIDATION_FAILED,
+          msg: 'i18n:errors.validationFailed',
+          data: { field: 'crop' },
+        },
       },
       'API failure',
     );

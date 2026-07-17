@@ -48,7 +48,7 @@ export class ApiExceptionFilter implements ExceptionFilter {
       data: apiFailure.params,
     };
 
-    this.logException(exception, apiFailure, httpStatus, request);
+    this.logException(exception, apiFailure, httpStatus, request, envelope);
 
     host.switchToHttp().getResponse<Response>().status(httpStatus).json(envelope);
   }
@@ -58,6 +58,7 @@ export class ApiExceptionFilter implements ExceptionFilter {
     apiFailure: ApiFailure,
     httpStatus: number,
     request: Request,
+    envelope: ApiErrorEnvelope,
   ): void {
     const fields = {
       code: apiFailure.code,
@@ -74,6 +75,7 @@ export class ApiExceptionFilter implements ExceptionFilter {
           reason: exception.reason,
           params: exception.params,
           ...(exception.cause === undefined ? {} : { err: exception.cause }),
+          response: envelope,
         },
         'API failure',
       );

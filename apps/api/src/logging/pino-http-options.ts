@@ -5,17 +5,15 @@ export function pinoHttpOptionsFor(config: AppLoggingConfig): PinoHttpOptions {
   const options: PinoHttpOptions = {
     level: config.level,
     autoLogging: false,
+    quietReqLogger: true,
   };
 
-  const transport = pinoTransportFor(config);
-  if (transport !== undefined) {
-    options.transport = transport;
-  }
+  options.transport = pinoTransportFor(config);
 
   return options;
 }
 
-function pinoTransportFor(config: AppLoggingConfig): PinoHttpOptions['transport'] | undefined {
+function pinoTransportFor(config: AppLoggingConfig): NonNullable<PinoHttpOptions['transport']> {
   if (config.fileEnabled) {
     return {
       targets: [
@@ -32,38 +30,24 @@ function pinoTransportFor(config: AppLoggingConfig): PinoHttpOptions['transport'
     };
   }
 
-  if (config.pretty) {
-    return consolePrettyTarget();
-  }
-
-  return undefined;
+  return consolePrettyTarget(config.pretty);
 }
 
 function consoleTargetFor(config: AppLoggingConfig) {
-  if (config.pretty) {
-    return {
-      ...consolePrettyTarget(),
-      level: config.level,
-    };
-  }
-
   return {
-    target: 'pino/file',
+    ...consolePrettyTarget(config.pretty),
     level: config.level,
-    options: {
-      destination: 1,
-    },
   };
 }
 
-function consolePrettyTarget() {
+function consolePrettyTarget(colorize: boolean) {
   return {
     target: 'pino-pretty',
     options: {
-      colorize: true,
+      colorize,
       singleLine: true,
       translateTime: 'SYS:standard',
-      ignore: 'pid,hostname',
+      ignore: 'pid,hostname,req,request,response,context',
     },
   };
 }

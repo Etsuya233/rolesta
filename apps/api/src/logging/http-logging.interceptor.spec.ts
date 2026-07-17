@@ -15,12 +15,22 @@ const enabledConfig: AppLoggingConfig = {
 };
 
 type LoggedFields = {
+  event: 'http.completed' | 'http.failed';
   method: string;
   path: string;
   statusCode: number;
   durationMs: number;
-  ip: string | undefined;
-  userAgent: string | string[] | undefined;
+  request: {
+    id: string;
+    headers: Request['headers'];
+    query: Request['query'];
+    params: Request['params'];
+    ip: string | undefined;
+  };
+  response: {
+    headers: ReturnType<Response['getHeaders']>;
+    body?: unknown;
+  };
 };
 
 type LoggerStub = PinoLogger & {
@@ -40,11 +50,21 @@ describe('HttpLoggingInterceptor', () => {
     const [fields, message] = firstInfoCall(logger);
 
     expect(fields).toMatchObject({
+      event: 'http.completed',
       method: 'GET',
       path: '/health',
       statusCode: 201,
-      ip: '127.0.0.1',
-      userAgent: 'vitest',
+      request: {
+        id: 'request-1',
+        headers: { 'user-agent': 'vitest' },
+        query: { verbose: 'true' },
+        params: {},
+        ip: '127.0.0.1',
+      },
+      response: {
+        headers: { 'content-type': 'application/json' },
+        body: { ok: true },
+      },
     });
     expect(typeof fields.durationMs).toBe('number');
     expect(message).toBe('HTTP request completed');
@@ -65,6 +85,21 @@ describe('HttpLoggingInterceptor', () => {
     expect(logger.info).not.toHaveBeenCalled();
   });
 
+  it('does not include binary response content', async () => {
+    const logger = loggerStub();
+    const interceptor = new HttpLoggingInterceptor(logger, enabledConfig);
+    const next: CallHandler = {
+      handle: () => of(Buffer.from('image')),
+    };
+
+    await lastValueFrom(interceptor.intercept(httpContextFor(200), next));
+
+    const [fields] = firstInfoCall(logger);
+    expect(fields.response).toEqual({
+      headers: { 'content-type': 'application/json' },
+    });
+  });
+
   it('writes failed access logs and rethrows the exception', async () => {
     const logger = loggerStub();
     const interceptor = new HttpLoggingInterceptor(logger, enabledConfig);
@@ -79,7 +114,11 @@ describe('HttpLoggingInterceptor', () => {
 
     expect(logger.info).toHaveBeenCalledWith(
       expect.objectContaining({
+        event: 'http.failed',
         statusCode: 400,
+        response: {
+          headers: { 'content-type': 'application/json' },
+        },
       }),
       'HTTP request failed',
     );
@@ -102,16 +141,24 @@ function firstInfoCall(logger: LoggerStub): [LoggedFields, string] {
 }
 
 function httpContextFor(statusCode: number): ExecutionContext {
-  const request: Pick<Request, 'method' | 'originalUrl' | 'ip' | 'headers'> = {
+  const request: Pick<
+    Request,
+    'id' | 'method' | 'originalUrl' | 'ip' | 'headers' | 'query' | 'params'
+  > = {
+    id: 'request-1',
     method: 'GET',
     originalUrl: '/health',
     ip: '127.0.0.1',
+    query: { verbose: 'true' },
+    params: {},
     headers: {
       'user-agent': 'vitest',
     },
   };
-  const response: Pick<Response, 'statusCode'> = {
+  const response: Pick<Response, 'statusCode' | 'getHeaders' | 'headersSent'> = {
     statusCode,
+    headersSent: false,
+    getHeaders: () => ({ 'content-type': 'application/json' }),
   };
 
   return {

@@ -33,29 +33,67 @@ export class HttpLoggingInterceptor implements NestInterceptor {
     const startedAt = performance.now();
 
     return next.handle().pipe(
-      tap(() => {
+      tap((body) => {
         this.logger.info(
-          this.logFieldsFor(request, response.statusCode, startedAt),
+          this.logFieldsFor('http.completed', request, response, startedAt, body),
           'HTTP request completed',
         );
       }),
       catchError((error: unknown) => {
         const statusCode = error instanceof HttpException ? error.getStatus() : 500;
-        this.logger.info(this.logFieldsFor(request, statusCode, startedAt), 'HTTP request failed');
+        this.logger.info(
+          this.logFieldsFor('http.failed', request, response, startedAt, undefined, statusCode),
+          'HTTP request failed',
+        );
 
         return throwError(() => error);
       }),
     );
   }
 
-  private logFieldsFor(request: Request, statusCode: number, startedAt: number) {
+  private logFieldsFor(
+    event: 'http.completed' | 'http.failed',
+    request: Request,
+    response: Response,
+    startedAt: number,
+    body?: unknown,
+    statusCode = response.statusCode,
+  ) {
+    const responseDetails: { headers: ReturnType<Response['getHeaders']>; body?: unknown } = {
+      headers: response.getHeaders(),
+    };
+    if (
+      !response.headersSent &&
+      body !== undefined &&
+      !Buffer.isBuffer(body) &&
+      !isReadableStream(body)
+    ) {
+      responseDetails.body = body;
+    }
+
     return {
+      event,
       method: request.method,
       path: request.originalUrl,
       statusCode,
       durationMs: Math.round(performance.now() - startedAt),
-      ip: request.ip,
-      userAgent: request.headers['user-agent'],
+      request: {
+        id: request.id,
+        headers: request.headers,
+        query: request.query,
+        params: request.params,
+        ip: request.ip,
+      },
+      response: responseDetails,
     };
   }
+}
+
+function isReadableStream(value: unknown): value is NodeJS.ReadableStream {
+  return (
+    typeof value === 'object' &&
+    value !== null &&
+    'pipe' in value &&
+    typeof value.pipe === 'function'
+  );
 }
