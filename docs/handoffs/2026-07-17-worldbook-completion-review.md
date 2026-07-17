@@ -15,3 +15,7 @@
 
 [P3] Web 新 Entry 的 depth 默认值仍为 3。
 [worldbook-editor-form.ts (line 93)](C:/Users/Etsuya/Programming/codex/rolesta-v2/.worktrees/chat-prompt-assembling/apps/web/src/features/worldbooks/model/worldbook-editor-form.ts:93) 使用 3，固定 ST 基线的 DEFAULT_DEPTH 为 4。新建后切换到 atDepth 会产生不同默认行为。
+
+## 后续处理
+
+上述 `order/displayIndex`、Anchor 顺序、Trace、必填 `scanDepth` 和默认 depth 问题已在当前分支修正。固定 SillyTavern 黄金样本及其生成器已经补充，覆盖单轮扫描和跨轮定时效果；黄金对比进一步发现并修正了普通注入条目在相同 `order` 下的稳定顺序差异。后续以 golden spec 和当前代码为准，本文件前半部分保留为审查历史。

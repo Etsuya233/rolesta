@@ -273,8 +273,14 @@ export class WorldbookScanner {
       state = nextState;
     }
 
-    const activatedEntries = [...activated.values()]
-      .sort((left, right) => left.entry.insertionOrder - right.entry.insertionOrder)
+    const activatedInScanOrder = [...activated.values()];
+    const scanOrder = new Map(activatedInScanOrder.map((entry, index) => [entry, index]));
+    const activatedEntries = activatedInScanOrder
+      .sort(
+        (left, right) =>
+          left.entry.insertionOrder - right.entry.insertionOrder ||
+          scanOrder.get(right)! - scanOrder.get(left)!,
+      )
       .map(toActivatedEntry);
     const nextRuntimeState = updatedRuntimeState(
       timedEffects.states,

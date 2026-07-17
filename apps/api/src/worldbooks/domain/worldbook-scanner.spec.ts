@@ -8,11 +8,8 @@ import type {
 import { DEFAULT_WORLDBOOK_SCAN_PREFERENCES } from './worldbook-scan-preferences.js';
 import { WorldbookScanner } from './worldbook-scanner.js';
 
-const SILLY_TAVERN_BASELINE = '7ffb28f753b98759bc7f3ac780e2743120023657';
-
 describe('WorldbookScanner', () => {
-  it('matches the fixed SillyTavern baseline for activation and insertion cases', () => {
-    expect(SILLY_TAVERN_BASELINE).toHaveLength(40);
+  it('handles activation and insertion cases', () => {
     const scanner = new WorldbookScanner();
     const result = scanner.scan(
       scanContext({
@@ -76,7 +73,7 @@ describe('WorldbookScanner', () => {
     ]);
   });
 
-  it('matches SillyTavern recursion, probability, inclusion group, and budget behavior', () => {
+  it('handles recursion, probability, inclusion group, and budget behavior', () => {
     const random = sequenceRandom([0.8, 0.75]);
     const result = new WorldbookScanner().scan(
       scanContext({
